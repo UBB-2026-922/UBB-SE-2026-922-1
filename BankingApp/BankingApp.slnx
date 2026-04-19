@@ -1,0 +1,27 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU"/>
+        <Platform Name="x64"/>
+        <Platform Name="x86"/>
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/BankApp.Domain/BankApp.Domain.csproj"/>
+        <Project Path="src/BankApp.Application/BankApp.Application.csproj"/>
+        <Project Path="src/BankApp.Infrastructure/BankApp.Infrastructure.csproj"/>
+        <Project Path="src/BankApp.Api/BankApp.Api.csproj"/>
+        <Project Path="src/BankApp.Desktop/BankApp.Desktop.csproj">
+            <Platform Solution="*|Any CPU" Project="x64"/>
+            <Platform Solution="*|x64" Project="x64"/>
+            <Platform Solution="*|x86" Project="x86"/>
+        </Project>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/BankApp.Domain.Tests/BankApp.Domain.Tests.csproj"/>
+        <Project Path="tests/BankApp.Application.Tests/BankApp.Application.Tests.csproj"/>
+        <Project Path="tests/BankApp.Infrastructure.Tests.Integration/BankApp.Infrastructure.Tests.Integration.csproj"/>
+        <Project Path="tests/BankApp.Infrastructure.Tests/BankApp.Infrastructure.Tests.csproj"/>
+        <Project Path="tests/BankApp.Api.Tests.Integration/BankApp.Api.Tests.Integration.csproj"/>
+        <Project Path="tests/BankApp.Api.Tests/BankApp.Api.Tests.csproj"/>
+        <Project Path="tests/BankApp.Desktop.Tests/BankApp.Desktop.Tests.csproj"/>
+    </Folder>
+</Solution>

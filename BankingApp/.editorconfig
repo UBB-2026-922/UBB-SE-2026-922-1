@@ -1,0 +1,38 @@
+root = true
+
+[*.cs]
+dotnet_naming_rule.private_constants_should_be_pascal_case.severity = error
+dotnet_naming_rule.private_constants_should_be_pascal_case.symbols = private_constants
+dotnet_naming_rule.private_constants_should_be_pascal_case.style = pascal_case
+dotnet_naming_rule.private_constants_should_be_pascal_case.priority = 1
+
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.severity = error
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.style = camel_case_with_underscore
+dotnet_naming_rule.private_fields_should_be_camel_case_with_underscore.priority = 2
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_fields.required_modifiers =
+
+dotnet_naming_symbols.private_constants.applicable_kinds = field
+dotnet_naming_symbols.private_constants.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants.required_modifiers = const
+
+dotnet_naming_style.camel_case_with_underscore.required_prefix = _
+dotnet_naming_style.camel_case_with_underscore.required_suffix =
+dotnet_naming_style.camel_case_with_underscore.word_separator =
+dotnet_naming_style.camel_case_with_underscore.capitalization = camel_case
+
+dotnet_naming_style.pascal_case.required_prefix =
+dotnet_naming_style.pascal_case.required_suffix =
+dotnet_naming_style.pascal_case.word_separator =
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+# Keep the IDE aligned with StyleCop.ruleset.
+dotnet_diagnostic.SA1309.severity = none
+
+dotnet_style_prefer_conditional_expression_over_assignment = false:warning
+dotnet_style_prefer_conditional_expression_over_return = false:warning
+dotnet_diagnostic.IDE0045.severity = warning
+dotnet_diagnostic.IDE0046.severity = warning
