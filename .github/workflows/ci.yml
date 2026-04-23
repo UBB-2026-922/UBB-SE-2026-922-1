@@ -28,8 +28,23 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      - name: .NET Restore
-        run: dotnet restore BankingApp/BankingApp.slnx
+      - name: Restore domain tests
+        run: dotnet restore BankingApp/tests/BankApp.Domain.Tests/BankApp.Domain.Tests.csproj
+
+      - name: Restore application tests
+        run: dotnet restore BankingApp/tests/BankApp.Application.Tests/BankApp.Application.Tests.csproj
+
+      - name: Restore infrastructure tests
+        run: dotnet restore BankingApp/tests/BankApp.Infrastructure.Tests/BankApp.Infrastructure.Tests.csproj
+
+      - name: Restore infrastructure integration tests
+        run: dotnet restore BankingApp/tests/BankApp.Infrastructure.Tests.Integration/BankApp.Infrastructure.Tests.Integration.csproj
+
+      - name: Restore API tests
+        run: dotnet restore BankingApp/tests/BankApp.Api.Tests/BankApp.Api.Tests.csproj
+
+      - name: Restore API integration tests
+        run: dotnet restore BankingApp/tests/BankApp.Api.Tests.Integration/BankApp.Api.Tests.Integration.csproj
 
       - name: Run domain tests
         run: dotnet test BankingApp/tests/BankingApp.Domain.Tests/BankingApp.Domain.Tests.csproj ${{ env.TEST_FLAGS }}
@@ -74,11 +89,11 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      - name: .NET Restore
-        run: dotnet restore BankingApp/BankingApp.slnx
+      - name: Restore desktop tests
+        run: dotnet restore BankingApp/tests/BankApp.Desktop.Tests/BankApp.Desktop.Tests.csproj
 
       - name: Run desktop tests
-        run: dotnet test BankingApp/tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj ${{ env.TEST_FLAGS }}
+        run: dotnet test BankingApp/tests/BankApp.Desktop.Tests/BankApp.Desktop.Tests.csproj ${{ env.TEST_FLAGS }}
 
       - name: Upload test results
         if: always()
