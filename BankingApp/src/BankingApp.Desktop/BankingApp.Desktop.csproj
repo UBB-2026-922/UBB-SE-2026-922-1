@@ -118,10 +118,12 @@
 
     <!-- Publish Properties -->
     <PropertyGroup>
-        <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
-        <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
-        <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-        <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+        <!-- These optimizations are publish-only. Keeping them off for regular Release builds
+             avoids CI/test failures when the desktop project is built as a project reference. -->
+        <PublishReadyToRun Condition="'$(Publish)' == 'true' and '$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+        <PublishReadyToRun Condition="'$(Publish)' != 'true' or '$(Configuration)' == 'Debug'">False</PublishReadyToRun>
+        <PublishTrimmed Condition="'$(Publish)' == 'true' and '$(Configuration)' != 'Debug'">True</PublishTrimmed>
+        <PublishTrimmed Condition="'$(Publish)' != 'true' or '$(Configuration)' == 'Debug'">False</PublishTrimmed>
         <!-- Suppress IL trim analysis warnings during regular builds (dotnet build / test).
              Actual trimming still runs on dotnet publish. -->
         <SuppressTrimAnalysisWarnings Condition="'$(Publish)' != 'true'">true</SuppressTrimAnalysisWarnings>
