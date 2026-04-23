@@ -37,11 +37,12 @@ public class User
 
     /// <summary>
     ///     Gets or sets the hashed password of the user.
+    ///     <see langword="null" /> for OAuth-only accounts that have no password set.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; }
 
     /// <summary>
     ///     Gets or sets the full name of the user.

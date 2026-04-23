@@ -45,9 +45,6 @@ public class LoginServiceTests
             NullLogger<LoginService>.Instance);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenEmailIsInvalid_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenEmailIsInvalid_ReturnsValidationError()
     {
@@ -62,9 +59,30 @@ public class LoginServiceTests
         result.FirstError.Code.Should().Be("invalid_email");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenValid_CreatesSessionWithMetadata scenario.
-    /// </summary>
+    [Fact]
+    public void Login_WhenAccountIsOAuthOnly_ReturnsInvalidCredentials()
+    {
+        // Arrange
+        var request = new LoginRequest { Email = "oauth@test.com", Password = "ValidPass1!" };
+        var user = new User
+        {
+            Id = 1,
+            Email = request.Email,
+            PasswordHash = null,
+        };
+
+        _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
+            .Returns((ErrorOr<User>)user);
+
+        // Act
+        ErrorOr<LoginSuccess> result = _service.Login(request);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("invalid_credentials");
+        _hashService.Verify(verifies => verifies.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
     [Fact]
     public void Login_WhenValid_CreatesSessionWithMetadata()
     {
@@ -113,9 +131,6 @@ public class LoginServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenAuthenticatorTwoFactorIsEnabled_GeneratesTotp scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenAuthenticatorTwoFactorIsEnabled_GeneratesTotp()
     {
@@ -148,9 +163,6 @@ public class LoginServiceTests
             Times.Never);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenMaxFailedAttemptsReached_LocksForFifteenMinutes scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenMaxFailedAttemptsReached_LocksForFifteenMinutes()
     {
@@ -183,9 +195,6 @@ public class LoginServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenEmailTwoFactorIsEnabled_GeneratesEmailOtp scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenEmailTwoFactorIsEnabled_GeneratesEmailOtp()
     {
@@ -216,9 +225,6 @@ public class LoginServiceTests
         _emailService.Verify(sendsOtpCode => sendsOtpCode.SendOtpCode(user.Email, "123456"), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the VerifyOtp_WhenThreeInvalidAttempts_InvalidatesOtpAndRequiresRestart scenario.
-    /// </summary>
     [Fact]
     public void VerifyOtp_WhenThreeInvalidAttempts_InvalidatesOtpAndRequiresRestart()
     {

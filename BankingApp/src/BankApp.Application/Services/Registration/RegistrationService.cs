@@ -22,7 +22,6 @@ namespace BankApp.Application.Services.Registration;
 public class RegistrationService : IRegistrationService
 {
     private const string DefaultLanguage = "en";
-    private const string TemporaryPasswordSuffix = "A1a!";
     private readonly IAuthRepository _authRepository;
     private readonly IHashService _hashService;
     private readonly ILogger<RegistrationService> _logger;
@@ -125,20 +124,9 @@ public class RegistrationService : IRegistrationService
         }
         else
         {
-            string generatedTemporaryPassword = Guid.NewGuid() + TemporaryPasswordSuffix;
-            ErrorOr<string> hashResult = _hashService.GetHash(generatedTemporaryPassword);
-            if (hashResult.IsError)
-            {
-                _logger.LogError(
-                    "Hash generation failed during OAuth register for provider {Provider}.",
-                    request.Provider);
-                return hashResult.FirstError;
-            }
-
             var newUser = new User
             {
                 Email = request.Email,
-                PasswordHash = hashResult.Value,
                 FullName = request.FullName,
                 PreferredLanguage = DefaultLanguage,
                 Is2FaEnabled = false,

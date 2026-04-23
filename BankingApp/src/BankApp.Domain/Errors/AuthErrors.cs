@@ -69,4 +69,5 @@ public static class AuthErrors
     /// <summary>No linked Google OAuth account was found for this user.</summary>
     public static readonly Error OAuthLinkNotFound =
         Error.NotFound("oauth_link_not_found", "Google OAuth is not linked.");
+
 }

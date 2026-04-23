@@ -2,7 +2,7 @@ IF OBJECT_ID('dbo.[User]', 'U') IS NULL
 CREATE TABLE [User] (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Email VARCHAR(255) NOT NULL UNIQUE,
-    PasswordHash VARCHAR(512) NOT NULL,
+    PasswordHash VARCHAR(512) NULL,
     FullName NVARCHAR(200) NOT NULL,
     PhoneNumber VARCHAR(20),
     DateOfBirth DATE,

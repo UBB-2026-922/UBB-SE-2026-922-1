@@ -33,7 +33,6 @@ public class AuthService : IAuthService
     private const int FailedLoginAttemptIncrement = 1;
     private const string GoogleOAuthProvider = "Google";
     private const string DefaultLanguage = "en";
-    private const string TemporaryPasswordSuffix = "A1a!";
     private readonly IAuthRepository _authRepository;
     private readonly IEmailService _emailService;
     private readonly IHashService _hashService;
@@ -88,6 +87,13 @@ public class AuthService : IAuthService
         if (lockError is not null)
         {
             return lockError.Value;
+        }
+
+        if (user.PasswordHash is null)
+        {
+            _logger.LogWarning("Login with password rejected for OAuth-only account {UserId}.", user.Id);
+            // Use the same response as any other bad password to avoid exposing account auth methods.
+            return AuthErrors.InvalidCredentials;
         }
 
         ErrorOr<bool> verifyResult = _hashService.Verify(request.Password, user.PasswordHash);
@@ -185,20 +191,9 @@ public class AuthService : IAuthService
             }
             else
             {
-                string generatedTemporaryPassword = Guid.NewGuid() + TemporaryPasswordSuffix;
-                ErrorOr<string> hashResult = _hashService.GetHash(generatedTemporaryPassword);
-                if (hashResult.IsError)
-                {
-                    _logger.LogError(
-                        "Hash generation failed during OAuth user creation for provider {Provider}.",
-                        request.Provider);
-                    return hashResult.FirstError;
-                }
-
                 var newUser = new User
                 {
                     Email = email,
-                    PasswordHash = hashResult.Value,
                     FullName = fullName,
                     PreferredLanguage = DefaultLanguage,
                     Is2FaEnabled = false,
@@ -272,20 +267,10 @@ public class AuthService : IAuthService
         }
         else
         {
-            string generatedTemporaryPassword = Guid.NewGuid() + TemporaryPasswordSuffix;
-            ErrorOr<string> hashResult = _hashService.GetHash(generatedTemporaryPassword);
-            if (hashResult.IsError)
-            {
-                _logger.LogError(
-                    "Hash generation failed during OAuth register for provider {Provider}.",
-                    request.Provider);
-                return hashResult.FirstError;
-            }
-
             var newUser = new User
             {
                 Email = request.Email,
-                PasswordHash = hashResult.Value,
+                PasswordHash = null,
                 FullName = request.FullName,
                 PreferredLanguage = DefaultLanguage,
                 Is2FaEnabled = false,

@@ -37,9 +37,6 @@ public sealed class AuthServiceTests
             NullLogger<AuthService>.Instance);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenEmailIsNotValid_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenEmailIsNotValid_ReturnsError()
     {
@@ -54,9 +51,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("invalid_email");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenUserNotFound_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenUserNotFound_ReturnsError()
     {
@@ -74,9 +68,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("invalid_credentials");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenAccountIsLocked_ReturnsForbidden scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenAccountIsLocked_ReturnsForbidden()
     {
@@ -99,9 +90,24 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("account_locked");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenPasswordVerificationThrowsError_ReturnsError scenario.
-    /// </summary>
+    [Fact]
+    public void Login_WhenAccountIsOAuthOnly_ReturnsInvalidCredentials()
+    {
+        // Arrange
+        var request = new LoginRequest { Email = "oauth@user.com", Password = "password" };
+        var user = new User { Id = 1, Email = request.Email, PasswordHash = null, IsLocked = false };
+        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
+            .Returns((ErrorOr<User>)user);
+
+        // Act
+        ErrorOr<LoginSuccess> result = _authService.Login(request);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("invalid_credentials");
+        _mockHashService.Verify(verifies => verifies.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
     [Fact]
     public void Login_WhenPasswordVerificationThrowsError_ReturnsError()
     {
@@ -121,9 +127,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("verify_failed");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenPasswordIsWrong_IncrementsFailedAttempts scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenPasswordIsWrong_IncrementsFailedAttempts()
     {
@@ -147,9 +150,6 @@ public sealed class AuthServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenPasswordIsWrong_AndMaxAttemptsReached_LockAccountFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenPasswordIsWrong_AndMaxAttemptsReached_LockAccountFails_ReturnsError()
     {
@@ -174,9 +174,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("invalid_credentials");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenPasswordIsWrong_AndMaxAttemptsReached_LocksAccount scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenPasswordIsWrong_AndMaxAttemptsReached_LocksAccount()
     {
@@ -204,9 +201,6 @@ public sealed class AuthServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the Login_When2FAEnabled_AndOtpGenerationFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Login_When2FAEnabled_AndOtpGenerationFails_ReturnsError()
     {
@@ -221,7 +215,7 @@ public sealed class AuthServiceTests
             .Returns((ErrorOr<User>)user);
         _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
         _mockOtpService.Setup(generatesTotp => generatesTotp.GenerateTotp(user.Id))
-            .Returns((ErrorOr<string>)Error.Failure("otp_failed"));
+            .Returns(Error.Failure("otp_failed"));
 
         // Act
         ErrorOr<LoginSuccess> result = _authService.Login(request);
@@ -231,9 +225,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("otp_failed");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenUserHas2FA_ReturnsRequiresTwoFactor scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenUserHas2FA_ReturnsRequiresTwoFactor()
     {
@@ -258,9 +249,6 @@ public sealed class AuthServiceTests
         _mockEmailService.Verify(sendsOtpCode => sendsOtpCode.SendOtpCode(user.Email, "123456"), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenCompleteLogin_AndTokenGenerationFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenCompleteLogin_AndTokenGenerationFails_ReturnsError()
     {
@@ -273,7 +261,7 @@ public sealed class AuthServiceTests
         _mockAuthRepository.Setup(resetsFailedAttempts => resetsFailedAttempts.ResetFailedAttempts(user.Id))
             .Returns(Result.Success);
         _mockJwtService.Setup(generatesToken => generatesToken.GenerateToken(user.Id))
-            .Returns((ErrorOr<string>)Error.Failure("jwt_failed"));
+            .Returns(Error.Failure("jwt_failed"));
 
         // Act
         ErrorOr<LoginSuccess> result = _authService.Login(request);
@@ -283,9 +271,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("jwt_failed");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenCompleteLogin_AndSessionCreationFailed_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenCompleteLogin_AndSessionCreationFailed_ReturnsError()
     {
@@ -301,7 +286,7 @@ public sealed class AuthServiceTests
             .Returns((ErrorOr<string>)"jwt-token");
         _mockAuthRepository
             .Setup(createsSession => createsSession.CreateSession(user.Id, "jwt-token", null, null, null))
-            .Returns((ErrorOr<Session>)Error.Failure("session_failed"));
+            .Returns(Error.Failure("session_failed"));
 
         // Act
         ErrorOr<LoginSuccess> result = _authService.Login(request);
@@ -311,9 +296,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("session_failed");
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenValid_ReturnsFullLogin scenario.
-    /// </summary>
     [Fact]
     public void Login_WhenValid_ReturnsFullLogin()
     {
@@ -340,9 +322,6 @@ public sealed class AuthServiceTests
         login.Token.Should().Be(token);
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenEmailIsInvalid_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenEmailIsInvalid_ReturnsValidationError()
     {
@@ -357,9 +336,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("invalid_email");
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenPasswordIsWeak_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenPasswordIsWeak_ReturnsValidationError()
     {
@@ -374,9 +350,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("weak_password");
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenFullNameIsEmpty_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenFullNameIsEmpty_ReturnsValidationError()
     {
@@ -392,9 +365,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("full_name_required");
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenEmailAlreadyExists_ReturnsConflict scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenEmailAlreadyExists_ReturnsConflict()
     {
@@ -412,9 +382,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("email_registered");
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenHashGenerationFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenHashGenerationFails_ReturnsError()
     {
@@ -424,7 +391,7 @@ public sealed class AuthServiceTests
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns(Error.NotFound());
         _mockHashService.Setup(getsHash => getsHash.GetHash(request.Password))
-            .Returns((ErrorOr<string>)Error.Failure("hash_failed"));
+            .Returns(Error.Failure("hash_failed"));
 
         // Act
         ErrorOr<Success> result = _authService.Register(request);
@@ -434,9 +401,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("hash_failed");
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenUserCreationFailed_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenUserCreationFailed_ReturnsError()
     {
@@ -457,9 +421,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("user_creation_failed");
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenValid_ReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenValid_ReturnsSuccess()
     {
@@ -482,9 +443,6 @@ public sealed class AuthServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the OAuthLoginAsync_WhenProviderIsNotGoogle_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public async Task OAuthLoginAsync_WhenProviderIsNotGoogle_ReturnsError()
     {
@@ -499,9 +457,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("unsupported_provider");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthLoginAsync_WhenTokenIsInvalid_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public async Task OAuthLoginAsync_WhenTokenIsInvalid_ReturnsError()
     {
@@ -516,9 +471,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("invalid_google_token");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenEmailIsInvalid_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenEmailIsInvalid_ReturnsError()
     {
@@ -534,9 +486,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("invalid_email");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenOAuthLinkExists_ReturnsConflict scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenOAuthLinkExists_ReturnsConflict()
     {
@@ -555,9 +504,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("oauth_already_registered");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenUserExists_AndCreateLinkFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenUserExists_AndCreateLinkFails_ReturnsError()
     {
@@ -581,9 +527,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("oauth_link_failed");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenUserExists_AndCreateLinkSucceeds_ReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenUserExists_AndCreateLinkSucceeds_ReturnsSuccess()
     {
@@ -606,34 +549,6 @@ public sealed class AuthServiceTests
         result.IsError.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenUserDoesNotExist_AndHashGenerationFails_ReturnsError scenario.
-    /// </summary>
-    [Fact]
-    public void OAuthRegister_WhenUserDoesNotExist_AndHashGenerationFails_ReturnsError()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)Error.NotFound());
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>()))
-            .Returns((ErrorOr<string>)Error.Failure("hash_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("hash_failed");
-    }
-
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenUserDoesNotExist_AndCreateUserFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenUserDoesNotExist_AndCreateUserFails_ReturnsError()
     {
@@ -644,8 +559,7 @@ public sealed class AuthServiceTests
             .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
             .Returns(Error.NotFound());
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)Error.NotFound());
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"hash");
+            .Returns(Error.NotFound());
         _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>()))
             .Returns(Error.Failure("create_user_failed"));
 
@@ -657,9 +571,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("user_creation_failed");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenUserDoesNotExist_AndUserRetrievalFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenUserDoesNotExist_AndUserRetrievalFails_ReturnsError()
     {
@@ -670,9 +581,8 @@ public sealed class AuthServiceTests
             .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
             .Returns(Error.NotFound());
         _mockAuthRepository.SetupSequence(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)Error.NotFound())
-            .Returns((ErrorOr<User>)Error.Failure("retrieval_failed"));
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"hash");
+            .Returns(Error.NotFound())
+            .Returns(Error.Failure("retrieval_failed"));
         _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>())).Returns(Result.Success);
 
         // Act
@@ -683,9 +593,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("user_retrieval_failed");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenUserDoesNotExist_AndCreateLinkSucceeds_ReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenUserDoesNotExist_AndCreateLinkSucceeds_ReturnsSuccess()
     {
@@ -697,9 +604,8 @@ public sealed class AuthServiceTests
             .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
             .Returns(Error.NotFound());
         _mockAuthRepository.SetupSequence(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)Error.NotFound())
+            .Returns(Error.NotFound())
             .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"hash");
         _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>())).Returns(Result.Success);
         _mockAuthRepository.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
             .Returns(Result.Success);
@@ -711,9 +617,42 @@ public sealed class AuthServiceTests
         result.IsError.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies the VerifyOTP_WhenUserNotFound_ReturnsError scenario.
-    /// </summary>
+    [Fact]
+    public void OAuthRegister_WhenUserDoesNotExist_CreatesOAuthOnlyUser()
+    {
+        // Arrange
+        var request = new OAuthRegisterRequest
+            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
+        var user = new User { Id = 1, Email = request.Email };
+        _mockAuthRepository
+            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
+            .Returns(Error.NotFound());
+        _mockAuthRepository.SetupSequence(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
+            .Returns(Error.NotFound())
+            .Returns((ErrorOr<User>)user);
+        _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>())).Returns(Result.Success);
+        _mockAuthRepository.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
+            .Returns(Result.Success);
+
+        // Act
+        ErrorOr<Success> result = _authService.OAuthRegister(request);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        _mockAuthRepository.Verify(
+            createsUser => createsUser.CreateUser(
+                It.Is<User>(createdUser =>
+                    createdUser.Email == request.Email &&
+                    createdUser.FullName == request.FullName &&
+                    createdUser.PasswordHash == null &&
+                    createdUser.PreferredLanguage == "en" &&
+                    !createdUser.Is2FaEnabled &&
+                    !createdUser.IsLocked &&
+                    createdUser.FailedLoginAttempts == 0)),
+            Times.Once);
+        _mockHashService.Verify(getsHash => getsHash.GetHash(It.IsAny<string>()), Times.Never);
+    }
+
     [Fact]
     public void VerifyOTP_WhenUserNotFound_ReturnsError()
     {
@@ -730,9 +669,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("user_not_found");
     }
 
-    /// <summary>
-    ///     Verifies the VerifyOTP_WhenVerifyTOTPFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void VerifyOTP_WhenVerifyTOTPFails_ReturnsError()
     {
@@ -752,9 +688,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("totp_failed");
     }
 
-    /// <summary>
-    ///     Verifies the VerifyOTP_WhenOtpInvalid_ReturnsUnauthorized scenario.
-    /// </summary>
     [Fact]
     public void VerifyOTP_WhenOtpInvalid_ReturnsUnauthorized()
     {
@@ -773,9 +706,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("invalid_otp");
     }
 
-    /// <summary>
-    ///     Verifies the VerifyOTP_WhenValid_ReturnsFullLogin scenario.
-    /// </summary>
     [Fact]
     public void VerifyOTP_WhenValid_ReturnsFullLogin()
     {
@@ -801,15 +731,12 @@ public sealed class AuthServiceTests
         _mockOtpService.Verify(invalidatesOtp => invalidatesOtp.InvalidateOtp(user.Id), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the ResendOTP_WhenUserNotFound_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResendOTP_WhenUserNotFound_ReturnsError()
     {
         // Arrange
         _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(1))
-            .Returns((ErrorOr<User>)Error.NotFound("user_not_found"));
+            .Returns(Error.NotFound("user_not_found"));
 
         // Act
         ErrorOr<Success> result = _authService.ResendOtp(1, "Email");
@@ -818,9 +745,6 @@ public sealed class AuthServiceTests
         result.IsError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies the ResendOTP_WhenGenerateTOTPFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResendOTP_WhenGenerateTOTPFails_ReturnsError()
     {
@@ -837,9 +761,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("totp_failed");
     }
 
-    /// <summary>
-    ///     Verifies the ResendOTP_WhenValid_SendsEmailAndReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void ResendOTP_WhenValid_SendsEmailAndReturnsSuccess()
     {
@@ -856,9 +777,6 @@ public sealed class AuthServiceTests
         _mockEmailService.Verify(sendsOtpCode => sendsOtpCode.SendOtpCode(user.Email, "123456"), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the ResendOTP_WhenValidAndMethodIsNotEmail_ReturnsSuccessWithoutEmail scenario.
-    /// </summary>
     [Fact]
     public void ResendOTP_WhenValidAndMethodIsNotEmail_ReturnsSuccessWithoutEmail()
     {
@@ -877,15 +795,12 @@ public sealed class AuthServiceTests
             Times.Never);
     }
 
-    /// <summary>
-    ///     Verifies the RequestPasswordReset_WhenUserNotFound_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void RequestPasswordReset_WhenUserNotFound_ReturnsError()
     {
         // Arrange
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail("test@test.com"))
-            .Returns((ErrorOr<User>)Error.NotFound("user_not_found"));
+            .Returns(Error.NotFound("user_not_found"));
 
         // Act
         ErrorOr<Success> result = _authService.RequestPasswordReset("test@test.com");
@@ -894,9 +809,6 @@ public sealed class AuthServiceTests
         result.IsError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies the RequestPasswordReset_WhenSaveTokenFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void RequestPasswordReset_WhenSaveTokenFails_ReturnsError()
     {
@@ -917,9 +829,6 @@ public sealed class AuthServiceTests
         result.FirstError.Description.Should().Be("Failed to save password reset token.");
     }
 
-    /// <summary>
-    ///     Verifies the RequestPasswordReset_WhenUserFound_SendsEmailAndReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void RequestPasswordReset_WhenUserFound_SendsEmailAndReturnsSuccess()
     {
@@ -946,9 +855,6 @@ public sealed class AuthServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenTokenIsNullOrWhiteSpace_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenTokenIsNullOrWhiteSpace_ReturnsError()
     {
@@ -960,16 +866,13 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("token_invalid");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenTokenNotFound_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenTokenNotFound_ReturnsError()
     {
         // Arrange
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)Error.NotFound("token_not_found"));
+            .Returns(Error.NotFound("token_not_found"));
 
         // Act
         ErrorOr<Success> result = _authService.ResetPassword("token", "ValidPassword123!");
@@ -979,9 +882,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("token_invalid");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenTokenUsed_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenTokenUsed_ReturnsError()
     {
@@ -999,9 +899,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("token_already_used");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenTokenExpired_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenTokenExpired_ReturnsValidationError()
     {
@@ -1020,9 +917,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("token_expired");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenHashGenerationFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenHashGenerationFails_ReturnsError()
     {
@@ -1041,9 +935,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("hash_failed");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenUpdatePasswordFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenUpdatePasswordFails_ReturnsError()
     {
@@ -1065,9 +956,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("token_invalid");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenMarkTokenAsUsedFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenMarkTokenAsUsedFails_ReturnsError()
     {
@@ -1093,9 +981,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("reset_failed");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenInvalidateSessionsFails_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenInvalidateSessionsFails_ReturnsError()
     {
@@ -1122,9 +1007,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("reset_failed");
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenValid_UpdatesPasswordAndReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void ResetPassword_WhenValid_UpdatesPasswordAndReturnsSuccess()
     {
@@ -1157,9 +1039,6 @@ public sealed class AuthServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the VerifyResetToken_WhenTokenIsNullOrWhiteSpace_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void VerifyResetToken_WhenTokenIsNullOrWhiteSpace_ReturnsError()
     {
@@ -1171,16 +1050,13 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("token_invalid");
     }
 
-    /// <summary>
-    ///     Verifies the VerifyResetToken_WhenTokenNotFound_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void VerifyResetToken_WhenTokenNotFound_ReturnsError()
     {
         // Arrange
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)Error.NotFound("not_found"));
+            .Returns(Error.NotFound("not_found"));
 
         // Act
         ErrorOr<Success> result = _authService.VerifyResetToken("token");
@@ -1190,9 +1066,6 @@ public sealed class AuthServiceTests
         result.FirstError.Code.Should().Be("token_invalid");
     }
 
-    /// <summary>
-    ///     Verifies the VerifyResetToken_WhenTokenValid_ReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void VerifyResetToken_WhenTokenValid_ReturnsSuccess()
     {
@@ -1209,15 +1082,12 @@ public sealed class AuthServiceTests
         result.IsError.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies the Logout_WhenSessionNotFound_ReturnsError scenario.
-    /// </summary>
     [Fact]
     public void Logout_WhenSessionNotFound_ReturnsError()
     {
         // Arrange
         _mockAuthRepository.Setup(findsSessionByToken => findsSessionByToken.FindSessionByToken("invalid"))
-            .Returns((ErrorOr<Session>)Error.NotFound());
+            .Returns(Error.NotFound());
 
         // Act
         ErrorOr<Success> result = _authService.Logout("invalid");
@@ -1226,9 +1096,6 @@ public sealed class AuthServiceTests
         result.IsError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies the Logout_WhenValid_ReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void Logout_WhenValid_ReturnsSuccess()
     {

@@ -148,6 +148,13 @@ public class ProfileService : IProfileService
             return ProfileErrors.WeakPasswordChange;
         }
 
+        if (user.PasswordHash is null)
+        {
+            _logger.LogWarning("Password change rejected for OAuth-only account {UserId}.", user.Id);
+            // Use the generic password failure so password checks do not reveal whether a local password exists.
+            return ProfileErrors.IncorrectPassword;
+        }
+
         ErrorOr<bool> verifyResult = _hashService.Verify(request.CurrentPassword, user.PasswordHash);
         if (verifyResult.IsError)
         {
@@ -445,6 +452,13 @@ public class ProfileService : IProfileService
         {
             _logger.LogWarning("Password verification failed: user {UserId} not found.", userId);
             return userResult.FirstError;
+        }
+
+        if (userResult.Value.PasswordHash is null)
+        {
+            _logger.LogWarning("Password verification rejected for OAuth-only account {UserId}.", userId);
+            // Return the same outcome as any other non-matching password for added security.
+            return false;
         }
 
         return _hashService.Verify(password, userResult.Value.PasswordHash);

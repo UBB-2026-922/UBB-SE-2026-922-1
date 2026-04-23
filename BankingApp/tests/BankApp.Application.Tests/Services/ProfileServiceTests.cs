@@ -35,9 +35,6 @@ public class ProfileServiceTests
             NullLogger<ProfileService>.Instance);
     }
 
-    /// <summary>
-    ///     Verifies the GetProfile_WhenUserExists_ReturnsProfileInfo scenario.
-    /// </summary>
     [Fact]
     public void GetProfile_WhenUserExists_ReturnsProfileInfo()
     {
@@ -70,9 +67,6 @@ public class ProfileServiceTests
         result.Value.PreferredLanguage.Should().Be("ro");
     }
 
-    /// <summary>
-    ///     Verifies the GetProfile_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void GetProfile_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -89,9 +83,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the UpdatePersonalInfo_WhenUserIdIsNull_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void UpdatePersonalInfo_WhenUserIdIsNull_ReturnsValidationError()
     {
@@ -106,9 +97,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.Validation);
     }
 
-    /// <summary>
-    ///     Verifies the UpdatePersonalInfo_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void UpdatePersonalInfo_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -126,9 +114,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the UpdatePersonalInfo_WhenPhoneIsInvalid_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void UpdatePersonalInfo_WhenPhoneIsInvalid_ReturnsValidationError()
     {
@@ -148,9 +133,6 @@ public class ProfileServiceTests
         result.FirstError.Code.Should().Be("invalid_phone");
     }
 
-    /// <summary>
-    ///     Verifies the UpdatePersonalInfo_WhenValid_UpdatesUserAndReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void UpdatePersonalInfo_WhenValid_UpdatesUserAndReturnsSuccess()
     {
@@ -193,9 +175,6 @@ public class ProfileServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the LinkOAuth_WhenGoogleIsNotLinked_SavesGoogleLink scenario.
-    /// </summary>
     [Fact]
     public void LinkOAuth_WhenGoogleIsNotLinked_SavesGoogleLink()
     {
@@ -221,9 +200,6 @@ public class ProfileServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the LinkOAuth_WhenProviderIsUnsupported_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void LinkOAuth_WhenProviderIsUnsupported_ReturnsValidationError()
     {
@@ -235,9 +211,6 @@ public class ProfileServiceTests
         result.FirstError.Code.Should().Be("unsupported_provider");
     }
 
-    /// <summary>
-    ///     Verifies the UnlinkOAuth_WhenGoogleIsLinked_DeletesLink scenario.
-    /// </summary>
     [Fact]
     public void UnlinkOAuth_WhenGoogleIsLinked_DeletesLink()
     {
@@ -262,9 +235,6 @@ public class ProfileServiceTests
         _userRepository.Verify(deletesOAuthLink => deletesOAuthLink.DeleteOAuthLink(linkId), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the ChangePassword_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void ChangePassword_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -282,9 +252,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the ChangePassword_WhenNewPasswordIsWeak_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void ChangePassword_WhenNewPasswordIsWeak_ReturnsValidationError()
     {
@@ -303,9 +270,6 @@ public class ProfileServiceTests
         result.FirstError.Code.Should().Be("weak_password");
     }
 
-    /// <summary>
-    ///     Verifies the ChangePassword_WhenCurrentPasswordIsWrong_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
     public void ChangePassword_WhenCurrentPasswordIsWrong_ReturnsValidationError()
     {
@@ -327,9 +291,25 @@ public class ProfileServiceTests
         result.FirstError.Code.Should().Be("incorrect_password");
     }
 
-    /// <summary>
-    ///     Verifies the ChangePassword_WhenValid_UpdatesPasswordAndReturnsSuccess scenario.
-    /// </summary>
+    [Fact]
+    public void ChangePassword_WhenAccountIsOAuthOnly_ReturnsIncorrectPassword()
+    {
+        // Arrange
+        const int userId = 1;
+        _userRepository
+            .Setup(findsById => findsById.FindById(userId))
+            .Returns(new User { Id = userId, Email = "ada@test.com", FullName = "Ada", PasswordHash = null });
+        var request = new ChangePasswordRequest(userId, "oldpassword", "NewPass1!");
+
+        // Act
+        ErrorOr<Success> result = _service.ChangePassword(request);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("incorrect_password");
+        _hashService.Verify(verifies => verifies.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
     [Fact]
     public void ChangePassword_WhenValid_UpdatesPasswordAndReturnsSuccess()
     {
@@ -359,9 +339,6 @@ public class ProfileServiceTests
         _userRepository.Verify(updatesPassword => updatesPassword.UpdatePassword(userId, newHash), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the Enable2FA_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void Enable2FA_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -378,9 +355,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the Enable2FA_WhenUserExists_EnablesTwoFactorAndReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void Enable2FA_WhenUserExists_EnablesTwoFactorAndReturnsSuccess()
     {
@@ -405,9 +379,6 @@ public class ProfileServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the Disable2FA_WhenUserExists_DisablesTwoFactorAndReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void Disable2FA_WhenUserExists_DisablesTwoFactorAndReturnsSuccess()
     {
@@ -432,9 +403,6 @@ public class ProfileServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the VerifyPassword_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void VerifyPassword_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -451,9 +419,24 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the VerifyPassword_WhenPasswordMatches_ReturnsTrue scenario.
-    /// </summary>
+    [Fact]
+    public void VerifyPassword_WhenAccountIsOAuthOnly_ReturnsFalse()
+    {
+        // Arrange
+        const int userId = 1;
+        _userRepository
+            .Setup(findsById => findsById.FindById(userId))
+            .Returns(new User { Id = userId, Email = "ada@test.com", FullName = "Ada", PasswordHash = null });
+
+        // Act
+        ErrorOr<bool> result = _service.VerifyPassword(userId, "anypassword");
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Should().BeFalse();
+        _hashService.Verify(verifies => verifies.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
     [Fact]
     public void VerifyPassword_WhenPasswordMatches_ReturnsTrue()
     {
@@ -474,9 +457,6 @@ public class ProfileServiceTests
         result.Value.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies the VerifyPassword_WhenPasswordDoesNotMatch_ReturnsFalse scenario.
-    /// </summary>
     [Fact]
     public void VerifyPassword_WhenPasswordDoesNotMatch_ReturnsFalse()
     {
@@ -497,9 +477,6 @@ public class ProfileServiceTests
         result.Value.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies the GetNotificationPreferences_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void GetNotificationPreferences_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -517,9 +494,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the GetNotificationPreferences_WhenUserExists_ReturnsMappedPreferences scenario.
-    /// </summary>
     [Fact]
     public void GetNotificationPreferences_WhenUserExists_ReturnsMappedPreferences()
     {
@@ -545,9 +519,6 @@ public class ProfileServiceTests
         result.Value.First().EmailEnabled.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies the GetActiveSessions_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void GetActiveSessions_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -564,9 +535,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the GetActiveSessions_WhenUserExists_ReturnsMappedSessionDtos scenario.
-    /// </summary>
     [Fact]
     public void GetActiveSessions_WhenUserExists_ReturnsMappedSessionDtos()
     {
@@ -593,9 +561,6 @@ public class ProfileServiceTests
         result.Value.First().DeviceInfo.Should().Be("Chrome/Windows");
     }
 
-    /// <summary>
-    ///     Verifies the RevokeSession_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void RevokeSession_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -612,9 +577,6 @@ public class ProfileServiceTests
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the RevokeSession_WhenUserExists_RevokesSessionAndReturnsSuccess scenario.
-    /// </summary>
     [Fact]
     public void RevokeSession_WhenUserExists_RevokesSessionAndReturnsSuccess()
     {

@@ -32,9 +32,6 @@ public class RegistrationServiceTests
             NullLogger<RegistrationService>.Instance);
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenExistingUserLookupFails_ReturnsDatabaseError scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenExistingUserLookupFails_ReturnsDatabaseError()
     {
@@ -57,9 +54,6 @@ public class RegistrationServiceTests
         result.FirstError.Code.Should().Be("database_error");
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenValid_CreatesUserWithDefaults scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenValid_CreatesUserWithDefaults()
     {
@@ -98,9 +92,6 @@ public class RegistrationServiceTests
             Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenLinkLookupFails_ReturnsDatabaseError scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenLinkLookupFails_ReturnsDatabaseError()
     {
@@ -124,9 +115,6 @@ public class RegistrationServiceTests
         result.FirstError.Code.Should().Be("database_error");
     }
 
-    /// <summary>
-    ///     Verifies the OAuthRegister_WhenExistingUserLookupFails_ReturnsDatabaseError scenario.
-    /// </summary>
     [Fact]
     public void OAuthRegister_WhenExistingUserLookupFails_ReturnsDatabaseError()
     {
@@ -151,5 +139,50 @@ public class RegistrationServiceTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("database_error");
+    }
+
+    [Fact]
+    public void OAuthRegister_WhenUserDoesNotExist_CreatesOAuthOnlyUser()
+    {
+        // Arrange
+        var request = new OAuthRegisterRequest
+        {
+            Email = "new@test.com",
+            Provider = "Google",
+            ProviderToken = "provider-token",
+            FullName = "New User",
+        };
+        var savedUser = new User { Id = 7, Email = request.Email };
+        _authRepository
+            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
+            .Returns(Error.NotFound());
+        _authRepository
+            .SetupSequence(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
+            .Returns(Error.NotFound())
+            .Returns((ErrorOr<User>)savedUser);
+        _authRepository
+            .Setup(createsUser => createsUser.CreateUser(It.IsAny<User>()))
+            .Returns(Result.Success);
+        _authRepository
+            .Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
+            .Returns(Result.Success);
+
+        // Act
+        ErrorOr<Success> result = _service.OAuthRegister(request);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        _authRepository.Verify(
+            createsUser => createsUser.CreateUser(
+                It.Is<User>(user =>
+                    user.Email == request.Email &&
+                    user.FullName == request.FullName &&
+                    user.PasswordHash == null &&
+                    user.PreferredLanguage == "en" &&
+                    !user.Is2FaEnabled &&
+                    !user.IsLocked &&
+                    user.FailedLoginAttempts == 0)),
+            Times.Once);
+        _hashService.Verify(getsHash => getsHash.GetHash(It.IsAny<string>()), Times.Never);
     }
 }
