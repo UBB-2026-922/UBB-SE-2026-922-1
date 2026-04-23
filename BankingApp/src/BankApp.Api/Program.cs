@@ -68,9 +68,6 @@ try
                 },
             });
     });
-    // Allow the client to connect
-    builder.Services.AddCors(corsOptions => corsOptions.AddDefaultPolicy(corsPolicy =>
-        corsPolicy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     WebApplication application = builder.Build();
@@ -86,7 +83,6 @@ try
         application.UseSwaggerUI();
     }
 
-    application.UseCors();
     // Logs each HTTP request: method, path, status code, and duration.
     // Placed before middleware that may short-circuit the pipeline so all
     // requests are captured, including those rejected by session validation.
