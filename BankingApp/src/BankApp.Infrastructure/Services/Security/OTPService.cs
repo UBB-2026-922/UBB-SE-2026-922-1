@@ -5,11 +5,11 @@
 // Contains the OTPService class.
 // </summary>
 
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using BankApp.Application.Services.Security;
 using ErrorOr;
-using Microsoft.Extensions.Configuration;
 
 namespace BankApp.Infrastructure.Services.Security;
 
@@ -22,7 +22,6 @@ public class OtpService : IOtpService
     public const int TotpWindowSeconds = 60;
 
     private const int SmsOtpExpiryMinutes = 5;
-    private const string FallbackOtpServerSecret = "BankApp-Default-OTP-Secret";
     private const int OtpRangeMinimum = 100000;
     private const int OtpRangeMaximum = 999999;
     private const int OtpModulus = 1000000;
@@ -38,16 +37,19 @@ public class OtpService : IOtpService
     private const int FirstDynamicTruncationByteShift = 24;
     private const int SecondDynamicTruncationByteShift = 16;
     private const int ThirdDynamicTruncationByteShift = 8;
-    private static readonly Dictionary<int, (string Code, DateTime ExpiryTime)> _temporarySmsStorage = new();
+
+    private static readonly ConcurrentDictionary<int, (string Code, DateTime ExpiryTime)> _temporarySmsStorage = [];
+
     private readonly string _otpServerSecret;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="OtpService" /> class.
     /// </summary>
-    /// <param name="configuration">The application configuration used to read <c>Otp:ServerSecret</c>.</param>
-    public OtpService(IConfiguration configuration)
+    /// <param name="otpServerSecret">The server otp secret used by the <see cref="OtpService"/>.</param>
+    public OtpService(string otpServerSecret)
     {
-        _otpServerSecret = configuration["Otp:ServerSecret"] ?? FallbackOtpServerSecret;
+        ArgumentException.ThrowIfNullOrWhiteSpace(otpServerSecret);
+        _otpServerSecret = otpServerSecret;
     }
 
     /// <inheritdoc />
@@ -88,7 +90,7 @@ public class OtpService : IOtpService
     /// <param name="userId">The userId value.</param>
     public void InvalidateOtp(int userId)
     {
-        _temporarySmsStorage.Remove(userId);
+        _temporarySmsStorage.TryRemove(userId, out _);
     }
 
     /// <inheritdoc />

@@ -46,11 +46,11 @@ services:
       - "5024:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: >-
+      ConnectionStrings__BankingAppDb: >-
         Server=db;Database=BankAppDb;User Id=sa;
         Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
       Jwt__Secret: "${JWT_SECRET}"
-      Otp__ServerSecret: "${OTP_SERVER_SECRET}"
+      Otp__Secret: "${OTP_SECRET}"
       Email__SmtpHost: "${EMAIL_SMTP_HOST}"
       Email__SmtpPort: "${EMAIL_SMTP_PORT}"
       Email__SmtpUser: "${EMAIL_SMTP_USER}"

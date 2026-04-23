@@ -12,7 +12,7 @@ using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 
-const string defaultLogFilePath = "logs/bankapp-server-.log";
+const string defaultLogFilePath = "logs/bankingapp-server-.log";
 const int retainedLogFileCountLimit = 14;
 const int commandLineExecutableArgumentCount = 1;
 const int internalServerErrorStatusCode = StatusCodes.Status500InternalServerError;

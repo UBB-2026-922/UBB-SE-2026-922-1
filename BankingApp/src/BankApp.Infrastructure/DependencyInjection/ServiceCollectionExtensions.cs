@@ -39,16 +39,20 @@ public static class ServiceCollectionExtensions
     /// <param name="configuration">The application configuration used to resolve connection strings and secrets.</param>
     /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
     /// <exception cref="InvalidOperationException">
-    ///     Thrown when the <c>DefaultConnection</c> connection string or <c>Jwt:Secret</c> configuration value is missing.
+    ///     Thrown when the <c>BankingAppDb</c> connection string,
+    ///     <c>Jwt:Secret</c> or <c>Otp:Secret</c> configuration value is missing.
     /// </exception>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         RegisterTypeHandlers();
-        string connectionString = configuration.GetConnectionString("DefaultConnection")
+        string connectionString = configuration.GetConnectionString("BankingAppDb")
                                   ?? throw new InvalidOperationException(
-                                      "Connection string 'DefaultConnection' is missing.");
+                                      "Configuration value 'ConnectionStrings:BankingAppDb' is missing.");
         string jwtSecret = configuration["Jwt:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Jwt:Secret' is missing.");
+        string otpSecret = configuration["Otp:Secret"]
+                           ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
+
         services.AddScoped<AppDatabaseContext>(_ => new AppDatabaseContext(connectionString));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
@@ -61,13 +65,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationDataAccess, NotificationDataAccess>();
         services.AddScoped<IHashService, HashService>();
         services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
-        services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IEmailService, EmailService>();
-        // Singleton: OTP attempt counters must survive individual request scopes.
-        services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
+
+        services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
+        services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
         return services;
     }
 

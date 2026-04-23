@@ -75,8 +75,9 @@ public class BankAppWebFactory : WebApplicationFactory<Program>
             configurationBuilder.AddInMemoryCollection(
                 new Dictionary<string, string?>
                 {
-                    ["ConnectionStrings:DefaultConnection"] = "Server=fake;Database=fake;",
+                    ["ConnectionStrings:BankingAppDb"] = "Server=fake;Database=fake;",
                     ["Jwt:Secret"] = "integration-test-secret-that-is-long-enough-for-hmac",
+                    ["Otp:Secret"] = "integration-test-otp-secret-placeholder",
                 });
         });
 
