@@ -25,16 +25,10 @@ public sealed class SessionValidationMiddlewareTests
 
     private bool _nextWasCalled;
 
-    /// <summary>
-    ///     Verifies the Invoke_PublicEndpoint_CallsNextWithoutToken scenario.
-    /// </summary>
-    /// <param name="path">The request path that should bypass session validation.</param>
-    /// <returns>A <see cref="Task" /> representing the asynchronous unit test.</returns>
     [Theory]
-    [InlineData("/auth/login")]
-    [InlineData("/auth/register")]
+    [InlineData("/api/auth/login")]
+    [InlineData("/api/auth/register")]
     [InlineData("/swagger/index.html")]
-    [InlineData("/test/health")]
     public async Task Invoke_PublicEndpoint_CallsNextWithoutToken(string path)
     {
         // Arrange
@@ -49,12 +43,8 @@ public sealed class SessionValidationMiddlewareTests
         context.Response.StatusCode.Should().NotBe(401);
     }
 
-    /// <summary>
-    ///     Verifies the Invoke_ProtectedEndpoint_NoToken_Returns401 scenario.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task Invoke_ProtectedEndpoint_NoToken_Returns401()
+    public async Task Invoke_ProtectedEndpointHasNoToken_Returns401()
     {
         // Arrange
         SessionValidationMiddleware middleware = CreateMiddleware();
@@ -68,12 +58,8 @@ public sealed class SessionValidationMiddlewareTests
         _nextWasCalled.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies the Invoke_ProtectedEndpoint_InvalidToken_Returns401 scenario.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task Invoke_ProtectedEndpoint_InvalidToken_Returns401()
+    public async Task Invoke_ProtectedEndpointHasInvalidToken_Returns401()
     {
         // Arrange
         _jwtService
@@ -91,15 +77,11 @@ public sealed class SessionValidationMiddlewareTests
         _nextWasCalled.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies the Invoke_ProtectedEndpoint_ValidTokenButNoSession_Returns401 scenario.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task Invoke_ProtectedEndpoint_ValidTokenButNoSession_Returns401()
+    public async Task Invoke_ProtectedEndpointHasValidTokenButNoSession_Returns401()
     {
         // Arrange
-        var validUserId = 1;
+        const int validUserId = 1;
         _jwtService.Setup(extractsUserId => extractsUserId.ExtractUserId("good-token")).Returns(validUserId);
         _authenticationRepository
             .Setup(checksSession => checksSession.IsSessionActive("good-token"))
@@ -116,15 +98,11 @@ public sealed class SessionValidationMiddlewareTests
         _nextWasCalled.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies the Invoke_ProtectedEndpoint_ValidTokenAndSession_CallsNextAndSetsUserId scenario.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the asynchronous unit test.</returns>
     [Fact]
-    public async Task Invoke_ProtectedEndpoint_ValidTokenAndSession_CallsNextAndSetsUserId()
+    public async Task Invoke_ProtectedEndpointHasValidTokenAndSession_CallsNextAndSetsUserId()
     {
         // Arrange
-        var validUserId = 42;
+        const int validUserId = 42;
         _jwtService.Setup(extractsUserId => extractsUserId.ExtractUserId("good-token")).Returns(validUserId);
         _authenticationRepository
             .Setup(checksSession => checksSession.IsSessionActive("good-token"))
@@ -141,16 +119,28 @@ public sealed class SessionValidationMiddlewareTests
         context.Items["UserId"].Should().Be(validUserId);
     }
 
-    /// <summary>
-    ///     Verifies the Invoke_ProtectedEndpoint_MalformedAuthHeader_Returns401 scenario.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the asynchronous unit test.</returns>
     [Fact]
     public async Task Invoke_ProtectedEndpoint_MalformedAuthHeader_Returns401()
     {
         // Arrange
         SessionValidationMiddleware middleware = CreateMiddleware();
         HttpContext context = CreateHttpContext("/api/dashboard", "Basic some-creds");
+
+        // Act
+        await middleware.Invoke(context, _authenticationRepository.Object, _jwtService.Object, _logger.Object);
+
+        // Assert
+        context.Response.StatusCode.Should().Be(401);
+        _nextWasCalled.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("/api/profile/oauth-auth/revoke")]
+    public async Task Invoke_ProtectedEndpoint_PathContainingAuthPrefixButNotStartingWithIt_Returns401(string path)
+    {
+        // Arrange
+        SessionValidationMiddleware middleware = CreateMiddleware();
+        HttpContext context = CreateHttpContext(path);
 
         // Act
         await middleware.Invoke(context, _authenticationRepository.Object, _jwtService.Object, _logger.Object);

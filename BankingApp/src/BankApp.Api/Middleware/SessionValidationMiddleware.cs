@@ -17,7 +17,8 @@ namespace BankApp.Api.Middleware;
 public class SessionValidationMiddleware
 {
     private const string BearerPrefix = "Bearer ";
-    private static readonly string[] _publicEndpointPrefixes = ["/auth/", "/swagger", "/test/"];
+
+    private static readonly string[] _publicEndpointPrefixes = ["/api/auth/", "/swagger"];
     private readonly RequestDelegate _next;
 
     /// <summary>
@@ -92,7 +93,7 @@ public class SessionValidationMiddleware
 
     private static bool IsPublicEndpoint(string? path)
     {
-        return path is not null && Array.Exists(_publicEndpointPrefixes, path.Contains);
+        return path is not null && Array.Exists(_publicEndpointPrefixes, path.StartsWith);
     }
 
     private static async Task RejectRequest(HttpContext context, string error)
