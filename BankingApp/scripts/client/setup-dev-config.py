@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-# Creates src/BankApp.Desktop/appsettings.Local.json with Google OAuth credentials.
+﻿#!/usr/bin/env python3
+# Creates src/BankingApp.Desktop/appsettings.Local.json with Google OAuth credentials.
 # Run from the repo root: python scripts/client/setup-dev-config.py [options]
 # Re-running is safe — the file is fully overwritten each time.
 #
@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-OUTPUT_PATH = REPO_ROOT / "src" / "BankApp.Desktop" / "appsettings.Local.json"
+OUTPUT_PATH = REPO_ROOT / "src" / "BankingApp.Desktop" / "appsettings.Local.json"
 
 
 def main() -> None:

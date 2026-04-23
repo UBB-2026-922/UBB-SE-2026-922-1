@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 # Generates .env for Docker Compose. All secrets are auto-generated.
 # SMTP settings are optional — omitting them writes placeholders and logs a warning.
 #

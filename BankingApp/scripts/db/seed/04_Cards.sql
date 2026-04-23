@@ -1,4 +1,4 @@
-IF NOT EXISTS (SELECT 1 FROM Card WHERE CardNumber = '4532015112830366')
+﻿IF NOT EXISTS (SELECT 1 FROM Card WHERE CardNumber = '4532015112830366')
 BEGIN
     INSERT INTO Card (AccountId, UserId, CardNumber, CardholderName, ExpiryDate, CVV,
                       CardType, CardBrand, Status, DailyTransactionLimit,

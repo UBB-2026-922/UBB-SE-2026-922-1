@@ -1,4 +1,4 @@
-IF OBJECT_ID('dbo.[User]', 'U') IS NULL
+﻿IF OBJECT_ID('dbo.[User]', 'U') IS NULL
 CREATE TABLE [User] (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Email VARCHAR(255) NOT NULL UNIQUE,

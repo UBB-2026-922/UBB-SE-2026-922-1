@@ -1,4 +1,4 @@
-IF OBJECT_ID('dbo.Notification', 'U') IS NULL
+﻿IF OBJECT_ID('dbo.Notification', 'U') IS NULL
 CREATE TABLE Notification (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL FOREIGN KEY REFERENCES [User](Id),

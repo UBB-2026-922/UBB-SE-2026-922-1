@@ -1,0 +1,106 @@
+﻿// <copyright file="ServiceCollectionExtensions.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the ServiceCollectionExtensions class.
+// </summary>
+
+using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Application.Services.Login;
+using BankingApp.Application.Services.Notifications;
+using BankingApp.Application.Services.Security;
+using BankingApp.Domain.Enums;
+using BankingApp.Infrastructure.DataAccess;
+using BankingApp.Infrastructure.DataAccess.Implementations;
+using BankingApp.Infrastructure.DataAccess.Interfaces;
+using BankingApp.Infrastructure.DataAccess.TypeHandlers;
+using BankingApp.Infrastructure.Repositories.Implementations;
+using BankingApp.Infrastructure.Services;
+using BankingApp.Infrastructure.Services.Notifications;
+using BankingApp.Infrastructure.Services.Security;
+using Dapper;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace BankingApp.Infrastructure.DependencyInjection;
+
+/// <summary>
+///     Provides extension methods for registering infrastructure services with the dependency injection container.
+/// </summary>
+public static class ServiceCollectionExtensions
+{
+    private static readonly Lock _typeHandlerLock = new();
+    private static bool _typeHandlersRegistered;
+
+    /// <summary>
+    ///     Registers all infrastructure services, data access components, and repositories with the service collection.
+    /// </summary>
+    /// <param name="services">The service collection to configure.</param>
+    /// <param name="configuration">The application configuration used to resolve connection strings and secrets.</param>
+    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown when the <c>BankingAppDb</c> connection string,
+    ///     <c>Jwt:Secret</c> or <c>Otp:Secret</c> configuration value is missing.
+    /// </exception>
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        RegisterTypeHandlers();
+        string connectionString = configuration.GetConnectionString("BankingAppDb")
+                                  ?? throw new InvalidOperationException(
+                                      "Configuration value 'ConnectionStrings:BankingAppDb' is missing.");
+        string jwtSecret = configuration["Jwt:Secret"]
+                           ?? throw new InvalidOperationException("Configuration value 'Jwt:Secret' is missing.");
+        string otpSecret = configuration["Otp:Secret"]
+                           ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
+
+        services.AddScoped<AppDatabaseContext>(_ => new AppDatabaseContext(connectionString));
+        services.AddScoped<IUserDataAccess, UserDataAccess>();
+        services.AddScoped<ISessionDataAccess, SessionDataAccess>();
+        services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
+        services.AddScoped<IPasswordResetTokenDataAccess, PasswordResetTokenDataAccess>();
+        services.AddScoped<INotificationPreferenceDataAccess, NotificationPreferenceDataAccess>();
+        services.AddScoped<IAccountDataAccess, AccountDataAccess>();
+        services.AddScoped<ICardDataAccess, CardDataAccess>();
+        services.AddScoped<ITransactionDataAccess, TransactionDataAccess>();
+        services.AddScoped<INotificationDataAccess, NotificationDataAccess>();
+        services.AddScoped<IHashService, HashService>();
+        services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IAuthRepository, AuthRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
+
+        services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
+        services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
+        return services;
+    }
+
+    private static void RegisterTypeHandlers()
+    {
+        lock (_typeHandlerLock)
+        {
+            if (_typeHandlersRegistered)
+            {
+                return;
+            }
+        }
+
+        lock (_typeHandlerLock)
+        {
+            if (_typeHandlersRegistered)
+            {
+                return;
+            }
+
+            SqlMapper.AddTypeHandler(new EnumTypeHandler<TransactionDirection>());
+            SqlMapper.AddTypeHandler(new EnumTypeHandler<TransactionStatus>());
+            SqlMapper.AddTypeHandler(new EnumTypeHandler<CardType>());
+            SqlMapper.AddTypeHandler(new EnumTypeHandler<CardStatus>());
+            SqlMapper.AddTypeHandler(new EnumTypeHandler<TwoFactorMethod>());
+            SqlMapper.AddTypeHandler(new EnumTypeHandler<AccountType>());
+            SqlMapper.AddTypeHandler(new EnumTypeHandler<AccountStatus>());
+            SqlMapper.AddTypeHandler(new NotificationTypeHandler());
+            _typeHandlersRegistered = true;
+        }
+    }
+}

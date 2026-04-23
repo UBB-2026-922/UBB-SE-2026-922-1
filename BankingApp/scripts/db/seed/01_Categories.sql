@@ -1,4 +1,4 @@
-IF NOT EXISTS (SELECT 1 FROM Category)
+﻿IF NOT EXISTS (SELECT 1 FROM Category)
 BEGIN
     INSERT INTO Category (Name, Icon, IsSystem) VALUES
     ('Food & Dining', 'food', 1),

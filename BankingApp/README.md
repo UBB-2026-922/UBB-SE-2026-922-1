@@ -1,4 +1,4 @@
-# BankingApp
+﻿# BankingApp
 
 Personal banking application.
 
@@ -6,19 +6,19 @@ Personal banking application.
 
 ```text
 src/
-  BankApp.Domain/          core entities and enums
-  BankApp.Application/     use cases, DTOs, interfaces
-  BankApp.Infrastructure/  persistence and external integrations
-  BankApp.Api/             ASP.NET Core API
-  BankApp.Desktop/         WinUI desktop client
+  BankingApp.Domain/          core entities and enums
+  BankingApp.Application/     use cases, DTOs, interfaces
+  BankingApp.Infrastructure/  persistence and external integrations
+  BankingApp.Api/             ASP.NET Core API
+  BankingApp.Desktop/         WinUI desktop client
 tests/
-  BankApp.Domain.Tests/
-  BankApp.Application.Tests/
-  BankApp.Infrastructure.Tests/
-  BankApp.Infrastructure.Tests.Integration/
-  BankApp.Api.Tests/
-  BankApp.Api.Tests.Integration/
-  BankApp.Desktop.Tests/
+  BankingApp.Domain.Tests/
+  BankingApp.Application.Tests/
+  BankingApp.Infrastructure.Tests/
+  BankingApp.Infrastructure.Tests.Integration/
+  BankingApp.Api.Tests/
+  BankingApp.Api.Tests.Integration/
+  BankingApp.Desktop.Tests/
 scripts/
   client/                  local desktop configuration helpers
   server/                  local API and Docker env helpers
@@ -53,12 +53,12 @@ The API is exposed at `http://localhost:5024`.
 
 ### 3. Open the solution
 
-Open `BankingApp.slnx`, set `BankApp.Desktop` as the startup project, select the `x64` platform, and run it after the API is up.
+Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select the `x64` platform, and run it after the API is up.
 
 ## Project Docs
 
-- API setup and configuration: [src/BankApp.Api/README.md](src/BankApp.Api/README.md)
-- Desktop setup and local OAuth configuration: [src/BankApp.Desktop/README.md](src/BankApp.Desktop/README.md)
+- API setup and configuration: [src/BankingApp.Api/README.md](src/BankingApp.Api/README.md)
+- Desktop setup and local OAuth configuration: [src/BankingApp.Desktop/README.md](src/BankingApp.Desktop/README.md)
 
 ## Prerequisites
 

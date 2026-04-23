@@ -1,4 +1,4 @@
-IF NOT EXISTS (SELECT 1 FROM [Transaction] WHERE TransactionRef = 'TXN-001-2024')
+﻿IF NOT EXISTS (SELECT 1 FROM [Transaction] WHERE TransactionRef = 'TXN-001-2024')
 BEGIN
     INSERT INTO [Transaction] (AccountId, CardId, TransactionRef, [Type], Direction,
                                 Amount, Currency, BalanceAfter, MerchantName,

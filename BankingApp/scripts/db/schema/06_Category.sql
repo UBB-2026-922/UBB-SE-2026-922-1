@@ -1,4 +1,4 @@
-IF OBJECT_ID('dbo.Category', 'U') IS NULL
+﻿IF OBJECT_ID('dbo.Category', 'U') IS NULL
 CREATE TABLE Category (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,

@@ -1,4 +1,4 @@
-IF OBJECT_ID('dbo.[Session]', 'U') IS NULL
+﻿IF OBJECT_ID('dbo.[Session]', 'U') IS NULL
 CREATE TABLE [Session] (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL FOREIGN KEY REFERENCES [User](Id),

@@ -1,6 +1,6 @@
-IF DB_ID('BankAppDb') IS NULL
-    CREATE DATABASE BankAppDb;
+﻿IF DB_ID('BankingAppDb') IS NULL
+    CREATE DATABASE BankingAppDb;
 GO
 
-USE BankAppDb;
+USE BankingAppDb;
 GO

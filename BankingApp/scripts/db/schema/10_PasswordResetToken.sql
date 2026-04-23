@@ -1,4 +1,4 @@
-IF OBJECT_ID('dbo.PasswordResetToken', 'U') IS NULL
+﻿IF OBJECT_ID('dbo.PasswordResetToken', 'U') IS NULL
 CREATE TABLE PasswordResetToken (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL FOREIGN KEY REFERENCES [User](Id),

@@ -1,7 +1,8 @@
-<Project>
+﻿<Project>
     <PropertyGroup>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)StyleCop.ruleset</CodeAnalysisRuleSet>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <NoWarn>$(NoWarn);SA1101</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all"/>

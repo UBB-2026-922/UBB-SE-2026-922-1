@@ -1,4 +1,4 @@
-services:
+﻿services:
 
   db:
     image: mcr.microsoft.com/mssql/server:2025-latest
@@ -41,13 +41,13 @@ services:
   server:
     build:
       context: .
-      dockerfile: src/BankApp.Api/Dockerfile.dev
+      dockerfile: src/BankingApp.Api/Dockerfile.dev
     ports:
       - "5024:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__BankingAppDb: >-
-        Server=db;Database=BankAppDb;User Id=sa;
+        Server=db;Database=BankingAppDb;User Id=sa;
         Password=${DB_SA_PASSWORD};TrustServerCertificate=True;
       Jwt__Secret: "${JWT_SECRET}"
       Otp__Secret: "${OTP_SECRET}"

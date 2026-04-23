@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+﻿<?xml version="1.0"?>
 <RuleSet Name="BankingApp StyleCop Rules" Description="StyleCop analyzer rules configured for this BankingApp repository." ToolsVersion="14.0">
     <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers.SpecialRules">
         <Rule Id="SA0001"  Action="Warning" />          <!-- XML comment analysis disabled -->

@@ -1,4 +1,4 @@
--- Migration: enforce valid NotificationPreference categories
+﻿-- Migration: enforce valid NotificationPreference categories
 --
 -- Before NotificationType display names were established, the seed and early
 -- registrations wrote arbitrary strings ('Transactions', 'Security', etc.)

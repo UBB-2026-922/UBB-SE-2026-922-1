@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "BankingApp.Desktop (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "BankingApp.Desktop (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
