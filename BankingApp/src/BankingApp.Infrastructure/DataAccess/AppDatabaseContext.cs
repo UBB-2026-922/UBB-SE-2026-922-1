@@ -5,124 +5,60 @@
 // Contains the AppDatabaseContext class.
 // </summary>
 
-using System.Data;
-using ErrorOr;
-using Microsoft.Data.SqlClient;
+using BankingApp.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankingApp.Infrastructure.DataAccess;
 
 /// <summary>
-///     Provides a concrete implementation of <see cref="IDatabaseContext" /> using SQL Server via
-///     <see cref="SqlConnection" />.
+///     Provides the EF Core database context for the BankingApp.
 /// </summary>
-public class AppDatabaseContext : IDatabaseContext
+public class AppDatabaseContext : DbContext
 {
-    private readonly string _connectionString;
-    private SqlConnection? _connection;
-    private SqlTransaction? _currentTransaction;
-
     /// <summary>
     ///     Initializes a new instance of the <see cref="AppDatabaseContext" /> class.
     /// </summary>
-    /// <param name="connectionString">The SQL Server _connection string.</param>
-    /// <returns>The result of the operation.</returns>
-    public AppDatabaseContext(string connectionString)
+    /// <param name="options">The database context options.</param>
+    public AppDatabaseContext(DbContextOptions<AppDatabaseContext> options) : base(options)
     {
-        _connectionString = connectionString;
     }
 
-    /// <inheritdoc />
-    public ErrorOr<T> Query<T>(Func<SqlConnection, T> operation)
+    /// <summary>Gets or sets the users table.</summary>
+    public DbSet<User> Users { get; set; }
+
+    /// <summary>Gets or sets the sessions table.</summary>
+    public DbSet<Session> Sessions { get; set; }
+
+    /// <summary>Gets or sets the OAuth links table.</summary>
+    public DbSet<OAuthLink> OAuthLinks { get; set; }
+
+    /// <summary>Gets or sets the accounts table.</summary>
+    public DbSet<Account> Accounts { get; set; }
+
+    /// <summary>Gets or sets the cards table.</summary>
+    public DbSet<Card> Cards { get; set; }
+
+    /// <summary>Gets or sets the categories table.</summary>
+    public DbSet<Category> Categories { get; set; }
+
+    /// <summary>Gets or sets the transactions table.</summary>
+    public DbSet<Transaction> Transactions { get; set; }
+
+    /// <summary>Gets or sets the notifications table.</summary>
+    public DbSet<Notification> Notifications { get; set; }
+
+    /// <summary>Gets or sets the notification preferences table.</summary>
+    public DbSet<NotificationPreference> NotificationPreferences { get; set; }
+
+    /// <summary>Gets or sets the password reset tokens table.</summary>
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
+    /// <summary>Gets or sets the transaction category overrides table.</summary>
+    public DbSet<TransactionCategoryOverride> TransactionCategoryOverrides { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        try
-        {
-            T result = operation(GetConnection());
-            if (result is null)
-            {
-                return Error.NotFound(description: "No record found.");
-            }
-
-            return result;
-        }
-        catch (Exception exception)
-        {
-            return Error.Failure(description: exception.Message);
-        }
-    }
-
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<SqlTransaction> BeginTransaction()
-    {
-        SqlConnection activeConnection = GetConnection();
-        try
-        {
-            _currentTransaction = activeConnection.BeginTransaction();
-        }
-        catch (Exception exception) when (exception is SqlException or InvalidOperationException)
-        {
-            return Error.Failure(description: $"Failed to begin transaction: {exception.Message}");
-        }
-
-        return _currentTransaction;
-    }
-
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> CommitTransaction()
-    {
-        if (_currentTransaction is null)
-        {
-            return Error.Conflict(description: "No active transaction to commit.");
-        }
-
-        _currentTransaction.Commit();
-        _currentTransaction = null;
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> RollbackTransaction()
-    {
-        if (_currentTransaction is null)
-        {
-            return Error.Conflict(description: "No active transaction to rollback.");
-        }
-
-        _currentTransaction.Rollback();
-        _currentTransaction = null;
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        _currentTransaction?.Dispose();
-        if (_connection is null)
-        {
-            return;
-        }
-
-        if (_connection.State != ConnectionState.Closed)
-        {
-            _connection.Close();
-        }
-
-        _connection.Dispose();
-        _connection = null;
-    }
-
-    private SqlConnection GetConnection()
-    {
-        if (_connection is not null && _connection.State is not ConnectionState.Closed)
-        {
-            return _connection;
-        }
-
-        _connection = new SqlConnection(_connectionString);
-        _connection.Open();
-        return _connection;
+        base.OnModelCreating(modelBuilder);
     }
 }

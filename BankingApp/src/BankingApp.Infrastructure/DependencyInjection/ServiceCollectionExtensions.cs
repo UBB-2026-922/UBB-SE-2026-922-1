@@ -9,16 +9,14 @@ using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using BankingApp.Infrastructure.DataAccess.TypeHandlers;
 using BankingApp.Infrastructure.Repositories.Implementations;
 using BankingApp.Infrastructure.Services;
 using BankingApp.Infrastructure.Services.Notifications;
 using BankingApp.Infrastructure.Services.Security;
-using Dapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -44,7 +42,6 @@ public static class ServiceCollectionExtensions
     /// </exception>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        RegisterTypeHandlers();
         string connectionString = configuration.GetConnectionString("BankingAppDb")
                                   ?? throw new InvalidOperationException(
                                       "Configuration value 'ConnectionStrings:BankingAppDb' is missing.");
@@ -53,7 +50,7 @@ public static class ServiceCollectionExtensions
         string otpSecret = configuration["Otp:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
 
-        services.AddScoped<AppDatabaseContext>(_ => new AppDatabaseContext(connectionString));
+        services.AddDbContext<AppDatabaseContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
         services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
@@ -75,32 +72,4 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    private static void RegisterTypeHandlers()
-    {
-        lock (_typeHandlerLock)
-        {
-            if (_typeHandlersRegistered)
-            {
-                return;
-            }
-        }
-
-        lock (_typeHandlerLock)
-        {
-            if (_typeHandlersRegistered)
-            {
-                return;
-            }
-
-            SqlMapper.AddTypeHandler(new EnumTypeHandler<TransactionDirection>());
-            SqlMapper.AddTypeHandler(new EnumTypeHandler<TransactionStatus>());
-            SqlMapper.AddTypeHandler(new EnumTypeHandler<CardType>());
-            SqlMapper.AddTypeHandler(new EnumTypeHandler<CardStatus>());
-            SqlMapper.AddTypeHandler(new EnumTypeHandler<TwoFactorMethod>());
-            SqlMapper.AddTypeHandler(new EnumTypeHandler<AccountType>());
-            SqlMapper.AddTypeHandler(new EnumTypeHandler<AccountStatus>());
-            SqlMapper.AddTypeHandler(new NotificationTypeHandler());
-            _typeHandlersRegistered = true;
-        }
-    }
 }
