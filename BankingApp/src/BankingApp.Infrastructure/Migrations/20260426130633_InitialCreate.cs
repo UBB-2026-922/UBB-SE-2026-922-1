@@ -1,4 +1,9 @@
-﻿using System;
+﻿// <copyright file="20260426130633_InitialCreate.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the InitialCreate migration.
+// </summary>
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -19,7 +24,7 @@ namespace BankingApp.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Icon = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    IsSystem = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                    IsSystem = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                 },
                 constraints: table =>
                 {
@@ -46,7 +51,7 @@ namespace BankingApp.Infrastructure.Migrations
                     LockoutEnd = table.Column<DateTime>(type: "datetime2", nullable: true),
                     FailedLoginAttempts = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -66,7 +71,7 @@ namespace BankingApp.Infrastructure.Migrations
                     Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
                     AccountType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Active"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -93,7 +98,7 @@ namespace BankingApp.Infrastructure.Migrations
                     IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     RelatedEntityType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     RelatedEntityId = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -117,7 +122,7 @@ namespace BankingApp.Infrastructure.Migrations
                     PushEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     EmailEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     SmsEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    MinAmountThreshold = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
+                    MinAmountThreshold = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -140,7 +145,7 @@ namespace BankingApp.Infrastructure.Migrations
                     Provider = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     ProviderUserId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     ProviderEmail = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    LinkedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    LinkedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -163,7 +168,7 @@ namespace BankingApp.Infrastructure.Migrations
                     TokenHash = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UsedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -190,7 +195,7 @@ namespace BankingApp.Infrastructure.Migrations
                     LastActiveAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ExpiresAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsRevoked = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -226,7 +231,7 @@ namespace BankingApp.Infrastructure.Migrations
                     IsOnlineEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     SortOrder = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     CancelledAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -268,7 +273,7 @@ namespace BankingApp.Infrastructure.Migrations
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     RelatedEntityType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     RelatedEntityId = table.Column<int>(type: "int", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -299,7 +304,7 @@ namespace BankingApp.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TransactionId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
                 },
                 constraints: table =>
                 {

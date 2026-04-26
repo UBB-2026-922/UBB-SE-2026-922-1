@@ -7,7 +7,9 @@
 
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
+using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
@@ -72,6 +74,12 @@ try
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     WebApplication application = builder.Build();
+    using (IServiceScope scope = application.Services.CreateScope())
+    {
+        AppDatabaseContext databaseContext = scope.ServiceProvider.GetRequiredService<AppDatabaseContext>();
+        databaseContext.Database.Migrate();
+    }
+
     application.UseExceptionHandler(exceptionApplicationBuilder => exceptionApplicationBuilder.Run(async context =>
     {
         context.Response.StatusCode = internalServerErrorStatusCode;
