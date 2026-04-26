@@ -137,7 +137,7 @@ public class AppDatabaseContext : DbContext
             entity.Property(c => c.SortOrder).HasDefaultValue(0);
             entity.Property(c => c.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<Account>().WithMany().HasForeignKey(c => c.AccountId);
-            entity.HasOne<User>().WithMany().HasForeignKey(c => c.UserId);
+            entity.HasOne<User>().WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Category>(entity =>
@@ -167,8 +167,8 @@ public class AppDatabaseContext : DbContext
             entity.Property(t => t.RelatedEntityType).HasMaxLength(50);
             entity.Property(t => t.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<Account>().WithMany().HasForeignKey(t => t.AccountId);
-            entity.HasOne<Card>().WithMany().HasForeignKey(t => t.CardId);
-            entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId);
+            entity.HasOne<Card>().WithMany().HasForeignKey(t => t.CardId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.NoAction);
         });
         modelBuilder.Entity<Notification>(entity =>
         {
@@ -209,9 +209,9 @@ public class AppDatabaseContext : DbContext
         {
             entity.ToTable("TransactionCategoryOverride");
             entity.HasKey(t => t.Id);
-            entity.HasOne<Transaction>().WithMany().HasForeignKey(t => t.TransactionId);
-            entity.HasOne<User>().WithMany().HasForeignKey(t => t.UserId);
-            entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId);
+            entity.HasOne<Transaction>().WithMany().HasForeignKey(t => t.TransactionId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

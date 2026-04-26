@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankingApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDatabaseContext))]
-    [Migration("20260426130633_InitialCreate")]
+    [Migration("20260426134342_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -643,7 +643,7 @@ namespace BankingApp.Infrastructure.Migrations
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -702,11 +702,13 @@ namespace BankingApp.Infrastructure.Migrations
 
                     b.HasOne("BankingApp.Domain.Entities.Card", null)
                         .WithMany()
-                        .HasForeignKey("CardId");
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("BankingApp.Domain.Entities.Category", null)
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.TransactionCategoryOverride", b =>
@@ -714,19 +716,19 @@ namespace BankingApp.Infrastructure.Migrations
                     b.HasOne("BankingApp.Domain.Entities.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BankingApp.Domain.Entities.Transaction", null)
                         .WithMany()
                         .HasForeignKey("TransactionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

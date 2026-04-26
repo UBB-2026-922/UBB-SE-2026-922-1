@@ -1,4 +1,4 @@
-﻿// <copyright file="20260426130633_InitialCreate.cs" company="CtrlC CtrlV">
+﻿// <copyright file="20260426134342_InitialCreate.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
@@ -246,8 +246,7 @@ namespace BankingApp.Infrastructure.Migrations
                         name: "FK_Card_User_UserId",
                         column: x => x.UserId,
                         principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -313,20 +312,17 @@ namespace BankingApp.Infrastructure.Migrations
                         name: "FK_TransactionCategoryOverride_Category_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Category",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_TransactionCategoryOverride_Transaction_TransactionId",
                         column: x => x.TransactionId,
                         principalTable: "Transaction",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_TransactionCategoryOverride_User_UserId",
                         column: x => x.UserId,
                         principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(

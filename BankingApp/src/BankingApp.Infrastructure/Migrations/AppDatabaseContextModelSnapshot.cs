@@ -640,7 +640,7 @@ namespace BankingApp.Infrastructure.Migrations
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -699,11 +699,13 @@ namespace BankingApp.Infrastructure.Migrations
 
                     b.HasOne("BankingApp.Domain.Entities.Card", null)
                         .WithMany()
-                        .HasForeignKey("CardId");
+                        .HasForeignKey("CardId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("BankingApp.Domain.Entities.Category", null)
                         .WithMany()
-                        .HasForeignKey("CategoryId");
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.TransactionCategoryOverride", b =>
@@ -711,19 +713,19 @@ namespace BankingApp.Infrastructure.Migrations
                     b.HasOne("BankingApp.Domain.Entities.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BankingApp.Domain.Entities.Transaction", null)
                         .WithMany()
                         .HasForeignKey("TransactionId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618
