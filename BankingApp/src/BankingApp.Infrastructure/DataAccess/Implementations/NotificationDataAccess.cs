@@ -7,7 +7,6 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -17,11 +16,6 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// </summary>
 public class NotificationDataAccess : INotificationDataAccess
 {
-    private const string SelectAllColumns = """
-                                            SELECT Id, UserId, Title, [Message], [Type], Channel,
-                                                   IsRead, RelatedEntityType, RelatedEntityId, CreatedAt
-                                            FROM Notification
-                                            """;
 
     private readonly AppDatabaseContext _databaseContext;
 
@@ -40,8 +34,8 @@ public class NotificationDataAccess : INotificationDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<int> CountUnreadByUserId(int userId)
     {
-        const string query = "SELECT COUNT(*) FROM Notification WHERE UserId = @UserId AND IsRead = 0";
-        return _databaseContext.Query(connection => connection.QueryFirst<int>(query, new { UserId = userId }));
+        List<Notification> notifications = _databaseContext.Notifications.Where(n => n.UserId == userId && !n.IsRead).ToList();
+        return notifications.Count;
     }
 
     /// <inheritdoc />
@@ -49,8 +43,7 @@ public class NotificationDataAccess : INotificationDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Notification>> FindByUserId(int userId)
     {
-        const string query = $"{SelectAllColumns} WHERE UserId = @UserId";
-        return _databaseContext.Query(connection =>
-            connection.Query<Notification>(query, new { UserId = userId }).AsList());
+        List<Notification> notifications = _databaseContext.Notifications.Where(n => n.UserId == userId).OrderByDescending(n => n.CreatedAt).ToList();
+        return notifications;
     }
 }

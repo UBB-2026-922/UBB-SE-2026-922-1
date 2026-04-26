@@ -28,7 +28,6 @@ namespace BankingApp.Infrastructure.DependencyInjection;
 public static class ServiceCollectionExtensions
 {
     private static readonly Lock _typeHandlerLock = new();
-    private static bool _typeHandlersRegistered;
 
     /// <summary>
     ///     Registers all infrastructure services, data access components, and repositories with the service collection.

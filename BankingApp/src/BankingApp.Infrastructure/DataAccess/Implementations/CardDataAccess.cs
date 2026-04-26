@@ -7,7 +7,6 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -17,14 +16,6 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// </summary>
 public class CardDataAccess : ICardDataAccess
 {
-    private const string SelectAllColumns = """
-                                            SELECT Id, AccountId, UserId, CardNumber, CardholderName,
-                                                   ExpiryDate, CVV, CardType, CardBrand, Status,
-                                                   DailyTransactionLimit, MonthlySpendingCap, AtmWithdrawalLimit,
-                                                   ContactlessLimit, IsContactlessEnabled, IsOnlineEnabled,
-                                                   SortOrder, CancelledAt, CreatedAt
-                                            FROM Card
-                                            """;
 
     private readonly AppDatabaseContext _databaseContext;
 
@@ -43,9 +34,13 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Card> FindById(int id)
     {
-        const string query = $"{SelectAllColumns} WHERE Id = @Id";
-        return _databaseContext.Query(connection => connection.QueryFirstOrDefault<Card>(query, new { Id = id }))
-            .Then(card => card ?? (ErrorOr<Card>)Error.NotFound(description: "Card not found."));
+        Card? card = _databaseContext.Cards.FirstOrDefault(c => c.Id == id);
+        if (card == null)
+        {
+            return Error.NotFound(description: "Card not found.");
+        }
+
+        return card;
     }
 
     /// <inheritdoc />
@@ -53,7 +48,7 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Card>> FindByUserId(int userId)
     {
-        const string query = $"{SelectAllColumns} WHERE UserId = @UserId";
-        return _databaseContext.Query(connection => connection.Query<Card>(query, new { UserId = userId }).AsList());
+        List<Card> cards = _databaseContext.Cards.Where(c => c.UserId == userId).ToList();
+        return cards;
     }
 }

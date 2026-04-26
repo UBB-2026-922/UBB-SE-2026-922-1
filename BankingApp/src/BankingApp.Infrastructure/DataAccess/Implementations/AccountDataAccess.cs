@@ -7,7 +7,6 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -17,11 +16,6 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// </summary>
 public class AccountDataAccess : IAccountDataAccess
 {
-    private const string SelectAllColumns = """
-                                            SELECT Id, UserId, AccountName, IBAN, Currency, Balance,
-                                                   AccountType, Status, CreatedAt
-                                            FROM Account
-                                            """;
 
     private readonly AppDatabaseContext _databaseContext;
 
@@ -40,9 +34,13 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Account> FindById(int id)
     {
-        const string query = $"{SelectAllColumns} WHERE Id = @Id";
-        return _databaseContext.Query(connection => connection.QueryFirstOrDefault<Account>(query, new { Id = id }))
-            .Then(account => account ?? (ErrorOr<Account>)Error.NotFound(description: "Account not found."));
+        Account? account = _databaseContext.Accounts.FirstOrDefault(a => a.Id == id);
+        if(account == null)
+        {
+            return Error.NotFound(description: "Account not found.");
+        }
+
+        return account;
     }
 
     /// <inheritdoc />
@@ -50,7 +48,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Account>> FindByUserId(int userId)
     {
-        const string query = $"{SelectAllColumns} WHERE UserId = @UserId";
-        return _databaseContext.Query(connection => connection.Query<Account>(query, new { UserId = userId }).AsList());
+        List<Account> accounts = _databaseContext.Accounts.Where(a => a.UserId == userId).ToList();
+        return accounts;
     }
 }

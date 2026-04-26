@@ -7,7 +7,6 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -36,21 +35,23 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<PasswordResetToken> Create(int userId, string tokenHash, DateTime expiresAt)
     {
-        const string databaseCommandText = """
-                                           INSERT INTO PasswordResetToken (UserId, TokenHash, ExpiresAt)
-                                           OUTPUT INSERTED.Id, INSERTED.UserId, INSERTED.TokenHash,
-                                                  INSERTED.ExpiresAt, INSERTED.UsedAt, INSERTED.CreatedAt
-                                           VALUES (@UserId, @TokenHash, @ExpiresAt)
-                                           """;
-        return _databaseContext.Query(connection => connection.QueryFirstOrDefault<PasswordResetToken>(
-            databaseCommandText,
-            new
+        try
+        {
+            PasswordResetToken token = new()
             {
                 UserId = userId,
                 TokenHash = tokenHash,
                 ExpiresAt = expiresAt,
-            })).Then(token =>
-            token ?? (ErrorOr<PasswordResetToken>)Error.Failure(description: "Failed to create password reset token."));
+                CreatedAt = DateTime.UtcNow,
+            };
+            _databaseContext.PasswordResetTokens.Add(token);
+            _databaseContext.SaveChanges();
+            return token;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: $"Failed to create password reset token: {ex.Message}");
+        }
     }
 
     /// <inheritdoc />
@@ -58,15 +59,13 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<PasswordResetToken> FindByToken(string tokenHash)
     {
-        const string databaseCommandText = """
-                                           SELECT Id, UserId, TokenHash, ExpiresAt, UsedAt, CreatedAt
-                                           FROM PasswordResetToken
-                                           WHERE TokenHash = @TokenHash
-                                           """;
-        return _databaseContext.Query(connection =>
-                connection.QueryFirstOrDefault<PasswordResetToken>(databaseCommandText, new { TokenHash = tokenHash }))
-            .Then(token =>
-                token ?? (ErrorOr<PasswordResetToken>)Error.NotFound(description: "Password reset token not found."));
+        PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(t => t.TokenHash == tokenHash);
+        if (token == null)
+        {
+            return Error.NotFound(description: "Password reset token not found.");
+        }
+
+        return token;
     }
 
     /// <inheritdoc />
@@ -74,17 +73,39 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> MarkAsUsed(int tokenId)
     {
-        const string databaseCommandText = "UPDATE PasswordResetToken SET UsedAt = GETUTCDATE() WHERE Id = @Id";
-        return _databaseContext.Query(connection => connection.Execute(databaseCommandText, new { Id = tokenId }))
-            .Then(_ => (ErrorOr<Success>)Result.Success);
+        try
+        {
+            PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(t => t.Id == tokenId);
+            if (token == null)
+            {
+                return Error.NotFound(description: "Password reset token not found.");
+            }
+
+            token.UsedAt = DateTime.UtcNow;
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: $"Failed to mark password reset token as used: {ex.Message}");
+        }
     }
 
     /// <inheritdoc />
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> DeleteExpired()
     {
-        const string databaseCommandText = "DELETE FROM PasswordResetToken WHERE ExpiresAt < GETUTCDATE()";
-        return _databaseContext.Query(connection => connection.Execute(databaseCommandText))
-            .Then(_ => (ErrorOr<Success>)Result.Success);
+        try
+        {
+            List<PasswordResetToken> expiredTokens = _databaseContext.PasswordResetTokens.Where(t => t.ExpiresAt < DateTime.UtcNow || t.UsedAt != null).ToList();
+            _databaseContext.PasswordResetTokens.RemoveRange(expiredTokens);
+            _databaseContext.SaveChanges();
+            return Result.Success;
+
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: $"Failed to delete expired password reset tokens: {ex.Message}");
+        }
     }
 }

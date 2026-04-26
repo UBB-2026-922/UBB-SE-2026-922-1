@@ -7,7 +7,6 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -36,17 +35,11 @@ public class TransactionDataAccess : ITransactionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit)
     {
-        const string databaseCommandText = """
-                                           SELECT TOP (@Limit)
-                                               Id, AccountId, CardId, TransactionRef, [Type], Direction, Amount,
-                                               Currency, BalanceAfter, CounterpartyName, CounterpartyIBAN, MerchantName,
-                                               CategoryId, Description, Fee, ExchangeRate, [Status], RelatedEntityType,
-                                               RelatedEntityId, CreatedAt
-                                           FROM [Transaction]
-                                           WHERE AccountId = @AccountId
-                                           ORDER BY CreatedAt DESC
-                                           """;
-        return _databaseContext.Query(connection =>
-            connection.Query<Transaction>(databaseCommandText, new { AccountId = accountId, Limit = limit }).AsList());
+        List<Transaction> transactions = _databaseContext.Transactions
+            .Where(t => t.AccountId == accountId)
+            .OrderByDescending(t => t.CreatedAt)
+            .Take(limit)
+            .ToList();
+        return transactions;
     }
 }
