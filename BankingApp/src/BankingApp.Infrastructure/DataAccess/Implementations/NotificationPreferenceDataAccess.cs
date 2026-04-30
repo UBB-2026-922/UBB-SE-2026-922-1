@@ -6,9 +6,8 @@
 // </summary>
 
 using BankingApp.Domain.Entities;
-using BankingApp.Domain.Extensions;
+using BankingApp.Domain.Enums;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -36,17 +35,24 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Create(int userId, string category)
     {
-        const string databaseCommandText = """
-                                           INSERT INTO NotificationPreference (UserId, Category, PushEnabled, EmailEnabled, SmsEnabled)
-                                           VALUES (@UserId, @Category, 0, 0, 0)
-                                           """;
-        return _databaseContext.Query(connection => connection.Execute(
-                databaseCommandText,
-                new { UserId = userId, Category = category }))
-            .Then(rows =>
-                rows > default(int)
-                    ? Result.Success
-                    : (ErrorOr<Success>)Error.Failure(description: "Failed to create notification preference."));
+        try
+        {
+            NotificationPreference notification = new()
+            {
+            UserId = userId,
+            Category = Enum.Parse<NotificationType>(category),
+            PushEnabled = false,
+            EmailEnabled = false,
+            SmsEnabled = false,
+            };
+            _databaseContext.NotificationPreferences.Add(notification);
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: $"Failed to create notification preference: {ex.Message}");
+        }
     }
 
     /// <inheritdoc />
@@ -54,13 +60,8 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<NotificationPreference>> FindByUserId(int userId)
     {
-        const string query = """
-                             SELECT Id, UserId, Category, PushEnabled, EmailEnabled, SmsEnabled, MinAmountThreshold
-                             FROM NotificationPreference
-                             WHERE UserId = @UserId
-                             """;
-        return _databaseContext.Query(connection =>
-            connection.Query<NotificationPreference>(query, new { UserId = userId }).AsList());
+        List<NotificationPreference> preferences = _databaseContext.NotificationPreferences.Where(preference => preference.UserId == userId).ToList();
+        return preferences;
     }
 
     /// <inheritdoc />
@@ -69,26 +70,27 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Update(int userId, List<NotificationPreference> preferences)
     {
-        const string databaseCommandText = """
-                                           UPDATE NotificationPreference
-                                           SET PushEnabled        = @PushEnabled,
-                                               EmailEnabled       = @EmailEnabled,
-                                               SmsEnabled         = @SmsEnabled,
-                                               MinAmountThreshold = @MinAmountThreshold
-                                           WHERE UserId   = @UserId
-                                             AND Category = @Category
-                                           """;
-        return _databaseContext.Query(connection => connection.Execute(
-                databaseCommandText,
-                preferences.Select(preference => new
+        try
+        {
+            foreach (NotificationPreference preference in preferences)
+            {
+                NotificationPreference? existing = _databaseContext.NotificationPreferences
+                    .FirstOrDefault(p => p.UserId == userId && p.Category == preference.Category);
+                if (existing is not null)
                 {
-                    preference.UserId,
-                    Category = preference.Category.ToDisplayName(),
-                    preference.PushEnabled,
-                    preference.EmailEnabled,
-                    preference.SmsEnabled,
-                    preference.MinAmountThreshold,
-                })))
-            .Then(_ => (ErrorOr<Success>)Result.Success);
+                    existing.PushEnabled = preference.PushEnabled;
+                    existing.EmailEnabled = preference.EmailEnabled;
+                    existing.SmsEnabled = preference.SmsEnabled;
+                    existing.MinAmountThreshold = preference.MinAmountThreshold;
+                }
+            }
+
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 }

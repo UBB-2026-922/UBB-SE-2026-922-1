@@ -9,7 +9,6 @@ using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.Repositories.Implementations;
 using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 using Bogus;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.Tests.Integration;
@@ -163,74 +162,76 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
     {
         var faker = new Faker();
         iban ??= faker.Finance.Iban();
-
-        databaseContext.Query(connection =>
+        var account = new Account
         {
-            connection.Execute(
-                """
-                INSERT INTO Account (UserId, AccountName, IBAN, Currency, Balance, AccountType, Status)
-                VALUES (@UserId, 'Main Account', @Iban, 'RON', 5000.00, 'Checking', 'Active')
-                """,
-                new { UserId = userId, Iban = iban });
-            return 0;
-        });
-
-        return databaseContext.Query<Account>(connection =>
-            connection.QueryFirst<Account>(
-                "SELECT * FROM Account WHERE UserId = @UserId AND IBAN = @Iban",
-                new { UserId = userId, Iban = iban })).Value;
+            UserId = userId,
+            AccountName = "Main Account",
+            Iban = iban,
+            Currency = "RON",
+            Balance = 5000.00m,
+            AccountType = AccountType.Checking,
+            Status = AccountStatus.Active,
+        };
+        databaseContext.Accounts.Add(account);
+        databaseContext.SaveChanges();
+        return account;
     }
 
     private void SeedCard(AppDatabaseContext databaseContext, int accountId, int userId)
     {
-        // Use a fixed card number to avoid Bogus generating numbers > VARCHAR(19)
-        ErrorOr<int> seedResult = databaseContext.Query(connection =>
+        var card = new Card
         {
-            return connection.Execute(
-                """
-                INSERT INTO Card (AccountId, UserId, CardNumber, CardholderName, ExpiryDate, CVV, CardType, Status)
-                VALUES (@AccountId, @UserId, '4111111111111111', 'Test User', '2027-12-31', '123', 'Debit', 'Active')
-                """,
-                new { AccountId = accountId, UserId = userId });
-        });
-
-        seedResult.IsError.Should()
-            .BeFalse(seedResult.IsError ? seedResult.FirstError.Description : "SeedCard INSERT failed.");
+            AccountId = accountId,
+            UserId = userId,
+            CardNumber = "4111111111111111",
+            CardholderName = "Test User",
+            ExpiryDate = new DateTime(2027, 12, 31),
+            Cvv = "123",
+            CardType = CardType.Debit,
+            Status = CardStatus.Active,
+        };
+        databaseContext.Cards.Add(card);
+        databaseContext.SaveChanges();
     }
 
     private void SeedTransactions(AppDatabaseContext databaseContext, int accountId, int count)
     {
         for (var index = 0; index < count; index++)
         {
-            int localIndex = index;
-            databaseContext.Query(connection =>
+            var transaction = new Transaction
             {
-                connection.Execute(
-                    """
-                    INSERT INTO "Transaction" (AccountId, TransactionRef, Type, Direction, Amount, Currency, BalanceAfter, Status)
-                    VALUES (@AccountId, @Ref, 'Transfer', 'In', 100.00, 'RON', 5100.00, 'Completed')
-                    """,
-                    new { AccountId = accountId, Ref = $"REF-{localIndex}-{Guid.NewGuid():N}" });
-                return 0;
-            });
+                AccountId = accountId,
+                TransactionRef = $"REF-{index}-{Guid.NewGuid():N}",
+                RelatedEntityType = "Transfer",
+                Direction = TransactionDirection.In,
+                Amount = 100.00m,
+                Currency = "RON",
+                BalanceAfter = 5100.00m,
+                Status = TransactionStatus.Completed,
+            };
+            databaseContext.Transactions.Add(transaction);
         }
+
+        databaseContext.SaveChanges();
     }
 
     private void SeedNotifications(AppDatabaseContext databaseContext, int userId, int count)
     {
         for (var index = 0; index < count; index++)
         {
-            databaseContext.Query(connection =>
+            var notification = new Notification
             {
-                connection.Execute(
-                    """
-                    INSERT INTO Notification (UserId, Title, Message, Type, Channel, IsRead)
-                    VALUES (@UserId, 'Info', 'You have a new notification.', 'Alert', 'Push', 0)
-                    """,
-                    new { UserId = userId });
-                return 0;
-            });
+                UserId = userId,
+                Title = "Info",
+                Message = "You have a new notification.",
+                Type = "Alert",
+                Channel = "Push",
+                IsRead = false,
+            };
+            databaseContext.Notifications.Add(notification);
         }
+
+        databaseContext.SaveChanges();
     }
 
     private DashboardRepository MakeDashboardRepository(AppDatabaseContext databaseContext)

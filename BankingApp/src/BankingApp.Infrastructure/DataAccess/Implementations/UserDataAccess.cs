@@ -42,9 +42,13 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<User> FindByEmail(string email)
     {
-        const string query = $"{SelectAllColumns} WHERE Email = @Email";
-        return _databaseContext.Query(connection => connection.QueryFirstOrDefault<User>(query, new { Email = email }))
-            .Then(user => user ?? (ErrorOr<User>)Error.NotFound(description: "User not found."));
+        User? user = _databaseContext.Users.FirstOrDefault(u => u.Email == email);
+        if (user is null)
+        {
+            return Error.NotFound(description: "User not found.");
+        }
+
+        return user;
     }
 
     /// <inheritdoc />
@@ -52,9 +56,13 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<User> FindById(int id)
     {
-        const string query = $"{SelectAllColumns} WHERE Id = @Id";
-        return _databaseContext.Query(connection => connection.QueryFirstOrDefault<User>(query, new { Id = id }))
-            .Then(user => user ?? (ErrorOr<User>)Error.NotFound(description: "User not found."));
+        User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == id);
+        if (user is null)
+        {
+            return Error.NotFound(description: "User not found.");
+        }
+
+        return user;
     }
 
     /// <inheritdoc />
@@ -62,17 +70,16 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Create(User user)
     {
-        const string databaseCommandText = """
-                                           INSERT INTO [User] (Email, PasswordHash, FullName, PhoneNumber, DateOfBirth,
-                                               [Address], Nationality, PreferredLanguage, Is2FAEnabled, Preferred2FaMethod)
-                                           VALUES (@Email, @PasswordHash, @FullName, @PhoneNumber, @DateOfBirth,
-                                               @Address, @Nationality, @PreferredLanguage, @Is2FAEnabled, @Preferred2FaMethod)
-                                           """;
-        return _databaseContext.Query(connection => connection.Execute(databaseCommandText, user))
-            .Then(rows =>
-                rows > default(int)
-                    ? Result.Success
-                    : (ErrorOr<Success>)Error.Failure(description: "Failed to create user."));
+        try
+        {
+            _databaseContext.Users.Add(user);
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 
     /// <inheritdoc />
@@ -80,25 +87,16 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Update(User user)
     {
-        const string databaseCommandText = """
-                                           UPDATE [User]
-                                           SET Email              = @Email,
-                                               FullName           = @FullName,
-                                               PhoneNumber        = @PhoneNumber,
-                                               DateOfBirth        = @DateOfBirth,
-                                               [Address]          = @Address,
-                                               Nationality        = @Nationality,
-                                               PreferredLanguage  = @PreferredLanguage,
-                                               Is2FAEnabled       = @Is2FAEnabled,
-                                               Preferred2FaMethod = @Preferred2FaMethod,
-                                               UpdatedAt          = GETUTCDATE()
-                                           WHERE Id = @Id
-                                           """;
-        return _databaseContext.Query(connection => connection.Execute(databaseCommandText, user))
-            .Then(rows =>
-                rows > default(int)
-                    ? Result.Success
-                    : (ErrorOr<Success>)Error.Failure(description: "Failed to update user."));
+        try
+        {
+            _databaseContext.Users.Update(user);
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 
     /// <inheritdoc />
@@ -107,19 +105,22 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> UpdatePassword(int userId, string newPasswordHash)
     {
-        const string databaseCommandText = """
-                                           UPDATE [User]
-                                           SET PasswordHash = @PasswordHash,
-                                               UpdatedAt    = GETUTCDATE()
-                                           WHERE Id = @UserId
-                                           """;
-        return _databaseContext.Query(connection => connection.Execute(
-                databaseCommandText,
-                new { UserId = userId, PasswordHash = newPasswordHash }))
-            .Then(rows =>
-                rows > default(int)
-                    ? Result.Success
-                    : (ErrorOr<Success>)Error.Failure(description: "Failed to update password."));
+        try
+        {
+            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+            {
+                return Error.NotFound(description: "User not found.");
+            }
+
+            user.PasswordHash = newPasswordHash;
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 
     /// <inheritdoc />
@@ -127,10 +128,22 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> IncrementFailedAttempts(int userId)
     {
-        const string databaseCommandText =
-            "UPDATE [User] SET FailedLoginAttempts = FailedLoginAttempts + 1 WHERE Id = @UserId";
-        return _databaseContext.Query(connection => connection.Execute(databaseCommandText, new { UserId = userId }))
-            .Then(_ => (ErrorOr<Success>)Result.Success);
+        try
+        {
+            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+            {
+                return Error.NotFound(description: "User not found.");
+            }
+
+            user.FailedLoginAttempts++;
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 
     /// <inheritdoc />
@@ -138,9 +151,22 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> ResetFailedAttempts(int userId)
     {
-        const string databaseCommandText = "UPDATE [User] SET FailedLoginAttempts = default WHERE Id = @UserId";
-        return _databaseContext.Query(connection => connection.Execute(databaseCommandText, new { UserId = userId }))
-            .Then(_ => (ErrorOr<Success>)Result.Success);
+        try
+        {
+            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+            {
+                return Error.NotFound(description: "User not found.");
+            }
+
+            user.FailedLoginAttempts = 0;
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 
     /// <inheritdoc />
@@ -149,11 +175,22 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> LockAccount(int userId, DateTime lockoutEnd)
     {
-        const string databaseCommandText =
-            "UPDATE [User] SET IsLocked = 1, LockoutEnd = @LockoutEnd WHERE Id = @UserId";
-        return _databaseContext.Query(connection => connection.Execute(
-                databaseCommandText,
-                new { UserId = userId, LockoutEnd = lockoutEnd }))
-            .Then(_ => (ErrorOr<Success>)Result.Success);
+        try
+        {
+            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            if (user is null)
+            {
+                return Error.NotFound(description: "User not found.");
+            }
+
+            user.IsLocked = true;
+            user.LockoutEnd = lockoutEnd;
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 }

@@ -5,6 +5,7 @@
 using System.Data.Common;
 using BankingApp.Infrastructure.DataAccess;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Respawn;
 using Testcontainers.MsSql;
 
@@ -64,7 +65,10 @@ public sealed class DatabaseFixture : IAsyncLifetime
     /// <returns>A new <see cref="AppDatabaseContext" />.</returns>
     public AppDatabaseContext CreateDatabaseContext()
     {
-        return new AppDatabaseContext(_databaseContainer.GetConnectionString());
+        DbContextOptions<AppDatabaseContext> options = new DbContextOptionsBuilder<AppDatabaseContext>()
+            .UseSqlServer(_databaseContainer.GetConnectionString())
+            .Options;
+        return new AppDatabaseContext(options);
     }
 
     /// <summary>

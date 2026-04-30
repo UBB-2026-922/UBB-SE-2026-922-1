@@ -5,124 +5,213 @@
 // Contains the AppDatabaseContext class.
 // </summary>
 
-using System.Data;
-using ErrorOr;
-using Microsoft.Data.SqlClient;
+using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankingApp.Infrastructure.DataAccess;
 
 /// <summary>
-///     Provides a concrete implementation of <see cref="IDatabaseContext" /> using SQL Server via
-///     <see cref="SqlConnection" />.
+///     Provides the EF Core database context for the BankingApp.
 /// </summary>
-public class AppDatabaseContext : IDatabaseContext
+public class AppDatabaseContext : DbContext
 {
-    private readonly string _connectionString;
-    private SqlConnection? _connection;
-    private SqlTransaction? _currentTransaction;
-
     /// <summary>
     ///     Initializes a new instance of the <see cref="AppDatabaseContext" /> class.
     /// </summary>
-    /// <param name="connectionString">The SQL Server _connection string.</param>
-    /// <returns>The result of the operation.</returns>
-    public AppDatabaseContext(string connectionString)
+    /// <param name="options">The database context options.</param>
+    public AppDatabaseContext(DbContextOptions<AppDatabaseContext> options) : base(options)
     {
-        _connectionString = connectionString;
     }
 
-    /// <inheritdoc />
-    public ErrorOr<T> Query<T>(Func<SqlConnection, T> operation)
+    /// <summary>Gets or sets the users table.</summary>
+    public DbSet<User> Users { get; set; }
+
+    /// <summary>Gets or sets the sessions table.</summary>
+    public DbSet<Session> Sessions { get; set; }
+
+    /// <summary>Gets or sets the OAuth links table.</summary>
+    public DbSet<OAuthLink> OAuthLinks { get; set; }
+
+    /// <summary>Gets or sets the accounts table.</summary>
+    public DbSet<Account> Accounts { get; set; }
+
+    /// <summary>Gets or sets the cards table.</summary>
+    public DbSet<Card> Cards { get; set; }
+
+    /// <summary>Gets or sets the categories table.</summary>
+    public DbSet<Category> Categories { get; set; }
+
+    /// <summary>Gets or sets the transactions table.</summary>
+    public DbSet<Transaction> Transactions { get; set; }
+
+    /// <summary>Gets or sets the notifications table.</summary>
+    public DbSet<Notification> Notifications { get; set; }
+
+    /// <summary>Gets or sets the notification preferences table.</summary>
+    public DbSet<NotificationPreference> NotificationPreferences { get; set; }
+
+    /// <summary>Gets or sets the password reset tokens table.</summary>
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
+    /// <summary>Gets or sets the transaction category overrides table.</summary>
+    public DbSet<TransactionCategoryOverride> TransactionCategoryOverrides { get; set; }
+
+    /// <inheritdoc/>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        try
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<User>(entity =>
         {
-            T result = operation(GetConnection());
-            if (result is null)
-            {
-                return Error.NotFound(description: "No record found.");
-            }
+            entity.ToTable("User");
+            entity.HasKey(u => u.Id);
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
+            entity.HasIndex(u => u.Email).IsUnique();
+            entity.Property(u => u.PasswordHash).HasMaxLength(512);
+            entity.Property(u => u.FullName).IsRequired().HasMaxLength(200);
+            entity.Property(u => u.PhoneNumber).HasMaxLength(20);
+            entity.Property(u => u.PreferredLanguage).HasMaxLength(5).HasDefaultValue("en");
+            entity.Property(u => u.Is2FaEnabled).HasColumnName("Is2FAEnabled").HasDefaultValue(false);
+            entity.Property(u => u.Preferred2FaMethod).HasConversion<string>();
+            entity.Property(u => u.IsLocked).HasDefaultValue(false);
+            entity.Property(u => u.FailedLoginAttempts).HasDefaultValue(0);
+            entity.Property(u => u.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(u => u.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+        });
 
-            return result;
-        }
-        catch (Exception exception)
+        modelBuilder.Entity<Session>(entity =>
         {
-            return Error.Failure(description: exception.Message);
-        }
-    }
+            entity.ToTable("Session");
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Token).IsRequired().HasMaxLength(512);
+            entity.Property(s => s.DeviceInfo).HasMaxLength(255);
+            entity.Property(s => s.Browser).HasMaxLength(100);
+            entity.Property(s => s.IpAddress).HasMaxLength(45);
+            entity.Property(s => s.IsRevoked).HasDefaultValue(false);
+            entity.Property(s => s.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(s => s.UserId);
+        });
 
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<SqlTransaction> BeginTransaction()
-    {
-        SqlConnection activeConnection = GetConnection();
-        try
+        modelBuilder.Entity<OAuthLink>(entity =>
         {
-            _currentTransaction = activeConnection.BeginTransaction();
-        }
-        catch (Exception exception) when (exception is SqlException or InvalidOperationException)
+            entity.ToTable("OAuthLink");
+            entity.HasKey(o => o.Id);
+            entity.Property(o => o.Provider).IsRequired().HasMaxLength(20);
+            entity.Property(o => o.ProviderUserId).IsRequired().HasMaxLength(255);
+            entity.Property(o => o.ProviderEmail).HasMaxLength(255);
+            entity.Property(o => o.LinkedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(o => o.UserId);
+        });
+
+        modelBuilder.Entity<Account>(entity =>
         {
-            return Error.Failure(description: $"Failed to begin transaction: {exception.Message}");
-        }
+            entity.ToTable("Account");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.AccountName).HasMaxLength(100);
+            entity.Property(a => a.Iban).IsRequired().HasMaxLength(34).HasColumnName("IBAN");
+            entity.HasIndex(a => a.Iban).IsUnique();
+            entity.Property(a => a.Currency).IsRequired().HasMaxLength(3);
+            entity.Property(a => a.Balance).HasColumnType("decimal(18,2)").HasDefaultValue(0);
+            entity.Property(a => a.AccountType).IsRequired().HasConversion<string>().HasMaxLength(20);
+            entity.Property(a => a.Status).HasConversion<string>().HasMaxLength(20).HasDefaultValue(AccountStatus.Active);
+            entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(a => a.UserId);
+        });
 
-        return _currentTransaction;
-    }
-
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> CommitTransaction()
-    {
-        if (_currentTransaction is null)
+        modelBuilder.Entity<Card>(entity =>
         {
-            return Error.Conflict(description: "No active transaction to commit.");
-        }
+            entity.ToTable("Card");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.CardNumber).IsRequired().HasMaxLength(19);
+            entity.Property(c => c.CardholderName).IsRequired().HasMaxLength(200);
+            entity.Property(c => c.Cvv).IsRequired().HasMaxLength(4).HasColumnName("CVV");
+            entity.Property(c => c.CardType).IsRequired().HasConversion<string>().HasMaxLength(20);
+            entity.Property(c => c.CardBrand).HasMaxLength(20);
+            entity.Property(c => c.Status).IsRequired().HasConversion<string>().HasMaxLength(20).HasDefaultValue(CardStatus.Active);
+            entity.Property(c => c.DailyTransactionLimit).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.MonthlySpendingCap).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.AtmWithdrawalLimit).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.ContactlessLimit).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.IsContactlessEnabled).HasDefaultValue(true);
+            entity.Property(c => c.IsOnlineEnabled).HasDefaultValue(true);
+            entity.Property(c => c.SortOrder).HasDefaultValue(0);
+            entity.Property(c => c.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<Account>().WithMany().HasForeignKey(c => c.AccountId);
+            entity.HasOne<User>().WithMany().HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.NoAction);
+        });
 
-        _currentTransaction.Commit();
-        _currentTransaction = null;
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> RollbackTransaction()
-    {
-        if (_currentTransaction is null)
+        modelBuilder.Entity<Category>(entity =>
         {
-            return Error.Conflict(description: "No active transaction to rollback.");
-        }
-
-        _currentTransaction.Rollback();
-        _currentTransaction = null;
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        _currentTransaction?.Dispose();
-        if (_connection is null)
+            entity.ToTable("Category");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Name).IsRequired().HasMaxLength(100);
+            entity.Property(c => c.Icon).HasMaxLength(50);
+            entity.Property(c => c.IsSystem).HasDefaultValue(true);
+        });
+        modelBuilder.Entity<Transaction>(entity =>
         {
-            return;
-        }
-
-        if (_connection.State != ConnectionState.Closed)
+            entity.ToTable("Transaction");
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.TransactionRef).IsRequired().HasMaxLength(50);
+            entity.HasIndex(t => t.TransactionRef).IsUnique();
+            entity.Property(t => t.Direction).IsRequired().HasConversion<string>().HasMaxLength(10);
+            entity.Property(t => t.Amount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(t => t.Currency).IsRequired().HasMaxLength(3);
+            entity.Property(t => t.BalanceAfter).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(t => t.CounterpartyName).HasMaxLength(200);
+            entity.Property(t => t.CounterpartyIban).HasMaxLength(34).HasColumnName("CounterpartyIBAN");
+            entity.Property(t => t.MerchantName).HasMaxLength(200);
+            entity.Property(t => t.Fee).HasColumnType("decimal(18,2)").HasDefaultValue(0);
+            entity.Property(t => t.ExchangeRate).HasColumnType("decimal(18,6)");
+            entity.Property(t => t.Status).IsRequired().HasConversion<string>().HasMaxLength(20);
+            entity.Property(t => t.RelatedEntityType).HasMaxLength(50);
+            entity.Property(t => t.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<Account>().WithMany().HasForeignKey(t => t.AccountId);
+            entity.HasOne<Card>().WithMany().HasForeignKey(t => t.CardId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.NoAction);
+        });
+        modelBuilder.Entity<Notification>(entity =>
         {
-            _connection.Close();
-        }
+            entity.ToTable("Notification");
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.Title).IsRequired().HasMaxLength(200);
+            entity.Property(n => n.Message).IsRequired();
+            entity.Property(n => n.Type).IsRequired().HasMaxLength(30);
+            entity.Property(n => n.Channel).IsRequired().HasMaxLength(20);
+            entity.Property(n => n.IsRead).HasDefaultValue(false);
+            entity.Property(n => n.RelatedEntityType).HasMaxLength(50);
+            entity.Property(n => n.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(n => n.UserId);
+        });
 
-        _connection.Dispose();
-        _connection = null;
-    }
-
-    private SqlConnection GetConnection()
-    {
-        if (_connection is not null && _connection.State is not ConnectionState.Closed)
+        modelBuilder.Entity<NotificationPreference>(entity =>
         {
-            return _connection;
-        }
+            entity.ToTable("NotificationPreference");
+            entity.HasKey(n => n.Id);
+            entity.Property(n => n.Category).IsRequired().HasConversion<string>().HasMaxLength(30);
+            entity.Property(n => n.PushEnabled).HasDefaultValue(true);
+            entity.Property(n => n.EmailEnabled).HasDefaultValue(true);
+            entity.Property(n => n.SmsEnabled).HasDefaultValue(false);
+            entity.Property(n => n.MinAmountThreshold).HasColumnType("decimal(18,2)");
+            entity.HasOne<User>().WithMany().HasForeignKey(n => n.UserId);
+        });
 
-        _connection = new SqlConnection(_connectionString);
-        _connection.Open();
-        return _connection;
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.ToTable("PasswordResetToken");
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.TokenHash).IsRequired().HasMaxLength(512);
+            entity.Property(p => p.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(p => p.UserId);
+        });
+
+        modelBuilder.Entity<TransactionCategoryOverride>(entity =>
+        {
+            entity.ToTable("TransactionCategoryOverride");
+            entity.HasKey(t => t.Id);
+            entity.HasOne<Transaction>().WithMany().HasForeignKey(t => t.TransactionId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.NoAction);
+        });
     }
 }

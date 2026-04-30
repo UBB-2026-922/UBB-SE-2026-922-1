@@ -73,12 +73,8 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         // Assert
         result.IsError.Should().BeFalse(result.IsError ? result.FirstError.Description : string.Empty);
         User user = userDataAccess.FindByEmail(newUser.Email).Value;
-        ErrorOr<int> countResult = databaseContext.Query(connection =>
-            connection.QueryFirst<int>(
-                "SELECT COUNT(*) FROM NotificationPreference WHERE UserId = @UserId",
-                new { UserId = user.Id }));
-        countResult.IsError.Should().BeFalse();
-        countResult.Value.Should().BeGreaterThan(0, "Expected at least one notification preference to be created.");
+        int count = databaseContext.NotificationPreferences.Count(p => p.UserId == user.Id);
+        count.Should().BeGreaterThan(0, "Expected at least one notification preference to be created.");
     }
 
     /// <summary>
