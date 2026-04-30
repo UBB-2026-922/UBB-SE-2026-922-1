@@ -1,4 +1,4 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="CtrlC CtrlV">
+// <copyright file="ServiceCollectionExtensions.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
@@ -9,6 +9,7 @@ using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
+using BankingApp.Application.Services.TeamB;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
@@ -68,6 +69,18 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
+
+        // ── Team B — Landing Zones (NotImplementedException) ─────────────────────
+        // These registrations wire the interfaces defined in the Application layer to the
+        // skeleton repository implementations in the Infrastructure layer.
+        // Each skeleton throws NotImplementedException until replaced by a real implementation.
+        services.AddScoped<ITransferRepository, TransferRepository>();
+        services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
+        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
+        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
+        services.AddScoped<IExchangeRepository, ExchangeRepository>();
+        services.AddScoped<IRateAlertRepository, RateAlertRepository>();
+
         return services;
     }
 
