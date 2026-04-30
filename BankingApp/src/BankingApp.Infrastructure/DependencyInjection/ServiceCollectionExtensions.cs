@@ -18,6 +18,7 @@ using BankingApp.Infrastructure.Services;
 using BankingApp.Infrastructure.Services.Notifications;
 using BankingApp.Infrastructure.Services.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -50,7 +51,9 @@ public static class ServiceCollectionExtensions
         string otpSecret = configuration["Otp:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
 
-        services.AddDbContext<AppDatabaseContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<AppDatabaseContext>(options =>
+            options.UseSqlServer(connectionString)
+                   .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
         services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
