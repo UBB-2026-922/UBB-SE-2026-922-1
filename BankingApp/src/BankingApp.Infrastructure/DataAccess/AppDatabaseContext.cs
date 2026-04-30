@@ -9,6 +9,7 @@ using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using BankingApp.Domain.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BankingApp.Infrastructure.DataAccess;
 
@@ -212,16 +213,15 @@ public class AppDatabaseContext : DbContext
             entity.HasOne<User>().WithMany().HasForeignKey(n => n.UserId);
         });
 
+        var notificationTypeConverter = new ValueConverter<NotificationType, string>(
+            type => type.ToDisplayName(),
+            value => NotificationTypeExtensions.FromString(value));
+
         modelBuilder.Entity<NotificationPreference>(entity =>
         {
             entity.ToTable("NotificationPreference");
             entity.HasKey(n => n.Id);
-            entity.Property(n => n.Category)
-                .IsRequired()
-                .HasConversion(
-                    type => type.ToDisplayName(),
-                    value => NotificationTypeExtensions.FromString(value))
-                .HasMaxLength(30);
+            entity.Property(n => n.Category).IsRequired().HasConversion(notificationTypeConverter).HasMaxLength(30);
             entity.Property(n => n.PushEnabled).HasDefaultValue(true);
             entity.Property(n => n.EmailEnabled).HasDefaultValue(true);
             entity.Property(n => n.SmsEnabled).HasDefaultValue(false);
