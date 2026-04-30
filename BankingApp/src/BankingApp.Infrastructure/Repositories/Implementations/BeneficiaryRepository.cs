@@ -1,4 +1,4 @@
-// <copyright file="BeneficiaryRepository.cs" company="CtrlC CtrlV">
+﻿// <copyright file="BeneficiaryRepository.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>

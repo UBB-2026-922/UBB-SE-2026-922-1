@@ -1,8 +1,8 @@
-// <copyright file="TransferRequestDto.cs" company="CtrlC CtrlV">
+﻿// <copyright file="TransferRequestDto.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the TransferRequestDto record.
+// Contains the TransferRequestDto class.
 // </summary>
 
 namespace BankingApp.Application.DTOs.TeamB;
@@ -10,20 +10,37 @@ namespace BankingApp.Application.DTOs.TeamB;
 /// <summary>
 ///     Carries the input data required to initiate a bank transfer.
 /// </summary>
-/// <param name="UserId">The identifier of the user initiating the transfer.</param>
-/// <param name="SourceAccountId">The identifier of the account to debit.</param>
-/// <param name="RecipientName">The full name of the recipient.</param>
-/// <param name="RecipientIban">The recipient's IBAN.</param>
-/// <param name="RecipientBankName">The recipient's bank name (optional).</param>
-/// <param name="Amount">The amount to transfer.</param>
-/// <param name="Currency">The ISO 4217 currency code.</param>
-/// <param name="Reference">An optional free-text payment reference.</param>
-public record TransferRequestDto(
-    int UserId,
-    int SourceAccountId,
-    string RecipientName,
-    string RecipientIban,
-    string? RecipientBankName,
-    decimal Amount,
-    string Currency,
-    string? Reference);
+public class TransferRequestDto
+{
+    /// <summary>Gets or sets the identifier of the user initiating the transfer.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int UserId { get; set; }
+
+    /// <summary>Gets or sets the identifier of the account to debit.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int SourceAccountId { get; set; }
+
+    /// <summary>Gets or sets the full name of the recipient.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string RecipientName { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the recipient's IBAN.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string RecipientIban { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the recipient's bank name, or <see langword="null" /> if not known.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string? RecipientBankName { get; set; }
+
+    /// <summary>Gets or sets the amount to transfer.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public decimal Amount { get; set; }
+
+    /// <summary>Gets or sets the ISO 4217 currency code.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string Currency { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets an optional free-text payment reference.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string? Reference { get; set; }
+}

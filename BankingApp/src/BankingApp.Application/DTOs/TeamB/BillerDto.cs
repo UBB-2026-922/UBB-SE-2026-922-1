@@ -1,8 +1,8 @@
-// <copyright file="BillerDto.cs" company="CtrlC CtrlV">
+﻿// <copyright file="BillerDto.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the BillerDto record.
+// Contains the BillerDto class.
 // </summary>
 
 using BankingApp.Domain.Enums;
@@ -12,14 +12,25 @@ namespace BankingApp.Application.DTOs.TeamB;
 /// <summary>
 ///     Carries biller master data to the presentation layer.
 /// </summary>
-/// <param name="Id">The unique identifier of the biller.</param>
-/// <param name="Name">The display name of the biller.</param>
-/// <param name="Category">The business sector category.</param>
-/// <param name="LogoUrl">The URL of the biller's logo, or null.</param>
-/// <param name="IsActive">Indicates whether the biller is currently accepting payments.</param>
-public record BillerDto(
-    int Id,
-    string Name,
-    BillerCategory Category,
-    string? LogoUrl,
-    bool IsActive);
+public class BillerDto
+{
+    /// <summary>Gets or sets the unique identifier of the biller.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int Id { get; set; }
+
+    /// <summary>Gets or sets the display name of the biller.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the business sector category.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public BillerCategory Category { get; set; }
+
+    /// <summary>Gets or sets the URL of the biller's logo, or <see langword="null" /> if not available.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string? LogoUrl { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether the biller is currently accepting payments.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public bool IsActive { get; set; }
+}

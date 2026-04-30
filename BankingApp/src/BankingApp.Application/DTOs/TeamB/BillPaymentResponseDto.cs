@@ -1,8 +1,8 @@
-// <copyright file="BillPaymentResponseDto.cs" company="CtrlC CtrlV">
+﻿// <copyright file="BillPaymentResponseDto.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the BillPaymentResponseDto record.
+// Contains the BillPaymentResponseDto class.
 // </summary>
 
 using BankingApp.Domain.Enums;
@@ -12,20 +12,37 @@ namespace BankingApp.Application.DTOs.TeamB;
 /// <summary>
 ///     Carries the result data of a bill payment operation.
 /// </summary>
-/// <param name="Id">The unique identifier of the payment.</param>
-/// <param name="BillerName">The display name of the biller that was paid.</param>
-/// <param name="BillerReference">The biller-specific reference used for this payment.</param>
-/// <param name="Amount">The amount paid.</param>
-/// <param name="Fee">The processing fee charged.</param>
-/// <param name="ReceiptNumber">The unique receipt number issued upon confirmation.</param>
-/// <param name="Status">The current processing status.</param>
-/// <param name="CreatedAt">The timestamp when the payment was created.</param>
-public record BillPaymentResponseDto(
-    int Id,
-    string BillerName,
-    string BillerReference,
-    decimal Amount,
-    decimal Fee,
-    string ReceiptNumber,
-    BillPaymentStatus Status,
-    DateTime CreatedAt);
+public class BillPaymentResponseDto
+{
+    /// <summary>Gets or sets the unique identifier of the payment.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int Id { get; set; }
+
+    /// <summary>Gets or sets the display name of the biller that was paid.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string BillerName { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the biller-specific reference used for this payment.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string BillerReference { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the amount paid.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public decimal Amount { get; set; }
+
+    /// <summary>Gets or sets the processing fee charged.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public decimal Fee { get; set; }
+
+    /// <summary>Gets or sets the unique receipt number issued upon confirmation.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string ReceiptNumber { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the current processing status.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public BillPaymentStatus Status { get; set; }
+
+    /// <summary>Gets or sets the timestamp when the payment was created.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public DateTime CreatedAt { get; set; }
+}

@@ -1,8 +1,8 @@
-// <copyright file="BeneficiaryDto.cs" company="CtrlC CtrlV">
+﻿// <copyright file="BeneficiaryDto.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the BeneficiaryDto record.
+// Contains the BeneficiaryDto class.
 // </summary>
 
 namespace BankingApp.Application.DTOs.TeamB;
@@ -10,20 +10,37 @@ namespace BankingApp.Application.DTOs.TeamB;
 /// <summary>
 ///     Carries beneficiary data between the application and presentation layers.
 /// </summary>
-/// <param name="Id">The unique identifier (0 for new entries).</param>
-/// <param name="UserId">The owning user's identifier.</param>
-/// <param name="Name">The display name of the beneficiary.</param>
-/// <param name="Iban">The beneficiary's IBAN.</param>
-/// <param name="BankName">The beneficiary's bank name (optional).</param>
-/// <param name="TotalAmountSent">The cumulative amount sent to this beneficiary.</param>
-/// <param name="TransferCount">The total number of transfers made.</param>
-/// <param name="LastTransferDate">The date of the most recent transfer, or null.</param>
-public record BeneficiaryDto(
-    int Id,
-    int UserId,
-    string Name,
-    string Iban,
-    string? BankName,
-    decimal TotalAmountSent,
-    int TransferCount,
-    DateTime? LastTransferDate);
+public class BeneficiaryDto
+{
+    /// <summary>Gets or sets the unique identifier (0 for new entries).</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int Id { get; set; }
+
+    /// <summary>Gets or sets the owning user's identifier.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int UserId { get; set; }
+
+    /// <summary>Gets or sets the display name of the beneficiary.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the beneficiary's IBAN.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string Iban { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the beneficiary's bank name, or <see langword="null" /> if not known.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string? BankName { get; set; }
+
+    /// <summary>Gets or sets the cumulative amount sent to this beneficiary.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public decimal TotalAmountSent { get; set; }
+
+    /// <summary>Gets or sets the total number of transfers made.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int TransferCount { get; set; }
+
+    /// <summary>Gets or sets the date of the most recent transfer, or <see langword="null" /> if none.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public DateTime? LastTransferDate { get; set; }
+}
