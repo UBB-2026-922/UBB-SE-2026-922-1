@@ -80,18 +80,12 @@ public class AppDatabaseContext : DbContext
             entity.ToTable("Beneficiary");
             entity.HasKey(beneficiary => beneficiary.Id);
             entity.Property(beneficiary => beneficiary.Name).IsRequired().HasMaxLength(200);
-            entity.Property(beneficiary => beneficiary.Iban).IsRequired().HasMaxLength(34);
+            entity.Property(beneficiary => beneficiary.Iban).IsRequired().HasMaxLength(34).HasColumnName("Iban");
             entity.Property(beneficiary => beneficiary.BankName).HasMaxLength(200);
-            entity.Property(beneficiary => beneficiary.LastTransferDate);
             entity.Property(beneficiary => beneficiary.TotalAmountSent).HasColumnType("decimal(18,2)").HasDefaultValue(0);
             entity.Property(beneficiary => beneficiary.TransferCount).HasDefaultValue(0);
             entity.Property(beneficiary => beneficiary.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasIndex(beneficiary => new { beneficiary.UserId, beneficiary.Iban }).IsUnique();
-            entity.ToTable(table =>
-            {
-               table.HasCheckConstraint("CK_Beneficiary_TotalAmount", "TotalAmountSent >= 0");
-               table.HasCheckConstraint("CK_Beneficiary_TransferCount", "TransferCount >= 0");
-            });
             entity.HasOne<User>().WithMany().HasForeignKey(beneficiary => beneficiary.UserId);
         });
 
