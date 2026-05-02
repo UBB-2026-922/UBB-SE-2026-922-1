@@ -77,7 +77,7 @@ public class AppDatabaseContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Beneficiary>(entity =>
         {
-            entity.ToTable("Beneficiaries");
+            entity.ToTable("Beneficiary");
             entity.HasKey(beneficiary => beneficiary.Id);
             entity.Property(beneficiary => beneficiary.Name).IsRequired().HasMaxLength(200);
             entity.Property(beneficiary => beneficiary.Iban).IsRequired().HasMaxLength(34);
@@ -89,8 +89,8 @@ public class AppDatabaseContext : DbContext
             entity.HasIndex(beneficiary => new { beneficiary.UserId, beneficiary.Iban }).IsUnique();
             entity.ToTable(table =>
             {
-               table.HasCheckConstraint("CK_Beneficiaries_TotalAmount", "TotalAmountSent >= 0");
-               table.HasCheckConstraint("CK_Beneficiaries_TransferCount", "TransferCount >= 0");
+               table.HasCheckConstraint("CK_Beneficiary_TotalAmount", "TotalAmountSent >= 0");
+               table.HasCheckConstraint("CK_Beneficiary_TransferCount", "TransferCount >= 0");
             });
             entity.HasOne<User>().WithMany().HasForeignKey(beneficiary => beneficiary.UserId);
         });
