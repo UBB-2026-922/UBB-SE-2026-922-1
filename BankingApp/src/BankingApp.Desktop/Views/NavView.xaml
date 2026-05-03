@@ -245,6 +245,16 @@
                         </StackPanel>
                     </Button>
 
+                    <Button x:Name="NavBeneficiaries"
+                            Style="{StaticResource NavItemStyle}"
+                            Click="NavBeneficiaries_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE8D4;" FontSize="14" Foreground="#AAA" />
+                            <TextBlock Text="Beneficiaries" Foreground="#AAA" FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
                 </StackPanel>
             </ScrollViewer>
 

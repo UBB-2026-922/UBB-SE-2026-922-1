@@ -48,6 +48,8 @@ Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select 
 - API setup and configuration: [src/BankingApp.Api/README.md](src/BankingApp.Api/README.md)
 - Desktop setup and local configuration: [src/BankingApp.Desktop/README.md](src/BankingApp.Desktop/README.md)
 
+The desktop shell now includes a Beneficiaries page in the left navigation, backed by the API and the migrated desktop ViewModel.
+
 ## Prerequisites
 
 - Windows 10/11 for the desktop client

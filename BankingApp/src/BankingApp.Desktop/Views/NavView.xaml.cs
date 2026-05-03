@@ -42,7 +42,8 @@ public sealed partial class NavView
         [
             NavDashboard, NavTransfers, NavBillPayments, NavCards,
             NavTransferHistory, NavCurrencyExchange, NavSavings,
-            NavInvestments, NavStatistics, NavSupport, NavProfile
+            NavInvestments, NavStatistics, NavSupport, NavProfile,
+            NavBeneficiaries
         ];
         _apiClient = apiClient;
         _navigationService = navigationService;
@@ -117,6 +118,12 @@ public sealed partial class NavView
     {
         SetActiveNav(NavProfile);
         _navigationService.NavigateToContent<ProfileView>();
+    }
+
+    private void NavBeneficiaries_Click(object sender, RoutedEventArgs e)
+    {
+        SetActiveNav(NavBeneficiaries);
+        _navigationService.NavigateToContent<BeneficiariesView>();
     }
 
     // All other nav items show a coming soon alert
