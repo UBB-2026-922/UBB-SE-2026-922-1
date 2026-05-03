@@ -5,6 +5,8 @@
 // Contains the Transfer class.
 // </summary>
 
+using BankingApp.Domain.Enums;
+
 namespace BankingApp.Domain.Entities;
 
     /// <summary>
