@@ -58,6 +58,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<OAuthViewModel>();
         services.AddTransient<NotificationsViewModel>();
         services.AddTransient<SessionsViewModel>();
+        services.AddTransient<BeneficiariesViewModel>();
         services.AddTransient<ProfileViewModel>();
         // Views are registered as transient so the navigation service can resolve them
         // through the container. Each navigation gets a fresh page instance with all
@@ -68,6 +69,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ForgotPasswordView>();
         services.AddTransient<NavView>();
         services.AddTransient<DashboardView>();
+        services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();
         return services;
     }
