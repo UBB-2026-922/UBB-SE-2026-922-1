@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Interfaces;
@@ -23,12 +24,12 @@ public interface ITransferDataAccess
     /// <summary>Gets a transfer by its identifier.</summary>
     /// <param name="transferId">The transfer identifier.</param>
     /// <returns>The result of the operation.</returns>
-    ErrorOr<Transfer> GetById(int transferId);
+    ErrorOr<Transfer> FindById(int transferId);
 
     /// <summary>Gets all transfers for a user, newest first.</summary>
     /// <param name="userId">The user identifier.</param>
     /// <returns>The result of the operation.</returns>
-    ErrorOr<List<Transfer>> GetByUserId(int userId);
+    ErrorOr<List<Transfer>> FindByUserId(int userId);
 
     /// <summary>Updates the status of a transfer.</summary>
     /// <param name="transferId">The transfer identifier.</param>

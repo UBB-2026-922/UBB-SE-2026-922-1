@@ -5,7 +5,9 @@
 // Contains the TransferDataAccess class.
 // </summary>
 
+using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
 using ErrorOr;
 
@@ -47,7 +49,7 @@ public class TransferDataAccess : ITransferDataAccess
     /// <inheritdoc />
     /// <param name="transferId">The transferId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<Transfer> GetById(int transferId)
+    public ErrorOr<Transfer> FindById(int transferId)
     {
         Transfer? transfer = _databaseContext.Transfers.FirstOrDefault(t => t.Id == transferId);
         if (transfer is null)
@@ -61,7 +63,7 @@ public class TransferDataAccess : ITransferDataAccess
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<Transfer>> GetByUserId(int userId)
+    public ErrorOr<List<Transfer>> FindByUserId(int userId)
     {
         List<Transfer> transfers = _databaseContext.Transfers
             .Where(t => t.UserId == userId)
