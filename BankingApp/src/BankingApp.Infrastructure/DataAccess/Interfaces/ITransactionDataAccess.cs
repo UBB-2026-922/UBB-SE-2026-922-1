@@ -23,4 +23,9 @@ public interface ITransactionDataAccess
     /// <param name="limit">The maximum number of transactions to return.</param>
     /// <returns>A list of recent transactions ordered by creation date descending, or an error if the operation failed.</returns>
     ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit);
+
+    /// <summary>Adds a new transaction to the data store.</summary>
+    /// <param name="transaction">The transaction to add.</param>
+    /// <returns>The added transaction with any generated fields populated, or an error if the operation failed.</returns>
+    ErrorOr<Transaction> Add(Transaction transaction);
 }

@@ -69,8 +69,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
-        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
-        services.AddSingleton<ISystemClock, SystemClock>();
+        services.AddScoped<ITransferDataAccess, TransferDataAccess>();
 
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));

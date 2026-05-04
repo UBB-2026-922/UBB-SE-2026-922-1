@@ -5,6 +5,7 @@
 // Contains the AccountDataAccess class.
 // </summary>
 
+using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
 using ErrorOr;
@@ -50,5 +51,29 @@ public class AccountDataAccess : IAccountDataAccess
     {
         List<Account> accounts = _databaseContext.Accounts.Where(a => a.UserId == userId).ToList();
         return accounts;
+    }
+
+    /// <inheritdoc />
+    /// <param name="accountId">The accountId value.</param>
+    /// <param name="amount">The amount value.</param>
+    /// <returns>The result of the operation.</returns>
+    public ErrorOr<Success> DebitAccount(int accountId, decimal amount)
+    {
+        try
+        {
+            Account? account = _databaseContext.Accounts.Find(accountId);
+            if (account is null)
+            {
+                return Error.NotFound(description: "Account not found.");
+            }
+
+            account.Balance -= amount;
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure(description: ex.Message);
+        }
     }
 }
