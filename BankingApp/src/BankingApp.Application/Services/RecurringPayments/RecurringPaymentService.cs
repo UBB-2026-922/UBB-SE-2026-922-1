@@ -133,6 +133,11 @@ public class RecurringPaymentService : IRecurringPaymentService
             return Error.Forbidden(description: "You do not have permission to modify this recurring payment.");
         }
 
+        if (payment.Status != RecurringPaymentStatus.Paused)
+        {
+            return Error.Conflict(description: "Only paused recurring payments can be resumed.");
+        }
+
         payment.Status = RecurringPaymentStatus.Active;
         return _repository.Update(payment);
     }
