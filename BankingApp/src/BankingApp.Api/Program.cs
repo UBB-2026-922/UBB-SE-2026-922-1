@@ -75,7 +75,7 @@ try
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     WebApplication application = builder.Build();
-    if (application.Configuration.GetValue(applyDatabaseMigrationsConfigurationKey, true))
+    if (!application.Environment.IsEnvironment("Testing"))
     {
         using IServiceScope scope = application.Services.CreateScope();
         AppDatabaseContext databaseContext = scope.ServiceProvider.GetRequiredService<AppDatabaseContext>();

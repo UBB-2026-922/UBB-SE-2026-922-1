@@ -40,9 +40,6 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>, IDisposable
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BankingAppWebFactory" /> class.
-    ///     Opens the keep-alive SQLite connection, creates the schema via
-    ///     <c>EnsureCreated()</c>, and pre-populates <c>__EFMigrationsHistory</c>
-    ///     so that <c>Program.cs</c>'s <c>Database.Migrate()</c> call is a no-op.
     /// </summary>
     public BankingAppWebFactory()
     {
@@ -51,13 +48,6 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>, IDisposable
         Environment.SetEnvironmentVariable("ConnectionStrings__BankingAppDb", SqliteConnectionString);
         Environment.SetEnvironmentVariable("Jwt__Secret", "integration-test-secret-that-is-long-enough-for-hmac");
         Environment.SetEnvironmentVariable("Otp__Secret", "integration-test-otp-secret-placeholder");
-
-        // Open the keep-alive connection so the named in-memory database persists.
-        _keepAliveConnection = new SqliteConnection(SqliteConnectionString);
-        _keepAliveConnection.Open();
-
-        // Build the schema and migration history before the test server starts.
-        InitializeDatabase();
     }
 
     /// <summary>
@@ -104,29 +94,11 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>, IDisposable
     /// <param name="builder">The web host builder.</param>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment("Testing");
 
         builder.ConfigureServices(services =>
         {
-            // ── Replace SQL Server DbContext with SQLite in-memory ──────────────
-            // Remove all registrations that AddDbContext<AppDatabaseContext> created.
-            RemoveDbContextRegistrations(services);
-
-            // Register SqliteDbContext (subclass of AppDatabaseContext) so that
-            // Program.cs's GetRequiredService<AppDatabaseContext>() returns a
-            // SQLite-backed instance.
-            services.AddScoped<AppDatabaseContext>(_ =>
-            {
-                DbContextOptions<AppDatabaseContext> options =
-                    new DbContextOptionsBuilder<AppDatabaseContext>()
-                        .UseSqlite(SqliteConnectionString)
-                        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
-                        .Options;
-
-                return new SqliteDbContext(options);
-            });
-
-            // ── Replace all infrastructure services with substitutes ────────────
+            // Remove real infrastructure registrations and replace with substitutes.
             ReplaceService(services, JwtServiceMock.Object);
             ReplaceService(services, AuthRepositoryMock.Object);
             ReplaceService(services, LoginServiceMock.Object);
