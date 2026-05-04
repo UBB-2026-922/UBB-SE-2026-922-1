@@ -42,7 +42,7 @@ namespace BankingApp.Domain.Entities;
         /// <summary>
         /// Gets or sets the recipient's IBAN.
         /// </summary>
-        public string RecipientIBAN { get; set; } = string.Empty;
+        public string RecipientIban { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets the recipient bank name, if available.

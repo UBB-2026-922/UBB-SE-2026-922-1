@@ -229,7 +229,7 @@ public class AppDatabaseContext : DbContext
             entity.ToTable("Transfers");
             entity.HasKey(t => t.Id);
             entity.Property(t => t.RecipientName).IsRequired().HasMaxLength(200);
-            entity.Property(t => t.RecipientIBAN).IsRequired().HasMaxLength(50);
+            entity.Property(t => t.RecipientIban).IsRequired().HasMaxLength(50);
             entity.Property(t => t.RecipientBankName).HasMaxLength(200);
             entity.Property(t => t.Amount).IsRequired().HasColumnType("decimal(18,2)");
             entity.Property(t => t.Currency).IsRequired().HasMaxLength(10);

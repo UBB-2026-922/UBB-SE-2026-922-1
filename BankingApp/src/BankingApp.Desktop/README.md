@@ -40,3 +40,5 @@ Key settings:
 Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select `x64`, and run it.
 
 For Rider, create a compound run configuration with `BankingApp.Api` and `BankingApp.Desktop`.
+
+The desktop shell includes a Beneficiaries page in the left navigation, wired to the API-backed view model for loading and managing saved beneficiaries.

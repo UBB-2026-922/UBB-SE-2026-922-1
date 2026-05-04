@@ -68,4 +68,7 @@ public static class ApiEndpoints
 
     /// <summary>GET api/profile/sessions — list active sessions. DELETE api/profile/sessions/{id} — revoke a session.</summary>
     public const string Sessions = "api/profile/sessions";
+
+    /// <summary>GET/POST/DELETE api/beneficiaries — manage saved beneficiaries for a user.</summary>
+    public const string Beneficiaries = "api/beneficiaries";
 }
