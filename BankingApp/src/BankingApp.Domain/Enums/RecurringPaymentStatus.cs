@@ -1,23 +1,29 @@
-﻿// <copyright file="RecurringPaymentStatus.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="RecurringPaymentStatus.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the RecurringPaymentStatus values.
+// Contains the RecurringPaymentStatus enum.
 // </summary>
 
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
-///     Represents the lifecycle state of a recurring payment schedule.
+///     Represents the lifecycle status of a recurring payment schedule.
 /// </summary>
 public enum RecurringPaymentStatus
 {
-    /// <summary>The schedule is active and will execute on its next scheduled date.</summary>
+    /// <summary>
+    ///     The recurring payment is active and will execute on the next scheduled date.
+    /// </summary>
     Active,
 
-    /// <summary>The schedule has been temporarily paused and will not execute until resumed.</summary>
+    /// <summary>
+    ///     The recurring payment has been temporarily paused and will not execute until resumed.
+    /// </summary>
     Paused,
 
-    /// <summary>The schedule has been permanently cancelled.</summary>
+    /// <summary>
+    ///     The recurring payment has been permanently cancelled.
+    /// </summary>
     Cancelled,
 }

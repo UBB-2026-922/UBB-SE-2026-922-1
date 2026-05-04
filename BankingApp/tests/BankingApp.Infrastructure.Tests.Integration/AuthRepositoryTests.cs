@@ -1,4 +1,4 @@
-﻿// Copyright (c) BankingApp. All rights reserved.
+﻿// Copyright (c) UBB-922. All rights reserved.
 // Licensed under the MIT license.
 
 using BankingApp.Domain.Entities;

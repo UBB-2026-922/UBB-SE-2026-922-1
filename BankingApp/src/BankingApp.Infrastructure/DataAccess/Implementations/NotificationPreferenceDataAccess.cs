@@ -1,5 +1,5 @@
-﻿// <copyright file="NotificationPreferenceDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="NotificationPreferenceDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the NotificationPreferenceDataAccess class.
@@ -40,11 +40,11 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
         {
             NotificationPreference notification = new()
             {
-                UserId = userId,
-                Category = NotificationTypeExtensions.FromString(category),
-                PushEnabled = false,
-                EmailEnabled = false,
-                SmsEnabled = false,
+            UserId = userId,
+            Category = NotificationTypeExtensions.FromString(category),
+            PushEnabled = false,
+            EmailEnabled = false,
+            SmsEnabled = false,
             };
             _databaseContext.NotificationPreferences.Add(notification);
             _databaseContext.SaveChanges();

@@ -1,32 +1,29 @@
-﻿// <copyright file="RecurringFrequency.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="RecurringFrequency.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the RecurringFrequency values.
+// Contains the RecurringFrequency enum.
 // </summary>
 
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
-///     Represents how often a recurring payment is executed.
+///     Represents the execution frequency of a recurring payment.
 /// </summary>
 public enum RecurringFrequency
 {
-    /// <summary>The payment runs every day.</summary>
-    Daily,
-
-    /// <summary>The payment runs once per week.</summary>
+    /// <summary>
+    ///     The payment executes once every week.
+    /// </summary>
     Weekly,
 
-    /// <summary>The payment runs every two weeks.</summary>
-    BiWeekly,
-
-    /// <summary>The payment runs once per month.</summary>
+    /// <summary>
+    ///     The payment executes once every month.
+    /// </summary>
     Monthly,
 
-    /// <summary>The payment runs once every three months.</summary>
+    /// <summary>
+    ///     The payment executes once every three months.
+    /// </summary>
     Quarterly,
-
-    /// <summary>The payment runs once per year.</summary>
-    Yearly,
 }

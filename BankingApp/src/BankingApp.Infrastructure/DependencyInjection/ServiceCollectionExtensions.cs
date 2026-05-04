@@ -1,5 +1,5 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ServiceCollectionExtensions.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the ServiceCollectionExtensions class.
@@ -9,7 +9,7 @@ using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Application.Utilities;
+using BankingApp.Application.Services.TeamB;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
@@ -18,6 +18,7 @@ using BankingApp.Infrastructure.Services;
 using BankingApp.Infrastructure.Services.Notifications;
 using BankingApp.Infrastructure.Services.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -50,7 +51,9 @@ public static class ServiceCollectionExtensions
         string otpSecret = configuration["Otp:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
 
-        services.AddDbContext<AppDatabaseContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<AppDatabaseContext>(options =>
+            options.UseSqlServer(connectionString)
+                   .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
         services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
@@ -71,6 +74,18 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
+
+        // ── Team B — Landing Zones (NotImplementedException) ─────────────────────
+        // These registrations wire the interfaces defined in the Application layer to the
+        // skeleton repository implementations in the Infrastructure layer.
+        // Each skeleton throws NotImplementedException until replaced by a real implementation.
+        services.AddScoped<ITransferRepository, TransferRepository>();
+        services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
+        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
+        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
+        services.AddScoped<IExchangeRepository, ExchangeRepository>();
+        services.AddScoped<IRateAlertRepository, RateAlertRepository>();
+
         return services;
     }
 }
