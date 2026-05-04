@@ -123,12 +123,12 @@ public class AppDatabaseContext : DbContext
         modelBuilder.Entity<OAuthLink>(entity =>
         {
             entity.ToTable("OAuthLink");
-            entity.HasKey(oAuthLink => oAuthLink.Id);
-            entity.Property(oAuthLink => oAuthLink.Provider).IsRequired().HasMaxLength(20);
-            entity.Property(oAuthLink => oAuthLink.ProviderUserId).IsRequired().HasMaxLength(255);
-            entity.Property(oAuthLink => oAuthLink.ProviderEmail).HasMaxLength(255);
-            entity.Property(oAuthLink => oAuthLink.LinkedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.HasOne<User>().WithMany().HasForeignKey(oAuthLink => oAuthLink.UserId);
+            entity.HasKey(oauthLink => oauthLink.Id);
+            entity.Property(oauthLink => oauthLink.Provider).IsRequired().HasMaxLength(20);
+            entity.Property(oauthLink => oauthLink.ProviderUserId).IsRequired().HasMaxLength(255);
+            entity.Property(oauthLink => oauthLink.ProviderEmail).HasMaxLength(255);
+            entity.Property(oauthLink => oauthLink.LinkedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(oauthLink => oauthLink.UserId);
         });
 
         modelBuilder.Entity<Account>(entity =>

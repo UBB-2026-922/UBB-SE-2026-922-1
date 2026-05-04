@@ -10,8 +10,6 @@ using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace BankingApp.Infrastructure.Repositories.Implementations;
 
@@ -23,7 +21,7 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     private readonly AppDatabaseContext _databaseContext;
 
     /// <summary>
-    ///     Initializes a new instance of the BeneficiaryRepository class.
+    ///     Initializes a new instance of the <see cref="BeneficiaryRepository" /> class.
     /// </summary>
     /// <param name="databaseContext">The database context.</param>
     public BeneficiaryRepository(AppDatabaseContext databaseContext)
