@@ -31,8 +31,6 @@ public class BillPayViewModelTests
         _apiClient.SetupProperty(a => a.CurrentUserId);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ LoadAsync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     /// <summary>
     ///     LoadAsync loads billers, saved billers, and accounts on success.
     /// </summary>
@@ -59,7 +57,6 @@ public class BillPayViewModelTests
     [Fact]
     public async Task LoadAsync_WhenBillersApiFails_ShouldKeepBillersEmpty()
     {
-        // Arrange
         _apiClient
             .Setup(a => a.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers, default))
             .ReturnsAsync(Error.Failure(description: "Server error"));
@@ -71,15 +68,11 @@ public class BillPayViewModelTests
             .ReturnsAsync(CreateMockAccounts());
         BillPayViewModel vm = CreateViewModel();
 
-        // Act
         await vm.LoadAsync();
 
-        // Assert â€” billers empty since API returned error; saved billers and accounts still load
         vm.Billers.Should().BeEmpty();
         vm.SavedBillers.Should().HaveCount(1);
     }
-
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Initial State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     ViewModel starts on step 1 with empty state.
@@ -87,10 +80,8 @@ public class BillPayViewModelTests
     [Fact]
     public void Constructor_WhenCalled_ShouldInitializeDefaultState()
     {
-        // Arrange & Act
         BillPayViewModel vm = CreateViewModel();
 
-        // Assert
         vm.CurrentStep.Should().Be(1);
         vm.Billers.Should().BeEmpty();
         vm.SavedBillers.Should().BeEmpty();
@@ -101,7 +92,7 @@ public class BillPayViewModelTests
         vm.ReceiptNumber.Should().BeEmpty();
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ SelectBiller â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  SelectBiller
 
     /// <summary>
     ///     Selecting a biller advances to step 2.
@@ -109,14 +100,11 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectBillerCommand_WhenBillerDtoSelected_ShouldAdvanceToStep2()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
 
-        // Act
         vm.SelectBillerCommand.Execute(biller);
 
-        // Assert
         vm.SelectedBiller.Should().Be(biller);
         vm.CurrentStep.Should().Be(2);
     }
@@ -127,7 +115,6 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectBillerCommand_WhenSavedBillerDtoSelected_ShouldPrefillReferenceAndAdvanceToStep2()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var savedBiller = new SavedBillerDto
         {
@@ -137,17 +124,15 @@ public class BillPayViewModelTests
             Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" },
         };
 
-        // Act
         vm.SelectBillerCommand.Execute(savedBiller);
 
-        // Assert
         vm.SelectedBiller.Should().NotBeNull();
         vm.SelectedBiller!.Id.Should().Be(1);
         vm.BillerReference.Should().Be("REF-123");
         vm.CurrentStep.Should().Be(2);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ NextStep Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // NextStep Validation
 
     /// <summary>
     ///     NextStep from step 1 without biller shows error.
@@ -155,11 +140,9 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep1AndNoBillerSelected_ShouldSetError()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.ExecuteNextStep();
 
-        // Assert
         vm.ErrorMessage.Should().Contain("select a biller");
         vm.CurrentStep.Should().Be(1);
     }
@@ -170,15 +153,12 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndNoReferenceProvided_ShouldSetError()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
         vm.ExecuteSelectBiller(biller);
 
-        // Now on step 2, try next without reference
         vm.ExecuteNextStep();
 
-        // Assert
         vm.ErrorMessage.Should().Contain("biller reference");
     }
 
@@ -188,16 +168,13 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndNoAccountSelected_ShouldSetError()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
         vm.ExecuteSelectBiller(biller);
         vm.BillerReference = "REF-001";
 
-        // Act â€” no account selected
         vm.ExecuteNextStep();
 
-        // Assert
         vm.ErrorMessage.Should().Contain("source account");
     }
 
@@ -207,7 +184,6 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndZeroAmount_ShouldSetError()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
         vm.ExecuteSelectBiller(biller);
@@ -215,10 +191,8 @@ public class BillPayViewModelTests
         vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
         vm.Amount = 0;
 
-        // Act
         vm.ExecuteNextStep();
 
-        // Assert
         vm.ErrorMessage.Should().Contain("valid amount");
     }
 
@@ -228,7 +202,6 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndValidLowAmount_ShouldSkipTwoFactorAuthenticationAndGoToStep4()
     {
-        // Arrange
         _apiClient
             .Setup(a => a.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
             .ReturnsAsync(new FeeResponseDto { Fee = 0.50m });
@@ -243,10 +216,8 @@ public class BillPayViewModelTests
         vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
         vm.Amount = 50m;
 
-        // Act
         vm.ExecuteNextStep();
 
-        // Assert
         vm.CurrentStep.Should().Be(4);
         vm.Fee.Should().Be(0.50m);
         vm.Requires2FA.Should().BeFalse();
@@ -258,7 +229,6 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndHighAmount_ShouldGoToTwoFactorAuthenticationStep3()
     {
-        // Arrange
         _apiClient
             .Setup(a => a.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
             .ReturnsAsync(new FeeResponseDto { Fee = 1.00m });
@@ -273,10 +243,8 @@ public class BillPayViewModelTests
         vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
         vm.Amount = 1500m;
 
-        // Act
         vm.ExecuteNextStep();
 
-        // Assert
         vm.CurrentStep.Should().Be(3);
         vm.Requires2FA.Should().BeTrue();
     }
@@ -287,34 +255,27 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep3AndNotConfirmed_ShouldSetError()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 3;
 
-        // Act
         vm.ExecuteNextStep();
 
-        // Assert
         vm.ErrorMessage.Should().Contain("2FA");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+    // Back 
     /// <summary>
     ///     Back from review step without 2FA goes to step 2.
     /// </summary>
     [Fact]
     public void ExecuteBack_WhenFromReviewWithoutTwoFactorAuthentication_ShouldGoToStep2()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 4;
         vm.Requires2FA = false;
 
-        // Act
         vm.ExecuteBack();
 
-        // Assert
         vm.CurrentStep.Should().Be(2);
     }
 
@@ -324,15 +285,12 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteBack_WhenFromReviewWithTwoFactorAuthentication_ShouldGoToStep3()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 4;
         vm.Requires2FA = true;
 
-        // Act
         vm.ExecuteBack();
 
-        // Assert
         vm.CurrentStep.Should().Be(3);
     }
 
@@ -342,17 +300,14 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteBack_WhenFromStep1_ShouldStayAtStep1()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
 
-        // Act
         vm.ExecuteBack();
 
-        // Assert
         vm.CurrentStep.Should().Be(1);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PayBill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // PayBill
 
     /// <summary>
     ///     PayBill on success sets receipt number and goes to step 5.
@@ -360,7 +315,6 @@ public class BillPayViewModelTests
     [Fact]
     public async Task ExecutePayBillAsync_WhenSuccess_ShouldSetReceiptAndGoToStep5()
     {
-        // Arrange
         _apiClient
             .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
                 ApiEndpoints.BillPayPay,
@@ -380,10 +334,8 @@ public class BillPayViewModelTests
         vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
         vm.Amount = 200m;
 
-        // Act
         await vm.ExecutePayBillAsync();
 
-        // Assert
         vm.ReceiptNumber.Should().Be("RCP-20260504-ABC123");
         vm.CurrentStep.Should().Be(5);
         vm.ErrorMessage.Should().BeEmpty();
@@ -395,7 +347,6 @@ public class BillPayViewModelTests
     [Fact]
     public async Task ExecutePayBillAsync_WhenApiFails_ShouldSetErrorMessage()
     {
-        // Arrange
         _apiClient
             .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
                 ApiEndpoints.BillPayPay,
@@ -408,10 +359,8 @@ public class BillPayViewModelTests
         vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
         vm.Amount = 200m;
 
-        // Act
         await vm.ExecutePayBillAsync();
 
-        // Assert
         vm.ErrorMessage.Should().Contain("Payment failed");
         vm.CurrentStep.Should().NotBe(5);
     }
@@ -422,13 +371,10 @@ public class BillPayViewModelTests
     [Fact]
     public async Task ExecutePayBillAsync_WhenNoBiller_ShouldSetError()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
 
-        // Act
         await vm.ExecutePayBillAsync();
 
-        // Assert
         vm.ErrorMessage.Should().Contain("select a biller");
     }
 
@@ -438,7 +384,6 @@ public class BillPayViewModelTests
     [Fact]
     public async Task ExecutePayBillAsync_WhenWithSaveBiller_ShouldCallSaveEndpoint()
     {
-        // Arrange
         _apiClient
             .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
                 ApiEndpoints.BillPayPay,
@@ -470,10 +415,8 @@ public class BillPayViewModelTests
         vm.Amount = 200m;
         vm.ShouldSaveBiller = true;
 
-        // Act
         await vm.ExecutePayBillAsync();
 
-        // Assert
         _apiClient.Verify(
             a => a.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
                 ApiEndpoints.BillPaySaveBiller,
@@ -482,7 +425,7 @@ public class BillPayViewModelTests
         vm.SavedBillers.Should().HaveCount(1);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ResetForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ResetForm 
 
     /// <summary>
     ///     ResetForm clears all state back to defaults.
@@ -490,7 +433,6 @@ public class BillPayViewModelTests
     [Fact]
     public void ResetForm_WhenCalled_ShouldClearAllState()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Test", Category = "Utilities" });
         vm.BillerReference = "REF-001";
@@ -499,10 +441,8 @@ public class BillPayViewModelTests
         vm.ReceiptNumber = "RCP-TEST";
         vm.Is2FAConfirmed = true;
 
-        // Act
         vm.ResetForm();
 
-        // Assert
         vm.CurrentStep.Should().Be(1);
         vm.SelectedBiller.Should().BeNull();
         vm.BillerReference.Should().BeEmpty();
@@ -514,7 +454,7 @@ public class BillPayViewModelTests
         vm.ShouldSaveBiller.Should().BeFalse();
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Computed Properties â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Computed Properties 
 
     /// <summary>
     ///     SelectedBillerName returns biller name when set.
@@ -522,11 +462,9 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectedBillerName_WhenBillerSet_ShouldReturnName()
     {
-        // Arrange
-        BillPayViewModel vm = CreateViewModel();
+\        BillPayViewModel vm = CreateViewModel();
         vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities" });
 
-        // Assert
         vm.SelectedBillerName.Should().Be("Enel Energie");
     }
 
@@ -536,10 +474,8 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectedBillerName_WhenNoBiller_ShouldReturnFallback()
     {
-        // Arrange & Act
         BillPayViewModel vm = CreateViewModel();
 
-        // Assert
         vm.SelectedBillerName.Should().Be("No biller selected");
     }
 
@@ -549,12 +485,10 @@ public class BillPayViewModelTests
     [Fact]
     public void Total_WhenCalled_ShouldReturnAmountPlusFee()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.Amount = 100m;
         vm.Fee = 0.50m;
 
-        // Assert
         vm.Total.Should().Be(100.50m);
     }
 
@@ -564,11 +498,9 @@ public class BillPayViewModelTests
     [Fact]
     public void ReviewAmountText_WhenPositive_ShouldShowFormattedAmount()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.Amount = 250.75m;
 
-        // Assert
         vm.ReviewAmountText.Should().Be("250.75 RON");
     }
 
@@ -578,14 +510,11 @@ public class BillPayViewModelTests
     [Fact]
     public void ReviewAmountText_WhenZero_ShouldShowPlaceholder()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
 
-        // Assert
         vm.ReviewAmountText.Should().Be("No amount entered");
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PropertyChanged â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     Setting Amount fires PropertyChanged for Amount, ReviewAmountText, Total, and TotalText.
@@ -593,15 +522,12 @@ public class BillPayViewModelTests
     [Fact]
     public void Amount_WhenPropertyChanged_ShouldFireMultipleNotifications()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var changedProperties = new List<string>();
         vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName!);
 
-        // Act
         vm.Amount = 100m;
 
-        // Assert
         changedProperties.Should().Contain("Amount");
         changedProperties.Should().Contain("ReviewAmountText");
         changedProperties.Should().Contain("Total");
@@ -614,15 +540,12 @@ public class BillPayViewModelTests
     [Fact]
     public void ErrorMessage_WhenPropertyChanged_ShouldFireVisibilityNotification()
     {
-        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var changedProperties = new List<string>();
         vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName!);
 
-        // Act
         vm.ErrorMessage = "Something went wrong";
 
-        // Assert
         changedProperties.Should().Contain("ErrorMessage");
         changedProperties.Should().Contain("ErrorMessageVisibility");
     }
