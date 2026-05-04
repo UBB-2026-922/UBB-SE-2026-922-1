@@ -1,4 +1,4 @@
-// <copyright file="RecurringPaymentRepository.cs" company="CtrlC CtrlV">
+﻿// <copyright file="RecurringPaymentRepository.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
@@ -19,6 +19,8 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
 {
     private readonly AppDatabaseContext _context;
 
+    /// <summary>Initializes a new instance of the <see cref="RecurringPaymentRepository" /> class.</summary>
+    /// <param name="context">The EF Core database context.</param>
     public RecurringPaymentRepository(AppDatabaseContext context)
     {
         _context = context;

@@ -9,6 +9,7 @@ using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
+using BankingApp.Application.Utilities;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
@@ -16,7 +17,6 @@ using BankingApp.Infrastructure.Repositories.Implementations;
 using BankingApp.Infrastructure.Services;
 using BankingApp.Infrastructure.Services.Notifications;
 using BankingApp.Infrastructure.Services.Security;
-using BankingApp.Application.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,5 +73,4 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
         return services;
     }
-
 }

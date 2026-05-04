@@ -1,4 +1,4 @@
-// <copyright file="RecurringPaymentsController.cs" company="CtrlC CtrlV">
+﻿// <copyright file="RecurringPaymentsController.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
@@ -23,6 +23,8 @@ public class RecurringPaymentsController : ApiControllerBase
 {
     private readonly IRecurringPaymentService _recurringPaymentService;
 
+    /// <summary>Initializes a new instance of the <see cref="RecurringPaymentsController" /> class.</summary>
+    /// <param name="recurringPaymentService">The recurring payment service.</param>
     public RecurringPaymentsController(IRecurringPaymentService recurringPaymentService)
     {
         _recurringPaymentService = recurringPaymentService;

@@ -1,4 +1,4 @@
-// <copyright file="RecurringPaymentService.cs" company="CtrlC CtrlV">
+﻿// <copyright file="RecurringPaymentService.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 // <summary>
@@ -31,6 +31,10 @@ public class RecurringPaymentService : IRecurringPaymentService
     private readonly ISystemClock _clock;
     private readonly ILogger<RecurringPaymentService> _logger;
 
+    /// <summary>Initializes a new instance of the <see cref="RecurringPaymentService" /> class.</summary>
+    /// <param name="repository">The recurring payment repository.</param>
+    /// <param name="clock">The system clock abstraction.</param>
+    /// <param name="logger">The logger instance.</param>
     public RecurringPaymentService(
         IRecurringPaymentRepository repository,
         ISystemClock clock,
