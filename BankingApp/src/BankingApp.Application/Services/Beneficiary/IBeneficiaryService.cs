@@ -21,10 +21,11 @@ public interface IBeneficiaryService
     ///     Gets a beneficiary by its identifier.
     /// </summary>
     /// <param name="beneficiaryId">The beneficiary identifier.</param>
+    /// <param name="userId">The user identifier.</param>
     /// <returns>
     ///     The beneficiary when found, or an error otherwise.
     /// </returns>
-    ErrorOr<Beneficiary> GetById(int beneficiaryId);
+    ErrorOr<Beneficiary> GetById(int beneficiaryId, int userId);
 
     /// <summary>
     ///     Creates a new beneficiary for the specified user.
@@ -51,10 +52,11 @@ public interface IBeneficiaryService
     ///     Deletes a beneficiary by its identifier.
     /// </summary>
     /// <param name="beneficiaryId">The beneficiary identifier.</param>
+    /// <param name="userId">The user identifier.</param>
     /// <returns>
     ///     A success result when the deletion succeeds, or an error otherwise.
     /// </returns>
-    ErrorOr<Success> Delete(int beneficiaryId);
+    ErrorOr<Success> Delete(int beneficiaryId, int userId);
 
     /// <summary>
     ///     Validates whether the supplied IBAN has an acceptable format.

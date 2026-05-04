@@ -34,9 +34,9 @@ public class BeneficiaryService : IBeneficiaryService
     }
 
     /// <inheritdoc />
-    public ErrorOr<Beneficiary> GetById(int beneficiaryId)
+    public ErrorOr<Beneficiary> GetById(int beneficiaryId, int userId)
     {
-        return _beneficiaryRepository.FindById(beneficiaryId);
+        return _beneficiaryRepository.FindById(beneficiaryId, userId);
     }
 
     /// <inheritdoc />
@@ -121,21 +121,17 @@ public class BeneficiaryService : IBeneficiaryService
                 description: "Invalid IBAN format.");
         }
 
-        beneficiary.Name = beneficiary.Name.Trim();
-        beneficiary.Iban = beneficiary.Iban.Trim().ToUpperInvariant();
-        beneficiary.BankName = string.IsNullOrWhiteSpace(beneficiary.BankName)
+        string normalizedName = beneficiary.Name.Trim();
+        string normalizedIban = beneficiary.Iban.Trim().ToUpperInvariant();
+        string? normalizedBankName = string.IsNullOrWhiteSpace(beneficiary.BankName)
             ? null
             : beneficiary.BankName.Trim();
 
-        ErrorOr<bool> existsResult =
-            _beneficiaryRepository.ExistsByUserIdAndIban(beneficiary.UserId, beneficiary.Iban);
-
-        if (existsResult.IsError)
+        ErrorOr<Beneficiary> existingBeneficiaryResult =
+            _beneficiaryRepository.FindById(beneficiary.Id, beneficiary.UserId);
+        if (existingBeneficiaryResult.IsError)
         {
-            _logger.LogError(
-                "Failed to check duplicate beneficiary during update for beneficiary {BeneficiaryId}.",
-                beneficiary.Id);
-            return existsResult.FirstError;
+            return existingBeneficiaryResult.FirstError;
         }
 
         ErrorOr<List<Beneficiary>> userBeneficiariesResult =
@@ -151,7 +147,7 @@ public class BeneficiaryService : IBeneficiaryService
 
         bool duplicateOwnedByAnotherBeneficiary = userBeneficiariesResult.Value.Any(existingBeneficiary =>
             existingBeneficiary.Id != beneficiary.Id &&
-            string.Equals(existingBeneficiary.Iban, beneficiary.Iban, StringComparison.OrdinalIgnoreCase));
+            string.Equals(existingBeneficiary.Iban, normalizedIban, StringComparison.OrdinalIgnoreCase));
 
         if (duplicateOwnedByAnotherBeneficiary)
         {
@@ -160,13 +156,18 @@ public class BeneficiaryService : IBeneficiaryService
                 description: "A beneficiary with this IBAN already exists for this user.");
         }
 
-        return _beneficiaryRepository.Update(beneficiary);
+        Beneficiary existingBeneficiary = existingBeneficiaryResult.Value;
+        existingBeneficiary.Name = normalizedName;
+        existingBeneficiary.Iban = normalizedIban;
+        existingBeneficiary.BankName = normalizedBankName;
+
+        return _beneficiaryRepository.Update(existingBeneficiary);
     }
 
     /// <inheritdoc />
-    public ErrorOr<Success> Delete(int beneficiaryId)
+    public ErrorOr<Success> Delete(int beneficiaryId, int userId)
     {
-        return _beneficiaryRepository.Delete(beneficiaryId);
+        return _beneficiaryRepository.Delete(beneficiaryId, userId);
     }
 
     /// <inheritdoc />

@@ -49,8 +49,10 @@ public class BeneficiariesController : ApiControllerBase
     [HttpGet("{id:int}")]
     public IActionResult GetBeneficiaryById(int id)
     {
+        int userId = GetAuthenticatedUserId();
+
         return ToActionResult(
-            _beneficiaryService.GetById(id),
+            _beneficiaryService.GetById(id, userId),
             beneficiary => Ok(MapToDto(beneficiary)));
     }
 
@@ -106,7 +108,8 @@ public class BeneficiariesController : ApiControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult DeleteBeneficiary(int id)
     {
-        return ToActionResult(_beneficiaryService.Delete(id));
+        int userId = GetAuthenticatedUserId();
+        return ToActionResult(_beneficiaryService.Delete(id, userId));
     }
 
     private static BeneficiaryDataTransferObject MapToDto(Beneficiary beneficiary)

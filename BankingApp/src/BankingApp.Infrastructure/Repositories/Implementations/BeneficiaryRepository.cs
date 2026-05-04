@@ -32,11 +32,11 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<Beneficiary> FindById(int beneficiaryId)
+    public ErrorOr<Beneficiary> FindById(int beneficiaryId, int userId)
     {
         Beneficiary? beneficiary = _databaseContext.Beneficiaries
             .AsNoTracking()
-            .FirstOrDefault(beneficiary => beneficiary.Id == beneficiaryId);
+            .FirstOrDefault(beneficiary => beneficiary.Id == beneficiaryId && beneficiary.UserId == userId);
 
         if (beneficiary is null)
         {
@@ -63,11 +63,12 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     /// <inheritdoc />
     public ErrorOr<bool> ExistsByUserIdAndIban(int userId, string iban)
     {
+        string normalizedIban = iban.Trim().ToUpperInvariant();
         bool exists = _databaseContext.Beneficiaries
             .AsNoTracking()
             .Any(beneficiary =>
                 beneficiary.UserId == userId &&
-                beneficiary.Iban.ToLower() == iban.ToLower());
+                beneficiary.Iban == normalizedIban);
 
         return exists;
     }
@@ -94,7 +95,9 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     {
         bool exists = _databaseContext.Beneficiaries
             .AsNoTracking()
-            .Any(existingBeneficiary => existingBeneficiary.Id == beneficiary.Id);
+            .Any(existingBeneficiary =>
+                existingBeneficiary.Id == beneficiary.Id &&
+                existingBeneficiary.UserId == beneficiary.UserId);
 
         if (!exists)
         {
@@ -118,10 +121,12 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<Success> Delete(int beneficiaryId)
+    public ErrorOr<Success> Delete(int beneficiaryId, int userId)
     {
         Beneficiary? beneficiary = _databaseContext.Beneficiaries
-            .FirstOrDefault(existingBeneficiary => existingBeneficiary.Id == beneficiaryId);
+            .FirstOrDefault(existingBeneficiary =>
+                existingBeneficiary.Id == beneficiaryId &&
+                existingBeneficiary.UserId == userId);
 
         if (beneficiary is null)
         {

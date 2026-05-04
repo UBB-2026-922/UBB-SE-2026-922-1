@@ -19,10 +19,11 @@ public interface IBeneficiaryRepository
     ///     Finds a beneficiary by its identifier.
     /// </summary>
     /// <param name="beneficiaryId">The beneficiary identifier.</param>
+    /// <param name="userId">The user identifier.</param>
     /// <returns>
     ///     The beneficiary when found, or an error otherwise.
     /// </returns>
-    ErrorOr<Beneficiary> FindById(int beneficiaryId);
+    ErrorOr<Beneficiary> FindById(int beneficiaryId, int userId);
 
     /// <summary>
     ///     Returns all beneficiaries saved by a user.
@@ -65,8 +66,9 @@ public interface IBeneficiaryRepository
     ///     Deletes a beneficiary by its identifier.
     /// </summary>
     /// <param name="beneficiaryId">The beneficiary identifier.</param>
+    /// <param name="userId">The user identifier.</param>
     /// <returns>
     ///     A success result when the deletion succeeds, or an error otherwise.
     /// </returns>
-    ErrorOr<Success> Delete(int beneficiaryId);
+    ErrorOr<Success> Delete(int beneficiaryId, int userId);
 }
