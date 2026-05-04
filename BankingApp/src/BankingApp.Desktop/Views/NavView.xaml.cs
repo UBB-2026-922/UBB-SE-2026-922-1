@@ -127,9 +127,10 @@ public sealed partial class NavView
     }
 
     // All other nav items show a coming soon alert
-    private async void NavTransfers_Click(object sender, RoutedEventArgs e)
+    private void NavTransfers_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Transfers");
+        SetActiveNav(NavTransfers);
+        _navigationService.NavigateToContent<TransferView>();
     }
 
     private async void NavBillPayments_Click(object sender, RoutedEventArgs e)

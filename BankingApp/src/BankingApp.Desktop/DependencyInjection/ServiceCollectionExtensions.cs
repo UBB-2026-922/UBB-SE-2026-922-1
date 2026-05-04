@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<SessionsViewModel>();
         services.AddTransient<BeneficiariesViewModel>();
         services.AddTransient<ProfileViewModel>();
+        services.AddTransient<TransferViewModel>();
         // Views are registered as transient so the navigation service can resolve them
         // through the container. Each navigation gets a fresh page instance with all
         // constructor dependencies (ViewModels, NavigationService) injected automatically.
@@ -71,6 +72,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<DashboardView>();
         services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();
+        services.AddTransient<TransferView>();
         return services;
     }
 }
