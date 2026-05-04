@@ -80,7 +80,7 @@ public class AppDatabaseContext : DbContext
             entity.ToTable("Beneficiary");
             entity.HasKey(beneficiary => beneficiary.Id);
             entity.Property(beneficiary => beneficiary.Name).IsRequired().HasMaxLength(200);
-            entity.Property(beneficiary => beneficiary.Iban).IsRequired().HasMaxLength(34).HasColumnName("Iban");
+            entity.Property(beneficiary => beneficiary.Iban).IsRequired().HasMaxLength(34).HasColumnName("IBAN");
             entity.Property(beneficiary => beneficiary.BankName).HasMaxLength(200);
             entity.Property(beneficiary => beneficiary.TotalAmountSent).HasColumnType("decimal(18,2)").HasDefaultValue(0);
             entity.Property(beneficiary => beneficiary.TransferCount).HasDefaultValue(0);
