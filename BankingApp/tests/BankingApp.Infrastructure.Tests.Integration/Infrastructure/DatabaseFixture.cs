@@ -1,10 +1,11 @@
-﻿// <copyright file="DatabaseFixture.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DatabaseFixture.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Infrastructure.DataAccess;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Respawn;
 using Testcontainers.MsSql;
 
@@ -69,6 +70,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
     {
         DbContextOptions<AppDatabaseContext> options = new DbContextOptionsBuilder<AppDatabaseContext>()
             .UseSqlServer(_connectionString)
+            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
         return new AppDatabaseContext(options);
     }

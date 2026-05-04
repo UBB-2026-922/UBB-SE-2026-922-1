@@ -1,5 +1,5 @@
-﻿// <copyright file="ProfileViewModelTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ProfileViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Application.DataTransferObjects.Profile;
