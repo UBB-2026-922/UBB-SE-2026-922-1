@@ -56,12 +56,35 @@ public class AppDatabaseContext : DbContext
     /// <summary>Gets or sets the notification preferences table.</summary>
     public DbSet<NotificationPreference> NotificationPreferences { get; set; }
 
+    /// <summary>Gets or sets the billers table.</summary>
+    public DbSet<Biller> Billers { get; set; }
+
+    /// <summary>Gets or sets the bill payments table.</summary>
+    public DbSet<BillPayment> BillPayments { get; set; }
+
+    /// <summary>Gets or sets the saved billers table.</summary>
+    public DbSet<SavedBiller> SavedBillers { get; set; }
+
     /// <summary>Gets or sets the password reset tokens table.</summary>
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     /// <summary>Gets or sets the transaction category overrides table.</summary>
     public DbSet<TransactionCategoryOverride> TransactionCategoryOverrides { get; set; }
 
+    /// <summary>Gets or sets the transfers table.</summary>
+    public DbSet<Transfer> Transfers { get; set; }
+
+    /// <summary>Gets or sets the beneficiaries table.</summary>
+    public DbSet<Beneficiary> Beneficiaries { get; set; }
+
+    /// <summary>Gets or sets the recurring payments table.</summary>
+    public DbSet<RecurringPayment> RecurringPayments { get; set; }
+
+    /// <summary>Gets or sets the exchange transactions table.</summary>
+    public DbSet<ExchangeTransaction> ExchangeTransactions { get; set; }
+
+    /// <summary>Gets or sets the rate alerts table.</summary>
+    public DbSet<RateAlert> RateAlerts { get; set; }
     /// <summary>Gets or sets the billers table.</summary>
     public DbSet<Biller> Billers { get; set; }
 
@@ -176,6 +199,7 @@ public class AppDatabaseContext : DbContext
             entity.Property(category => category.Icon).HasMaxLength(50);
             entity.Property(category => category.IsSystem).HasDefaultValue(true);
         });
+
         modelBuilder.Entity<Transaction>(entity =>
         {
             entity.ToTable("Transaction");
@@ -198,6 +222,7 @@ public class AppDatabaseContext : DbContext
             entity.HasOne<Card>().WithMany().HasForeignKey(transaction => transaction.CardId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<Category>().WithMany().HasForeignKey(transaction => transaction.CategoryId).OnDelete(DeleteBehavior.NoAction);
         });
+
         modelBuilder.Entity<Notification>(entity =>
         {
             entity.ToTable("Notification");

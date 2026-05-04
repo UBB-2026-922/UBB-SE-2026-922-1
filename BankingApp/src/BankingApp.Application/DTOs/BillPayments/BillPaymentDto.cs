@@ -17,17 +17,17 @@ public class BillPaymentDto
     /// <summary>
     /// Gets or sets the unique identifier of the user initiating the payment.
     /// </summary>
-    public Guid UserId { get; set; }
+    public int UserId { get; set; }
 
     /// <summary>
     /// Gets or sets the unique identifier of the account from which to draw funds.
     /// </summary>
-    public Guid SourceAccountId { get; set; }
+    public int SourceAccountId { get; set; }
 
     /// <summary>
     /// Gets or sets the unique identifier of the biller receiving the payment.
     /// </summary>
-    public Guid BillerId { get; set; }
+    public int BillerId { get; set; }
 
     /// <summary>
     /// Gets or sets the customer reference or invoice number.

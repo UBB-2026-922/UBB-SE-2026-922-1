@@ -5,6 +5,9 @@
 // Contains the BillPaymentService class.
 // </summary>
 
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using BankingApp.Application.DTOs.BillPayments;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
@@ -18,7 +21,7 @@ namespace BankingApp.Application.Services.BillPayments;
 public class BillPaymentService : IBillPaymentService
 {
     private readonly IBillPaymentRepository _billRepository;
-    private readonly IDashboardRepository _accountRepository; // Pentru a verifica soldul contului
+    private readonly IDashboardRepository _accountRepository;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BillPaymentService"/> class.
@@ -46,7 +49,7 @@ public class BillPaymentService : IBillPaymentService
 
         var payment = new BillPayment
         {
-            Id = Guid.NewGuid(),
+            // Baza de date va auto-genera ID-ul (fiind de tip int)
             UserId = request.UserId,
             SourceAccountId = request.SourceAccountId,
             BillerId = request.BillerId,
@@ -69,11 +72,11 @@ public class BillPaymentService : IBillPaymentService
     }
 
     /// <inheritdoc/>
-    public async Task<bool> SaveBillerForUserAsync(Guid userId, Guid billerId, string nickname)
+    public async Task<bool> SaveBillerForUserAsync(int userId, int billerId, string nickname)
     {
         var saved = new SavedBiller
         {
-            Id = Guid.NewGuid(),
+            // Baza de date va auto-genera ID-ul (fiind de tip int)
             UserId = userId,
             BillerId = billerId,
             Nickname = nickname,

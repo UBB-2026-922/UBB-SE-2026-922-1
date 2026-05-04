@@ -5,6 +5,9 @@
 // Contains the IBillPaymentService interface.
 // </summary>
 
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using BankingApp.Application.DTOs.BillPayments;
 using BankingApp.Domain.Entities;
 
@@ -35,5 +38,5 @@ public interface IBillPaymentService
     /// <param name="billerId">The biller identifier.</param>
     /// <param name="nickname">A personal nickname for the biller.</param>
     /// <returns>A boolean indicating success.</returns>
-    Task<bool> SaveBillerForUserAsync(Guid userId, Guid billerId, string nickname);
+    Task<bool> SaveBillerForUserAsync(int userId, int billerId, string nickname);
 }

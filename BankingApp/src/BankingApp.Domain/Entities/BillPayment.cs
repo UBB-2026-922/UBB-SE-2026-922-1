@@ -21,7 +21,7 @@ public class BillPayment
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the user who made this payment.
+    /// Gets or sets the identifier of the user who initiated the payment.
     /// </summary>
     public int UserId { get; set; }
 
@@ -31,7 +31,7 @@ public class BillPayment
     public User? User { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the source account debited for this payment.
+    /// Gets or sets the identifier of the source account from which the funds are drawn.
     /// </summary>
     public int SourceAccountId { get; set; }
 
@@ -41,7 +41,7 @@ public class BillPayment
     public Account? SourceAccount { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the biller that receives this payment.
+    /// Gets or sets the identifier of the biller receiving the payment.
     /// </summary>
     public int BillerId { get; set; }
 
@@ -51,9 +51,9 @@ public class BillPayment
     public Biller? Biller { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the linked transaction ledger entry.
+    /// Gets or sets the optional identifier of the overarching transaction.
     /// </summary>
-    public int? TransactionId { get; set; }
+    public int? TransactionId { get; set; } // Modificat în int? pentru a suporta SetNull
 
     /// <summary>
     /// Gets or sets the overarching transaction associated with this payment.
@@ -61,7 +61,7 @@ public class BillPayment
     public Transaction? Transaction { get; set; }
 
     /// <summary>
-    /// Gets or sets the biller-specific reference number.
+    /// Gets or sets the reference code or invoice number provided by the biller.
     /// </summary>
     public string BillerReference { get; set; } = string.Empty;
 
@@ -76,17 +76,17 @@ public class BillPayment
     public decimal Fee { get; set; }
 
     /// <summary>
-    /// Gets or sets the unique receipt number issued upon payment confirmation.
+    /// Gets or sets the unique receipt number generated for this payment.
     /// </summary>
     public string ReceiptNumber { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the current processing status of the payment.
+    /// Gets or sets the current status of the bill payment.
     /// </summary>
     public PaymentStatus Status { get; set; }
 
     /// <summary>
-    /// Gets or sets the date and time (UTC) when this payment was created.
+    /// Gets or sets the date and time when the payment was created.
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
