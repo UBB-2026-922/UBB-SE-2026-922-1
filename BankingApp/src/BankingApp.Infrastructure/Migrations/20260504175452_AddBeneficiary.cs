@@ -1,4 +1,10 @@
-﻿using System;
+﻿// <copyright file="20260504175452_AddBeneficiary.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the AddBeneficiary migration.
+// </summary>
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
