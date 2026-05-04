@@ -12,6 +12,7 @@ using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Transfers;
+using BankingApp.Application.Services.Beneficiary;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BankingApp.Application.DependencyInjection;
@@ -35,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IBillerService, BillerService>();
         services.AddScoped<ITransferService, TransferService>();
+        services.AddScoped<IBeneficiaryService, BeneficiaryService>();
         return services;
     }
 }
