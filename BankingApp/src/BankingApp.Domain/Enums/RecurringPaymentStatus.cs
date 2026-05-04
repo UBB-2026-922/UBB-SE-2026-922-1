@@ -9,7 +9,7 @@ namespace BankingApp.Domain.Enums;
 
 /// <summary>
 ///     Represents the lifecycle status of a recurring payment schedule.
-// </summary>
+/// </summary>
 public enum RecurringPaymentStatus
 {
     /// <summary>

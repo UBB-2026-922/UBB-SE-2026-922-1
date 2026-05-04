@@ -1,4 +1,4 @@
-﻿// <copyright file="RecurringFrequency.cs" company="UBB-922">
+// <copyright file="RecurringFrequency.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -13,9 +13,19 @@ namespace BankingApp.Domain.Enums;
 public enum RecurringFrequency
 {
     /// <summary>
+    ///     The payment executes once every day.
+    /// </summary>
+    Daily,
+
+    /// <summary>
     ///     The payment executes once every week.
     /// </summary>
     Weekly,
+
+    /// <summary>
+    ///     The payment executes once every two weeks.
+    /// </summary>
+    BiWeekly,
 
     /// <summary>
     ///     The payment executes once every month.

@@ -71,12 +71,12 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<RecurringPayment>> GetDueBefore(DateTime dueBy)
+    public ErrorOr<List<RecurringPayment>> GetDuePayments(DateTime asOf)
     {
         try
         {
             return _context.RecurringPayments
-                .Where(r => r.NextExecutionDate <= dueBy)
+                .Where(r => r.Status == Domain.Enums.RecurringPaymentStatus.Active && r.NextExecutionDate <= asOf)
                 .ToList();
         }
         catch (Exception ex)

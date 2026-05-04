@@ -1,4 +1,4 @@
-﻿// <copyright file="IRecurringPaymentRepository.cs" company="UBB-922">
+// <copyright file="IRecurringPaymentRepository.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -33,22 +33,9 @@ public interface IRecurringPaymentRepository
     /// <param name="payment">The schedule to create.</param>
     /// <returns>The created schedule with its assigned identifier, or an error.</returns>
     ErrorOr<RecurringPayment> Create(RecurringPayment payment);
-    /// <summary>Returns all recurring payments whose next execution date falls at or before the given threshold.</summary>
-    /// <param name="dueBy">The UTC cutoff date and time.</param>
-    /// <returns>A list of due payments, or an error if the operation failed.</returns>
-    ErrorOr<List<RecurringPayment>> GetDueBefore(DateTime dueBy);
 
     /// <summary>Persists changes to an existing recurring payment record.</summary>
     /// <param name="payment">The recurring payment entity with updated values.</param>
     /// <returns>Success, or an error if the operation failed.</returns>
     ErrorOr<Success> Update(RecurringPayment payment);
-    /// <summary>Updates a recurring payment schedule (amount, frequency, dates, status).</summary>
-    /// <param name="payment">The schedule with updated values.</param>
-    /// <returns>The updated schedule, or an error.</returns>
-    ErrorOr<RecurringPayment> Update(RecurringPayment payment);
-
-    /// <summary>Cancels a recurring payment schedule by marking its status as Cancelled.</summary>
-    /// <param name="id">The identifier of the schedule to cancel.</param>
-    /// <returns>Success, or an error when the record is not found.</returns>
-    ErrorOr<Success> Cancel(int id);
 }
