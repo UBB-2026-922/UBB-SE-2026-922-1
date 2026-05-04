@@ -62,6 +62,8 @@ public class AppDatabaseContext : DbContext
     /// <summary>Gets or sets the transaction category overrides table.</summary>
     public DbSet<TransactionCategoryOverride> TransactionCategoryOverrides { get; set; }
 
+    public DbSet<Transfer> Transfers { get; set; }
+
     /// <summary>Gets or sets the billers table.</summary>
     public DbSet<Biller> Billers { get; set; }
 
@@ -270,6 +272,104 @@ public class AppDatabaseContext : DbContext
         modelBuilder.Entity<Transfer>(entity =>
         {
             entity.ToTable("Transfers");
+            entity.HasKey(transfer => transfer.Id);
+            entity.Property(transfer => transfer.RecipientName).IsRequired().HasMaxLength(200);
+            entity.Property(transfer => transfer.RecipientIban).IsRequired().HasMaxLength(50).HasColumnName("RecipientIBAN");
+            entity.Property(transfer => transfer.RecipientBankName).HasMaxLength(200);
+            entity.Property(transfer => transfer.Amount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(transfer => transfer.Currency).IsRequired().HasMaxLength(10);
+            entity.Property(transfer => transfer.ConvertedAmount).HasColumnType("decimal(18,2)");
+            entity.Property(transfer => transfer.ExchangeRate).HasColumnType("decimal(18,6)");
+            entity.Property(transfer => transfer.Fee).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+            entity.Property(transfer => transfer.Reference).HasMaxLength(200);
+            entity.Property(transfer => transfer.Status).IsRequired().HasConversion<string>().HasMaxLength(50);
+            entity.Property(transfer => transfer.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(transfer => transfer.UserId);
+            entity.HasOne<Account>().WithMany().HasForeignKey(transfer => transfer.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Transaction>().WithMany().HasForeignKey(transfer => transfer.TransactionId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<Biller>(entity =>
+        {
+            entity.ToTable("Biller");
+            entity.HasKey(biller => biller.Id);
+            entity.Property(biller => biller.Name).IsRequired().HasMaxLength(200);
+            entity.HasIndex(biller => biller.Name).IsUnique();
+            entity.Property(biller => biller.Category).IsRequired().HasConversion<string>().HasMaxLength(50);
+            entity.Property(biller => biller.LogoUrl).HasMaxLength(500);
+            entity.Property(biller => biller.IsActive).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<BillPayment>(entity =>
+        {
+            entity.ToTable("BillPayment");
+            entity.HasKey(billPayment => billPayment.Id);
+            entity.Property(billPayment => billPayment.BillerReference).IsRequired().HasMaxLength(200);
+            entity.Property(billPayment => billPayment.Amount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(billPayment => billPayment.Fee).HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+            entity.Property(billPayment => billPayment.ReceiptNumber).IsRequired().HasMaxLength(100);
+            entity.Property(billPayment => billPayment.Status).IsRequired().HasConversion<string>().HasMaxLength(50);
+            entity.Property(billPayment => billPayment.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(billPayment => billPayment.UserId);
+            entity.HasOne<Account>().WithMany().HasForeignKey(billPayment => billPayment.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Biller>().WithMany().HasForeignKey(billPayment => billPayment.BillerId);
+            entity.HasOne<Transaction>().WithMany().HasForeignKey(billPayment => billPayment.TransactionId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<SavedBiller>(entity =>
+        {
+            entity.ToTable("SavedBiller");
+            entity.HasKey(savedBiller => savedBiller.Id);
+            entity.Property(savedBiller => savedBiller.Nickname).HasMaxLength(200);
+            entity.Property(savedBiller => savedBiller.DefaultReference).HasMaxLength(200);
+            entity.Property(savedBiller => savedBiller.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(savedBiller => savedBiller.UserId);
+            entity.HasOne<Biller>().WithMany().HasForeignKey(savedBiller => savedBiller.BillerId);
+        });
+
+        modelBuilder.Entity<RecurringPayment>(entity =>
+        {
+            entity.ToTable("RecurringPayment");
+            entity.HasKey(recurringPayment => recurringPayment.Id);
+            entity.Property(recurringPayment => recurringPayment.Amount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(recurringPayment => recurringPayment.IsPayInFull).HasDefaultValue(false);
+            entity.Property(recurringPayment => recurringPayment.Frequency).IsRequired().HasConversion<string>().HasMaxLength(20);
+            entity.Property(recurringPayment => recurringPayment.Status).IsRequired().HasConversion<string>().HasMaxLength(20).HasDefaultValue(RecurringPaymentStatus.Active);
+            entity.Property(recurringPayment => recurringPayment.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(recurringPayment => recurringPayment.UserId);
+            entity.HasOne<Account>().WithMany().HasForeignKey(recurringPayment => recurringPayment.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Biller>().WithMany().HasForeignKey(recurringPayment => recurringPayment.BillerId);
+        });
+
+        modelBuilder.Entity<ExchangeTransaction>(entity =>
+        {
+            entity.ToTable("ExchangeTransaction");
+            entity.HasKey(exchangeTransaction => exchangeTransaction.Id);
+            entity.Property(exchangeTransaction => exchangeTransaction.SourceCurrency).IsRequired().HasMaxLength(3);
+            entity.Property(exchangeTransaction => exchangeTransaction.TargetCurrency).IsRequired().HasMaxLength(3);
+            entity.Property(exchangeTransaction => exchangeTransaction.SourceAmount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(exchangeTransaction => exchangeTransaction.TargetAmount).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(exchangeTransaction => exchangeTransaction.ExchangeRate).IsRequired().HasColumnType("decimal(18,6)");
+            entity.Property(exchangeTransaction => exchangeTransaction.Commission).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(exchangeTransaction => exchangeTransaction.Status).IsRequired().HasConversion<string>().HasMaxLength(20);
+            entity.Property(exchangeTransaction => exchangeTransaction.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.UserId);
+            entity.HasOne<Account>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Account>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.TargetAccountId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Transaction>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.TransactionId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<RateAlert>(entity =>
+        {
+            entity.ToTable("RateAlert");
+            entity.HasKey(rateAlert => rateAlert.Id);
+            entity.Property(rateAlert => rateAlert.BaseCurrency).IsRequired().HasMaxLength(3);
+            entity.Property(rateAlert => rateAlert.TargetCurrency).IsRequired().HasMaxLength(3);
+            entity.Property(rateAlert => rateAlert.TargetRate).IsRequired().HasColumnType("decimal(18,6)");
+            entity.Property(rateAlert => rateAlert.IsTriggered).HasDefaultValue(false);
+            entity.Property(rateAlert => rateAlert.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne<User>().WithMany().HasForeignKey(rateAlert => rateAlert.UserId);
+        });
             entity.HasKey(t => t.Id);
             entity.Property(t => t.RecipientName).IsRequired().HasMaxLength(200);
             entity.Property(t => t.RecipientIban).IsRequired().HasMaxLength(50);
