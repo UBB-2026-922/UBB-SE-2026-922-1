@@ -1,5 +1,5 @@
-﻿// <copyright file="RateAlertRepository.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="RateAlertRepository.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the dummy RateAlertRepository skeleton for Team B integration.

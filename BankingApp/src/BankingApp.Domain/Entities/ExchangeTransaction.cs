@@ -1,5 +1,5 @@
-﻿// <copyright file="ExchangeTransaction.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ExchangeTransaction.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the ExchangeTransaction entity for Team B's FX exchange feature.

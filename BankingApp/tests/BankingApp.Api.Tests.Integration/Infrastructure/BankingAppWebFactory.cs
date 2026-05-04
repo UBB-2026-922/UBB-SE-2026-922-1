@@ -1,5 +1,5 @@
-﻿// <copyright file="BankingAppWebFactory.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BankingAppWebFactory.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Application.Repositories.Interfaces;
@@ -115,9 +115,16 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>, IDisposable
             // Register SqliteDbContext (subclass of AppDatabaseContext) so that
             // Program.cs's GetRequiredService<AppDatabaseContext>() returns a
             // SQLite-backed instance.
-            services.AddDbContext<AppDatabaseContext, SqliteDbContext>(options =>
-                options.UseSqlite(SqliteConnectionString)
-                       .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
+            services.AddScoped<AppDatabaseContext>(_ =>
+            {
+                DbContextOptions<AppDatabaseContext> options =
+                    new DbContextOptionsBuilder<AppDatabaseContext>()
+                        .UseSqlite(SqliteConnectionString)
+                        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
+                        .Options;
+
+                return new SqliteDbContext(options);
+            });
 
             // ── Replace all infrastructure services with substitutes ────────────
             ReplaceService(services, JwtServiceMock.Object);

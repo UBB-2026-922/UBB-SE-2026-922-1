@@ -1,5 +1,5 @@
-﻿// <copyright file="Transfer.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="Transfer.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the Transfer entity for Team B's bank transfer feature.

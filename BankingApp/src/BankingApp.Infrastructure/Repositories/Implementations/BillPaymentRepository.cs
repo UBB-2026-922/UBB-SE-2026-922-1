@@ -1,5 +1,5 @@
-﻿// <copyright file="BillPaymentRepository.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillPaymentRepository.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the dummy BillPaymentRepository skeleton for Team B integration.

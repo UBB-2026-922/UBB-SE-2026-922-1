@@ -1,5 +1,5 @@
-﻿// <copyright file="DomainEnumMapper.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DomainEnumMapper.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the DomainEnumMapper class.
