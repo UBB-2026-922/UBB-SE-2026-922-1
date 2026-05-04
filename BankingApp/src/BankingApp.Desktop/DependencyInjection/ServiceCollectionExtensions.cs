@@ -61,6 +61,9 @@ public static class ServiceCollectionExtensions
         services.AddTransient<BillPayViewModel>();
         services.AddTransient<RecurringPaymentViewModel>();
 
+        // Views are registered as transient so the navigation service can resolve them
+        // through the container. Each navigation gets a fresh page instance with all
+        // constructor dependencies (ViewModels, NavigationService) injected automatically.
         services.AddTransient<LoginView>();
         services.AddTransient<RegisterView>();
         services.AddTransient<TwoFactorView>();

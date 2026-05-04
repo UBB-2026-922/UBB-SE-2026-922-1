@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <Page
     x:Class="BankingApp.Desktop.Views.RateAlertsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"

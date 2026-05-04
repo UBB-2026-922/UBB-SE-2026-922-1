@@ -1,23 +1,45 @@
+// <copyright file="RateAlertViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+
 namespace BankingApp.Desktop.Tests.ViewModels;
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Application.DTOs.RateAlerts;
 using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
+/// <summary>
+///     Tests for the <see cref="RateAlertViewModel"/>.
+/// </summary>
 public class RateAlertViewModelTests
 {
     private readonly Mock<IRateAlertClientService> _rateAlertClientService;
     private readonly RateAlertViewModel _viewModel;
 
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="RateAlertViewModelTests"/> class.
+    ///     Creates a fresh mock and view model for each test.
+    /// </summary>
     public RateAlertViewModelTests()
     {
         _rateAlertClientService = new Mock<IRateAlertClientService>(MockBehavior.Loose);
         _viewModel = new RateAlertViewModel(_rateAlertClientService.Object, NullLogger<RateAlertViewModel>.Instance);
     }
 
+    /// <summary>
+    ///     LoadAlertsAsync should populate Alerts when the API succeeds.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task LoadAlertsAsync_WhenApiSucceeds_PopulatesAlerts()
     {
@@ -41,6 +63,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///     LoadAlertsAsync should set error when the API fails.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task LoadAlertsAsync_WhenApiFails_SetsError()
     {
@@ -57,6 +83,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.RateAlerts.LoadFailed);
     }
 
+    /// <summary>
+    ///     CreateAlertAsync should set error when currencies are empty.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task CreateAlertAsync_WhenCurrenciesAreEmpty_SetsError()
     {
@@ -70,6 +100,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.RateAlerts.CurrencyRequired);
     }
 
+    /// <summary>
+    ///     CreateAlertAsync should set error when currencies are the same.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task CreateAlertAsync_WhenCurrenciesAreEqual_SetsError()
     {
@@ -85,6 +119,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.RateAlerts.CurrenciesMustDiffer);
     }
 
+    /// <summary>
+    ///     CreateAlertAsync should set error when target rate text has ambiguous format.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task CreateAlertAsync_WhenRateFormatIsAmbiguous_SetsError()
     {
@@ -100,6 +138,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.RateAlerts.InvalidNumberFormat);
     }
 
+    /// <summary>
+    ///     CreateAlertAsync should set error when target rate is not a valid number.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task CreateAlertAsync_WhenRateIsInvalid_SetsError()
     {
@@ -115,6 +157,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.RateAlerts.InvalidTargetRate);
     }
 
+    /// <summary>
+    ///     CreateAlertAsync should add the new alert and clear inputs on success.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task CreateAlertAsync_WhenApiSucceeds_AddsAlertAndClearsInputs()
     {
@@ -147,6 +193,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///     CreateAlertAsync should set error when the API fails.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task CreateAlertAsync_WhenApiFails_SetsError()
     {
@@ -167,6 +217,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.RateAlerts.CreateFailed);
     }
 
+    /// <summary>
+    ///     DeleteAlertAsync should remove the alert from the collection on success.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task DeleteAlertAsync_WhenApiSucceeds_RemovesAlert()
     {
@@ -186,6 +240,10 @@ public class RateAlertViewModelTests
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///     DeleteAlertAsync should set error when the API fails.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task DeleteAlertAsync_WhenApiFails_SetsError()
     {

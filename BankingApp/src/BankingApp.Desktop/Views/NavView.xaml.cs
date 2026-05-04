@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Collections.Generic;

@@ -1,6 +1,14 @@
+// <copyright file="RateAlertViewModel.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the RateAlertViewModel class.
+// </summary>
+
 namespace BankingApp.Desktop.ViewModels;
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -13,7 +21,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-///     Handles rate-alert listing, creation, and deletion for the desktop client.
+///     View model for the Rate Alerts page. Allows the user to create, view,
+///     and delete exchange-rate alerts via the repository layer.
 /// </summary>
 public partial class RateAlertViewModel : INotifyPropertyChanged
 {
@@ -22,6 +31,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
 
     private readonly IRateAlertClientService _rateAlertClientService;
     private readonly ILogger<RateAlertViewModel> _logger;
+
     private ObservableCollection<RateAlertDto> _alerts = [];
     private string _baseCurrency = string.Empty;
     private string _targetCurrency = string.Empty;
@@ -33,6 +43,8 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Initializes a new instance of the <see cref="RateAlertViewModel" /> class.
     /// </summary>
+    /// <param name="rateAlertClientService">The rate alert client service for backend communication.</param>
+    /// <param name="logger">Logger for rate alert errors.</param>
     public RateAlertViewModel(IRateAlertClientService rateAlertClientService, ILogger<RateAlertViewModel> logger)
     {
         _rateAlertClientService = rateAlertClientService ?? throw new ArgumentNullException(nameof(rateAlertClientService));
@@ -114,6 +126,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Loads all alerts for the current user.
     /// </summary>
+    /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task LoadAlertsAsync()
     {
         ErrorMessage = string.Empty;
@@ -121,13 +134,12 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         try
         {
             int userId = _rateAlertClientService.CurrentUserId ?? 0;
-            ErrorOr<System.Collections.Generic.List<RateAlertDto>> result =
-                await _rateAlertClientService.GetAlertsAsync(userId);
+            ErrorOr<List<RateAlertDto>> result = await _rateAlertClientService.GetAlertsAsync(userId);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.LoadFailed;
-                _logger.LoadAlertsFailed(result.Errors);
+                _logger.LogError("Load alerts failed: {Errors}", result.Errors);
                 return;
             }
 
@@ -136,7 +148,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LoadAlertsFailedUnexpected(exception);
+            _logger.LogError(exception, "Load alerts failed unexpectedly");
         }
         finally
         {
@@ -147,6 +159,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Creates a new rate alert from the current form state.
     /// </summary>
+    /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task CreateAlertAsync()
     {
         ErrorMessage = string.Empty;
@@ -198,7 +211,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.CreateFailed;
-                _logger.CreateAlertFailed(result.Errors);
+                _logger.LogError("Create alert failed: {Errors}", result.Errors);
                 return;
             }
 
@@ -211,7 +224,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.CreateAlertFailedUnexpected(exception);
+            _logger.LogError(exception, "Create alert failed unexpectedly");
         }
         finally
         {
@@ -222,6 +235,8 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Deletes the specified alert.
     /// </summary>
+    /// <param name="alertId">The identifier of the alert to delete.</param>
+    /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task DeleteAlertAsync(int alertId)
     {
         ErrorMessage = string.Empty;
@@ -232,7 +247,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.DeleteFailed;
-                _logger.DeleteAlertFailed(result.Errors);
+                _logger.LogError("Delete alert failed: {Errors}", result.Errors);
                 return;
             }
 
@@ -245,15 +260,27 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.DeleteAlertFailedUnexpected(exception);
+            _logger.LogError(exception, "Delete alert failed unexpectedly");
         }
     }
 
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    /// <summary>
+    ///     Raises PropertyChanged for the given property name.
+    /// </summary>
+    /// <param name="propertyName">The name of the property that changed.</param>
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+    /// <summary>
+    ///     Sets the backing field and raises PropertyChanged when the value differs.
+    /// </summary>
+    /// <typeparam name="T">The property type.</typeparam>
+    /// <param name="field">The backing field reference.</param>
+    /// <param name="value">The new value.</param>
+    /// <param name="propertyName">The property name (auto-filled by the compiler).</param>
+    /// <returns><see langword="true" /> if the value changed; otherwise, <see langword="false" />.</returns>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (Equals(field, value))

@@ -8,6 +8,9 @@ public static class ApiEndpoints
     /// <summary>POST api/auth/login — credential login.</summary>
     public const string Login = "api/auth/login";
 
+    /// <summary>POST api/auth/oauth-login — OAuth provider login or registration.</summary>
+    public const string OAuthLogin = "api/auth/oauth-login";
+
     /// <summary>POST api/auth/register — new account registration.</summary>
     public const string Register = "api/auth/register";
 
@@ -44,19 +47,28 @@ public static class ApiEndpoints
     /// <summary>PUT api/profile/2fa/disable — disable 2FA.</summary>
     public const string Disable2Fa = "api/profile/2fa/disable";
 
+    /// <summary>GET api/profile/oauth-links — list linked OAuth providers.</summary>
+    public const string OAuthLinks = "api/profile/oauth-links";
+
+    /// <summary>POST api/profile/oauth/link — link a new OAuth provider.</summary>
+    public const string LinkOAuth = "api/profile/oauth/link";
+
+    /// <summary>DELETE api/profile/oauth/{provider} — unlink an OAuth provider.</summary>
+    public const string UnlinkOAuth = "api/profile/oauth";
+
     /// <summary>GET/PUT api/profile/notifications/preferences — load or update notification preferences.</summary>
     public const string NotificationPreferences = "api/profile/notifications/preferences";
 
     /// <summary>GET api/profile/sessions — list active sessions. DELETE api/profile/sessions/{id} — revoke a session.</summary>
     public const string Sessions = "api/profile/sessions";
 
-    /// <summary>GET api/exchange/preview get a live rate preview for a currency pair and amount.</summary>
+    /// <summary>GET api/exchange/preview — get a live rate preview for a currency pair and amount.</summary>
     public const string ExchangePreview = "api/exchange/preview";
 
-    /// <summary>POST api/exchange/execute executes a currency exchange between two accounts.</summary>
+    /// <summary>POST api/exchange/execute — execute a currency exchange between two accounts.</summary>
     public const string ExchangeExecute = "api/exchange/execute";
 
-    /// <summary>GET/POST/DELETE api/exchange/rate-alerts manage rate alerts.</summary>
+    /// <summary>GET/POST/DELETE api/exchange/rate-alerts — manage rate alerts.</summary>
     public const string RateAlerts = "api/exchange/rate-alerts";
 
     /// <summary>GET api/billers - list active billers, optionally filtered by category.</summary>
@@ -103,4 +115,3 @@ public static class ApiEndpoints
 
     /// <summary>POST api/transfers/execute — submit a transfer for processing.</summary>
     public const string TransferExecute = "api/transfers/execute";
-}
