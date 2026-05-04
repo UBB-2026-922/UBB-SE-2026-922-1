@@ -77,8 +77,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
         services.AddScoped<IBillerRepository, BillerRepository>();
         services.AddScoped<ITransferDataAccess, TransferDataAccess>();
+        services.AddScoped<BankingApp.Application.Services.BillPayments.IBillPaymentService, BankingApp.Application.Services.BillPayments.BillPaymentService>();
         services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
-        services.AddScoped<IBillPaymentService, BillPaymentService>();
 
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
