@@ -1,4 +1,4 @@
-using BankingApp.Domain.Entities;
+using DomainBeneficiary = BankingApp.Domain.Entities.Beneficiary;
 using ErrorOr;
 
 namespace BankingApp.Application.Services.Beneficiary;
@@ -15,7 +15,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     The user's beneficiaries, or an error otherwise.
     /// </returns>
-    ErrorOr<List<Beneficiary>> GetByUserId(int userId);
+    ErrorOr<List<DomainBeneficiary>> GetByUserId(int userId);
 
     /// <summary>
     ///     Gets a beneficiary by its identifier.
@@ -25,7 +25,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     The beneficiary when found, or an error otherwise.
     /// </returns>
-    ErrorOr<Beneficiary> GetById(int beneficiaryId, int userId);
+    ErrorOr<DomainBeneficiary> GetById(int beneficiaryId, int userId);
 
     /// <summary>
     ///     Creates a new beneficiary for the specified user.
@@ -37,7 +37,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     The created beneficiary, or an error otherwise.
     /// </returns>
-    ErrorOr<Beneficiary> Create(int userId, string name, string iban, string? bankName);
+    ErrorOr<DomainBeneficiary> Create(int userId, string name, string iban, string? bankName);
 
     /// <summary>
     ///     Updates an existing beneficiary.
@@ -46,7 +46,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     A success result when the update succeeds, or an error otherwise.
     /// </returns>
-    ErrorOr<Success> Update(Beneficiary beneficiary);
+    ErrorOr<Success> Update(DomainBeneficiary beneficiary);
 
     /// <summary>
     ///     Deletes a beneficiary by its identifier.

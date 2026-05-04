@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using DomainBeneficiary = BankingApp.Domain.Entities.Beneficiary;
 
 namespace BankingApp.Application.Services.Beneficiary;
 
@@ -28,19 +28,19 @@ public class BeneficiaryService : IBeneficiaryService
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<Beneficiary>> GetByUserId(int userId)
+    public ErrorOr<List<DomainBeneficiary>> GetByUserId(int userId)
     {
         return _beneficiaryRepository.FindByUserId(userId);
     }
 
     /// <inheritdoc />
-    public ErrorOr<Beneficiary> GetById(int beneficiaryId, int userId)
+    public ErrorOr<DomainBeneficiary> GetById(int beneficiaryId, int userId)
     {
         return _beneficiaryRepository.FindById(beneficiaryId, userId);
     }
 
     /// <inheritdoc />
-    public ErrorOr<Beneficiary> Create(int userId, string name, string iban, string? bankName)
+    public ErrorOr<DomainBeneficiary> Create(int userId, string name, string iban, string? bankName)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -76,7 +76,7 @@ public class BeneficiaryService : IBeneficiaryService
                 description: "A beneficiary with this IBAN already exists for this user.");
         }
 
-        var beneficiary = new Beneficiary
+        var beneficiary = new DomainBeneficiary
         {
             UserId = userId,
             Name = normalizedName,
@@ -87,7 +87,7 @@ public class BeneficiaryService : IBeneficiaryService
             TransferCount = 0,
         };
 
-        ErrorOr<Beneficiary> createResult = _beneficiaryRepository.Create(beneficiary);
+        ErrorOr<DomainBeneficiary> createResult = _beneficiaryRepository.Create(beneficiary);
         if (createResult.IsError)
         {
             _logger.LogError(
@@ -105,7 +105,7 @@ public class BeneficiaryService : IBeneficiaryService
     }
 
     /// <inheritdoc />
-    public ErrorOr<Success> Update(Beneficiary beneficiary)
+    public ErrorOr<Success> Update(DomainBeneficiary beneficiary)
     {
         if (string.IsNullOrWhiteSpace(beneficiary.Name))
         {
@@ -127,7 +127,7 @@ public class BeneficiaryService : IBeneficiaryService
             ? null
             : beneficiary.BankName.Trim();
 
-        ErrorOr<Beneficiary> existingBeneficiaryResult =
+        ErrorOr<DomainBeneficiary> existingBeneficiaryResult =
             _beneficiaryRepository.FindById(beneficiary.Id, beneficiary.UserId);
         if (existingBeneficiaryResult.IsError)
         {
@@ -156,7 +156,7 @@ public class BeneficiaryService : IBeneficiaryService
                 description: "A beneficiary with this IBAN already exists for this user.");
         }
 
-        Beneficiary existingBeneficiary = existingBeneficiaryResult.Value;
+        DomainBeneficiary existingBeneficiary = existingBeneficiaryResult.Value;
         existingBeneficiary.Name = normalizedName;
         existingBeneficiary.Iban = normalizedIban;
         existingBeneficiary.BankName = normalizedBankName;
