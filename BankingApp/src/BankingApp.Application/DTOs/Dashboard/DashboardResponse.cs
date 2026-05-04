@@ -27,7 +27,7 @@ public class DashboardResponse
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public List<CardDataTransferObject> Cards { get; set; } = [];
+    public List<CardDataTransferObject> Cards { get; set; } = new();
 
     /// <summary>
     ///     Gets or sets the list of recent transactions.
@@ -45,4 +45,12 @@ public class DashboardResponse
     ///     Gets or sets the current value.
     /// </value>
     public int UnreadNotificationCount { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the list of pending transfers for the user.
+    /// </summary>
+    /// <value>
+    ///     A list of transactions representing pending transfers.
+    /// </value>
+    public List<TransactionDataTransferObject> PendingTransfers { get; set; } = new();
 }

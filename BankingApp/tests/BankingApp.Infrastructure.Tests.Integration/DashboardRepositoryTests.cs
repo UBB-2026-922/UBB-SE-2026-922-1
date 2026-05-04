@@ -241,6 +241,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             new AccountDataAccess(databaseContext),
             new CardDataAccess(databaseContext),
             new TransactionDataAccess(databaseContext),
-            new NotificationDataAccess(databaseContext));
+            new NotificationDataAccess(databaseContext),
+            new TransferDataAccess(databaseContext));
     }
 }
