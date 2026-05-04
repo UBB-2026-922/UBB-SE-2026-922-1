@@ -213,7 +213,7 @@ public class BeneficiaryServiceTests
             .Returns(existingBeneficiary);
         _beneficiaryRepository
             .Setup(findsByUserId => findsByUserId.FindByUserId(DefaultUserId))
-            .Returns([existingBeneficiary]);
+            .Returns(new List<Beneficiary> { existingBeneficiary });
         _beneficiaryRepository
             .Setup(updates => updates.Update(It.IsAny<Beneficiary>()))
             .Returns(Result.Success);
