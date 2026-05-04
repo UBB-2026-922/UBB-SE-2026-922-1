@@ -1,5 +1,12 @@
-using DomainBeneficiary = BankingApp.Domain.Entities.Beneficiary;
+﻿// <copyright file="IBeneficiaryService.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the IBeneficiaryService interface.
+// </summary>
+
 using ErrorOr;
+using DomainBeneficiary = BankingApp.Domain.Entities.Beneficiary;
 
 namespace BankingApp.Application.Services.Beneficiary;
 

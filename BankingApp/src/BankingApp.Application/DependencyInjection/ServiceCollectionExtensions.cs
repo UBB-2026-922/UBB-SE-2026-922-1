@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.Services.Billers;
+using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;

@@ -1,3 +1,10 @@
+﻿// <copyright file="BeneficiaryService.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the BeneficiaryService class.
+// </summary>
+
 using System.Text.RegularExpressions;
 using BankingApp.Application.Repositories.Interfaces;
 using ErrorOr;
@@ -15,7 +22,7 @@ public class BeneficiaryService : IBeneficiaryService
     private readonly IBeneficiaryRepository _beneficiaryRepository;
 
     /// <summary>
-    ///     Initializes a new instance of the BeneficiaryService class.
+    ///     Initializes a new instance of the <see cref="BeneficiaryService" /> class.
     /// </summary>
     /// <param name="beneficiaryRepository">The beneficiary repository.</param>
     /// <param name="logger">The logger.</param>
@@ -134,7 +141,7 @@ public class BeneficiaryService : IBeneficiaryService
             return existingBeneficiaryResult.FirstError;
         }
 
-        ErrorOr<List<Beneficiary>> userBeneficiariesResult =
+        ErrorOr<List<DomainBeneficiary>> userBeneficiariesResult =
             _beneficiaryRepository.FindByUserId(beneficiary.UserId);
 
         if (userBeneficiariesResult.IsError)

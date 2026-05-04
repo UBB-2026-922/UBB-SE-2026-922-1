@@ -1,3 +1,10 @@
+﻿// <copyright file="BeneficiaryDataTransferObject.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the BeneficiaryDataTransferObject class.
+// </summary>
+
 namespace BankingApp.Application.DataTransferObjects.Beneficiary;
 
 /// <summary>
