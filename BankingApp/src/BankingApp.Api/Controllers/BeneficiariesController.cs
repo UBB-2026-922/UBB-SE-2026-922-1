@@ -1,3 +1,10 @@
+﻿// <copyright file="BeneficiariesController.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the BeneficiariesController class.
+// </summary>
+
 using BankingApp.Application.DataTransferObjects.Beneficiary;
 using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Domain.Entities;
