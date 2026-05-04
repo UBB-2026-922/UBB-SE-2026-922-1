@@ -99,4 +99,26 @@ internal static class UserMessages
         /// <summary>Shown when the user tries to verify without pasting a recovery code.</summary>
         internal const string CodeRequired = "Please paste the recovery code first.";
     }
+
+    /// <summary>Messages shown in the transfer view.</summary>
+    internal static class Transfer
+    {
+        /// <summary>Shown when the IBAN entered by the user fails validation.</summary>
+        internal const string InvalidIban = "Invalid IBAN format.";
+
+        /// <summary>Shown when the transfer amount is zero or negative.</summary>
+        internal const string AmountMustBePositive = "The amount must be greater than 0.";
+
+        /// <summary>Shown when the user tries to proceed past the 2FA step without confirming.</summary>
+        internal const string TwoFaRequired = "You must confirm the 2FA step.";
+
+        /// <summary>Shown when no source account has been selected before submitting a transfer.</summary>
+        internal const string NoAccountSelected = "No account selected.";
+
+        /// <summary>Shown when the account list could not be loaded from the API.</summary>
+        internal const string AccountLoadFailed = "Could not load your accounts. Please try again.";
+
+        /// <summary>Shown when the transfer execution fails on the server.</summary>
+        internal const string TransferFailed = "Transfer failed. Please try again.";
+    }
 }
