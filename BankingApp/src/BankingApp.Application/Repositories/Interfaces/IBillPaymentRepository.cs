@@ -1,43 +1,80 @@
-﻿// <copyright file="IBillPaymentRepository.cs" company="UBB-922">
+// <copyright file="IBillPaymentRepository.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the IBillPaymentRepository interface.
 // </summary>
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using ErrorOr;
 
 namespace BankingApp.Application.Repositories.Interfaces;
 
 /// <summary>
-///     Defines persistence operations for the <see cref="BillPayment" /> and <see cref="Biller" /> entities.
+/// Defines the data access operations for bill payments and billers.
 /// </summary>
 public interface IBillPaymentRepository
 {
-    /// <summary>Retrieves a bill payment by its unique identifier.</summary>
-    /// <param name="id">The bill payment identifier.</param>
-    /// <returns>The matching <see cref="BillPayment" />, or an error when not found.</returns>
-    ErrorOr<BillPayment> GetById(int id);
+    /// <summary>
+    /// Gets all available billers.
+    /// </summary>
+    /// <returns>A list of billers.</returns>
+    Task<IEnumerable<Biller>> GetBillersAsync();
 
-    /// <summary>Retrieves all bill payments belonging to the specified user.</summary>
+    /// <summary>
+    /// Gets a specific biller by ID.
+    /// </summary>
+    /// <param name="billerId">The biller identifier.</param>
+    /// <returns>The biller if found.</returns>
+    Task<Biller?> GetBillerByIdAsync(int billerId);
+
+    /// <summary>
+    /// Saves a new bill payment record.
+    /// </summary>
+    /// <param name="payment">The payment entity.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task AddPaymentAsync(BillPayment payment);
+
+    /// <summary>
+    /// Gets the payment history for a specific user.
+    /// </summary>
     /// <param name="userId">The user identifier.</param>
-    /// <returns>A list of bill payments, or an error.</returns>
-    ErrorOr<List<BillPayment>> GetByUserId(int userId);
+    /// <returns>A list of past bill payments.</returns>
+    Task<IEnumerable<BillPayment>> GetUserPaymentHistoryAsync(int userId);
 
-    /// <summary>Retrieves the complete list of registered billers.</summary>
-    /// <returns>A list of all active and inactive billers, or an error.</returns>
-    ErrorOr<List<Biller>> GetAllBillers();
+    /// <summary>
+    /// Gets the list of billers saved by a user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <returns>A list of saved biller records.</returns>
+    Task<IEnumerable<SavedBiller>> GetSavedBillersAsync(int userId);
 
-    /// <summary>Persists a new bill payment record.</summary>
-    /// <param name="payment">The payment to create.</param>
-    /// <returns>The created payment with its assigned identifier, or an error.</returns>
-    ErrorOr<BillPayment> Create(BillPayment payment);
+    /// <summary>
+    /// Saves a biller to the user's quick pay list.
+    /// </summary>
+    /// <param name="savedBiller">The saved biller entity.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task AddSavedBillerAsync(SavedBiller savedBiller);
 
-    /// <summary>Updates the processing status of an existing bill payment.</summary>
-    /// <param name="paymentId">The identifier of the payment to update.</param>
-    /// <param name="status">The new status value.</param>
-    /// <returns>The updated payment, or an error.</returns>
-    ErrorOr<BillPayment> UpdateStatus(int paymentId, BillPaymentStatus status);
+    /// <summary>
+    /// Gets a specific account by ID.
+    /// </summary>
+    /// <param name="accountId">The account identifier.</param>
+    /// <returns>The account entity if found.</returns>
+    Task<Account?> GetAccountByIdAsync(int accountId);
+
+    /// <summary>
+    /// Updates an existing account's balance.
+    /// </summary>
+    /// <param name="account">The account to update.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task UpdateAccountAsync(Account account);
+
+    /// <summary>
+    /// Saves a new global transaction record.
+    /// </summary>
+    /// <param name="transaction">The transaction entity.</param>
+    /// <returns>A task representing the operation.</returns>
+    Task AddTransactionAsync(Transaction transaction);
 }
