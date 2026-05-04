@@ -20,6 +20,11 @@ namespace BankingApp.Application.Services.BillPayments;
 /// </summary>
 public class BillPaymentService : IBillPaymentService
 {
+    private const decimal SmallPaymentThreshold = 100m;
+    private const decimal SmallPaymentFee = 0.50m;
+    private const decimal StandardPaymentFee = 1.00m;
+    private const int ReceiptUniqueSuffixLength = 6;
+
     private readonly IBillPaymentRepository _billRepository;
 
     /// <summary>
@@ -46,12 +51,17 @@ public class BillPaymentService : IBillPaymentService
             throw new Exception("Source account not found.");
         }
 
-        if (account.Balance < request.Amount)
+        // Calculate fee based on amount
+        decimal fee = CalculateFee(request.Amount);
+        decimal totalAmount = request.Amount + fee;
+
+        if (account.Balance < totalAmount)
         {
-            throw new Exception("Insufficient funds to pay this bill.");
+            throw new Exception("Insufficient funds to pay this bill (including fees).");
         }
 
-        account.Balance -= request.Amount;
+        // Deduct money including fee
+        account.Balance -= totalAmount;
         await _billRepository.UpdateAccountAsync(account);
 
         var globalTransaction = new Transaction
@@ -59,13 +69,14 @@ public class BillPaymentService : IBillPaymentService
             AccountId = account.Id,
             CategoryId = null,
             Amount = request.Amount,
+            Fee = fee,
             Description = $"Bill Payment to {biller.Name} - Ref: {request.BillerReference}",
             CreatedAt = DateTime.UtcNow,
             Direction = TransactionDirection.Out,
             Status = TransactionStatus.Completed,
             TransactionRef = $"TXN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
             Type = "BillPayment",
-            Currency = account.Currency ?? "USD",
+            Currency = account.Currency ?? "RON",
             BalanceAfter = account.Balance,
         };
 
@@ -79,8 +90,8 @@ public class BillPaymentService : IBillPaymentService
             TransactionId = globalTransaction.Id,
             BillerReference = request.BillerReference,
             Amount = request.Amount,
-            Fee = 0,
-            ReceiptNumber = $"REC-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+            Fee = fee,
+            ReceiptNumber = GenerateReceiptNumber(),
             Status = PaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
         };
@@ -109,5 +120,22 @@ public class BillPaymentService : IBillPaymentService
 
         await _billRepository.AddSavedBillerAsync(saved);
         return true;
+    }
+
+    /// <summary>
+    /// Works out the fee - up to 100 costs 0.50, above that costs 1.00.
+    /// </summary>
+    private decimal CalculateFee(decimal amount)
+    {
+        return amount <= SmallPaymentThreshold ? SmallPaymentFee : StandardPaymentFee;
+    }
+
+    /// <summary>
+    /// Creates a unique receipt number like RCP-20260421-ABC123.
+    /// </summary>
+    private string GenerateReceiptNumber()
+    {
+        string uniqueSuffix = Guid.NewGuid().ToString("N")[..ReceiptUniqueSuffixLength].ToUpper();
+        return $"RCP-{DateTime.UtcNow:yyyyMMdd}-{uniqueSuffix}";
     }
 }
