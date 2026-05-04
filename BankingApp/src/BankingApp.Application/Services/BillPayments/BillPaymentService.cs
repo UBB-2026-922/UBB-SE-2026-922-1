@@ -21,47 +21,72 @@ namespace BankingApp.Application.Services.BillPayments;
 public class BillPaymentService : IBillPaymentService
 {
     private readonly IBillPaymentRepository _billRepository;
-    private readonly IDashboardRepository _accountRepository;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BillPaymentService"/> class.
     /// </summary>
     /// <param name="billRepository">The bill payment repository.</param>
-    /// <param name="accountRepository">The account repository.</param>
-    public BillPaymentService(IBillPaymentRepository billRepository, IDashboardRepository accountRepository)
+    public BillPaymentService(IBillPaymentRepository billRepository)
     {
         _billRepository = billRepository;
-        _accountRepository = accountRepository;
     }
 
     /// <inheritdoc/>
     public async Task<BillPayment> ProcessPaymentAsync(BillPaymentDto request)
     {
-        // 1. Validăm existența furnizorului
         var biller = await _billRepository.GetBillerByIdAsync(request.BillerId);
         if (biller == null)
         {
             throw new Exception("Biller not found.");
         }
 
-        // 2. Verificăm soldul contului (Logica adaptată din Team B)
-        // Notă: În BankingApp real, ai folosi un serviciu de tranzacții dedicat.
+        var account = await _billRepository.GetAccountByIdAsync(request.SourceAccountId);
+        if (account == null)
+        {
+            throw new Exception("Source account not found.");
+        }
+
+        if (account.Balance < request.Amount)
+        {
+            throw new Exception("Insufficient funds to pay this bill.");
+        }
+
+        account.Balance -= request.Amount;
+        await _billRepository.UpdateAccountAsync(account);
+
+        var globalTransaction = new Transaction
+        {
+            AccountId = account.Id,
+            CategoryId = null,
+            Amount = request.Amount,
+            Description = $"Bill Payment to {biller.Name} - Ref: {request.BillerReference}",
+            CreatedAt = DateTime.UtcNow,
+            Direction = TransactionDirection.Out,
+            Status = TransactionStatus.Completed,
+            TransactionRef = $"TXN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+            Type = "BillPayment",
+            Currency = account.Currency ?? "USD",
+            BalanceAfter = account.Balance,
+        };
+
+        await _billRepository.AddTransactionAsync(globalTransaction);
 
         var payment = new BillPayment
         {
-            // Baza de date va auto-genera ID-ul (fiind de tip int)
             UserId = request.UserId,
             SourceAccountId = request.SourceAccountId,
             BillerId = request.BillerId,
+            TransactionId = globalTransaction.Id,
             BillerReference = request.BillerReference,
             Amount = request.Amount,
-            Fee = 0, // Calculat în funcție de business rules
+            Fee = 0,
             ReceiptNumber = $"REC-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
             Status = PaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
         };
 
         await _billRepository.AddPaymentAsync(payment);
+
         return payment;
     }
 
@@ -76,7 +101,6 @@ public class BillPaymentService : IBillPaymentService
     {
         var saved = new SavedBiller
         {
-            // Baza de date va auto-genera ID-ul (fiind de tip int)
             UserId = userId,
             BillerId = billerId,
             Nickname = nickname,

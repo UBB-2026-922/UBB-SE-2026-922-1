@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Application.Services.BillPayments;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
@@ -53,7 +54,7 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<AppDatabaseContext>(options =>
             options.UseSqlServer(connectionString)
-                   .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
+                   .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
         services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
@@ -69,6 +70,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
+        services.AddScoped<IBillPaymentService, BillPaymentService>();
         services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
         services.AddScoped<IBillerDataAccess, BillerDataAccess>();
         services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
@@ -78,10 +81,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
 
-        // Team B landing zones.
         // These registrations wire the interfaces defined in the Application layer to the
         // repository implementations in the Infrastructure layer.
         services.AddScoped<ITransferRepository, TransferRepository>();
+        services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
         services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
         services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
         services.AddScoped<IExchangeRepository, ExchangeRepository>();
