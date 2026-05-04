@@ -10,7 +10,7 @@ env:
   TEST_FLAGS: --configuration Release --no-restore --logger trx --results-directory TestResults
 
 jobs:
-  api-layer-tests:
+  backend-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,7 +71,7 @@ jobs:
           name: test-results-api
           path: '**/TestResults/*.trx'
 
-  desktop-client-tests:
+  desktop-frontend-tests:
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -93,11 +93,21 @@ jobs:
         run: dotnet restore BankingApp/tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj
 
       - name: Run desktop tests
-        run: dotnet test BankingApp/tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj ${{ env.TEST_FLAGS }}
+        timeout-minutes: 10
+        run: >
+          dotnet test BankingApp/tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj
+          ${{ env.TEST_FLAGS }}
+          --logger "console;verbosity=detailed"
+          --blame-hang
+          --blame-hang-timeout 5m
+          --blame-hang-dump-type mini
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-desktop
-          path: '**/TestResults/*.trx'
+          path: |
+            '**/TestResults/*.trx'
+            '**/TestResults/**/Sequence_*.xml'
+            '**/TestResults/**/*.dmp'

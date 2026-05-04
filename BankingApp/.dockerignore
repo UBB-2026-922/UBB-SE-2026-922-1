@@ -15,7 +15,7 @@
 .claude/
 
 # Desktop project — not needed for server builds
-src/BankApp.Desktop/
+src/BankingApp.Desktop/
 
 # Tests
 tests/

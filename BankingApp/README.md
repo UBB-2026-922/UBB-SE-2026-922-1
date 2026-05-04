@@ -25,8 +25,11 @@ tests/
 
 ### 1. Configure local settings
 
-Configure Docker Compose and app secrets with environment variables, user secrets, or local
-configuration files. EF Core migrations are the source of truth for database schema.
+Generate Docker Compose and API development env files:
+
+```bash
+python scripts/secrets/setup_dev.py
+```
 
 ### 2. Start the local stack
 
@@ -43,16 +46,11 @@ Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select 
 ## Project Docs
 
 - API setup and configuration: [src/BankingApp.Api/README.md](src/BankingApp.Api/README.md)
-- Desktop setup and local OAuth configuration: [src/BankingApp.Desktop/README.md](src/BankingApp.Desktop/README.md)
+- Desktop setup and local configuration: [src/BankingApp.Desktop/README.md](src/BankingApp.Desktop/README.md)
 
 ## Prerequisites
 
 - Windows 10/11 for the desktop client
 - .NET SDK 10.x
-- Docker Desktop
-
-## Verification
-
-```bash
-dotnet test BankingApp.slnx
-```
+- Docker Desktop (optional but highly recommanded)
+- Python 3.10+ for local secret generation scripts
