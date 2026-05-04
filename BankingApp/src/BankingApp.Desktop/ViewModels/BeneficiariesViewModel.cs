@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Beneficiaries;
+using BankingApp.Application.DTOs.Beneficiaries;
 using BankingApp.Desktop.Master;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.Views;

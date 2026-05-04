@@ -7,7 +7,7 @@
 
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Beneficiaries;
+using BankingApp.Application.DTOs.Beneficiaries;
 using BankingApp.Desktop.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
