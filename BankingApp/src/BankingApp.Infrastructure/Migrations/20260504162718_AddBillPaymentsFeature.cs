@@ -1,4 +1,10 @@
-﻿using System;
+﻿// <copyright file="20260504162718_AddBillPaymentsFeature.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the AddBillPaymentsFeature migration.
+// </summary>
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -20,7 +26,7 @@ namespace BankingApp.Infrastructure.Migrations
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Category = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     LogoUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                 },
                 constraints: table =>
                 {
@@ -42,7 +48,7 @@ namespace BankingApp.Infrastructure.Migrations
                     Fee = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
                     ReceiptNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Pending"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
@@ -81,7 +87,7 @@ namespace BankingApp.Infrastructure.Migrations
                     BillerId = table.Column<int>(type: "int", nullable: false),
                     Nickname = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     DefaultReference = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
