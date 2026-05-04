@@ -26,4 +26,7 @@ public enum RecurringFrequency
     ///     The payment executes once every three months.
     /// </summary>
     Quarterly,
+
+    /// <summary>The payment runs once per year.</summary>
+    Yearly,
 }

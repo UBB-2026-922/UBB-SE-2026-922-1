@@ -1,6 +1,4 @@
-﻿// <copyright file="RecurringPayment.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿// </copyright>
 // <summary>
 // Contains the RecurringPayment entity for Team B's recurring payment feature.
 // </summary>

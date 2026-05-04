@@ -1,4 +1,4 @@
-﻿// <copyright file="RecurringPaymentStatus.cs" company="UBB-922">
+// <copyright file="RecurringPaymentStatus.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -9,7 +9,7 @@ namespace BankingApp.Domain.Enums;
 
 /// <summary>
 ///     Represents the lifecycle status of a recurring payment schedule.
-/// </summary>
+// </summary>
 public enum RecurringPaymentStatus
 {
     /// <summary>

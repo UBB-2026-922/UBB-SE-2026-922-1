@@ -16,13 +16,12 @@ namespace BankingApp.Application.Repositories.Interfaces;
 public interface IRecurringPaymentRepository
 {
     /// <summary>Retrieves a recurring payment by its unique identifier.</summary>
-    /// <param name="id">The recurring payment identifier.</param>
     /// <returns>The matching <see cref="RecurringPayment" />, or an error when not found.</returns>
     ErrorOr<RecurringPayment> GetById(int id);
 
     /// <summary>Retrieves all recurring payments belonging to the specified user.</summary>
     /// <param name="userId">The user identifier.</param>
-    /// <returns>A list of recurring payments, or an error.</returns>
+    /// <returns>A list of the user's recurring payments, or an error if the operation failed.</returns>
     ErrorOr<List<RecurringPayment>> GetByUserId(int userId);
 
     /// <summary>Retrieves all active recurring payments whose next execution date is on or before <paramref name="asOf" />.</summary>
@@ -34,7 +33,15 @@ public interface IRecurringPaymentRepository
     /// <param name="payment">The schedule to create.</param>
     /// <returns>The created schedule with its assigned identifier, or an error.</returns>
     ErrorOr<RecurringPayment> Create(RecurringPayment payment);
+    /// <summary>Returns all recurring payments whose next execution date falls at or before the given threshold.</summary>
+    /// <param name="dueBy">The UTC cutoff date and time.</param>
+    /// <returns>A list of due payments, or an error if the operation failed.</returns>
+    ErrorOr<List<RecurringPayment>> GetDueBefore(DateTime dueBy);
 
+    /// <summary>Persists changes to an existing recurring payment record.</summary>
+    /// <param name="payment">The recurring payment entity with updated values.</param>
+    /// <returns>Success, or an error if the operation failed.</returns>
+    ErrorOr<Success> Update(RecurringPayment payment);
     /// <summary>Updates a recurring payment schedule (amount, frequency, dates, status).</summary>
     /// <param name="payment">The schedule with updated values.</param>
     /// <returns>The updated schedule, or an error.</returns>

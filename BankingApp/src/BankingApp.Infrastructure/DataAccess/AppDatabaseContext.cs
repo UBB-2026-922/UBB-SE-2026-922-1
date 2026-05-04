@@ -8,6 +8,7 @@
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using BankingApp.Domain.Extensions;
+using BankingApp.Infrastructure.DataAccess.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -361,5 +362,7 @@ public class AppDatabaseContext : DbContext
             entity.Property(rateAlert => rateAlert.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<User>().WithMany().HasForeignKey(rateAlert => rateAlert.UserId);
         });
+
+        modelBuilder.ApplyConfiguration(new RecurringPaymentConfiguration());
     }
 }
