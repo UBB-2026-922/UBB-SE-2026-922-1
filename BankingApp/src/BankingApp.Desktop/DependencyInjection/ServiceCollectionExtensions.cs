@@ -60,6 +60,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<SessionsViewModel>();
         services.AddTransient<BeneficiariesViewModel>();
         services.AddTransient<ProfileViewModel>();
+        services.AddTransient<FXViewModel>();
+        services.AddTransient<RateAlertViewModel>();
         services.AddTransient<TransferViewModel>();
         services.AddTransient<BillPayViewModel>();
         // Views are registered as transient so the navigation service can resolve them
@@ -73,6 +75,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<DashboardView>();
         services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();
+        services.AddTransient<FXPage>();
+        services.AddTransient<RateAlertsPage>();
         services.AddTransient<BillPayView>();
         services.AddTransient<TransferView>();
         return services;
