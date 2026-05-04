@@ -133,9 +133,10 @@ public sealed partial class NavView
         _navigationService.NavigateToContent<TransferView>();
     }
 
-    private async void NavBillPayments_Click(object sender, RoutedEventArgs e)
+    private void NavBillPayments_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Bill Payments");
+        SetActiveNav(NavBillPayments);
+        _navigationService.NavigateToContent<BillPayView>();
     }
 
     private async void NavCards_Click(object sender, RoutedEventArgs e)

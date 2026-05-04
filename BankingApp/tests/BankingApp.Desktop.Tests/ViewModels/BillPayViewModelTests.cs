@@ -1,0 +1,688 @@
+﻿// <copyright file="BillPayViewModelTests.cs" company="CtrlC CtrlV">
+// Copyright (c) CtrlC CtrlV. All rights reserved.
+// </copyright>
+// <summary>
+// Contains tests for BillPayViewModel.
+// </summary>
+
+using System.Collections.Generic;
+using BankingApp.Application.DTOs.BillPayment;
+using BankingApp.Desktop.Master;
+using BankingApp.Desktop.Utilities;
+using BankingApp.Desktop.ViewModels;
+using ErrorOr;
+
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+/// <summary>
+///     Tests for <see cref="BillPayViewModel" />.
+/// </summary>
+public class BillPayViewModelTests
+{
+    private readonly Mock<IApiClient> _apiClient = new();
+    private readonly Mock<IAppNavigationService> _navigationService = new();
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="BillPayViewModelTests" /> class.
+    /// </summary>
+    public BillPayViewModelTests()
+    {
+        _apiClient.Setup(a => a.EnsureConfigured()).Returns(Result.Success);
+        _apiClient.SetupProperty(a => a.CurrentUserId);
+    }
+
+    // ───────────────────────────── LoadAsync ─────────────────────────────
+
+    /// <summary>
+    ///     LoadAsync loads billers, saved billers, and accounts on success.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_WhenSuccess_PopulatesCollections()
+    {
+        // Arrange
+        SetupSuccessfulLoad();
+        BillPayViewModel vm = CreateViewModel();
+
+        // Act
+        await vm.LoadAsync();
+
+        // Assert
+        vm.Billers.Should().HaveCount(2);
+        vm.SavedBillers.Should().HaveCount(1);
+        vm.Accounts.Should().HaveCount(1);
+        vm.ErrorMessage.Should().BeEmpty();
+    }
+
+    /// <summary>
+    ///     LoadAsync keeps billers empty when billers API fails.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_WhenBillersApiFails_KeepsBillersEmpty()
+    {
+        // Arrange
+        _apiClient
+            .Setup(a => a.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers, default))
+            .ReturnsAsync(Error.Failure(description: "Server error"));
+        _apiClient
+            .Setup(a => a.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers, default))
+            .ReturnsAsync(CreateMockSavedBillers());
+        _apiClient
+            .Setup(a => a.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts, default))
+            .ReturnsAsync(CreateMockAccounts());
+        BillPayViewModel vm = CreateViewModel();
+
+        // Act
+        await vm.LoadAsync();
+
+        // Assert — billers empty since API returned error; saved billers and accounts still load
+        vm.Billers.Should().BeEmpty();
+        vm.SavedBillers.Should().HaveCount(1);
+    }
+
+    // ───────────────────────────── Initial State ─────────────────────────────
+
+    /// <summary>
+    ///     ViewModel starts on step 1 with empty state.
+    /// </summary>
+    [Fact]
+    public void Constructor_InitializesDefaultState()
+    {
+        // Arrange & Act
+        BillPayViewModel vm = CreateViewModel();
+
+        // Assert
+        vm.CurrentStep.Should().Be(1);
+        vm.Billers.Should().BeEmpty();
+        vm.SavedBillers.Should().BeEmpty();
+        vm.Accounts.Should().BeEmpty();
+        vm.SelectedBiller.Should().BeNull();
+        vm.Amount.Should().Be(0);
+        vm.ErrorMessage.Should().BeEmpty();
+        vm.ReceiptNumber.Should().BeEmpty();
+    }
+
+    // ───────────────────────────── SelectBiller ─────────────────────────────
+
+    /// <summary>
+    ///     Selecting a biller advances to step 2.
+    /// </summary>
+    [Fact]
+    public void SelectBiller_WithBillerDto_AdvancesToStep2()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
+
+        // Act
+        vm.SelectBillerCommand.Execute(biller);
+
+        // Assert
+        vm.SelectedBiller.Should().Be(biller);
+        vm.CurrentStep.Should().Be(2);
+    }
+
+    /// <summary>
+    ///     Selecting a saved biller pre-fills the reference and advances to step 2.
+    /// </summary>
+    [Fact]
+    public void SelectBiller_WithSavedBillerDto_PrefillsReferenceAndAdvancesToStep2()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        var savedBiller = new SavedBillerDto
+        {
+            Id = 1,
+            BillerId = 1,
+            DefaultReference = "REF-123",
+            Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" },
+        };
+
+        // Act
+        vm.SelectBillerCommand.Execute(savedBiller);
+
+        // Assert
+        vm.SelectedBiller.Should().NotBeNull();
+        vm.SelectedBiller!.Id.Should().Be(1);
+        vm.BillerReference.Should().Be("REF-123");
+        vm.CurrentStep.Should().Be(2);
+    }
+
+    // ───────────────────────────── NextStep Validation ─────────────────────────────
+
+    /// <summary>
+    ///     NextStep from step 1 without biller shows error.
+    /// </summary>
+    [Fact]
+    public void NextStep_Step1_NoBiller_SetsError()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.ExecuteNextStep();
+
+        // Assert
+        vm.ErrorMessage.Should().Contain("select a biller");
+        vm.CurrentStep.Should().Be(1);
+    }
+
+    /// <summary>
+    ///     NextStep from step 2 without reference shows error.
+    /// </summary>
+    [Fact]
+    public void NextStep_Step2_NoReference_SetsError()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
+        vm.ExecuteSelectBiller(biller);
+
+        // Now on step 2, try next without reference
+        vm.ExecuteNextStep();
+
+        // Assert
+        vm.ErrorMessage.Should().Contain("biller reference");
+    }
+
+    /// <summary>
+    ///     NextStep from step 2 without account shows error.
+    /// </summary>
+    [Fact]
+    public void NextStep_Step2_NoAccount_SetsError()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
+        vm.ExecuteSelectBiller(biller);
+        vm.BillerReference = "REF-001";
+
+        // Act — no account selected
+        vm.ExecuteNextStep();
+
+        // Assert
+        vm.ErrorMessage.Should().Contain("source account");
+    }
+
+    /// <summary>
+    ///     NextStep from step 2 with zero amount shows error.
+    /// </summary>
+    [Fact]
+    public void NextStep_Step2_ZeroAmount_SetsError()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
+        vm.ExecuteSelectBiller(biller);
+        vm.BillerReference = "REF-001";
+        vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
+        vm.Amount = 0;
+
+        // Act
+        vm.ExecuteNextStep();
+
+        // Assert
+        vm.ErrorMessage.Should().Contain("valid amount");
+    }
+
+    /// <summary>
+    ///     NextStep from step 2 with valid data and low amount skips 2FA.
+    /// </summary>
+    [Fact]
+    public void NextStep_Step2_ValidLowAmount_SkipsTwoFaGoesToStep4()
+    {
+        // Arrange
+        _apiClient
+            .Setup(a => a.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
+            .ReturnsAsync(new FeeResponseDto { Fee = 0.50m });
+        _apiClient
+            .Setup(a => a.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
+            .ReturnsAsync(new Requires2FaResponseDto { Required = false });
+
+        BillPayViewModel vm = CreateViewModel();
+        var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
+        vm.ExecuteSelectBiller(biller);
+        vm.BillerReference = "REF-001";
+        vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
+        vm.Amount = 50m;
+
+        // Act
+        vm.ExecuteNextStep();
+
+        // Assert
+        vm.CurrentStep.Should().Be(4);
+        vm.Fee.Should().Be(0.50m);
+        vm.Requires2FA.Should().BeFalse();
+    }
+
+    /// <summary>
+    ///     NextStep from step 2 with high amount goes to 2FA step.
+    /// </summary>
+    [Fact]
+    public void NextStep_Step2_HighAmount_GoesToTwoFaStep3()
+    {
+        // Arrange
+        _apiClient
+            .Setup(a => a.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
+            .ReturnsAsync(new FeeResponseDto { Fee = 1.00m });
+        _apiClient
+            .Setup(a => a.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
+            .ReturnsAsync(new Requires2FaResponseDto { Required = true });
+
+        BillPayViewModel vm = CreateViewModel();
+        var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
+        vm.ExecuteSelectBiller(biller);
+        vm.BillerReference = "REF-001";
+        vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
+        vm.Amount = 1500m;
+
+        // Act
+        vm.ExecuteNextStep();
+
+        // Assert
+        vm.CurrentStep.Should().Be(3);
+        vm.Requires2FA.Should().BeTrue();
+    }
+
+    /// <summary>
+    ///     NextStep from 2FA step without confirmation shows error.
+    /// </summary>
+    [Fact]
+    public void NextStep_Step3_NotConfirmed_SetsError()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.CurrentStep = 3;
+
+        // Act
+        vm.ExecuteNextStep();
+
+        // Assert
+        vm.ErrorMessage.Should().Contain("2FA");
+    }
+
+    // ───────────────────────────── Back ─────────────────────────────
+
+    /// <summary>
+    ///     Back from review step without 2FA goes to step 2.
+    /// </summary>
+    [Fact]
+    public void Back_FromReviewWithout2FA_GoesToStep2()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.CurrentStep = 4;
+        vm.Requires2FA = false;
+
+        // Act
+        vm.ExecuteBack();
+
+        // Assert
+        vm.CurrentStep.Should().Be(2);
+    }
+
+    /// <summary>
+    ///     Back from review step with 2FA goes to step 3.
+    /// </summary>
+    [Fact]
+    public void Back_FromReviewWith2FA_GoesToStep3()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.CurrentStep = 4;
+        vm.Requires2FA = true;
+
+        // Act
+        vm.ExecuteBack();
+
+        // Assert
+        vm.CurrentStep.Should().Be(3);
+    }
+
+    /// <summary>
+    ///     Back from step 1 stays at step 1.
+    /// </summary>
+    [Fact]
+    public void Back_FromStep1_StaysAtStep1()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+
+        // Act
+        vm.ExecuteBack();
+
+        // Assert
+        vm.CurrentStep.Should().Be(1);
+    }
+
+    // ───────────────────────────── PayBill ─────────────────────────────
+
+    /// <summary>
+    ///     PayBill on success sets receipt number and goes to step 5.
+    /// </summary>
+    [Fact]
+    public async Task PayBill_WhenSuccess_SetsReceiptAndGoesToStep5()
+    {
+        // Arrange
+        _apiClient
+            .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+                ApiEndpoints.BillPayPay,
+                It.IsAny<BillPayRequestDto>()))
+            .ReturnsAsync(new BillPayResponseDto
+            {
+                Id = 1,
+                ReceiptNumber = "RCP-20260504-ABC123",
+                Fee = 0.50m,
+                Amount = 200m,
+                Status = "Completed",
+            });
+
+        BillPayViewModel vm = CreateViewModel();
+        vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Test", Category = "Utilities" });
+        vm.BillerReference = "REF-001";
+        vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
+        vm.Amount = 200m;
+
+        // Act
+        await vm.ExecutePayBillAsync();
+
+        // Assert
+        vm.ReceiptNumber.Should().Be("RCP-20260504-ABC123");
+        vm.CurrentStep.Should().Be(5);
+        vm.ErrorMessage.Should().BeEmpty();
+    }
+
+    /// <summary>
+    ///     PayBill on API failure sets error message.
+    /// </summary>
+    [Fact]
+    public async Task PayBill_WhenApiFails_SetsErrorMessage()
+    {
+        // Arrange
+        _apiClient
+            .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+                ApiEndpoints.BillPayPay,
+                It.IsAny<BillPayRequestDto>()))
+            .ReturnsAsync(Error.Failure(description: "Insufficient funds"));
+
+        BillPayViewModel vm = CreateViewModel();
+        vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Test", Category = "Utilities" });
+        vm.BillerReference = "REF-001";
+        vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
+        vm.Amount = 200m;
+
+        // Act
+        await vm.ExecutePayBillAsync();
+
+        // Assert
+        vm.ErrorMessage.Should().Contain("Payment failed");
+        vm.CurrentStep.Should().NotBe(5);
+    }
+
+    /// <summary>
+    ///     PayBill without biller shows error.
+    /// </summary>
+    [Fact]
+    public async Task PayBill_NoBiller_SetsError()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+
+        // Act
+        await vm.ExecutePayBillAsync();
+
+        // Assert
+        vm.ErrorMessage.Should().Contain("select a biller");
+    }
+
+    /// <summary>
+    ///     PayBill with save biller option calls save endpoint.
+    /// </summary>
+    [Fact]
+    public async Task PayBill_WithSaveBiller_CallsSaveEndpoint()
+    {
+        // Arrange
+        _apiClient
+            .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+                ApiEndpoints.BillPayPay,
+                It.IsAny<BillPayRequestDto>()))
+            .ReturnsAsync(new BillPayResponseDto
+            {
+                Id = 1,
+                ReceiptNumber = "RCP-TEST",
+                Fee = 0.50m,
+                Amount = 200m,
+                Status = "Completed",
+            });
+        _apiClient
+            .Setup(a => a.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
+                ApiEndpoints.BillPaySaveBiller,
+                It.IsAny<SaveBillerRequestDto>()))
+            .ReturnsAsync(new SavedBillerDto
+            {
+                Id = 99,
+                BillerId = 1,
+                Nickname = "Test",
+                Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" },
+            });
+
+        BillPayViewModel vm = CreateViewModel();
+        vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Test", Category = "Utilities" });
+        vm.BillerReference = "REF-001";
+        vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
+        vm.Amount = 200m;
+        vm.ShouldSaveBiller = true;
+
+        // Act
+        await vm.ExecutePayBillAsync();
+
+        // Assert
+        _apiClient.Verify(
+            a => a.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
+                ApiEndpoints.BillPaySaveBiller,
+                It.IsAny<SaveBillerRequestDto>()),
+            Times.Once);
+        vm.SavedBillers.Should().HaveCount(1);
+    }
+
+    // ───────────────────────────── ResetForm ─────────────────────────────
+
+    /// <summary>
+    ///     ResetForm clears all state back to defaults.
+    /// </summary>
+    [Fact]
+    public void ResetForm_ClearsAllState()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Test", Category = "Utilities" });
+        vm.BillerReference = "REF-001";
+        vm.Amount = 500m;
+        vm.Fee = 1.0m;
+        vm.ReceiptNumber = "RCP-TEST";
+        vm.Is2FAConfirmed = true;
+
+        // Act
+        vm.ResetForm();
+
+        // Assert
+        vm.CurrentStep.Should().Be(1);
+        vm.SelectedBiller.Should().BeNull();
+        vm.BillerReference.Should().BeEmpty();
+        vm.Amount.Should().Be(0);
+        vm.Fee.Should().Be(0);
+        vm.ReceiptNumber.Should().BeEmpty();
+        vm.ErrorMessage.Should().BeEmpty();
+        vm.Is2FAConfirmed.Should().BeFalse();
+        vm.ShouldSaveBiller.Should().BeFalse();
+    }
+
+    // ───────────────────────────── Computed Properties ─────────────────────────────
+
+    /// <summary>
+    ///     SelectedBillerName returns biller name when set.
+    /// </summary>
+    [Fact]
+    public void SelectedBillerName_WhenBillerSet_ReturnsName()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities" });
+
+        // Assert
+        vm.SelectedBillerName.Should().Be("Enel Energie");
+    }
+
+    /// <summary>
+    ///     SelectedBillerName returns fallback when no biller selected.
+    /// </summary>
+    [Fact]
+    public void SelectedBillerName_WhenNoBiller_ReturnsFallback()
+    {
+        // Arrange & Act
+        BillPayViewModel vm = CreateViewModel();
+
+        // Assert
+        vm.SelectedBillerName.Should().Be("No biller selected");
+    }
+
+    /// <summary>
+    ///     Total combines amount and fee.
+    /// </summary>
+    [Fact]
+    public void Total_ReturnsAmountPlusFee()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.Amount = 100m;
+        vm.Fee = 0.50m;
+
+        // Assert
+        vm.Total.Should().Be(100.50m);
+    }
+
+    /// <summary>
+    ///     ReviewAmountText shows formatted amount when positive.
+    /// </summary>
+    [Fact]
+    public void ReviewAmountText_WhenPositive_ShowsFormattedAmount()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        vm.Amount = 250.75m;
+
+        // Assert
+        vm.ReviewAmountText.Should().Be("250.75 RON");
+    }
+
+    /// <summary>
+    ///     ReviewAmountText shows placeholder when zero.
+    /// </summary>
+    [Fact]
+    public void ReviewAmountText_WhenZero_ShowsPlaceholder()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+
+        // Assert
+        vm.ReviewAmountText.Should().Be("No amount entered");
+    }
+
+    // ───────────────────────────── PropertyChanged ─────────────────────────────
+
+    /// <summary>
+    ///     Setting Amount fires PropertyChanged for Amount, ReviewAmountText, Total, and TotalText.
+    /// </summary>
+    [Fact]
+    public void Amount_PropertyChanged_FiresMultipleNotifications()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        var changedProperties = new List<string>();
+        vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName!);
+
+        // Act
+        vm.Amount = 100m;
+
+        // Assert
+        changedProperties.Should().Contain("Amount");
+        changedProperties.Should().Contain("ReviewAmountText");
+        changedProperties.Should().Contain("Total");
+        changedProperties.Should().Contain("TotalText");
+    }
+
+    /// <summary>
+    ///     Setting ErrorMessage fires PropertyChanged for ErrorMessage and ErrorMessageVisibility.
+    /// </summary>
+    [Fact]
+    public void ErrorMessage_PropertyChanged_FiresVisibilityNotification()
+    {
+        // Arrange
+        BillPayViewModel vm = CreateViewModel();
+        var changedProperties = new List<string>();
+        vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName!);
+
+        // Act
+        vm.ErrorMessage = "Something went wrong";
+
+        // Assert
+        changedProperties.Should().Contain("ErrorMessage");
+        changedProperties.Should().Contain("ErrorMessageVisibility");
+    }
+
+    private static List<BillerDto> CreateMockBillers()
+    {
+        return
+        [
+            new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities", IsActive = true },
+            new BillerDto { Id = 2, Name = "Digi RCS-RDS", Category = "Internet", IsActive = true },
+        ];
+    }
+
+    private static List<SavedBillerDto> CreateMockSavedBillers()
+    {
+        return
+        [
+            new SavedBillerDto
+            {
+                Id = 1,
+                UserId = 1,
+                BillerId = 1,
+                Nickname = "Enel Home",
+                DefaultReference = "EL-001",
+                Biller = new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities", IsActive = true },
+            },
+        ];
+    }
+
+    private static List<AccountDto> CreateMockAccounts()
+    {
+        return
+        [
+            new AccountDto
+            {
+                Id = 1,
+                IBAN = "RO49AAAA1B31007593840000",
+                Currency = "RON",
+                Balance = 8500m,
+                AccountName = "RON Account",
+                Status = "Active",
+            },
+        ];
+    }
+
+    private BillPayViewModel CreateViewModel()
+    {
+        return new BillPayViewModel(_apiClient.Object, _navigationService.Object);
+    }
+
+    private void SetupSuccessfulLoad()
+    {
+        _apiClient
+            .Setup(a => a.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers, default))
+            .ReturnsAsync(CreateMockBillers());
+        _apiClient
+            .Setup(a => a.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers, default))
+            .ReturnsAsync(CreateMockSavedBillers());
+        _apiClient
+            .Setup(a => a.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts, default))
+            .ReturnsAsync(CreateMockAccounts());
+    }
+}
