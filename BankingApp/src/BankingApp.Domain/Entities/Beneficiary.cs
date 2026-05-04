@@ -13,7 +13,6 @@ namespace BankingApp.Domain.Entities;
 ///     Represents a beneficiary to whom a user can send money.
 /// </summary>
 /// <remarks>
-///     Reuses the base entity <see cref="User" /> via <see cref="UserId" /> (Many-to-One):
 ///     each beneficiary entry is owned by exactly one user.
 ///     The composite unique constraint <c>UQ_Beneficiaries_UserIBAN</c> ensures that
 ///     the same IBAN cannot be saved twice for the same user.
