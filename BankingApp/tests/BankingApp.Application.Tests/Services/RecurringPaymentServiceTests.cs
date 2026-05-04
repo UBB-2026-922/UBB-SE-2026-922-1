@@ -1,4 +1,4 @@
-// <copyright file="RecurringPaymentServiceTests.cs" company="CtrlC CtrlV">
+﻿// <copyright file="RecurringPaymentServiceTests.cs" company="CtrlC CtrlV">
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 
