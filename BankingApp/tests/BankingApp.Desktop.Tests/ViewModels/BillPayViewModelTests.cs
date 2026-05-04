@@ -31,13 +31,13 @@ public class BillPayViewModelTests
         _apiClient.SetupProperty(a => a.CurrentUserId);
     }
 
-    // ───────────────────────────── LoadAsync ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ LoadAsync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     LoadAsync loads billers, saved billers, and accounts on success.
     /// </summary>
     [Fact]
-    public async Task LoadAsync_WhenSuccess_PopulatesCollections()
+    public async Task LoadAsync_WhenSuccess_ShouldPopulateCollections()
     {
         // Arrange
         SetupSuccessfulLoad();
@@ -57,7 +57,7 @@ public class BillPayViewModelTests
     ///     LoadAsync keeps billers empty when billers API fails.
     /// </summary>
     [Fact]
-    public async Task LoadAsync_WhenBillersApiFails_KeepsBillersEmpty()
+    public async Task LoadAsync_WhenBillersApiFails_ShouldKeepBillersEmpty()
     {
         // Arrange
         _apiClient
@@ -74,18 +74,18 @@ public class BillPayViewModelTests
         // Act
         await vm.LoadAsync();
 
-        // Assert — billers empty since API returned error; saved billers and accounts still load
+        // Assert â€” billers empty since API returned error; saved billers and accounts still load
         vm.Billers.Should().BeEmpty();
         vm.SavedBillers.Should().HaveCount(1);
     }
 
-    // ───────────────────────────── Initial State ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Initial State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     ViewModel starts on step 1 with empty state.
     /// </summary>
     [Fact]
-    public void Constructor_InitializesDefaultState()
+    public void Constructor_WhenCalled_ShouldInitializeDefaultState()
     {
         // Arrange & Act
         BillPayViewModel vm = CreateViewModel();
@@ -101,13 +101,13 @@ public class BillPayViewModelTests
         vm.ReceiptNumber.Should().BeEmpty();
     }
 
-    // ───────────────────────────── SelectBiller ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ SelectBiller â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     Selecting a biller advances to step 2.
     /// </summary>
     [Fact]
-    public void SelectBiller_WithBillerDto_AdvancesToStep2()
+    public void SelectBillerCommand_WhenBillerDtoSelected_ShouldAdvanceToStep2()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -125,7 +125,7 @@ public class BillPayViewModelTests
     ///     Selecting a saved biller pre-fills the reference and advances to step 2.
     /// </summary>
     [Fact]
-    public void SelectBiller_WithSavedBillerDto_PrefillsReferenceAndAdvancesToStep2()
+    public void SelectBillerCommand_WhenSavedBillerDtoSelected_ShouldPrefillReferenceAndAdvanceToStep2()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -147,13 +147,13 @@ public class BillPayViewModelTests
         vm.CurrentStep.Should().Be(2);
     }
 
-    // ───────────────────────────── NextStep Validation ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ NextStep Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     NextStep from step 1 without biller shows error.
     /// </summary>
     [Fact]
-    public void NextStep_Step1_NoBiller_SetsError()
+    public void ExecuteNextStep_WhenOnStep1AndNoBillerSelected_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -168,7 +168,7 @@ public class BillPayViewModelTests
     ///     NextStep from step 2 without reference shows error.
     /// </summary>
     [Fact]
-    public void NextStep_Step2_NoReference_SetsError()
+    public void ExecuteNextStep_WhenOnStep2AndNoReferenceProvided_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -186,7 +186,7 @@ public class BillPayViewModelTests
     ///     NextStep from step 2 without account shows error.
     /// </summary>
     [Fact]
-    public void NextStep_Step2_NoAccount_SetsError()
+    public void ExecuteNextStep_WhenOnStep2AndNoAccountSelected_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -194,7 +194,7 @@ public class BillPayViewModelTests
         vm.ExecuteSelectBiller(biller);
         vm.BillerReference = "REF-001";
 
-        // Act — no account selected
+        // Act â€” no account selected
         vm.ExecuteNextStep();
 
         // Assert
@@ -205,7 +205,7 @@ public class BillPayViewModelTests
     ///     NextStep from step 2 with zero amount shows error.
     /// </summary>
     [Fact]
-    public void NextStep_Step2_ZeroAmount_SetsError()
+    public void ExecuteNextStep_WhenOnStep2AndZeroAmount_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -226,7 +226,7 @@ public class BillPayViewModelTests
     ///     NextStep from step 2 with valid data and low amount skips 2FA.
     /// </summary>
     [Fact]
-    public void NextStep_Step2_ValidLowAmount_SkipsTwoFaGoesToStep4()
+    public void ExecuteNextStep_WhenOnStep2AndValidLowAmount_ShouldSkipTwoFactorAuthenticationAndGoToStep4()
     {
         // Arrange
         _apiClient
@@ -256,7 +256,7 @@ public class BillPayViewModelTests
     ///     NextStep from step 2 with high amount goes to 2FA step.
     /// </summary>
     [Fact]
-    public void NextStep_Step2_HighAmount_GoesToTwoFaStep3()
+    public void ExecuteNextStep_WhenOnStep2AndHighAmount_ShouldGoToTwoFactorAuthenticationStep3()
     {
         // Arrange
         _apiClient
@@ -285,7 +285,7 @@ public class BillPayViewModelTests
     ///     NextStep from 2FA step without confirmation shows error.
     /// </summary>
     [Fact]
-    public void NextStep_Step3_NotConfirmed_SetsError()
+    public void ExecuteNextStep_WhenOnStep3AndNotConfirmed_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -298,13 +298,13 @@ public class BillPayViewModelTests
         vm.ErrorMessage.Should().Contain("2FA");
     }
 
-    // ───────────────────────────── Back ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     Back from review step without 2FA goes to step 2.
     /// </summary>
     [Fact]
-    public void Back_FromReviewWithout2FA_GoesToStep2()
+    public void ExecuteBack_WhenFromReviewWithoutTwoFactorAuthentication_ShouldGoToStep2()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -322,7 +322,7 @@ public class BillPayViewModelTests
     ///     Back from review step with 2FA goes to step 3.
     /// </summary>
     [Fact]
-    public void Back_FromReviewWith2FA_GoesToStep3()
+    public void ExecuteBack_WhenFromReviewWithTwoFactorAuthentication_ShouldGoToStep3()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -340,7 +340,7 @@ public class BillPayViewModelTests
     ///     Back from step 1 stays at step 1.
     /// </summary>
     [Fact]
-    public void Back_FromStep1_StaysAtStep1()
+    public void ExecuteBack_WhenFromStep1_ShouldStayAtStep1()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -352,13 +352,13 @@ public class BillPayViewModelTests
         vm.CurrentStep.Should().Be(1);
     }
 
-    // ───────────────────────────── PayBill ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PayBill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     PayBill on success sets receipt number and goes to step 5.
     /// </summary>
     [Fact]
-    public async Task PayBill_WhenSuccess_SetsReceiptAndGoesToStep5()
+    public async Task ExecutePayBillAsync_WhenSuccess_ShouldSetReceiptAndGoToStep5()
     {
         // Arrange
         _apiClient
@@ -393,7 +393,7 @@ public class BillPayViewModelTests
     ///     PayBill on API failure sets error message.
     /// </summary>
     [Fact]
-    public async Task PayBill_WhenApiFails_SetsErrorMessage()
+    public async Task ExecutePayBillAsync_WhenApiFails_ShouldSetErrorMessage()
     {
         // Arrange
         _apiClient
@@ -420,7 +420,7 @@ public class BillPayViewModelTests
     ///     PayBill without biller shows error.
     /// </summary>
     [Fact]
-    public async Task PayBill_NoBiller_SetsError()
+    public async Task ExecutePayBillAsync_WhenNoBiller_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -436,7 +436,7 @@ public class BillPayViewModelTests
     ///     PayBill with save biller option calls save endpoint.
     /// </summary>
     [Fact]
-    public async Task PayBill_WithSaveBiller_CallsSaveEndpoint()
+    public async Task ExecutePayBillAsync_WhenWithSaveBiller_ShouldCallSaveEndpoint()
     {
         // Arrange
         _apiClient
@@ -482,13 +482,13 @@ public class BillPayViewModelTests
         vm.SavedBillers.Should().HaveCount(1);
     }
 
-    // ───────────────────────────── ResetForm ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ ResetForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     ResetForm clears all state back to defaults.
     /// </summary>
     [Fact]
-    public void ResetForm_ClearsAllState()
+    public void ResetForm_WhenCalled_ShouldClearAllState()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -514,13 +514,13 @@ public class BillPayViewModelTests
         vm.ShouldSaveBiller.Should().BeFalse();
     }
 
-    // ───────────────────────────── Computed Properties ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Computed Properties â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     SelectedBillerName returns biller name when set.
     /// </summary>
     [Fact]
-    public void SelectedBillerName_WhenBillerSet_ReturnsName()
+    public void SelectedBillerName_WhenBillerSet_ShouldReturnName()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -534,7 +534,7 @@ public class BillPayViewModelTests
     ///     SelectedBillerName returns fallback when no biller selected.
     /// </summary>
     [Fact]
-    public void SelectedBillerName_WhenNoBiller_ReturnsFallback()
+    public void SelectedBillerName_WhenNoBiller_ShouldReturnFallback()
     {
         // Arrange & Act
         BillPayViewModel vm = CreateViewModel();
@@ -547,7 +547,7 @@ public class BillPayViewModelTests
     ///     Total combines amount and fee.
     /// </summary>
     [Fact]
-    public void Total_ReturnsAmountPlusFee()
+    public void Total_WhenCalled_ShouldReturnAmountPlusFee()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -562,7 +562,7 @@ public class BillPayViewModelTests
     ///     ReviewAmountText shows formatted amount when positive.
     /// </summary>
     [Fact]
-    public void ReviewAmountText_WhenPositive_ShowsFormattedAmount()
+    public void ReviewAmountText_WhenPositive_ShouldShowFormattedAmount()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -576,7 +576,7 @@ public class BillPayViewModelTests
     ///     ReviewAmountText shows placeholder when zero.
     /// </summary>
     [Fact]
-    public void ReviewAmountText_WhenZero_ShowsPlaceholder()
+    public void ReviewAmountText_WhenZero_ShouldShowPlaceholder()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -585,13 +585,13 @@ public class BillPayViewModelTests
         vm.ReviewAmountText.Should().Be("No amount entered");
     }
 
-    // ───────────────────────────── PropertyChanged ─────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ PropertyChanged â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>
     ///     Setting Amount fires PropertyChanged for Amount, ReviewAmountText, Total, and TotalText.
     /// </summary>
     [Fact]
-    public void Amount_PropertyChanged_FiresMultipleNotifications()
+    public void Amount_WhenPropertyChanged_ShouldFireMultipleNotifications()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -612,7 +612,7 @@ public class BillPayViewModelTests
     ///     Setting ErrorMessage fires PropertyChanged for ErrorMessage and ErrorMessageVisibility.
     /// </summary>
     [Fact]
-    public void ErrorMessage_PropertyChanged_FiresVisibilityNotification()
+    public void ErrorMessage_WhenPropertyChanged_ShouldFireVisibilityNotification()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
