@@ -74,7 +74,10 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
         try
         {
             return _context.RecurringPayments
-                .Where(r => r.NextExecutionDate <= dueBy)
+                .Where(r =>
+                    r.NextExecutionDate <= dueBy &&
+                    r.Status != RecurringPaymentStatus.Paused &&
+                    r.Status != RecurringPaymentStatus.Cancelled)
                 .ToList();
         }
         catch (Exception ex)
