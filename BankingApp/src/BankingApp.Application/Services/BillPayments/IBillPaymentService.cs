@@ -39,4 +39,11 @@ public interface IBillPaymentService
     /// <param name="nickname">A personal nickname for the biller.</param>
     /// <returns>A boolean indicating success.</returns>
     Task<bool> SaveBillerForUserAsync(int userId, int billerId, string nickname);
+
+    /// <summary>
+    /// Checks if a payment amount requires two-factor authentication.
+    /// </summary>
+    /// <param name="amount">The payment amount.</param>
+    /// <returns>True if 2FA is required.</returns>
+    bool Requires2Fa(decimal amount);
 }

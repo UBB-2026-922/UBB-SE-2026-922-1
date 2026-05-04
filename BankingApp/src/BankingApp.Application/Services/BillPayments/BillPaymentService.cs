@@ -24,6 +24,7 @@ public class BillPaymentService : IBillPaymentService
     private const decimal SmallPaymentFee = 0.50m;
     private const decimal StandardPaymentFee = 1.00m;
     private const int ReceiptUniqueSuffixLength = 6;
+    private const decimal TwoFaAmountThreshold = 1000m;
 
     private readonly IBillPaymentRepository _billRepository;
 
@@ -35,6 +36,9 @@ public class BillPaymentService : IBillPaymentService
     {
         _billRepository = billRepository;
     }
+
+    /// <inheritdoc/>
+    public bool Requires2Fa(decimal amount) => amount >= TwoFaAmountThreshold;
 
     /// <inheritdoc/>
     public async Task<BillPayment> ProcessPaymentAsync(BillPaymentDto request)
