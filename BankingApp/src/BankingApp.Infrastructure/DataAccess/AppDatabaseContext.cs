@@ -59,6 +59,12 @@ public class AppDatabaseContext : DbContext
     /// <summary>Gets or sets the transaction category overrides table.</summary>
     public DbSet<TransactionCategoryOverride> TransactionCategoryOverrides { get; set; }
 
+    /// <summary>Gets or sets the billers table.</summary>
+    public DbSet<Biller> Billers { get; set; }
+
+    /// <summary>Gets or sets the saved billers table.</summary>
+    public DbSet<SavedBiller> SavedBillers { get; set; }
+
     /// <summary>Gets or sets the transfers table.</summary>
     public DbSet<Transfer> Transfers { get; set; }
 
@@ -222,6 +228,27 @@ public class AppDatabaseContext : DbContext
             entity.HasOne<Transaction>().WithMany().HasForeignKey(t => t.TransactionId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<Biller>(entity =>
+        {
+            entity.ToTable("Biller");
+            entity.HasKey(b => b.Id);
+            entity.Property(b => b.Name).IsRequired().HasMaxLength(200);
+            entity.Property(b => b.Category).IsRequired().HasMaxLength(100);
+            entity.Property(b => b.LogoUrl).HasMaxLength(500);
+            entity.Property(b => b.IsActive).HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<SavedBiller>(entity =>
+        {
+            entity.ToTable("SavedBiller");
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Nickname).HasMaxLength(100);
+            entity.Property(s => s.DefaultReference).HasMaxLength(200);
+            entity.Property(s => s.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne(s => s.Biller).WithMany().HasForeignKey(s => s.BillerId);
+            entity.HasOne<User>().WithMany().HasForeignKey(s => s.UserId);
         });
 
         modelBuilder.Entity<Transfer>(entity =>

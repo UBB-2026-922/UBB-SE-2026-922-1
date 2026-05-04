@@ -26,43 +26,18 @@ namespace BankingApp.Domain.Entities;
 /// </remarks>
 public class Biller
 {
-    /// <summary>
-    ///     Gets or sets the unique identifier for this biller.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets the unique identifier for the biller.</summary>
     public int Id { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the unique display name of the biller (e.g., "Enel Energie").
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets the display name of the biller.</summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets or sets the business sector category of this biller.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public BillerCategory Category { get; set; }
+    /// <summary>Gets or sets the category the biller belongs to (e.g. "Utilities").</summary>
+    public string Category { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets or sets the URL of the biller's logo image, or <see langword="null" /> if not available.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets the URL of the biller's logo image.</summary>
     public string? LogoUrl { get; set; }
 
-    /// <summary>
-    ///     Gets or sets a value indicating whether this biller is currently accepting payments.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets a value indicating whether the biller is currently active.</summary>
     public bool IsActive { get; set; } = true;
 }

@@ -23,53 +23,24 @@ namespace BankingApp.Domain.Entities;
 /// </remarks>
 public class SavedBiller
 {
-    /// <summary>
-    ///     Gets or sets the unique identifier for this saved-biller entry.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets the unique identifier for the saved biller entry.</summary>
     public int Id { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the identifier of the <see cref="User" /> who saved this biller.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets the identifier of the user who saved the biller.</summary>
     public int UserId { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the identifier of the saved <see cref="Biller" />.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets the identifier of the biller that was saved.</summary>
     public int BillerId { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the user-defined nickname for this saved biller
-    ///     (e.g., "My electricity bill"), or <see langword="null" /> if not set.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets an optional user-assigned nickname for the biller.</summary>
     public string? Nickname { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the pre-filled reference number used when paying this biller
-    ///     (e.g., the user's contract number), or <see langword="null" /> if not set.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets an optional default payment reference for this biller.</summary>
     public string? DefaultReference { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the date and time (UTC) when this entry was created.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets the date and time the biller was saved.</summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Gets or sets the navigation property to the associated <see cref="Biller" />.</summary>
+    public Biller? Biller { get; set; }
 }
