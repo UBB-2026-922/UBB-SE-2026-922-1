@@ -30,7 +30,7 @@ namespace BankingApp.Infrastructure.Migrations
                     LastTransferDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TotalAmountSent = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
                     TransferCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                 },
                 constraints: table =>
                 {
