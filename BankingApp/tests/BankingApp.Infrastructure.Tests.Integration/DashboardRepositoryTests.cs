@@ -202,6 +202,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             {
                 AccountId = accountId,
                 TransactionRef = $"REF-{index}-{Guid.NewGuid():N}",
+                Type = "Transfer",
                 RelatedEntityType = "Transfer",
                 Direction = TransactionDirection.In,
                 Amount = 100.00m,

@@ -19,28 +19,16 @@ tests/
   BankingApp.Api.Tests/
   BankingApp.Api.Tests.Integration/
   BankingApp.Desktop.Tests/
-scripts/
-  client/                  local desktop configuration helpers
-  server/                  local API and Docker env helpers
-  db/                      schema and seed scripts
 ```
 
 ## Quick Start
 
-### 1. Configure local secrets
+### 1. Configure local settings
 
-Generate `.env` for Docker Compose:
-
-```bash
-python scripts/server/setup-dev-env.py --force
-```
-
-Write local Google OAuth settings for the desktop client:
+Generate Docker Compose and API development env files:
 
 ```bash
-python scripts/client/setup-dev-config.py \
-    --client-id <your-client-id> \
-    --client-secret <your-client-secret>
+python scripts/secrets/setup_dev.py
 ```
 
 ### 2. Start the local stack
@@ -58,17 +46,11 @@ Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select 
 ## Project Docs
 
 - API setup and configuration: [src/BankingApp.Api/README.md](src/BankingApp.Api/README.md)
-- Desktop setup and local OAuth configuration: [src/BankingApp.Desktop/README.md](src/BankingApp.Desktop/README.md)
+- Desktop setup and local configuration: [src/BankingApp.Desktop/README.md](src/BankingApp.Desktop/README.md)
 
 ## Prerequisites
 
 - Windows 10/11 for the desktop client
 - .NET SDK 10.x
-- Docker Desktop
-- Python 3.10+ for the setup scripts
-
-## Verification
-
-```bash
-dotnet test BankingApp.slnx
-```
+- Docker Desktop (optional but highly recommanded)
+- Python 3.10+ for local secret generation scripts

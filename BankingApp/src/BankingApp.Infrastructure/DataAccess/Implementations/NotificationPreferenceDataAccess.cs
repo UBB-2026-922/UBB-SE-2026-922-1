@@ -7,6 +7,7 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
+using BankingApp.Domain.Extensions;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
 using ErrorOr;
 
@@ -39,11 +40,11 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
         {
             NotificationPreference notification = new()
             {
-            UserId = userId,
-            Category = Enum.Parse<NotificationType>(category),
-            PushEnabled = false,
-            EmailEnabled = false,
-            SmsEnabled = false,
+                UserId = userId,
+                Category = NotificationTypeExtensions.FromString(category),
+                PushEnabled = false,
+                EmailEnabled = false,
+                SmsEnabled = false,
             };
             _databaseContext.NotificationPreferences.Add(notification);
             _databaseContext.SaveChanges();

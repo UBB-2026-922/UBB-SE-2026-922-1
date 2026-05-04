@@ -10,3 +10,9 @@ secrets.json
 *.user-secrets.json
 appsettings.Local.json
 .env
+
+# Tests
+TestResults/
+
+# Chache
+**/__pycache__/

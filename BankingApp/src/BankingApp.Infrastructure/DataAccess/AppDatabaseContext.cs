@@ -7,6 +7,7 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
+using BankingApp.Domain.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankingApp.Infrastructure.DataAccess;
@@ -154,6 +155,7 @@ public class AppDatabaseContext : DbContext
             entity.HasKey(t => t.Id);
             entity.Property(t => t.TransactionRef).IsRequired().HasMaxLength(50);
             entity.HasIndex(t => t.TransactionRef).IsUnique();
+            entity.Property(t => t.Type).IsRequired().HasMaxLength(30);
             entity.Property(t => t.Direction).IsRequired().HasConversion<string>().HasMaxLength(10);
             entity.Property(t => t.Amount).IsRequired().HasColumnType("decimal(18,2)");
             entity.Property(t => t.Currency).IsRequired().HasMaxLength(3);
@@ -188,7 +190,12 @@ public class AppDatabaseContext : DbContext
         {
             entity.ToTable("NotificationPreference");
             entity.HasKey(n => n.Id);
-            entity.Property(n => n.Category).IsRequired().HasConversion<string>().HasMaxLength(30);
+            entity.Property(n => n.Category)
+                .IsRequired()
+                .HasConversion(
+                    type => type.ToDisplayName(),
+                    value => NotificationTypeExtensions.FromString(value))
+                .HasMaxLength(30);
             entity.Property(n => n.PushEnabled).HasDefaultValue(true);
             entity.Property(n => n.EmailEnabled).HasDefaultValue(true);
             entity.Property(n => n.SmsEnabled).HasDefaultValue(false);

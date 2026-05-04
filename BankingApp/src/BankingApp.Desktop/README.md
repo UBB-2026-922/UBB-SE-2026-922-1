@@ -12,15 +12,8 @@ See [../BankingApp.Api/README.md](../BankingApp.Api/README.md) for API setup.
 
 ## Local OAuth Configuration
 
-`scripts/client/setup-dev-config.py` writes `src/BankingApp.Desktop/appsettings.Local.json` with your Google OAuth credentials.
-
-```bash
-python scripts/client/setup-dev-config.py \
-    --client-id 123456.apps.googleusercontent.com \
-    --client-secret GOCSPX-abc123
-```
-
-The generated file is gitignored and can be overwritten safely by rerunning the script.
+Create `src/BankingApp.Desktop/appsettings.Local.json` with your Google OAuth credentials.
+The file is gitignored and can be edited safely for local development.
 
 ## Configuration
 
