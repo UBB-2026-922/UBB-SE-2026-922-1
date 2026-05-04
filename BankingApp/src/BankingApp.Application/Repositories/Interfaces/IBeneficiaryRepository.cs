@@ -20,7 +20,7 @@ public interface IBeneficiaryRepository
     /// </summary>
     /// <param name="beneficiaryId">The beneficiary identifier.</param>
     /// <returns>
-    ///     The beneficiary when found, or a not-found error otherwise.
+    ///     The beneficiary when found, or an error otherwise.
     /// </returns>
     ErrorOr<Beneficiary> FindById(int beneficiaryId);
 
@@ -39,7 +39,7 @@ public interface IBeneficiaryRepository
     /// <param name="userId">The user identifier.</param>
     /// <param name="iban">The beneficiary IBAN.</param>
     /// <returns>
-    ///     <see langword="true" /> if one exists; otherwise <see langword="false" />.
+    ///     True if one exists; otherwise false.
     /// </returns>
     ErrorOr<bool> ExistsByUserIdAndIban(int userId, string iban);
 
@@ -48,7 +48,7 @@ public interface IBeneficiaryRepository
     /// </summary>
     /// <param name="beneficiary">The beneficiary to create.</param>
     /// <returns>
-    ///     The created beneficiary.
+    ///     The created beneficiary, or an error otherwise.
     /// </returns>
     ErrorOr<Beneficiary> Create(Beneficiary beneficiary);
 
@@ -57,7 +57,7 @@ public interface IBeneficiaryRepository
     /// </summary>
     /// <param name="beneficiary">The beneficiary to update.</param>
     /// <returns>
-    ///     <see cref="Result.Success" /> on success, or an error otherwise.
+    ///     A success result when the update succeeds, or an error otherwise.
     /// </returns>
     ErrorOr<Success> Update(Beneficiary beneficiary);
 
@@ -66,7 +66,7 @@ public interface IBeneficiaryRepository
     /// </summary>
     /// <param name="beneficiaryId">The beneficiary identifier.</param>
     /// <returns>
-    ///     <see cref="Result.Success" /> on success, or an error otherwise.
+    ///     A success result when the deletion succeeds, or an error otherwise.
     /// </returns>
     ErrorOr<Success> Delete(int beneficiaryId);
 }
