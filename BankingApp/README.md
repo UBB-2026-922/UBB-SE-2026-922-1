@@ -19,29 +19,14 @@ tests/
   BankingApp.Api.Tests/
   BankingApp.Api.Tests.Integration/
   BankingApp.Desktop.Tests/
-scripts/
-  client/                  local desktop configuration helpers
-  server/                  local API and Docker env helpers
-  db/                      schema and seed scripts
 ```
 
 ## Quick Start
 
-### 1. Configure local secrets
+### 1. Configure local settings
 
-Generate `.env` for Docker Compose:
-
-```bash
-python scripts/server/setup-dev-env.py --force
-```
-
-Write local Google OAuth settings for the desktop client:
-
-```bash
-python scripts/client/setup-dev-config.py \
-    --client-id <your-client-id> \
-    --client-secret <your-client-secret>
-```
+Configure Docker Compose and app secrets with environment variables, user secrets, or local
+configuration files. EF Core migrations are the source of truth for database schema.
 
 ### 2. Start the local stack
 
@@ -65,7 +50,6 @@ Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select 
 - Windows 10/11 for the desktop client
 - .NET SDK 10.x
 - Docker Desktop
-- Python 3.10+ for the setup scripts
 
 ## Verification
 

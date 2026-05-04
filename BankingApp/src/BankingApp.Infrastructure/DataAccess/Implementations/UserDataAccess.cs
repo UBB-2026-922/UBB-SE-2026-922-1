@@ -7,7 +7,6 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -17,14 +16,6 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// </summary>
 public class UserDataAccess : IUserDataAccess
 {
-    private const string SelectAllColumns = """
-                                            SELECT Id, Email, PasswordHash, FullName, PhoneNumber, DateOfBirth,
-                                                   [Address], Nationality, PreferredLanguage,
-                                                   Is2FAEnabled AS Is2FAEnabled, Preferred2FaMethod,
-                                                   IsLocked, LockoutEnd, FailedLoginAttempts, CreatedAt, UpdatedAt
-                                            FROM [User]
-                                            """;
-
     private readonly AppDatabaseContext _databaseContext;
 
     /// <summary>

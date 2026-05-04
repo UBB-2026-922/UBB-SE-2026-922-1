@@ -7,7 +7,6 @@ ASP.NET Core API for BankingApp.
 The simplest local setup uses Docker Compose from the repository root:
 
 ```bash
-python scripts/server/setup-dev-env.py --force
 docker compose up --build
 ```
 
@@ -30,6 +29,7 @@ Important environment variables used by Docker Compose:
 | Key | Purpose |
 |---|---|
 | `ConnectionStrings__DefaultConnection` | SQL Server connection string |
+| `Database__ApplyMigrations` | Set to `false` to skip automatic EF Core migrations at startup |
 | `Jwt__Secret` | JWT signing secret |
 | `Otp__ServerSecret` | server-side OTP secret |
 | `Email__SmtpHost` | SMTP host |
@@ -47,3 +47,4 @@ dotnet run --project src/BankingApp.Api/BankingApp.Api.csproj
 ```
 
 If you do that, you still need a reachable SQL Server instance and the required secrets/configuration.
+Apply schema changes with EF Core migrations.

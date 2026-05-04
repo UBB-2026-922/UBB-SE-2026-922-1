@@ -7,7 +7,6 @@ using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.Repositories.Implementations;
 using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 using Bogus;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.Tests.Integration;

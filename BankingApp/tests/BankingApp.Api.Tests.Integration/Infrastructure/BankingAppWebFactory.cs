@@ -30,6 +30,7 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
         // Minimal hosting reads configuration in Program.cs before ConfigureWebHost runs,
         // so these values must exist up front or AddInfrastructure throws during startup.
         Environment.SetEnvironmentVariable("ConnectionStrings__BankingAppDb", "Server=fake;Database=fake;");
+        Environment.SetEnvironmentVariable("Database__ApplyMigrations", "false");
         Environment.SetEnvironmentVariable("Jwt__Secret", "integration-test-secret-that-is-long-enough-for-hmac");
         Environment.SetEnvironmentVariable("Otp__Secret", "integration-test-otp-secret-placeholder");
     }
