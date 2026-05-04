@@ -83,7 +83,6 @@ public class AppDatabaseContext : DbContext
 
     /// <summary>Gets or sets the rate alerts table.</summary>
     public DbSet<RateAlert> RateAlerts { get; set; }
-
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -362,7 +361,6 @@ public class AppDatabaseContext : DbContext
             entity.Property(rateAlert => rateAlert.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<User>().WithMany().HasForeignKey(rateAlert => rateAlert.UserId);
         });
-
         modelBuilder.ApplyConfiguration(new RecurringPaymentConfiguration());
     }
 }
