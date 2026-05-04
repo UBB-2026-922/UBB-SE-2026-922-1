@@ -7,6 +7,7 @@
 
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;
 using ErrorOr;
 
