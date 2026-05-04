@@ -92,7 +92,7 @@ public class BillPayViewModelTests
         vm.ReceiptNumber.Should().BeEmpty();
     }
 
-    //  SelectBiller
+    // SelectBiller
 
     /// <summary>
     ///     Selecting a biller advances to step 2.
@@ -263,7 +263,7 @@ public class BillPayViewModelTests
         vm.ErrorMessage.Should().Contain("2FA");
     }
 
-    // Back 
+    // Back
     /// <summary>
     ///     Back from review step without 2FA goes to step 2.
     /// </summary>
@@ -425,7 +425,7 @@ public class BillPayViewModelTests
         vm.SavedBillers.Should().HaveCount(1);
     }
 
-    // ResetForm 
+    // ResetForm
 
     /// <summary>
     ///     ResetForm clears all state back to defaults.
@@ -454,7 +454,7 @@ public class BillPayViewModelTests
         vm.ShouldSaveBiller.Should().BeFalse();
     }
 
-    // Computed Properties 
+    // Computed Properties
 
     /// <summary>
     ///     SelectedBillerName returns biller name when set.
@@ -462,7 +462,7 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectedBillerName_WhenBillerSet_ShouldReturnName()
     {
-\        BillPayViewModel vm = CreateViewModel();
+        BillPayViewModel vm = CreateViewModel();
         vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities" });
 
         vm.SelectedBillerName.Should().Be("Enel Energie");
@@ -514,7 +514,6 @@ public class BillPayViewModelTests
 
         vm.ReviewAmountText.Should().Be("No amount entered");
     }
-
 
     /// <summary>
     ///     Setting Amount fires PropertyChanged for Amount, ReviewAmountText, Total, and TotalText.
