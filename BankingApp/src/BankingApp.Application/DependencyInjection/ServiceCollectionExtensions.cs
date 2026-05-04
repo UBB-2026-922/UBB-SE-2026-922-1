@@ -9,6 +9,7 @@ using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Profile;
+using BankingApp.Application.Services.RecurringPayments;
 using BankingApp.Application.Services.Registration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,6 +32,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IRecurringPaymentService, RecurringPaymentService>();
         return services;
     }
 }

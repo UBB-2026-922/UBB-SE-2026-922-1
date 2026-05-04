@@ -8,6 +8,7 @@
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using BankingApp.Domain.Extensions;
+using BankingApp.Infrastructure.DataAccess.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankingApp.Infrastructure.DataAccess;
@@ -57,6 +58,9 @@ public class AppDatabaseContext : DbContext
 
     /// <summary>Gets or sets the transaction category overrides table.</summary>
     public DbSet<TransactionCategoryOverride> TransactionCategoryOverrides { get; set; }
+
+    /// <summary>Gets or sets the recurring payments table.</summary>
+    public DbSet<RecurringPayment> RecurringPayments { get; set; }
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -220,5 +224,7 @@ public class AppDatabaseContext : DbContext
             entity.HasOne<User>().WithMany().HasForeignKey(t => t.UserId).OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<Category>().WithMany().HasForeignKey(t => t.CategoryId).OnDelete(DeleteBehavior.NoAction);
         });
+
+        modelBuilder.ApplyConfiguration(new RecurringPaymentConfiguration());
     }
 }

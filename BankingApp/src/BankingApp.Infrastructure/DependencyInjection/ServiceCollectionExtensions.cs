@@ -16,6 +16,7 @@ using BankingApp.Infrastructure.Repositories.Implementations;
 using BankingApp.Infrastructure.Services;
 using BankingApp.Infrastructure.Services.Notifications;
 using BankingApp.Infrastructure.Services.Security;
+using BankingApp.Application.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,6 +66,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
+        services.AddSingleton<ISystemClock, SystemClock>();
 
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
