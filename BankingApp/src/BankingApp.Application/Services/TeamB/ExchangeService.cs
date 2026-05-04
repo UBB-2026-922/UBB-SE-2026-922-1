@@ -1,4 +1,4 @@
-// <copyright file="ExchangeService.cs" company="UBB-922">
+﻿// <copyright file="ExchangeService.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -192,12 +192,28 @@ public class ExchangeService : IExchangeService
         return !lockedRate.IsExpired();
     }
 
-    /// <summary>Calculates the commission for an exchange — 0.5% of amount, minimum 0.50.</summary>
+    /// <summary>Calculates the commission — 0.5% of amount, minimum 0.50.</summary>
     /// <param name="amount">The source amount.</param>
     /// <returns>The commission value.</returns>
     public decimal CalculateCommission(decimal amount)
     {
         return Math.Max(MinimumCommission, amount * CommissionRate);
+    }
+
+    private static ExchangeTransactionResponseDto MapToResponseDto(ExchangeTransaction exchange)
+    {
+        return new ExchangeTransactionResponseDto
+        {
+            Id = exchange.Id,
+            SourceCurrency = exchange.SourceCurrency,
+            TargetCurrency = exchange.TargetCurrency,
+            SourceAmount = exchange.SourceAmount,
+            TargetAmount = exchange.TargetAmount,
+            ExchangeRate = exchange.ExchangeRate,
+            Commission = exchange.Commission,
+            Status = exchange.Status,
+            CreatedAt = exchange.CreatedAt,
+        };
     }
 
     private ErrorOr<decimal> GetRate(string sourceCurrency, string targetCurrency)
@@ -245,21 +261,5 @@ public class ExchangeService : IExchangeService
         _cachedRates = rates;
         _ratesLastFetched = DateTime.UtcNow;
         return _cachedRates;
-    }
-
-    private static ExchangeTransactionResponseDto MapToResponseDto(ExchangeTransaction exchange)
-    {
-        return new ExchangeTransactionResponseDto
-        {
-            Id = exchange.Id,
-            SourceCurrency = exchange.SourceCurrency,
-            TargetCurrency = exchange.TargetCurrency,
-            SourceAmount = exchange.SourceAmount,
-            TargetAmount = exchange.TargetAmount,
-            ExchangeRate = exchange.ExchangeRate,
-            Commission = exchange.Commission,
-            Status = exchange.Status,
-            CreatedAt = exchange.CreatedAt,
-        };
     }
 }
