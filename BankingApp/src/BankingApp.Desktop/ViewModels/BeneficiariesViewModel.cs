@@ -1,5 +1,5 @@
-﻿// <copyright file="BeneficiariesViewModel.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BeneficiariesViewModel.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BeneficiariesViewModel class.
@@ -43,23 +43,25 @@ public class BeneficiariesViewModel
     }
 
     /// <summary>
-    ///     The currently loaded list of beneficiaries.
+    ///     Gets the currently loaded list of beneficiaries.
     /// </summary>
     public List<BeneficiaryDataTransferObject> Beneficiaries { get; private set; }
 
     /// <summary>
-    ///     Whether the add-beneficiary form is visible in the UI.
+    ///     Gets or sets a value indicating whether the add-beneficiary form is visible in the UI.
     /// </summary>
     public bool IsAddFormVisible { get; set; }
 
-    /// <summary>The name entered for a new beneficiary.</summary>
+    /// <summary>Gets or sets the name entered for a new beneficiary.</summary>
     public string NewName { get; set; } = string.Empty;
-    /// <summary>The IBAN entered for a new beneficiary.</summary>
-    public string NewIBAN { get; set; } = string.Empty;
-    /// <summary>The bank name entered for a new beneficiary.</summary>
+
+    /// <summary>Gets or sets the IBAN entered for a new beneficiary.</summary>
+    public string NewIban { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the bank name entered for a new beneficiary.</summary>
     public string NewBankName { get; set; } = string.Empty;
 
-    /// <summary>Human-readable error message to display in the UI when an operation fails.</summary>
+    /// <summary>Gets human-readable error message to display in the UI when an operation fails.</summary>
     public string ErrorMessage { get; private set; }
 
     /// <summary>
@@ -70,7 +72,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            ErrorOr<List<BeneficiaryDataTransferObject>> result =
+            var result =
                 await _apiClient.GetAsync<List<BeneficiaryDataTransferObject>>(ApiEndpoints.Beneficiaries);
 
             if (result.IsError)
@@ -79,7 +81,7 @@ public class BeneficiariesViewModel
                 return Error.Unauthorized();
             }
 
-            Beneficiaries = result.Value ?? new List<BeneficiaryDataTransferObject>();
+            Beneficiaries = result.Value;
             ErrorMessage = string.Empty;
             return Result.Success;
         }
@@ -122,7 +124,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            var request = new { Name = NewName, IBAN = NewIBAN, BankName = NewBankName };
+            var request = new { Name = NewName, IBAN = NewIban, BankName = NewBankName };
             ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Beneficiaries, request);
             if (result.IsError)
             {
@@ -133,7 +135,7 @@ public class BeneficiariesViewModel
             // reload
             await LoadBeneficiariesAsync();
             NewName = string.Empty;
-            NewIBAN = string.Empty;
+            NewIban = string.Empty;
             NewBankName = string.Empty;
             IsAddFormVisible = false;
             return true;

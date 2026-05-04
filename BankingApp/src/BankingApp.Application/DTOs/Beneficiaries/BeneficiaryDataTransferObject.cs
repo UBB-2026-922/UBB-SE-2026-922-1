@@ -25,7 +25,7 @@ public class BeneficiaryDataTransferObject
     /// <summary>
     ///     Gets or sets the beneficiary IBAN.
     /// </summary>
-    public string? IBAN { get; set; }
+    public string? Iban { get; set; }
 
     /// <summary>
     ///     Gets or sets the beneficiary bank name.

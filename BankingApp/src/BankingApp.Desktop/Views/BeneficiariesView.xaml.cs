@@ -1,5 +1,5 @@
-﻿// <copyright file="BeneficiariesView.xaml.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BeneficiariesView.xaml.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BeneficiariesView page code-behind.
@@ -31,7 +31,7 @@ public sealed partial class BeneficiariesView : Page
     }
 
     /// <summary>
-    ///     The view model backing this page.
+    ///     Gets the view model backing this page.
     /// </summary>
     public BeneficiariesViewModel ViewModel { get; }
 

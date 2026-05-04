@@ -395,7 +395,7 @@ public class TransferServiceTests
                     UserId = DefaultUserId,
                     SourceAccountId = DefaultAccountId,
                     RecipientName = DefaultRecipientName,
-                    RecipientIBAN = DefaultIban,
+                    RecipientIban = DefaultIban,
                     Amount = SmallAmount,
                     Currency = DefaultCurrency,
                     Status = TransferStatus.Completed,

@@ -36,8 +36,8 @@ public class BeneficiariesViewModelTests
     {
         var data = new List<BeneficiaryDataTransferObject>
         {
-            new BeneficiaryDataTransferObject { Id = 1, Name = "Alice", IBAN = "DE123", BankName = "Bank A" },
-            new BeneficiaryDataTransferObject { Id = 2, Name = "Bob", IBAN = "DE456", BankName = "Bank B" },
+            new BeneficiaryDataTransferObject { Id = 1, Name = "Alice", Iban = "DE123", BankName = "Bank A" },
+            new BeneficiaryDataTransferObject { Id = 2, Name = "Bob", Iban = "DE456", BankName = "Bank B" },
         };
 
         _apiClient
