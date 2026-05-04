@@ -2,7 +2,6 @@
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 
-using BankingApp.Application.DataTransferObjects.Transfer;
 using BankingApp.Application.DTOs.Transfer;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;

@@ -1,14 +1,13 @@
-﻿// <copyright file="TransferResponse.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="TransferResponse.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the TransferResponse class.
 // </summary>
 
-using BankingApp.Application.Enums;
-using BankingApp.Domain.Enums;
 using TransferStatus = BankingApp.Application.Enums.TransferStatus;
-namespace BankingApp.Application.DataTransferObjects.Transfer;
+
+namespace BankingApp.Application.DTOs.Transfer;
 
 /// <summary>
 ///     Represents a transfer record returned to the caller.

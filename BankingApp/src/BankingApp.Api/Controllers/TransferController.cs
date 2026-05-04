@@ -1,66 +1,65 @@
-// +ADw-copyright file+AD0AIg-TransferController.cs+ACI- company+AD0AIg-CtrlC CtrlV+ACIAPg-
-// Copyright (c) CtrlC CtrlV. All rights reserved.
-// +ADw-/copyright+AD4-
-// +ADw-summary+AD4-
+﻿// <copyright file="TransferController.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+// <summary>
 // Contains the TransferController class.
-// +ADw-/summary+AD4-
+// </summary>
 
-using BankingApp.Application.DataTransferObjects.Transfer+ADs-
-using BankingApp.Application.DTOs.Transfer+ADs-
-using BankingApp.Application.Services.Transfers+ADs-
-using Microsoft.AspNetCore.Mvc+ADs-
+using BankingApp.Application.DTOs.Transfer;
+using BankingApp.Application.Services.Transfers;
+using Microsoft.AspNetCore.Mvc;
 
-namespace BankingApp.Api.Controllers+ADs-
+namespace BankingApp.Api.Controllers;
 
-/// +ADw-summary+AD4-
+/// <summary>
 ///     Controller responsible for handling transfer-related operations.
 ///     All endpoints are accessible under the /api/transfer route.
-/// +ADw-/summary+AD4-
-+AFs-ApiController+AF0-
-+AFs-Route(+ACI-api/+AFs-controller+AF0AIg-)+AF0-
+/// </summary>
+[ApiController]
+[Route("api/[controller]")]
 public class TransferController : ApiControllerBase
-+AHs-
-    private readonly ITransferService +AF8-transferService+ADs-
+{
+    private readonly ITransferService _transferService;
 
-    /// +ADw-summary+AD4-
-    ///     Initializes a new instance of the +ADw-see cref+AD0AIg-TransferController+ACI- /+AD4- class.
-    /// +ADw-/summary+AD4-
-    /// +ADw-param name+AD0AIg-transferService+ACIAPg-The transfer service used to handle business logic.+ADw-/param+AD4-
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="TransferController" /> class.
+    /// </summary>
+    /// <param name="transferService">The transfer service used to handle business logic.</param>
     public TransferController(ITransferService transferService)
-    +AHs-
-        +AF8-transferService +AD0- transferService+ADs-
-    +AH0-
+    {
+        _transferService = transferService;
+    }
 
-    /// +ADw-summary+AD4-
+    /// <summary>
     ///     Creates a new transfer for the currently authenticated user.
-    /// +ADw-/summary+AD4-
-    /// +ADw-param name+AD0AIg-request+ACIAPg-The transfer creation request.+ADw-/param+AD4-
-    /// +ADw-returns+AD4-
-    ///     201 Created with a +ADw-see cref+AD0AIg-TransferResponse+ACI- /+AD4- on success,
+    /// </summary>
+    /// <param name="request">The transfer creation request.</param>
+    /// <returns>
+    ///     201 Created with a <see cref="TransferResponse" /> on success,
     ///     or an error response if validation, authorization, or persistence fails.
-    /// +ADw-/returns+AD4-
-    +AFs-HttpPost+AF0-
-    public IActionResult CreateTransfer(+AFs-FromBody+AF0- CreateTransferRequest request)
-    +AHs-
-        int userId +AD0- GetAuthenticatedUserId()+ADs-
+    /// </returns>
+    [HttpPost]
+    public IActionResult CreateTransfer([FromBody] CreateTransferRequest request)
+    {
+        int userId = GetAuthenticatedUserId();
         return ToActionResult(
-            +AF8-transferService.CreateTransfer(request, userId),
-            transfer +AD0APg- CreatedAtAction(nameof(GetHistory), new +AHs- +AH0-, transfer))+ADs-
-    +AH0-
+            _transferService.CreateTransfer(request, userId),
+            transfer => CreatedAtAction(nameof(GetHistory), new { }, transfer));
+    }
 
-    /// +ADw-summary+AD4-
+    /// <summary>
     ///     Retrieves the transfer history for the currently authenticated user.
-    /// +ADw-/summary+AD4-
-    /// +ADw-returns+AD4-
-    ///     200 OK with a list of +ADw-see cref+AD0AIg-TransferResponse+ACI- /+AD4- on success,
+    /// </summary>
+    /// <returns>
+    ///     200 OK with a list of <see cref="TransferResponse" /> on success,
     ///     or an error response if the operation fails.
-    /// +ADw-/returns+AD4-
-    +AFs-HttpGet+AF0-
+    /// </returns>
+    [HttpGet]
     public IActionResult GetHistory()
-    +AHs-
-        int userId +AD0- GetAuthenticatedUserId()+ADs-
+    {
+        int userId = GetAuthenticatedUserId();
         return ToActionResult(
-            +AF8-transferService.GetHistory(userId),
-            history +AD0APg- Ok(history))+ADs-
-    +AH0-
-+AH0-
+            _transferService.GetHistory(userId),
+            history => Ok(history));
+    }
+}

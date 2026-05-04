@@ -1,11 +1,10 @@
-﻿// <copyright file="TransferService.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="TransferService.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the TransferService class.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Transfer;
 using BankingApp.Application.DTOs.Transfer;
 using BankingApp.Application.Mapping;
 using BankingApp.Application.Repositories.Interfaces;

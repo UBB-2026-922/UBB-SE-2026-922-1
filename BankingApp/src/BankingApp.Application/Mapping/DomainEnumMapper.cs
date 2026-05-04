@@ -146,7 +146,6 @@ internal static class DomainEnumMapper
         return value switch
         {
             DomainTransferStatus.Pending => ApplicationTransferStatus.Pending,
-            DomainTransferStatus.Processing => ApplicationTransferStatus.Processing,
             DomainTransferStatus.Completed => ApplicationTransferStatus.Completed,
             DomainTransferStatus.Failed => ApplicationTransferStatus.Failed,
             DomainTransferStatus.Cancelled => ApplicationTransferStatus.Cancelled,
