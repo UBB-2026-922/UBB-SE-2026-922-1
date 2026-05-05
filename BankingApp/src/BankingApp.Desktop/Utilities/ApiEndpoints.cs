@@ -69,6 +69,15 @@ public static class ApiEndpoints
     /// <summary>GET api/profile/sessions — list active sessions. DELETE api/profile/sessions/{id} — revoke a session.</summary>
     public const string Sessions = "api/profile/sessions";
 
+    /// <summary>GET api/exchange/preview get a live rate preview for a currency pair and amount.</summary>
+    public const string ExchangePreview = "api/exchange/preview";
+
+    /// <summary>POST api/exchange/execute executes a currency exchange between two accounts.</summary>
+    public const string ExchangeExecute = "api/exchange/execute";
+
+    /// <summary>GET/POST/DELETE api/exchange/rate-alerts manage rate alerts.</summary>
+    public const string RateAlerts = "api/exchange/rate-alerts";
+
     /// <summary>GET api/billers - list active billers, optionally filtered by category.</summary>
     public const string BillPayBillers = "api/billers";
 

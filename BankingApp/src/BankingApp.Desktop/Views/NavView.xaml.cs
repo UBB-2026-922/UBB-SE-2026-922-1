@@ -149,9 +149,16 @@ public sealed partial class NavView
         await ShowComingSoonAsync("Transfer History");
     }
 
-    private async void NavCurrencyExchange_Click(object sender, RoutedEventArgs e)
+    private void NavCurrencyExchange_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Currency Exchange");
+        SetActiveNav(NavCurrencyExchange);
+        _navigationService.NavigateToContent<FXPage>();
+    }
+
+    private void NavRateAlerts_Click(object sender, RoutedEventArgs e)
+    {
+        SetActiveNav(NavRateAlerts);
+        _navigationService.NavigateToContent<RateAlertsPage>();
     }
 
     private async void NavSavings_Click(object sender, RoutedEventArgs e)
