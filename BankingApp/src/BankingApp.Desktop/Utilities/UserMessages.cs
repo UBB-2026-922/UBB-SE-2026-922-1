@@ -141,6 +141,16 @@ internal static class UserMessages
         internal const string DeleteFailed = "Could not delete the rate alert. Please try again.";
     }
 
+    /// <summary>Messages shown in the transfer history view.</summary>
+    internal static class TransferHistory
+    {
+        /// <summary>Shown when loading the history list from the API fails.</summary>
+        internal const string LoadFailed = "Could not load your transfer history. Please try again.";
+
+        /// <summary>Shown when the history list is empty and no transfers have been made.</summary>
+        internal const string NoTransfers = "You haven't made any transfers yet.";
+    }
+
     /// <summary>Messages shown in the transfer view.</summary>
     internal static class Transfer
     {

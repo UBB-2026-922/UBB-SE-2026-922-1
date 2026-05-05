@@ -150,9 +150,10 @@ public sealed partial class NavView
         await ShowComingSoonAsync("Cards");
     }
 
-    private async void NavTransferHistory_Click(object sender, RoutedEventArgs e)
+    private void NavTransferHistory_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Transfer History");
+        SetActiveNav(NavTransferHistory);
+        _navigationService.NavigateToContent<TransferHistoryView>();
     }
 
     private void NavCurrencyExchange_Click(object sender, RoutedEventArgs e)

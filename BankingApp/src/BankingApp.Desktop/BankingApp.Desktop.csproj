@@ -32,6 +32,7 @@
         <None Remove="Views\BillPayView.xaml"/>
         <None Remove="Views\RecurringPaymentView.xaml"/>
         <None Remove="Views\TransferView.xaml"/>
+        <None Remove="Views\TransferHistoryView.xaml"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -123,6 +124,9 @@
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\RecurringPaymentView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </Page>
+        <Page Update="Views\TransferHistoryView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
     </ItemGroup>
