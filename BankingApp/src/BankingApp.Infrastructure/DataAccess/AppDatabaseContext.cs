@@ -74,9 +74,6 @@ public class AppDatabaseContext : DbContext
     /// <summary>Gets or sets the transfers table.</summary>
     public DbSet<Transfer> Transfers { get; set; }
 
-    /// <summary>Gets or sets the beneficiaries table.</summary>
-    public DbSet<Beneficiary> Beneficiaries { get; set; }
-
     /// <summary>Gets or sets the recurring payments table.</summary>
     public DbSet<RecurringPayment> RecurringPayments { get; set; }
 
@@ -85,14 +82,6 @@ public class AppDatabaseContext : DbContext
 
     /// <summary>Gets or sets the rate alerts table.</summary>
     public DbSet<RateAlert> RateAlerts { get; set; }
-    /// <summary>Gets or sets the billers table.</summary>
-    public DbSet<Biller> Billers { get; set; }
-
-    /// <summary>Gets or sets the saved billers table.</summary>
-    public DbSet<SavedBiller> SavedBillers { get; set; }
-
-    /// <summary>Gets or sets the transfers table.</summary>
-    public DbSet<Transfer> Transfers { get; set; }
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)

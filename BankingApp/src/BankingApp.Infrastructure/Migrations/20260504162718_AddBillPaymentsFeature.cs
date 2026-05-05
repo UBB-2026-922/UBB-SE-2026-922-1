@@ -1,5 +1,5 @@
-﻿// <copyright file="20260504162718_AddBillPaymentsFeature.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="20260504162718_AddBillPaymentsFeature.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the AddBillPaymentsFeature migration.
@@ -18,22 +18,6 @@ namespace BankingApp.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Biller",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    LogoUrl = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Biller", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "BillPayment",
                 columns: table => new
                 {
@@ -42,8 +26,8 @@ namespace BankingApp.Infrastructure.Migrations
                     UserId = table.Column<int>(type: "int", nullable: false),
                     SourceAccountId = table.Column<int>(type: "int", nullable: false),
                     BillerId = table.Column<int>(type: "int", nullable: false),
-                    TransactionId = table.Column<int>(type: "int", nullable: false),
-                    BillerReference = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    TransactionId = table.Column<int>(type: "int", nullable: true),
+                    BillerReference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Fee = table.Column<decimal>(type: "decimal(18,2)", nullable: false, defaultValue: 0m),
                     ReceiptNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
@@ -77,34 +61,6 @@ namespace BankingApp.Infrastructure.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "SavedBiller",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    BillerId = table.Column<int>(type: "int", nullable: false),
-                    Nickname = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    DefaultReference = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SavedBiller", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SavedBiller_Biller_BillerId",
-                        column: x => x.BillerId,
-                        principalTable: "Biller",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_SavedBiller_User_UserId",
-                        column: x => x.UserId,
-                        principalTable: "User",
-                        principalColumn: "Id");
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_BillPayment_BillerId",
                 table: "BillPayment",
@@ -125,15 +81,6 @@ namespace BankingApp.Infrastructure.Migrations
                 table: "BillPayment",
                 column: "UserId");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_SavedBiller_BillerId",
-                table: "SavedBiller",
-                column: "BillerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_SavedBiller_UserId",
-                table: "SavedBiller",
-                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -142,11 +89,6 @@ namespace BankingApp.Infrastructure.Migrations
             migrationBuilder.DropTable(
                 name: "BillPayment");
 
-            migrationBuilder.DropTable(
-                name: "SavedBiller");
-
-            migrationBuilder.DropTable(
-                name: "Biller");
         }
     }
 }

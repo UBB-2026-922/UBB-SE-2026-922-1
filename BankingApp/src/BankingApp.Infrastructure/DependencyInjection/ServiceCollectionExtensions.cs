@@ -71,15 +71,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
         services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
-        services.AddScoped<IBillPaymentService, BillPaymentService>();
+        services.AddScoped<
+            BankingApp.Application.Services.BillPayments.IBillPaymentService,
+            BankingApp.Application.Services.BillPayments.BillPaymentService>();
         services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
         services.AddScoped<IBillerDataAccess, BillerDataAccess>();
         services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
         services.AddScoped<IBillerRepository, BillerRepository>();
         services.AddScoped<ITransferDataAccess, TransferDataAccess>();
-        services.AddScoped<BankingApp.Application.Services.BillPayments.IBillPaymentService, BankingApp.Application.Services.BillPayments.BillPaymentService>();
-        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
-
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
 
@@ -87,7 +86,6 @@ public static class ServiceCollectionExtensions
         // repository implementations in the Infrastructure layer.
         services.AddScoped<ITransferRepository, TransferRepository>();
         services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
-        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
         services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
         services.AddScoped<IExchangeRepository, ExchangeRepository>();
         services.AddScoped<IRateAlertRepository, RateAlertRepository>();

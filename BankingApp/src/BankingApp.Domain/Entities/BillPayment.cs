@@ -53,7 +53,7 @@ public class BillPayment
     /// <summary>
     /// Gets or sets the optional identifier of the overarching transaction.
     /// </summary>
-    public int? TransactionId { get; set; } // Modificat în int? pentru a suporta SetNull
+    public int? TransactionId { get; set; }
 
     /// <summary>
     /// Gets or sets the overarching transaction associated with this payment.
@@ -83,7 +83,7 @@ public class BillPayment
     /// <summary>
     /// Gets or sets the current status of the bill payment.
     /// </summary>
-    public PaymentStatus Status { get; set; }
+    public BillPaymentStatus Status { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time when the payment was created.

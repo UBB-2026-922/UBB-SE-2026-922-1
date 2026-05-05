@@ -5,8 +5,6 @@
 // Contains the Biller entity for the bill payment feature.
 // </summary>
 
-using BankingApp.Domain.Enums;
-
 namespace BankingApp.Domain.Entities;
 
 /// <summary>
@@ -38,7 +36,7 @@ public class Biller
     /// <summary>
     /// Gets or sets the business sector category of this biller.
     /// </summary>
-    public BillerCategory Category { get; set; }
+    public string Category { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the URL of the biller's logo image, or null if not available.

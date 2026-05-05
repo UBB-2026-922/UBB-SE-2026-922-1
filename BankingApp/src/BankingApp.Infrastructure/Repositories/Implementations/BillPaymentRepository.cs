@@ -1,4 +1,4 @@
-// <copyright file="BillPaymentRepository.cs" company="UBB-922">
+﻿// <copyright file="BillPaymentRepository.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -80,6 +80,15 @@ public class BillPaymentRepository : IBillPaymentRepository
     public async Task<Account?> GetAccountByIdAsync(int accountId)
     {
         return await _context.Accounts.FirstOrDefaultAsync(a => a.Id == accountId);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<Account>> GetAccountsByUserIdAsync(int userId)
+    {
+        return await _context.Accounts
+            .Where(account => account.UserId == userId)
+            .OrderBy(account => account.AccountName)
+            .ToListAsync();
     }
 
     /// <inheritdoc/>

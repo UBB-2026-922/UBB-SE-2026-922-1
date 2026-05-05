@@ -1,4 +1,4 @@
-// <copyright file="IBillPaymentRepository.cs" company="UBB-922">
+﻿// <copyright file="IBillPaymentRepository.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -63,6 +63,13 @@ public interface IBillPaymentRepository
     /// <param name="accountId">The account identifier.</param>
     /// <returns>The account entity if found.</returns>
     Task<Account?> GetAccountByIdAsync(int accountId);
+
+    /// <summary>
+    /// Gets all accounts owned by a user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <returns>The user's accounts.</returns>
+    Task<IEnumerable<Account>> GetAccountsByUserIdAsync(int userId);
 
     /// <summary>
     /// Updates an existing account's balance.

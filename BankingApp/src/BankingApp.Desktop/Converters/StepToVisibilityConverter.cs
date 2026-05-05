@@ -16,7 +16,7 @@ namespace BankingApp.Desktop.Converters;
 ///     Returns <see cref="Visibility.Visible" /> when the bound step matches the
 ///     target step number supplied as a string converter parameter; collapses otherwise.
 /// </summary>
-public class StepToVisibilityConverter : IValueConverter
+public partial class StepToVisibilityConverter : IValueConverter
 {
     /// <inheritdoc />
     public object Convert(object value, Type targetType, object parameter, string language)

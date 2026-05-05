@@ -46,7 +46,7 @@ public class BillPaymentServiceTests
     [InlineData(999, false)]   // Below threshold
     [InlineData(1000, true)]   // Exactly threshold
     [InlineData(1500, true)]   // Above threshold
-    public void Requires2FA_ShouldReturnCorrectValue(decimal amount, bool expectedResult)
+    public void Requires2Fa_WhenAmountIsChecked_ShouldReturnCorrectValue(decimal amount, bool expectedResult)
     {
         // Act
         var result = _service.Requires2Fa(amount);
@@ -86,6 +86,12 @@ public class BillPaymentServiceTests
             .ReturnsAsync(new Biller { Id = request.BillerId, Name = "Test Biller" });
 
         _repositoryMock.Setup(r => r.GetAccountByIdAsync(request.SourceAccountId))
-            .ReturnsAsync(new Account { Id = request.SourceAccountId, Balance = 5000, Currency = "RON" });
+            .ReturnsAsync(new Account
+            {
+                Id = request.SourceAccountId,
+                UserId = request.UserId,
+                Balance = 5000,
+                Currency = "RON",
+            });
     }
 }

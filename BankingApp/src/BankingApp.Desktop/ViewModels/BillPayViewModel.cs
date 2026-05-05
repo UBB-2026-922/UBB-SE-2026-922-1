@@ -23,10 +23,10 @@ using Microsoft.UI.Xaml;
 namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
-///     Drives the multi-step bill payment wizard.
+///     Drives the multistep bill payment wizard.
 ///     Loads data via <see cref="IApiClient" /> and navigates via <see cref="IAppNavigationService" />.
 /// </summary>
-public class BillPayViewModel : INotifyPropertyChanged
+public partial class BillPayViewModel : INotifyPropertyChanged
 {
     private const int SelectBillerStep = 1;
     private const int PaymentDetailsStep = 2;

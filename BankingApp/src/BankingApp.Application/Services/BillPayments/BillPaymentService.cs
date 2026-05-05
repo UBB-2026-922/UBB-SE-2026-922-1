@@ -1,5 +1,5 @@
-﻿// <copyright file="BillPaymentService.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillPaymentService.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BillPaymentService class.
@@ -55,7 +55,16 @@ public class BillPaymentService : IBillPaymentService
             throw new Exception("Source account not found.");
         }
 
-        // Calculate fee based on amount
+        if (account.UserId != request.UserId)
+        {
+            throw new Exception("Source account does not belong to the authenticated user.");
+        }
+
+        if (request.Amount <= 0)
+        {
+            throw new Exception("Payment amount must be greater than zero.");
+        }
+
         decimal fee = CalculateFee(request.Amount);
         decimal totalAmount = request.Amount + fee;
 
@@ -64,7 +73,6 @@ public class BillPaymentService : IBillPaymentService
             throw new Exception("Insufficient funds to pay this bill (including fees).");
         }
 
-        // Deduct money including fee
         account.Balance -= totalAmount;
         await _billRepository.UpdateAccountAsync(account);
 
@@ -96,7 +104,7 @@ public class BillPaymentService : IBillPaymentService
             Amount = request.Amount,
             Fee = fee,
             ReceiptNumber = GenerateReceiptNumber(),
-            Status = PaymentStatus.Completed,
+            Status = BillPaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -109,6 +117,12 @@ public class BillPaymentService : IBillPaymentService
     public async Task<IEnumerable<Biller>> GetAllBillersAsync()
     {
         return await _billRepository.GetBillersAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<Account>> GetAccountsForUserAsync(int userId)
+    {
+        return await _billRepository.GetAccountsByUserIdAsync(userId);
     }
 
     /// <inheritdoc/>
@@ -129,7 +143,7 @@ public class BillPaymentService : IBillPaymentService
     /// <summary>
     /// Works out the fee - up to 100 costs 0.50, above that costs 1.00.
     /// </summary>
-    private decimal CalculateFee(decimal amount)
+    public decimal CalculateFee(decimal amount)
     {
         return amount <= SmallPaymentThreshold ? SmallPaymentFee : StandardPaymentFee;
     }

@@ -1,5 +1,5 @@
-﻿// <copyright file="IBillPaymentService.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="IBillPaymentService.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the IBillPaymentService interface.
@@ -32,6 +32,13 @@ public interface IBillPaymentService
     Task<IEnumerable<Biller>> GetAllBillersAsync();
 
     /// <summary>
+    /// Retrieves all accounts that can be used for bill payments.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <returns>The user's source accounts.</returns>
+    Task<IEnumerable<Account>> GetAccountsForUserAsync(int userId);
+
+    /// <summary>
     /// Saves a biller for a user for future use.
     /// </summary>
     /// <param name="userId">The user identifier.</param>
@@ -46,4 +53,11 @@ public interface IBillPaymentService
     /// <param name="amount">The payment amount.</param>
     /// <returns>True if 2FA is required.</returns>
     bool Requires2Fa(decimal amount);
+
+    /// <summary>
+    /// Calculates the processing fee for the supplied payment amount.
+    /// </summary>
+    /// <param name="amount">The payment amount.</param>
+    /// <returns>The fee amount.</returns>
+    decimal CalculateFee(decimal amount);
 }
