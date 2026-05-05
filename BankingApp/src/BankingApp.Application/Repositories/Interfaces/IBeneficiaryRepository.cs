@@ -11,32 +11,64 @@ using ErrorOr;
 namespace BankingApp.Application.Repositories.Interfaces;
 
 /// <summary>
-///     Defines persistence operations for the <see cref="Beneficiary" /> entity.
+///     Defines repository operations for managing beneficiaries.
 /// </summary>
 public interface IBeneficiaryRepository
 {
-    /// <summary>Retrieves a beneficiary by its unique identifier.</summary>
-    /// <param name="id">The beneficiary identifier.</param>
-    /// <returns>The matching <see cref="Beneficiary" />, or an error when not found.</returns>
-    ErrorOr<Beneficiary> GetById(int id);
-
-    /// <summary>Retrieves all beneficiaries belonging to the specified user.</summary>
+    /// <summary>
+    ///     Finds a beneficiary by its identifier.
+    /// </summary>
+    /// <param name="beneficiaryId">The beneficiary identifier.</param>
     /// <param name="userId">The user identifier.</param>
-    /// <returns>A list of beneficiaries, or an error.</returns>
-    ErrorOr<List<Beneficiary>> GetByUserId(int userId);
+    /// <returns>
+    ///     The beneficiary when found, or an error otherwise.
+    /// </returns>
+    ErrorOr<Beneficiary> FindById(int beneficiaryId, int userId);
 
-    /// <summary>Persists a new beneficiary record.</summary>
+    /// <summary>
+    ///     Returns all beneficiaries saved by a user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <returns>
+    ///     The user's beneficiaries, or an error if retrieval fails.
+    /// </returns>
+    ErrorOr<List<Beneficiary>> FindByUserId(int userId);
+
+    /// <summary>
+    ///     Checks whether a beneficiary with the given IBAN already exists for the user.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <param name="iban">The beneficiary IBAN.</param>
+    /// <returns>
+    ///     True if one exists; otherwise false.
+    /// </returns>
+    ErrorOr<bool> ExistsByUserIdAndIban(int userId, string iban);
+
+    /// <summary>
+    ///     Creates a new beneficiary.
+    /// </summary>
     /// <param name="beneficiary">The beneficiary to create.</param>
-    /// <returns>The created beneficiary with its assigned identifier, or an error.</returns>
+    /// <returns>
+    ///     The created beneficiary, or an error otherwise.
+    /// </returns>
     ErrorOr<Beneficiary> Create(Beneficiary beneficiary);
 
-    /// <summary>Updates a beneficiary's mutable fields (name, bank name, statistics).</summary>
-    /// <param name="beneficiary">The beneficiary with updated values.</param>
-    /// <returns>The updated beneficiary, or an error.</returns>
-    ErrorOr<Beneficiary> Update(Beneficiary beneficiary);
+    /// <summary>
+    ///     Updates an existing beneficiary.
+    /// </summary>
+    /// <param name="beneficiary">The beneficiary to update.</param>
+    /// <returns>
+    ///     A success result when the update succeeds, or an error otherwise.
+    /// </returns>
+    ErrorOr<Success> Update(Beneficiary beneficiary);
 
-    /// <summary>Removes a beneficiary from the user's address book.</summary>
-    /// <param name="id">The identifier of the beneficiary to remove.</param>
-    /// <returns>Success, or an error when the record is not found.</returns>
-    ErrorOr<Success> Delete(int id);
+    /// <summary>
+    ///     Deletes a beneficiary by its identifier.
+    /// </summary>
+    /// <param name="beneficiaryId">The beneficiary identifier.</param>
+    /// <param name="userId">The user identifier.</param>
+    /// <returns>
+    ///     A success result when the deletion succeeds, or an error otherwise.
+    /// </returns>
+    ErrorOr<Success> Delete(int beneficiaryId, int userId);
 }

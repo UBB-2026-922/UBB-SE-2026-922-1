@@ -5,6 +5,7 @@
 // Contains the ServiceCollectionExtensions class.
 // </summary>
 
+using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Application.Services.Billers;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
@@ -35,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IBillerService, BillerService>();
         services.AddScoped<ITransferService, TransferService>();
+        services.AddScoped<IBeneficiaryService, BeneficiaryService>();
         return services;
     }
 }

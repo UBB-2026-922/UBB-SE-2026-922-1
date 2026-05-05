@@ -5,14 +5,14 @@
 // Contains the Beneficiary entity for Team B's beneficiary management feature.
 // </summary>
 
+using System;
+
 namespace BankingApp.Domain.Entities;
 
 /// <summary>
-///     Represents a saved transfer recipient that belongs to a user's address book.
-///     Maps to the SQL table <c>Beneficiaries</c> introduced by Team B.
+///     Represents a beneficiary to whom a user can send money.
 /// </summary>
 /// <remarks>
-///     Reuses the base entity <see cref="User" /> via <see cref="UserId" /> (Many-to-One):
 ///     each beneficiary entry is owned by exactly one user.
 ///     The composite unique constraint <c>UQ_Beneficiaries_UserIBAN</c> ensures that
 ///     the same IBAN cannot be saved twice for the same user.
@@ -28,7 +28,7 @@ public class Beneficiary
     public int Id { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the <see cref="User" /> who owns this beneficiary entry.
+    ///     Gets or sets the identifier of the user who owns this beneficiary.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
@@ -36,7 +36,7 @@ public class Beneficiary
     public int UserId { get; set; }
 
     /// <summary>
-    ///     Gets or sets the full display name of the beneficiary.
+    ///     Gets or sets the name of the beneficiary.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
@@ -52,7 +52,7 @@ public class Beneficiary
     public string Iban { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Gets or sets the name of the beneficiary's bank, if known.
+    ///     Gets or sets the name of the beneficiary's bank.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
@@ -60,8 +60,7 @@ public class Beneficiary
     public string? BankName { get; set; }
 
     /// <summary>
-    ///     Gets or sets the date and time of the most recent transfer to this beneficiary,
-    ///     or <see langword="null" /> if no transfer has been made yet.
+    ///     Gets or sets the date and time of the last transfer made to this beneficiary.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
@@ -69,7 +68,7 @@ public class Beneficiary
     public DateTime? LastTransferDate { get; set; }
 
     /// <summary>
-    ///     Gets or sets the cumulative amount sent to this beneficiary across all transfers.
+    ///     Gets or sets the total amount of money sent to this beneficiary.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
