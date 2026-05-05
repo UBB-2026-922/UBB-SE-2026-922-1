@@ -69,6 +69,30 @@ public static class ApiEndpoints
     /// <summary>GET api/profile/sessions — list active sessions. DELETE api/profile/sessions/{id} — revoke a session.</summary>
     public const string Sessions = "api/profile/sessions";
 
+    /// <summary>GET api/billers - list active billers, optionally filtered by category.</summary>
+    public const string BillPayBillers = "api/billers";
+
+    /// <summary>GET api/billers - search billers by name and/or category.</summary>
+    public const string BillPayBillersSearch = "api/billers";
+
+    /// <summary>GET api/billers/saved - list saved billers for the current user.</summary>
+    public const string BillPaySavedBillers = "api/billers/saved";
+
+    /// <summary>POST api/billers/saved - save a biller for future use.</summary>
+    public const string BillPaySaveBiller = "api/billers/saved";
+
+    /// <summary>GET api/bill-payment/accounts — list available accounts for bill payment.</summary>
+    public const string BillPayAccounts = "api/bill-payment/accounts";
+
+    /// <summary>GET api/bill-payment/fee — calculate fee for a given amount.</summary>
+    public const string BillPayFee = "api/bill-payment/fee";
+
+    /// <summary>GET api/bill-payment/requires-2fa — check if 2FA is required for a given amount.</summary>
+    public const string BillPayRequires2Fa = "api/bill-payment/requires-2fa";
+
+    /// <summary>POST api/bill-payment/pay — process a bill payment.</summary>
+    public const string BillPayPay = "api/bill-payment/pay";
+
     /// <summary>GET/POST/DELETE api/beneficiaries — manage saved beneficiaries for a user.</summary>
     public const string Beneficiaries = "api/beneficiaries";
 
