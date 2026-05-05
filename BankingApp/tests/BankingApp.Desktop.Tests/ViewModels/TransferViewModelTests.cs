@@ -1,5 +1,5 @@
-﻿// <copyright file="TransferViewModelTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="TransferViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using System.Collections.Generic;
@@ -113,7 +113,7 @@ public class TransferViewModelTests
     {
         // Arrange
         _viewModel.CurrentStep = RecipientDetailsStep;
-        _viewModel.IsIBANValid = false;
+        _viewModel.IsIbanValid = false;
 
         // Act
         _viewModel.ExecuteNextStep();
@@ -158,7 +158,7 @@ public class TransferViewModelTests
 
         // Assert
         _viewModel.CurrentStep.Should().Be(ReviewAndConfirmationStep);
-        _viewModel.Requires2FA.Should().BeFalse();
+        _viewModel.Requires2Fa.Should().BeFalse();
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class TransferViewModelTests
 
         // Assert
         _viewModel.CurrentStep.Should().Be(TwoFactorAuthenticationStep);
-        _viewModel.Requires2FA.Should().BeTrue();
+        _viewModel.Requires2Fa.Should().BeTrue();
     }
 
     /// <summary>
@@ -242,7 +242,7 @@ public class TransferViewModelTests
     [Fact]
     public async Task ExecuteSendAgain_ResetsAllFieldsAndReturnsToStep1()
     {
-        // Arrange — set up accounts and dirty state
+        // Arrange - set up accounts and dirty state
         var accounts = new List<TransferAccountDto>
         {
             new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR" },
@@ -255,10 +255,10 @@ public class TransferViewModelTests
 
         await _viewModel.LoadAccountsAsync();
         _viewModel.RecipientName = "Jane Doe";
-        _viewModel.RecipientIBAN = "RO49AAAA1B31007593840000";
+        _viewModel.RecipientIban = "RO49AAAA1B31007593840000";
         _viewModel.AmountText = "500";
         _viewModel.Currency = "USD";
-        _viewModel.Is2FAConfirmed = true;
+        _viewModel.Is2FaConfirmed = true;
         _viewModel.TransactionRef = "TXN-123";
         _viewModel.ErrorMessage = "Some error";
         _viewModel.CurrentStep = TransferCompletedStep;
@@ -269,10 +269,10 @@ public class TransferViewModelTests
         // Assert
         _viewModel.CurrentStep.Should().Be(AccountSelectionStep);
         _viewModel.RecipientName.Should().BeEmpty();
-        _viewModel.RecipientIBAN.Should().BeEmpty();
+        _viewModel.RecipientIban.Should().BeEmpty();
         _viewModel.AmountText.Should().BeEmpty();
         _viewModel.Currency.Should().Be("EUR");
-        _viewModel.Is2FAConfirmed.Should().BeFalse();
+        _viewModel.Is2FaConfirmed.Should().BeFalse();
         _viewModel.TransactionRef.Should().BeEmpty();
         _viewModel.ErrorMessage.Should().BeEmpty();
         _viewModel.SelectedAccount.Should().NotBeNull();

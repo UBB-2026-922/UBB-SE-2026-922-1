@@ -1,5 +1,5 @@
-﻿// <copyright file="TransferAccountDto.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="TransferAccountDto.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the TransferAccountDto class.
@@ -26,7 +26,7 @@ public class TransferAccountDto
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string IBAN { get; set; } = string.Empty;
+    public string Iban { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the account currency code (e.g. EUR, USD, RON).

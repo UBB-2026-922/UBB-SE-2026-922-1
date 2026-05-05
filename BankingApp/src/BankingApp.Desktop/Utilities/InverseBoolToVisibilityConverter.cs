@@ -1,5 +1,5 @@
-﻿// <copyright file="InverseBoolToVisibilityConverter.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="InverseBoolToVisibilityConverter.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the InverseBoolToVisibilityConverter class.
@@ -13,7 +13,7 @@ namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Maps <see langword="true" /> to <see cref="Visibility.Collapsed" /> and
-///     <see langword="false" /> (or non-bool) to <see cref="Visibility.Visible" /> —
+///     <see langword="false" /> (or non-bool) to <see cref="Visibility.Visible" /> -
 ///     the inverse of <see cref="BoolToVisibilityConverter" />.
 /// </summary>
 public class InverseBoolToVisibilityConverter : IValueConverter

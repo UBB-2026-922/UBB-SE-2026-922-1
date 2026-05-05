@@ -1,5 +1,5 @@
-﻿// <copyright file="StepToVisibilityConverter.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="StepToVisibilityConverter.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the StepToVisibilityConverter class.
@@ -39,13 +39,13 @@ public class StepToVisibilityConverter : IValueConverter
     }
 
     /// <summary>
-    ///     Not supported — this converter is one-way only.
+    ///     Not supported - this converter is one-way only.
     /// </summary>
     /// <param name="value">The value (unused).</param>
     /// <param name="targetType">The target type (unused).</param>
     /// <param name="parameter">The parameter (unused).</param>
     /// <param name="language">The language (unused).</param>
-    /// <returns>Nothing — always throws.</returns>
+    /// <returns>Nothing - always throws.</returns>
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
         throw new NotImplementedException();

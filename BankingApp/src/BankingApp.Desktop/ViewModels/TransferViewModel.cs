@@ -1,5 +1,5 @@
-﻿// <copyright file="TransferViewModel.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="TransferViewModel.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the TransferViewModel class.
@@ -23,7 +23,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     Migrated from BankingAppTeamB and adapted to use <see cref="IApiClient" />
 ///     for all server communication instead of the Team B local service layer.
 /// </summary>
-public class TransferViewModel : INotifyPropertyChanged
+public partial class TransferViewModel : INotifyPropertyChanged
 {
     private const int AccountSelectionStep = 1;
     private const int RecipientDetailsStep = 2;
@@ -46,15 +46,15 @@ public class TransferViewModel : INotifyPropertyChanged
     private ObservableCollection<TransferAccountDto> _accounts;
     private TransferAccountDto? _selectedAccount;
     private string _recipientName = string.Empty;
-    private string _recipientIBAN = string.Empty;
-    private bool _isIBANValid;
+    private string _recipientIban = string.Empty;
+    private bool _isIbanValid;
     private string _bankName = string.Empty;
     private decimal _amount;
     private string _currency = DefaultTransferCurrency;
     private string _fxPreviewText = string.Empty;
-    private string _twoFAToken = string.Empty;
-    private bool _requires2FA;
-    private bool _is2FAConfirmed;
+    private string _twoFaToken = string.Empty;
+    private bool _requires2Fa;
+    private bool _is2FaConfirmed;
     private string _transactionRef = string.Empty;
     private string _errorMessage = string.Empty;
     private string _amountText = string.Empty;
@@ -145,13 +145,13 @@ public class TransferViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string RecipientIBAN
+    public string RecipientIban
     {
-        get => _recipientIBAN;
+        get => _recipientIban;
         set
         {
-            SetProperty(ref _recipientIBAN, value);
-            _ = UpdateIBANValidationAsync(value);
+            SetProperty(ref _recipientIban, value);
+            _ = UpdateIbanValidationAsync(value);
         }
     }
 
@@ -161,10 +161,10 @@ public class TransferViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public bool IsIBANValid
+    public bool IsIbanValid
     {
-        get => _isIBANValid;
-        set => SetProperty(ref _isIBANValid, value);
+        get => _isIbanValid;
+        set => SetProperty(ref _isIbanValid, value);
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class TransferViewModel : INotifyPropertyChanged
         {
             SetProperty(ref _amount, value);
             _ = UpdateFxPreviewAsync();
-            UpdateRequires2FA();
+            UpdateRequires2Fa();
         }
     }
 
@@ -230,10 +230,10 @@ public class TransferViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string TwoFAToken
+    public string TwoFaToken
     {
-        get => _twoFAToken;
-        set => SetProperty(ref _twoFAToken, value);
+        get => _twoFaToken;
+        set => SetProperty(ref _twoFaToken, value);
     }
 
     /// <summary>
@@ -242,10 +242,10 @@ public class TransferViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public bool Requires2FA
+    public bool Requires2Fa
     {
-        get => _requires2FA;
-        set => SetProperty(ref _requires2FA, value);
+        get => _requires2Fa;
+        set => SetProperty(ref _requires2Fa, value);
     }
 
     /// <summary>
@@ -254,10 +254,10 @@ public class TransferViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public bool Is2FAConfirmed
+    public bool Is2FaConfirmed
     {
-        get => _is2FAConfirmed;
-        set => SetProperty(ref _is2FAConfirmed, value);
+        get => _is2FaConfirmed;
+        set => SetProperty(ref _is2FaConfirmed, value);
     }
 
     /// <summary>
@@ -403,7 +403,7 @@ public class TransferViewModel : INotifyPropertyChanged
     ///     Generates a random six-digit 2FA token string for display to the user.
     /// </summary>
     /// <returns>A six-digit string token.</returns>
-    internal string GenerateTwoFAToken()
+    internal string GenerateTwoFaToken()
     {
         var random = new Random();
         return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive).ToString();
@@ -417,7 +417,7 @@ public class TransferViewModel : INotifyPropertyChanged
     {
         ErrorMessage = string.Empty;
 
-        if (CurrentStep == RecipientDetailsStep && !IsIBANValid)
+        if (CurrentStep == RecipientDetailsStep && !IsIbanValid)
         {
             ErrorMessage = UserMessages.Transfer.InvalidIban;
             CurrentStep = TransferErrorStep;
@@ -433,22 +433,22 @@ public class TransferViewModel : INotifyPropertyChanged
                 return;
             }
 
-            CurrentStep = Requires2FA ? TwoFactorAuthenticationStep : ReviewAndConfirmationStep;
+            CurrentStep = Requires2Fa ? TwoFactorAuthenticationStep : ReviewAndConfirmationStep;
             return;
         }
 
         if (CurrentStep == TwoFactorAuthenticationStep)
         {
-            if (!Is2FAConfirmed)
+            if (!Is2FaConfirmed)
             {
                 ErrorMessage = UserMessages.Transfer.TwoFaRequired;
                 CurrentStep = TransferErrorStep;
                 return;
             }
 
-            if (Requires2FA && string.IsNullOrWhiteSpace(TwoFAToken))
+            if (Requires2Fa && string.IsNullOrWhiteSpace(TwoFaToken))
             {
-                TwoFAToken = GenerateTwoFAToken();
+                TwoFaToken = GenerateTwoFaToken();
             }
 
             CurrentStep = ReviewAndConfirmationStep;
@@ -478,10 +478,10 @@ public class TransferViewModel : INotifyPropertyChanged
             {
                 SourceAccountId = SelectedAccount.Id,
                 RecipientName = RecipientName,
-                RecipientIBAN = RecipientIBAN,
+                RecipientIban = RecipientIban,
                 Amount = Amount,
                 Currency = Currency,
-                TwoFAToken = Requires2FA ? TwoFAToken : null,
+                TwoFaToken = Requires2Fa ? TwoFaToken : null,
             };
 
             ErrorOr<TransferResultDto> result =
@@ -514,15 +514,15 @@ public class TransferViewModel : INotifyPropertyChanged
     {
         SelectedAccount = Accounts.Count > MinimumAccounts ? Accounts[FirstAccountIndex] : null;
         RecipientName = string.Empty;
-        RecipientIBAN = string.Empty;
-        IsIBANValid = false;
+        RecipientIban = string.Empty;
+        IsIbanValid = false;
         BankName = string.Empty;
         Amount = ZeroAmount;
         Currency = DefaultTransferCurrency;
         FxPreviewText = string.Empty;
-        TwoFAToken = string.Empty;
-        Requires2FA = false;
-        Is2FAConfirmed = false;
+        TwoFaToken = string.Empty;
+        Requires2Fa = false;
+        Is2FaConfirmed = false;
         TransactionRef = string.Empty;
         ErrorMessage = string.Empty;
         AmountText = string.Empty;
@@ -555,11 +555,11 @@ public class TransferViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Validates the IBAN via the API and updates <see cref="IsIBANValid" /> and <see cref="BankName" />.
+    ///     Validates the IBAN via the API and updates <see cref="IsIbanValid" /> and <see cref="BankName" />.
     /// </summary>
     /// <param name="iban">The IBAN to validate.</param>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
-    private async Task UpdateIBANValidationAsync(string iban)
+    private async Task UpdateIbanValidationAsync(string iban)
     {
         try
         {
@@ -570,17 +570,17 @@ public class TransferViewModel : INotifyPropertyChanged
 
             if (result.IsError)
             {
-                IsIBANValid = false;
+                IsIbanValid = false;
                 BankName = string.Empty;
                 return;
             }
 
-            IsIBANValid = result.Value.IsValid;
+            IsIbanValid = result.Value.IsValid;
             BankName = result.Value.IsValid ? result.Value.BankName : string.Empty;
         }
         catch
         {
-            IsIBANValid = false;
+            IsIbanValid = false;
             BankName = string.Empty;
         }
     }
@@ -620,7 +620,7 @@ public class TransferViewModel : INotifyPropertyChanged
             else
             {
                 FxPreviewText =
-                    $"{Amount:F2} {SelectedAccount.Currency} → {preview.ConvertedAmount:F2} {Currency} (rate: {preview.ExchangeRate:F4})";
+                    $"{Amount:F2} {SelectedAccount.Currency} -> {preview.ConvertedAmount:F2} {Currency} (rate: {preview.ExchangeRate:F4})";
             }
         }
         catch
@@ -630,18 +630,18 @@ public class TransferViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Updates <see cref="Requires2FA" /> based on whether the current amount
+    ///     Updates <see cref="Requires2Fa" /> based on whether the current amount
     ///     meets the 2FA threshold. Kept client-side for instant UX feedback.
     /// </summary>
-    private void UpdateRequires2FA()
+    private void UpdateRequires2Fa()
     {
-        Requires2FA = Amount >= TwoFaAmountThreshold;
+        Requires2Fa = Amount >= TwoFaAmountThreshold;
     }
 
     /// <summary>
     ///     Simple synchronous relay command for the transfer wizard buttons.
     /// </summary>
-    private sealed class RelayCommand : ICommand
+    private sealed partial class RelayCommand : ICommand
     {
         private readonly Action _execute;
 
@@ -669,7 +669,7 @@ public class TransferViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Asynchronous relay command that prevents re-entrant execution.
     /// </summary>
-    private sealed class AsyncRelayCommand : ICommand
+    private sealed partial class AsyncRelayCommand : ICommand
     {
         private readonly Func<Task> _executeAsync;
         private bool _isExecuting;

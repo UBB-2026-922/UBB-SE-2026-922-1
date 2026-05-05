@@ -1,5 +1,5 @@
-﻿// <copyright file="TransferRequestDto.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="TransferRequestDto.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the TransferRequestDto class.
@@ -34,7 +34,7 @@ public class TransferRequestDto
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string RecipientIBAN { get; set; } = string.Empty;
+    public string RecipientIban { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the transfer amount.
@@ -58,5 +58,5 @@ public class TransferRequestDto
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string? TwoFAToken { get; set; }
+    public string? TwoFaToken { get; set; }
 }
