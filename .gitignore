@@ -6,6 +6,7 @@ obj/
 *.user
 *.suo
 .idea/
+.claude/
 
 # Secrets
 secrets.json

@@ -8,6 +8,7 @@
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using BankingApp.Domain.Extensions;
+using BankingApp.Infrastructure.DataAccess.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -82,7 +83,6 @@ public class AppDatabaseContext : DbContext
 
     /// <summary>Gets or sets the rate alerts table.</summary>
     public DbSet<RateAlert> RateAlerts { get; set; }
-
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -318,20 +318,6 @@ public class AppDatabaseContext : DbContext
             entity.HasOne<Biller>().WithMany().HasForeignKey(savedBiller => savedBiller.BillerId);
         });
 
-        modelBuilder.Entity<RecurringPayment>(entity =>
-        {
-            entity.ToTable("RecurringPayment");
-            entity.HasKey(recurringPayment => recurringPayment.Id);
-            entity.Property(recurringPayment => recurringPayment.Amount).IsRequired().HasColumnType("decimal(18,2)");
-            entity.Property(recurringPayment => recurringPayment.IsPayInFull).HasDefaultValue(false);
-            entity.Property(recurringPayment => recurringPayment.Frequency).IsRequired().HasConversion<string>().HasMaxLength(20);
-            entity.Property(recurringPayment => recurringPayment.Status).IsRequired().HasConversion<string>().HasMaxLength(20).HasDefaultValue(RecurringPaymentStatus.Active);
-            entity.Property(recurringPayment => recurringPayment.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.HasOne<User>().WithMany().HasForeignKey(recurringPayment => recurringPayment.UserId);
-            entity.HasOne<Account>().WithMany().HasForeignKey(recurringPayment => recurringPayment.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<Biller>().WithMany().HasForeignKey(recurringPayment => recurringPayment.BillerId);
-        });
-
         modelBuilder.Entity<ExchangeTransaction>(entity =>
         {
             entity.ToTable("ExchangeTransaction");
@@ -361,5 +347,7 @@ public class AppDatabaseContext : DbContext
             entity.Property(rateAlert => rateAlert.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<User>().WithMany().HasForeignKey(rateAlert => rateAlert.UserId);
         });
+
+        modelBuilder.ApplyConfiguration(new RecurringPaymentConfiguration());
     }
 }

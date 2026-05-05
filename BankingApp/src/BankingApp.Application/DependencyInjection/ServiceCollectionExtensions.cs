@@ -11,6 +11,7 @@ using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Profile;
+using BankingApp.Application.Services.RecurringPayments;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Transfers;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBillerService, BillerService>();
         services.AddScoped<ITransferService, TransferService>();
         services.AddScoped<IBeneficiaryService, BeneficiaryService>();
+        services.AddScoped<IRecurringPaymentService, RecurringPaymentService>();
         return services;
     }
 }
