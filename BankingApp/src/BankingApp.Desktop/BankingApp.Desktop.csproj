@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -27,6 +27,7 @@
         <None Remove="Views\RegisterView.xaml"/>
         <None Remove="Views\ProfileView.xaml"/>
         <None Remove="Views\TwoFactorView.xaml"/>
+        <None Remove="Views\TransferView.xaml"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -103,6 +104,9 @@
             <SubType>Designer</SubType>
         </Page>
         <Page Update="Views\TwoFactorView.xaml">
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Update="Views\TransferView.xaml">
             <SubType>Designer</SubType>
         </Page>
     </ItemGroup>

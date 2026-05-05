@@ -71,4 +71,16 @@ public static class ApiEndpoints
 
     /// <summary>GET/POST/DELETE api/beneficiaries — manage saved beneficiaries for a user.</summary>
     public const string Beneficiaries = "api/beneficiaries";
+
+    /// <summary>GET api/transfers/accounts — list the authenticated user's accounts for transfer selection.</summary>
+    public const string TransferAccounts = "api/transfers/accounts";
+
+    /// <summary>POST api/transfers/validate-iban — validate an IBAN and return the inferred bank name.</summary>
+    public const string TransferValidateIban = "api/transfers/validate-iban";
+
+    /// <summary>GET api/transfers/fx-preview — get an exchange-rate preview for a cross-currency transfer.</summary>
+    public const string TransferFxPreview = "api/transfers/fx-preview";
+
+    /// <summary>POST api/transfers/execute — submit a transfer for processing.</summary>
+    public const string TransferExecute = "api/transfers/execute";
 }
