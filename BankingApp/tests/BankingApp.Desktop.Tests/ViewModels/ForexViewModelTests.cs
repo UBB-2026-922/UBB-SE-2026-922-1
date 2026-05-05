@@ -11,21 +11,21 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 /// <summary>
-///     Tests for the <see cref="FXViewModel"/>.
+///     Tests for the <see cref="ForexViewModel"/>.
 /// </summary>
-public class FXViewModelTests
+public class ForexViewModelTests
 {
     private readonly Mock<IApiClient> _apiClient;
-    private readonly FXViewModel _viewModel;
+    private readonly ForexViewModel _viewModel;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="FXViewModelTests"/> class.
+    ///     Initializes a new instance of the <see cref="ForexViewModelTests"/> class.
     ///     Creates a fresh mock and view model for each test.
     /// </summary>
-    public FXViewModelTests()
+    public ForexViewModelTests()
     {
         _apiClient = new Mock<IApiClient>(MockBehavior.Loose);
-        _viewModel = new FXViewModel(_apiClient.Object, NullLogger<FXViewModel>.Instance);
+        _viewModel = new ForexViewModel(_apiClient.Object, NullLogger<ForexViewModel>.Instance);
     }
 
     /// <summary>

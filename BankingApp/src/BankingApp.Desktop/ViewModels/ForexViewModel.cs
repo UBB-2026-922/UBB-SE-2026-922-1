@@ -1,4 +1,4 @@
-﻿// <copyright file="FXViewModel.cs" company="UBB-922">
+﻿// <copyright file="ForexViewModel.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -6,7 +6,6 @@
 // </summary>
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -22,7 +21,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     View model for the FX currency exchange page. Drives a multi-step wizard
 ///     that lets the user preview rates, lock a rate, and execute the exchange.
 /// </summary>
-public class FXViewModel : INotifyPropertyChanged
+public partial class ForexViewModel : INotifyPropertyChanged
 {
     private const int InitialStep = 1;
     private const int PreviewStep = 2;
@@ -30,8 +29,10 @@ public class FXViewModel : INotifyPropertyChanged
     private const int ResultStep = 4;
     private const decimal MinimumAmount = 0m;
 
+    private static readonly string[] _collection = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
+
     private readonly IApiClient _apiClient;
-    private readonly ILogger<FXViewModel> _logger;
+    private readonly ILogger<ForexViewModel> _logger;
 
     private int _currentStep;
     private string _sourceCurrency = string.Empty;
@@ -46,16 +47,16 @@ public class FXViewModel : INotifyPropertyChanged
     private bool _isLoading;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="FXViewModel"/> class.
+    ///     Initializes a new instance of the <see cref="ForexViewModel"/> class.
     /// </summary>
     /// <param name="apiClient">The API client for backend communication.</param>
     /// <param name="logger">Logger for exchange errors.</param>
-    public FXViewModel(IApiClient apiClient, ILogger<FXViewModel> logger)
+    public ForexViewModel(IApiClient apiClient, ILogger<ForexViewModel> logger)
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _currentStep = InitialStep;
-        AvailableCurrencies = new ObservableCollection<string>(new[] { "EUR", "USD", "GBP", "RON", "CHF", "JPY" });
+        AvailableCurrencies = new ObservableCollection<string>(_collection);
     }
 
     /// <inheritdoc/>

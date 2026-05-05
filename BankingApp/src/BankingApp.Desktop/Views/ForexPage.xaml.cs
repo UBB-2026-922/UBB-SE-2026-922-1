@@ -1,4 +1,4 @@
-﻿// <copyright file="FXPage.xaml.cs" company="UBB-922">
+﻿// <copyright file="ForexPage.xaml.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
@@ -7,22 +7,21 @@
 
 using BankingApp.Desktop.ViewModels;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
 namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Code-behind for the FX currency exchange page.
 /// </summary>
-public sealed partial class FXPage : Page
+public sealed partial class ForexPage
 {
-    private readonly FXViewModel _viewModel;
+    private readonly ForexViewModel _viewModel;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="FXPage"/> class.
+    ///     Initializes a new instance of the <see cref="ForexPage"/> class.
     /// </summary>
     /// <param name="viewModel">The exchange view model injected by DI.</param>
-    public FXPage(FXViewModel viewModel)
+    public ForexPage(ForexViewModel viewModel)
     {
         InitializeComponent();
         _viewModel = viewModel;

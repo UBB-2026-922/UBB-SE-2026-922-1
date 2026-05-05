@@ -18,8 +18,8 @@ namespace BankingApp.Application.Tests.Services;
 /// </summary>
 public class RecurringPaymentServiceTests
 {
-    private static readonly DateTime FrozenUtcNow = new(2026, 1, 15, 12, 0, 0, DateTimeKind.Utc);
-    private static readonly DateTime FixedStartDate = new(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime _frozenUtcNow = new(2026, 1, 15, 12, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime _fixedStartDate = new(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc);
 
     private readonly Mock<IRecurringPaymentRepository> _repository = new(MockBehavior.Strict);
     private readonly Mock<ISystemClock> _clock = new(MockBehavior.Strict);
@@ -36,10 +36,6 @@ public class RecurringPaymentServiceTests
             NullLogger<RecurringPaymentService>.Instance);
     }
 
-    // -----------------------------------------------------------------------
-    // Create
-    // -----------------------------------------------------------------------
-
     [Fact]
     public void Create_WhenAmountIsZero_ShouldReturnValidationError()
     {
@@ -50,7 +46,7 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 2,
             Amount = 0m,
             Frequency = RecurringFrequency.Monthly,
-            StartDate = FixedStartDate,
+            StartDate = _fixedStartDate,
         };
 
         // Act
@@ -72,7 +68,7 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 2,
             Amount = -50m,
             Frequency = RecurringFrequency.Weekly,
-            StartDate = FixedStartDate,
+            StartDate = _fixedStartDate,
         };
 
         // Act
@@ -93,8 +89,8 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 2,
             Amount = 100m,
             Frequency = RecurringFrequency.Monthly,
-            StartDate = FixedStartDate,
-            EndDate = FixedStartDate.AddDays(-1),
+            StartDate = _fixedStartDate,
+            EndDate = _fixedStartDate.AddDays(-1),
         };
 
         // Act
@@ -109,7 +105,7 @@ public class RecurringPaymentServiceTests
     public void Create_WhenFrequencyIsMonthly_ShouldSetNextExecutionDateOneMonthAfterStart()
     {
         // Arrange
-        _clock.Setup(c => c.UtcNow).Returns(FrozenUtcNow);
+        _clock.Setup(c => c.UtcNow).Returns(_frozenUtcNow);
         var savedPayment = new RecurringPayment
         {
             Id = 1,
@@ -118,10 +114,10 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 3,
             Amount = 200m,
             Frequency = RecurringFrequency.Monthly,
-            StartDate = FixedStartDate,
-            NextExecutionDate = FixedStartDate.AddMonths(1),
+            StartDate = _fixedStartDate,
+            NextExecutionDate = _fixedStartDate.AddMonths(1),
             Status = RecurringPaymentStatus.Active,
-            CreatedAt = FrozenUtcNow,
+            CreatedAt = _frozenUtcNow,
         };
         _repository
             .Setup(r => r.Create(It.IsAny<RecurringPayment>()))
@@ -133,7 +129,7 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 3,
             Amount = 200m,
             Frequency = RecurringFrequency.Monthly,
-            StartDate = FixedStartDate,
+            StartDate = _fixedStartDate,
         };
 
         // Act
@@ -141,14 +137,14 @@ public class RecurringPaymentServiceTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        result.Value.NextExecutionDate.Should().Be(FixedStartDate.AddMonths(1));
+        result.Value.NextExecutionDate.Should().Be(_fixedStartDate.AddMonths(1));
     }
 
     [Fact]
     public void Create_WhenFrequencyIsWeekly_ShouldSetNextExecutionDateSevenDaysAfterStart()
     {
         // Arrange
-        _clock.Setup(c => c.UtcNow).Returns(FrozenUtcNow);
+        _clock.Setup(c => c.UtcNow).Returns(_frozenUtcNow);
         var savedPayment = new RecurringPayment
         {
             Id = 2,
@@ -157,10 +153,10 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 3,
             Amount = 50m,
             Frequency = RecurringFrequency.Weekly,
-            StartDate = FixedStartDate,
-            NextExecutionDate = FixedStartDate.AddDays(7),
+            StartDate = _fixedStartDate,
+            NextExecutionDate = _fixedStartDate.AddDays(7),
             Status = RecurringPaymentStatus.Active,
-            CreatedAt = FrozenUtcNow,
+            CreatedAt = _frozenUtcNow,
         };
         _repository
             .Setup(r => r.Create(It.IsAny<RecurringPayment>()))
@@ -172,7 +168,7 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 3,
             Amount = 50m,
             Frequency = RecurringFrequency.Weekly,
-            StartDate = FixedStartDate,
+            StartDate = _fixedStartDate,
         };
 
         // Act
@@ -180,14 +176,14 @@ public class RecurringPaymentServiceTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        result.Value.NextExecutionDate.Should().Be(FixedStartDate.AddDays(7));
+        result.Value.NextExecutionDate.Should().Be(_fixedStartDate.AddDays(7));
     }
 
     [Fact]
     public void Create_WhenFrequencyIsYearly_ShouldSetNextExecutionDateOneYearAfterStart()
     {
         // Arrange
-        _clock.Setup(c => c.UtcNow).Returns(FrozenUtcNow);
+        _clock.Setup(c => c.UtcNow).Returns(_frozenUtcNow);
         var savedPayment = new RecurringPayment
         {
             Id = 3,
@@ -196,10 +192,10 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 3,
             Amount = 1200m,
             Frequency = RecurringFrequency.Yearly,
-            StartDate = FixedStartDate,
-            NextExecutionDate = FixedStartDate.AddYears(1),
+            StartDate = _fixedStartDate,
+            NextExecutionDate = _fixedStartDate.AddYears(1),
             Status = RecurringPaymentStatus.Active,
-            CreatedAt = FrozenUtcNow,
+            CreatedAt = _frozenUtcNow,
         };
         _repository
             .Setup(r => r.Create(It.IsAny<RecurringPayment>()))
@@ -211,7 +207,7 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 3,
             Amount = 1200m,
             Frequency = RecurringFrequency.Yearly,
-            StartDate = FixedStartDate,
+            StartDate = _fixedStartDate,
         };
 
         // Act
@@ -219,14 +215,14 @@ public class RecurringPaymentServiceTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        result.Value.NextExecutionDate.Should().Be(FixedStartDate.AddYears(1));
+        result.Value.NextExecutionDate.Should().Be(_fixedStartDate.AddYears(1));
     }
 
     [Fact]
     public void Create_WhenRequestIsValid_ShouldStampCreatedAtWithFrozenClock()
     {
         // Arrange
-        _clock.Setup(c => c.UtcNow).Returns(FrozenUtcNow);
+        _clock.Setup(c => c.UtcNow).Returns(_frozenUtcNow);
         var savedPayment = new RecurringPayment
         {
             Id = 10,
@@ -235,10 +231,10 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 1,
             Amount = 75m,
             Frequency = RecurringFrequency.Daily,
-            StartDate = FixedStartDate,
-            NextExecutionDate = FixedStartDate.AddDays(1),
+            StartDate = _fixedStartDate,
+            NextExecutionDate = _fixedStartDate.AddDays(1),
             Status = RecurringPaymentStatus.Active,
-            CreatedAt = FrozenUtcNow,
+            CreatedAt = _frozenUtcNow,
         };
         _repository
             .Setup(r => r.Create(It.IsAny<RecurringPayment>()))
@@ -250,7 +246,7 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 1,
             Amount = 75m,
             Frequency = RecurringFrequency.Daily,
-            StartDate = FixedStartDate,
+            StartDate = _fixedStartDate,
         };
 
         // Act
@@ -258,14 +254,14 @@ public class RecurringPaymentServiceTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        result.Value.CreatedAt.Should().Be(FrozenUtcNow);
+        result.Value.CreatedAt.Should().Be(_frozenUtcNow);
     }
 
     [Fact]
     public void Create_WhenRepositoryFails_ShouldPropagateFailureError()
     {
         // Arrange
-        _clock.Setup(c => c.UtcNow).Returns(FrozenUtcNow);
+        _clock.Setup(c => c.UtcNow).Returns(_frozenUtcNow);
         _repository
             .Setup(r => r.Create(It.IsAny<RecurringPayment>()))
             .Returns(Error.Failure(description: "DB connection lost."));
@@ -276,7 +272,7 @@ public class RecurringPaymentServiceTests
             SourceAccountId = 1,
             Amount = 100m,
             Frequency = RecurringFrequency.Monthly,
-            StartDate = FixedStartDate,
+            StartDate = _fixedStartDate,
         };
 
         // Act
@@ -287,10 +283,6 @@ public class RecurringPaymentServiceTests
         result.FirstError.Type.Should().Be(ErrorType.Failure);
         result.FirstError.Description.Should().Be("DB connection lost.");
     }
-
-    // -----------------------------------------------------------------------
-    // GetByUser
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void GetByUser_WhenUserHasPayments_ShouldReturnMappedList()
@@ -325,10 +317,6 @@ public class RecurringPaymentServiceTests
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Failure);
     }
-
-    // -----------------------------------------------------------------------
-    // Pause
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Pause_WhenPaymentNotFound_ShouldReturnNotFoundError()
@@ -376,10 +364,6 @@ public class RecurringPaymentServiceTests
         _repository.Verify(r => r.Update(It.Is<RecurringPayment>(p => p.Status == RecurringPaymentStatus.Paused)), Times.Once);
     }
 
-    // -----------------------------------------------------------------------
-    // Resume
-    // -----------------------------------------------------------------------
-
     [Fact]
     public void Resume_WhenPaymentNotFound_ShouldReturnNotFoundError()
     {
@@ -410,10 +394,6 @@ public class RecurringPaymentServiceTests
         result.IsError.Should().BeFalse();
         _repository.Verify(r => r.Update(It.Is<RecurringPayment>(p => p.Status == RecurringPaymentStatus.Active)), Times.Once);
     }
-
-    // -----------------------------------------------------------------------
-    // Cancel
-    // -----------------------------------------------------------------------
 
     [Fact]
     public void Cancel_WhenPaymentNotFound_ShouldReturnNotFoundError()

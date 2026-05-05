@@ -15,7 +15,7 @@ namespace BankingApp.Desktop.Utilities;
 ///     Maps <see langword="true" /> to <see cref="Visibility.Visible" /> and
 ///     <see langword="false" /> (or non-bool) to <see cref="Visibility.Collapsed" />.
 /// </summary>
-public class BoolToVisibilityConverter : IValueConverter
+public partial class BoolToVisibilityConverter : IValueConverter
 {
     /// <summary>
     ///     Converts a boolean value to <see cref="Visibility" />.

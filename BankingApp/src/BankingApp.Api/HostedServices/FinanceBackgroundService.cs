@@ -16,7 +16,7 @@ namespace BankingApp.Api.HostedServices;
 /// </summary>
 public class FinanceBackgroundService : BackgroundService
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(30);
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<FinanceBackgroundService> _logger;
@@ -60,7 +60,7 @@ public class FinanceBackgroundService : BackgroundService
                 _logger.LogError(exception, "Background finance processing failed.");
             }
 
-            await Task.Delay(PollInterval, stoppingToken);
+            await Task.Delay(_pollInterval, stoppingToken);
         }
     }
 }

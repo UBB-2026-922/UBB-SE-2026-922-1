@@ -110,7 +110,7 @@
         <Page Update="Views\TwoFactorView.xaml">
             <SubType>Designer</SubType>
         </Page>
-        <Page Update="Views\FXPage.xaml">
+        <Page Update="Views\ForexPage.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\RateAlertsPage.xaml">
