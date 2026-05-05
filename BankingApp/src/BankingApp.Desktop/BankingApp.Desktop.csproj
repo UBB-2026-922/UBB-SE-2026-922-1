@@ -30,6 +30,7 @@
         <None Remove="Views\FXPage.xaml"/>
         <None Remove="Views\RateAlertsPage.xaml"/>
         <None Remove="Views\BillPayView.xaml"/>
+        <None Remove="Views\RecurringPaymentView.xaml"/>
         <None Remove="Views\TransferView.xaml"/>
     </ItemGroup>
 
@@ -119,6 +120,9 @@
             <SubType>Designer</SubType>
         </Page>
         <Page Update="Views\BillPayView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </Page>
+        <Page Update="Views\RecurringPaymentView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
     </ItemGroup>

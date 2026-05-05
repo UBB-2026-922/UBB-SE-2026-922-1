@@ -105,6 +105,9 @@ public static class ApiEndpoints
     /// <summary>GET/POST/DELETE api/beneficiaries — manage saved beneficiaries for a user.</summary>
     public const string Beneficiaries = "api/beneficiaries";
 
+    /// <summary>GET/POST api/recurringpayments — list and create recurring payment schedules.</summary>
+    public const string RecurringPayments = "api/recurringpayments";
+
     /// <summary>GET api/transfers/accounts — list the authenticated user's accounts for transfer selection.</summary>
     public const string TransferAccounts = "api/transfers/accounts";
 

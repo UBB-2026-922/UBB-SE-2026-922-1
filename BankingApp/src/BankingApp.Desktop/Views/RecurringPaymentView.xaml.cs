@@ -6,11 +6,10 @@
 // </summary>
 
 using System;
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.RecurringPayments;
 using BankingApp.Desktop.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
 
 namespace BankingApp.Desktop.Views;
 
@@ -31,15 +30,14 @@ public sealed partial class RecurringPaymentView : Page
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = _viewModel;
+        Loaded += OnPageLoaded;
 
         StartDatePicker.Date = DateTimeOffset.Now;
         EndDatePicker.Date = DateTimeOffset.Now;
     }
 
-    /// <inheritdoc/>
-    protected override async void OnNavigatedTo(NavigationEventArgs navigationEventArgs)
+    private async void OnPageLoaded(object sender, RoutedEventArgs args)
     {
-        base.OnNavigatedTo(navigationEventArgs);
         await _viewModel.LoadAsync();
     }
 
@@ -71,7 +69,7 @@ public sealed partial class RecurringPaymentView : Page
 
     private void PauseButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: RecurringPaymentDto payment })
+        if (sender is Button { Tag: RecurringPaymentResponse payment })
         {
             _ = _viewModel.PauseAsync(payment);
         }
@@ -79,7 +77,7 @@ public sealed partial class RecurringPaymentView : Page
 
     private void ResumeButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: RecurringPaymentDto payment })
+        if (sender is Button { Tag: RecurringPaymentResponse payment })
         {
             _ = _viewModel.ResumeAsync(payment);
         }
@@ -87,7 +85,7 @@ public sealed partial class RecurringPaymentView : Page
 
     private void CancelButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: RecurringPaymentDto payment })
+        if (sender is Button { Tag: RecurringPaymentResponse payment })
         {
             _ = _viewModel.CancelAsync(payment);
         }

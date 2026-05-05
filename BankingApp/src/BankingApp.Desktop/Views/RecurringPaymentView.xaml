@@ -3,7 +3,8 @@
     x:Class="BankingApp.Desktop.Views.RecurringPaymentView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:models="using:BankingApp.Application.DTOs.TeamB"
+    xmlns:billPayment="using:BankingApp.Application.DTOs.BillPayment"
+    xmlns:recurringPayments="using:BankingApp.Application.DTOs.RecurringPayments"
     Background="#F4F6FA">
 
     <ScrollViewer>
@@ -23,7 +24,7 @@
                       SelectedItem="{Binding SelectedPayment, Mode=TwoWay}"
                       MaxHeight="320">
                 <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="models:RecurringPaymentDto">
+                    <DataTemplate x:DataType="recurringPayments:RecurringPaymentResponse">
                         <Border BorderBrush="LightGray"
                                 BorderThickness="1"
                                 CornerRadius="8"
@@ -73,9 +74,9 @@
                       ItemsSource="{Binding Accounts}"
                       SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="models:TransferAccountDto">
+                    <DataTemplate x:DataType="billPayment:AccountDto">
                         <StackPanel>
-                            <TextBlock Text="{x:Bind Name}"/>
+                            <TextBlock Text="{x:Bind AccountName}"/>
                             <TextBlock Text="{x:Bind Balance}" FontSize="12" Opacity="0.7"/>
                         </StackPanel>
                     </DataTemplate>
@@ -86,7 +87,7 @@
                       ItemsSource="{Binding Billers}"
                       SelectedItem="{Binding SelectedBiller, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="models:BillerDto">
+                    <DataTemplate x:DataType="billPayment:BillerDto">
                         <StackPanel>
                             <TextBlock Text="{x:Bind Name}"/>
                             <TextBlock Text="{x:Bind Category}" FontSize="12" Opacity="0.7"/>

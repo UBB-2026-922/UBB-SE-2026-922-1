@@ -165,6 +165,16 @@
                         </StackPanel>
                     </Button>
 
+                    <Button x:Name="NavRecurringPayments"
+                            Style="{StaticResource NavItemStyle}"
+                            Click="NavRecurringPayments_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE823;" FontSize="14" Foreground="#AAA" />
+                            <TextBlock Text="Recurring Payments" Foreground="#AAA" FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
                     <Button x:Name="NavCards"
                             Style="{StaticResource NavItemStyle}"
                             Click="NavCards_Click">

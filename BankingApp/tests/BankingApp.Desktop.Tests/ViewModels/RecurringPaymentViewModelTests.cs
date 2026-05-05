@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.BillPayment;
+using BankingApp.Application.DTOs.RecurringPayments;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using FluentAssertions;
+using Microsoft.UI.Xaml;
 using Moq;
 using Xunit;
 
@@ -41,24 +43,24 @@ public class RecurringPaymentViewModelTests
     public async Task LoadAsync_WhenResponsesAreValid_PopulatesCollections()
     {
         // Arrange
-        var accounts = new List<TransferAccountDto>
+        var accounts = new List<AccountDto>
         {
-            new TransferAccountDto { Id = 1, Name = "Checking", Balance = 1000m },
+            new AccountDto { Id = 1, AccountName = "Checking", Balance = 1000m },
         };
-        var payments = new List<RecurringPaymentDto>
+        var payments = new List<RecurringPaymentResponse>
         {
-            new RecurringPaymentDto { Id = 1, Amount = 50m },
+            new RecurringPaymentResponse { Id = 1, Amount = 50m },
         };
         var billers = new List<BillerDto>
         {
             new BillerDto { Id = 1, Name = "Electric Co" },
         };
 
-        _apiClient.Setup(api => api.GetAsync<List<TransferAccountDto>>(ApiEndpoints.TransferAccounts))
+        _apiClient.Setup(api => api.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts))
             .ReturnsAsync(accounts);
-        _apiClient.Setup(api => api.GetAsync<List<RecurringPaymentDto>>(ApiEndpoints.RecurringPayments))
+        _apiClient.Setup(api => api.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments))
             .ReturnsAsync(payments);
-        _apiClient.Setup(api => api.GetAsync<List<BillerDto>>(ApiEndpoints.Billers))
+        _apiClient.Setup(api => api.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers))
             .ReturnsAsync(billers);
 
         // Act
@@ -79,7 +81,7 @@ public class RecurringPaymentViewModelTests
     {
         // Arrange
         var biller = new BillerDto { Id = 1, Name = "Water Co" };
-        var account = new TransferAccountDto { Id = 1, Name = "Checking" };
+        var account = new AccountDto { Id = 1, AccountName = "Checking" };
         var startDate = DateTime.Today;
         var amount = 100m;
 
@@ -89,7 +91,7 @@ public class RecurringPaymentViewModelTests
         _viewModel.Frequency = RecurringFrequency.Monthly;
         _viewModel.StartDate = startDate;
 
-        var expectedResult = new RecurringPaymentDto
+        var expectedResult = new RecurringPaymentResponse
         {
             Id = 123,
             BillerId = biller.Id,
@@ -99,9 +101,9 @@ public class RecurringPaymentViewModelTests
             StartDate = startDate,
         };
 
-        _apiClient.Setup(api => api.PostAsync<RecurringPaymentDto, RecurringPaymentDto>(
+        _apiClient.Setup(api => api.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
                 ApiEndpoints.RecurringPayments,
-                It.Is<RecurringPaymentDto>(dto =>
+                It.Is<CreateRecurringPaymentRequest>(dto =>
                     dto.BillerId == biller.Id &&
                     dto.SourceAccountId == account.Id &&
                     dto.Amount == amount &&
@@ -127,13 +129,13 @@ public class RecurringPaymentViewModelTests
     public async Task PauseAsync_WhenPaymentIsSelected_PausesPayment()
     {
         // Arrange
-        var payment = new RecurringPaymentDto { Id = 1, Status = RecurringPaymentStatus.Active };
+        var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(api => api.PutAsync<object, RecurringPaymentDto>(
+        _apiClient.Setup(api => api.PutAsync<object>(
                 $"{ApiEndpoints.RecurringPayments}/{payment.Id}/pause",
                 It.IsAny<object>()))
-            .ReturnsAsync(payment);
+            .ReturnsAsync(Result.Success);
 
         // Act
         await _viewModel.PauseAsync(payment);
@@ -150,13 +152,13 @@ public class RecurringPaymentViewModelTests
     public async Task ResumeAsync_WhenPaymentIsSelected_ResumesPayment()
     {
         // Arrange
-        var payment = new RecurringPaymentDto { Id = 1, Status = RecurringPaymentStatus.Paused };
+        var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Paused };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(api => api.PutAsync<object, RecurringPaymentDto>(
+        _apiClient.Setup(api => api.PutAsync<object>(
                 $"{ApiEndpoints.RecurringPayments}/{payment.Id}/resume",
                 It.IsAny<object>()))
-            .ReturnsAsync(payment);
+            .ReturnsAsync(Result.Success);
 
         // Act
         await _viewModel.ResumeAsync(payment);
@@ -173,13 +175,12 @@ public class RecurringPaymentViewModelTests
     public async Task CancelAsync_WhenPaymentIsSelected_CancelsPayment()
     {
         // Arrange
-        var payment = new RecurringPaymentDto { Id = 1, Status = RecurringPaymentStatus.Active };
+        var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(api => api.PutAsync<object, RecurringPaymentDto>(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}/cancel",
-                It.IsAny<object>()))
-            .ReturnsAsync(payment);
+        _apiClient.Setup(api => api.DeleteAsync(
+                $"{ApiEndpoints.RecurringPayments}/{payment.Id}"))
+            .ReturnsAsync(Result.Success);
 
         // Act
         await _viewModel.CancelAsync(payment);
@@ -187,5 +188,16 @@ public class RecurringPaymentViewModelTests
         // Assert
         _viewModel.ErrorMessage.Should().BeEmpty();
         _viewModel.Payments[0].Status.Should().Be(RecurringPaymentStatus.Cancelled);
+    }
+
+    /// <summary>
+    ///     In ErrorMessage, when a message exists, the visibility should be visible.
+    /// </summary>
+    [Fact]
+    public void ErrorMessage_WhenSet_ShouldExposeVisibleErrorState()
+    {
+        _viewModel.ErrorMessage = "Failure";
+
+        _viewModel.ErrorMessageVisibility.Should().Be(Visibility.Visible);
     }
 }

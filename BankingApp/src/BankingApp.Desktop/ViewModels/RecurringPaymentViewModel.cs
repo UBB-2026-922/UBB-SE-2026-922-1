@@ -13,10 +13,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.BillPayment;
+using BankingApp.Application.DTOs.RecurringPayments;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
+using Microsoft.UI.Xaml;
 
 namespace BankingApp.Desktop.ViewModels;
 
@@ -32,8 +34,8 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
 
     private readonly IApiClient _apiClient;
 
-    private ObservableCollection<RecurringPaymentDto> _payments;
-    private RecurringPaymentDto? _selectedPayment;
+    private ObservableCollection<RecurringPaymentResponse> _payments;
+    private RecurringPaymentResponse? _selectedPayment;
     private int _selectedBillerId;
     private decimal _amount;
     private RecurringFrequency _frequency;
@@ -41,8 +43,8 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     private DateTime? _endDate;
     private string _errorMessage = string.Empty;
 
-    private ObservableCollection<TransferAccountDto> _accounts;
-    private TransferAccountDto? _selectedAccount;
+    private ObservableCollection<AccountDto> _accounts;
+    private AccountDto? _selectedAccount;
 
     private ObservableCollection<BillerDto> _billers;
     private BillerDto? _selectedBiller;
@@ -57,8 +59,8 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
 
-        _payments = new ObservableCollection<RecurringPaymentDto>();
-        _accounts = new ObservableCollection<TransferAccountDto>();
+        _payments = new ObservableCollection<RecurringPaymentResponse>();
+        _accounts = new ObservableCollection<AccountDto>();
         _billers = new ObservableCollection<BillerDto>();
         _frequencies = new ObservableCollection<RecurringFrequency>
         {
@@ -91,7 +93,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public ObservableCollection<RecurringPaymentDto> Payments
+    public ObservableCollection<RecurringPaymentResponse> Payments
     {
         get => _payments;
         set => SetProperty(ref _payments, value);
@@ -103,7 +105,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public RecurringPaymentDto? SelectedPayment
+    public RecurringPaymentResponse? SelectedPayment
     {
         get => _selectedPayment;
         set => SetProperty(ref _selectedPayment, value);
@@ -183,6 +185,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
             if (SetProperty(ref _errorMessage, value))
             {
                 OnPropertyChanged(nameof(HasError));
+                OnPropertyChanged(nameof(ErrorMessageVisibility));
             }
         }
     }
@@ -196,12 +199,18 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
     /// <summary>
+    ///     Gets the visibility of the error message.
+    /// </summary>
+    public Visibility ErrorMessageVisibility =>
+        HasError ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>
     ///     Gets or sets the observable collection of transfer accounts available as a source.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public ObservableCollection<TransferAccountDto> Accounts
+    public ObservableCollection<AccountDto> Accounts
     {
         get => _accounts;
         set => SetProperty(ref _accounts, value);
@@ -213,7 +222,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public TransferAccountDto? SelectedAccount
+    public AccountDto? SelectedAccount
     {
         get => _selectedAccount;
         set => SetProperty(ref _selectedAccount, value);
@@ -283,21 +292,21 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
             ErrorMessage = string.Empty;
 
             // Load Accounts
-            ErrorOr<List<TransferAccountDto>> accountsResult = await _apiClient.GetAsync<List<TransferAccountDto>>(ApiEndpoints.TransferAccounts);
+            ErrorOr<List<AccountDto>> accountsResult = await _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
             if (!accountsResult.IsError)
             {
-                Accounts = new ObservableCollection<TransferAccountDto>(accountsResult.Value);
+                Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
             }
 
             // Load Payments
-            ErrorOr<List<RecurringPaymentDto>> paymentsResult = await _apiClient.GetAsync<List<RecurringPaymentDto>>(ApiEndpoints.RecurringPayments);
+            ErrorOr<List<RecurringPaymentResponse>> paymentsResult = await _apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments);
             if (!paymentsResult.IsError)
             {
-                Payments = new ObservableCollection<RecurringPaymentDto>(paymentsResult.Value);
+                Payments = new ObservableCollection<RecurringPaymentResponse>(paymentsResult.Value);
             }
 
             // Load Billers
-            ErrorOr<List<BillerDto>> billersResult = await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.Billers);
+            ErrorOr<List<BillerDto>> billersResult = await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers);
             if (!billersResult.IsError)
             {
                 Billers = new ObservableCollection<BillerDto>(billersResult.Value);
@@ -313,13 +322,13 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     public Task CreateAsync() => ExecuteCreateAsync();
 
     /// <summary>Public facade that delegates to ExecutePauseAsync.</summary>
-    public Task PauseAsync(RecurringPaymentDto? payment) => ExecutePauseAsync(payment);
+    public Task PauseAsync(RecurringPaymentResponse? payment) => ExecutePauseAsync(payment);
 
     /// <summary>Public facade that delegates to ExecuteResumeAsync.</summary>
-    public Task ResumeAsync(RecurringPaymentDto? payment) => ExecuteResumeAsync(payment);
+    public Task ResumeAsync(RecurringPaymentResponse? payment) => ExecuteResumeAsync(payment);
 
     /// <summary>Public facade that delegates to ExecuteCancelAsync.</summary>
-    public Task CancelAsync(RecurringPaymentDto? payment) => ExecuteCancelAsync(payment);
+    public Task CancelAsync(RecurringPaymentResponse? payment) => ExecuteCancelAsync(payment);
 
     /// <summary>
     ///     Raises the <see cref="PropertyChanged" /> event for the specified property.
@@ -362,7 +371,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
                 return;
             }
 
-            var request = new RecurringPaymentDto
+            var request = new CreateRecurringPaymentRequest
             {
                 BillerId = SelectedBiller.Id,
                 SourceAccountId = SelectedAccount.Id,
@@ -373,7 +382,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
                 EndDate = EndDate,
             };
 
-            ErrorOr<RecurringPaymentDto> result = await _apiClient.PostAsync<RecurringPaymentDto, RecurringPaymentDto>(
+            ErrorOr<RecurringPaymentResponse> result = await _apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
                 ApiEndpoints.RecurringPayments,
                 request);
 
@@ -401,13 +410,13 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
 
-            if (parameter is not RecurringPaymentDto payment)
+            if (parameter is not RecurringPaymentResponse payment)
             {
                 ErrorMessage = "Please select a recurring payment to pause.";
                 return;
             }
 
-            ErrorOr<RecurringPaymentDto> result = await _apiClient.PutAsync<object, RecurringPaymentDto>(
+            ErrorOr<Success> result = await _apiClient.PutAsync<object>(
                 $"{ApiEndpoints.RecurringPayments}/{payment.Id}/pause",
                 new { });
 
@@ -434,13 +443,13 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
 
-            if (parameter is not RecurringPaymentDto payment)
+            if (parameter is not RecurringPaymentResponse payment)
             {
                 ErrorMessage = "Please select a recurring payment to resume.";
                 return;
             }
 
-            ErrorOr<RecurringPaymentDto> result = await _apiClient.PutAsync<object, RecurringPaymentDto>(
+            ErrorOr<Success> result = await _apiClient.PutAsync<object>(
                 $"{ApiEndpoints.RecurringPayments}/{payment.Id}/resume",
                 new { });
 
@@ -467,15 +476,14 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
 
-            if (parameter is not RecurringPaymentDto payment)
+            if (parameter is not RecurringPaymentResponse payment)
             {
                 ErrorMessage = "Please select a recurring payment to cancel.";
                 return;
             }
 
-            ErrorOr<RecurringPaymentDto> result = await _apiClient.PutAsync<object, RecurringPaymentDto>(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}/cancel",
-                new { });
+            ErrorOr<Success> result = await _apiClient.DeleteAsync(
+                $"{ApiEndpoints.RecurringPayments}/{payment.Id}");
 
             if (result.IsError)
             {
