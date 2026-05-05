@@ -11,13 +11,10 @@ namespace BankingApp.Domain.Tests.Entities;
 /// </summary>
 public class CategoryTests
 {
-    /// <summary>
-    ///     Verifies the default values assigned to a new category.
-    /// </summary>
     private const int DefaultCategoryId = 0;
 
     /// <summary>
-    ///     Verifies the Constructor_WhenCreated_SetsExpectedDefaults scenario.
+    ///     Verifies that a newly constructed <see cref="Category" /> has the expected default values.
     /// </summary>
     [Fact]
     public void Constructor_WhenCreated_SetsExpectedDefaults()

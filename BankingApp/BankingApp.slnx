@@ -5,6 +5,8 @@
         <Platform Name="x86" />
     </Configurations>
     <Folder Name="/src/">
+        <Project Path="src/BankingApp.Api/BankingApp.Api.csproj" />
+        <Project Path="src/BankingApp.Application/BankingApp.Application.csproj" />
         <Project Path="src/BankingApp.Desktop/BankingApp.Desktop.csproj">
             <Platform Solution="*|Any CPU" Project="x64" />
             <Platform Solution="*|x64" Project="x64" />
@@ -12,8 +14,6 @@
             <Deploy Solution="Debug|Any CPU" />
             <Deploy Solution="Debug|x64" />
         </Project>
-        <Project Path="src/BankingApp.Api/BankingApp.Api.csproj" />
-        <Project Path="src/BankingApp.Application/BankingApp.Application.csproj" />
         <Project Path="src/BankingApp.Domain/BankingApp.Domain.csproj" />
         <Project Path="src/BankingApp.Infrastructure/BankingApp.Infrastructure.csproj" />
     </Folder>

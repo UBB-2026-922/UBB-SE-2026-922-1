@@ -27,8 +27,8 @@ public class BillPayViewModelTests
     /// </summary>
     public BillPayViewModelTests()
     {
-        _apiClient.Setup(a => a.EnsureConfigured()).Returns(Result.Success);
-        _apiClient.SetupProperty(a => a.CurrentUserId);
+        _apiClient.Setup(apiClient => apiClient.EnsureConfigured()).Returns(Result.Success);
+        _apiClient.SetupProperty(apiClient => apiClient.CurrentUserId);
     }
 
     /// <summary>
@@ -57,19 +57,22 @@ public class BillPayViewModelTests
     [Fact]
     public async Task LoadAsync_WhenBillersApiFails_ShouldKeepBillersEmpty()
     {
+        // Arrange
         _apiClient
-            .Setup(a => a.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers, default))
+            .Setup(apiClient => apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers, default))
             .ReturnsAsync(Error.Failure(description: "Server error"));
         _apiClient
-            .Setup(a => a.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers, default))
+            .Setup(apiClient => apiClient.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers, default))
             .ReturnsAsync(CreateMockSavedBillers());
         _apiClient
-            .Setup(a => a.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts, default))
+            .Setup(apiClient => apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts, default))
             .ReturnsAsync(CreateMockAccounts());
         BillPayViewModel vm = CreateViewModel();
 
+        // Act
         await vm.LoadAsync();
 
+        // Assert
         vm.Billers.Should().BeEmpty();
         vm.SavedBillers.Should().HaveCount(1);
     }
@@ -80,8 +83,10 @@ public class BillPayViewModelTests
     [Fact]
     public void Constructor_WhenCalled_ShouldInitializeDefaultState()
     {
+        // Arrange & Act
         BillPayViewModel vm = CreateViewModel();
 
+        // Assert
         vm.CurrentStep.Should().Be(1);
         vm.Billers.Should().BeEmpty();
         vm.SavedBillers.Should().BeEmpty();
@@ -100,11 +105,14 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectBillerCommand_WhenBillerDtoSelected_ShouldAdvanceToStep2()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
 
+        // Act
         vm.SelectBillerCommand.Execute(biller);
 
+        // Assert
         vm.SelectedBiller.Should().Be(biller);
         vm.CurrentStep.Should().Be(2);
     }
@@ -115,6 +123,7 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectBillerCommand_WhenSavedBillerDtoSelected_ShouldPrefillReferenceAndAdvanceToStep2()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var savedBiller = new SavedBillerDto
         {
@@ -124,8 +133,10 @@ public class BillPayViewModelTests
             Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" },
         };
 
+        // Act
         vm.SelectBillerCommand.Execute(savedBiller);
 
+        // Assert
         vm.SelectedBiller.Should().NotBeNull();
         vm.SelectedBiller!.Id.Should().Be(1);
         vm.BillerReference.Should().Be("REF-123");
@@ -140,9 +151,13 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep1AndNoBillerSelected_ShouldSetError()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
+
+        // Act
         vm.ExecuteNextStep();
 
+        // Assert
         vm.ErrorMessage.Should().Contain("select a biller");
         vm.CurrentStep.Should().Be(1);
     }
@@ -153,12 +168,15 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndNoReferenceProvided_ShouldSetError()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
         vm.ExecuteSelectBiller(biller);
 
+        // Act
         vm.ExecuteNextStep();
 
+        // Assert
         vm.ErrorMessage.Should().Contain("biller reference");
     }
 
@@ -168,13 +186,16 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndNoAccountSelected_ShouldSetError()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
         vm.ExecuteSelectBiller(biller);
         vm.BillerReference = "REF-001";
 
+        // Act
         vm.ExecuteNextStep();
 
+        // Assert
         vm.ErrorMessage.Should().Contain("source account");
     }
 
@@ -184,6 +205,7 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep2AndZeroAmount_ShouldSetError()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
         vm.ExecuteSelectBiller(biller);
@@ -191,8 +213,10 @@ public class BillPayViewModelTests
         vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
         vm.Amount = 0;
 
+        // Act
         vm.ExecuteNextStep();
 
+        // Assert
         vm.ErrorMessage.Should().Contain("valid amount");
     }
 
@@ -203,10 +227,10 @@ public class BillPayViewModelTests
     public void ExecuteNextStep_WhenOnStep2AndValidLowAmount_ShouldSkipTwoFactorAuthenticationAndGoToStep4()
     {
         _apiClient
-            .Setup(a => a.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
+            .Setup(apiClient => apiClient.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
             .ReturnsAsync(new FeeResponseDto { Fee = 0.50m });
         _apiClient
-            .Setup(a => a.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
+            .Setup(apiClient => apiClient.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
             .ReturnsAsync(new Requires2FaResponseDto { Required = false });
 
         BillPayViewModel vm = CreateViewModel();
@@ -230,10 +254,10 @@ public class BillPayViewModelTests
     public void ExecuteNextStep_WhenOnStep2AndHighAmount_ShouldGoToTwoFactorAuthenticationStep3()
     {
         _apiClient
-            .Setup(a => a.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
+            .Setup(apiClient => apiClient.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
             .ReturnsAsync(new FeeResponseDto { Fee = 1.00m });
         _apiClient
-            .Setup(a => a.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
+            .Setup(apiClient => apiClient.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
             .ReturnsAsync(new Requires2FaResponseDto { Required = true });
 
         BillPayViewModel vm = CreateViewModel();
@@ -255,11 +279,14 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteNextStep_WhenOnStep3AndNotConfirmed_ShouldSetError()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 3;
 
+        // Act
         vm.ExecuteNextStep();
 
+        // Assert
         vm.ErrorMessage.Should().Contain("2FA");
     }
 
@@ -270,12 +297,15 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteBack_WhenFromReviewWithoutTwoFactorAuthentication_ShouldGoToStep2()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 4;
         vm.Requires2Fa = false;
 
+        // Act
         vm.ExecuteBack();
 
+        // Assert
         vm.CurrentStep.Should().Be(2);
     }
 
@@ -285,12 +315,15 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteBack_WhenFromReviewWithTwoFactorAuthentication_ShouldGoToStep3()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 4;
         vm.Requires2Fa = true;
 
+        // Act
         vm.ExecuteBack();
 
+        // Assert
         vm.CurrentStep.Should().Be(3);
     }
 
@@ -300,10 +333,13 @@ public class BillPayViewModelTests
     [Fact]
     public void ExecuteBack_WhenFromStep1_ShouldStayAtStep1()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
 
+        // Act
         vm.ExecuteBack();
 
+        // Assert
         vm.CurrentStep.Should().Be(1);
     }
 
@@ -316,7 +352,7 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenSuccess_ShouldSetReceiptAndGoToStep5()
     {
         _apiClient
-            .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+            .Setup(apiClient => apiClient.PostAsync<BillPayRequestDto, BillPayResponseDto>(
                 ApiEndpoints.BillPayPay,
                 It.IsAny<BillPayRequestDto>()))
             .ReturnsAsync(new BillPayResponseDto
@@ -348,7 +384,7 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenApiFails_ShouldSetErrorMessage()
     {
         _apiClient
-            .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+            .Setup(apiClient => apiClient.PostAsync<BillPayRequestDto, BillPayResponseDto>(
                 ApiEndpoints.BillPayPay,
                 It.IsAny<BillPayRequestDto>()))
             .ReturnsAsync(Error.Failure(description: "Insufficient funds"));
@@ -385,7 +421,7 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenWithSaveBiller_ShouldCallSaveEndpoint()
     {
         _apiClient
-            .Setup(a => a.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+            .Setup(apiClient => apiClient.PostAsync<BillPayRequestDto, BillPayResponseDto>(
                 ApiEndpoints.BillPayPay,
                 It.IsAny<BillPayRequestDto>()))
             .ReturnsAsync(new BillPayResponseDto
@@ -397,7 +433,7 @@ public class BillPayViewModelTests
                 Status = "Completed",
             });
         _apiClient
-            .Setup(a => a.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
+            .Setup(apiClient => apiClient.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
                 ApiEndpoints.BillPaySaveBiller,
                 It.IsAny<SaveBillerRequestDto>()))
             .ReturnsAsync(new SavedBillerDto
@@ -418,7 +454,7 @@ public class BillPayViewModelTests
         await vm.ExecutePayBillAsync();
 
         _apiClient.Verify(
-            a => a.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
+            apiClient => apiClient.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
                 ApiEndpoints.BillPaySaveBiller,
                 It.IsAny<SaveBillerRequestDto>()),
             Times.Once);
@@ -462,9 +498,13 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectedBillerName_WhenBillerSet_ShouldReturnName()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
+
+        // Act
         vm.ExecuteSelectBiller(new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities" });
 
+        // Assert
         vm.SelectedBillerName.Should().Be("Enel Energie");
     }
 
@@ -474,8 +514,10 @@ public class BillPayViewModelTests
     [Fact]
     public void SelectedBillerName_WhenNoBiller_ShouldReturnFallback()
     {
+        // Arrange & Act
         BillPayViewModel vm = CreateViewModel();
 
+        // Assert
         vm.SelectedBillerName.Should().Be("No biller selected");
     }
 
@@ -485,10 +527,12 @@ public class BillPayViewModelTests
     [Fact]
     public void Total_WhenCalled_ShouldReturnAmountPlusFee()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.Amount = 100m;
         vm.Fee = 0.50m;
 
+        // Assert
         vm.Total.Should().Be(100.50m);
     }
 
@@ -498,9 +542,11 @@ public class BillPayViewModelTests
     [Fact]
     public void ReviewAmountText_WhenPositive_ShouldShowFormattedAmount()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.Amount = 250.75m;
 
+        // Assert
         vm.ReviewAmountText.Should().Be("250.75 RON");
     }
 
@@ -510,8 +556,10 @@ public class BillPayViewModelTests
     [Fact]
     public void ReviewAmountText_WhenZero_ShouldShowPlaceholder()
     {
+        // Arrange & Act
         BillPayViewModel vm = CreateViewModel();
 
+        // Assert
         vm.ReviewAmountText.Should().Be("No amount entered");
     }
 
@@ -521,12 +569,15 @@ public class BillPayViewModelTests
     [Fact]
     public void Amount_WhenPropertyChanged_ShouldFireMultipleNotifications()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var changedProperties = new List<string>();
-        vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName!);
+        vm.PropertyChanged += (_, eventArgs) => changedProperties.Add(eventArgs.PropertyName!);
 
+        // Act
         vm.Amount = 100m;
 
+        // Assert
         changedProperties.Should().Contain("Amount");
         changedProperties.Should().Contain("ReviewAmountText");
         changedProperties.Should().Contain("Total");
@@ -539,12 +590,15 @@ public class BillPayViewModelTests
     [Fact]
     public void ErrorMessage_WhenPropertyChanged_ShouldFireVisibilityNotification()
     {
+        // Arrange
         BillPayViewModel vm = CreateViewModel();
         var changedProperties = new List<string>();
-        vm.PropertyChanged += (_, e) => changedProperties.Add(e.PropertyName!);
+        vm.PropertyChanged += (_, eventArgs) => changedProperties.Add(eventArgs.PropertyName!);
 
+        // Act
         vm.ErrorMessage = "Something went wrong";
 
+        // Assert
         changedProperties.Should().Contain("ErrorMessage");
         changedProperties.Should().Contain("ErrorMessageVisibility");
     }
@@ -598,13 +652,13 @@ public class BillPayViewModelTests
     private void SetupSuccessfulLoad()
     {
         _apiClient
-            .Setup(a => a.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers, default))
+            .Setup(apiClient => apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers, default))
             .ReturnsAsync(CreateMockBillers());
         _apiClient
-            .Setup(a => a.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers, default))
+            .Setup(apiClient => apiClient.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers, default))
             .ReturnsAsync(CreateMockSavedBillers());
         _apiClient
-            .Setup(a => a.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts, default))
+            .Setup(apiClient => apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts, default))
             .ReturnsAsync(CreateMockAccounts());
     }
 }
