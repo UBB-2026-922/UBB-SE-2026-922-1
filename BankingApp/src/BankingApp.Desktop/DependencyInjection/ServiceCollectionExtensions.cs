@@ -64,6 +64,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<RateAlertViewModel>();
         services.AddTransient<TransferViewModel>();
         services.AddTransient<BillPayViewModel>();
+        services.AddTransient<RecurringPaymentViewModel>();
         // Views are registered as transient so the navigation service can resolve them
         // through the container. Each navigation gets a fresh page instance with all
         // constructor dependencies (ViewModels, NavigationService) injected automatically.
@@ -78,6 +79,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<FXPage>();
         services.AddTransient<RateAlertsPage>();
         services.AddTransient<BillPayView>();
+        services.AddTransient<RecurringPaymentView>();
         services.AddTransient<TransferView>();
         return services;
     }
