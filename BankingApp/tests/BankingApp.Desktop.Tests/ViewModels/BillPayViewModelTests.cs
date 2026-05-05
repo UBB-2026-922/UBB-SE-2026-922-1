@@ -1,5 +1,5 @@
-﻿// <copyright file="BillPayViewModelTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillPayViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains tests for BillPayViewModel.
@@ -220,7 +220,7 @@ public class BillPayViewModelTests
 
         vm.CurrentStep.Should().Be(4);
         vm.Fee.Should().Be(0.50m);
-        vm.Requires2FA.Should().BeFalse();
+        vm.Requires2Fa.Should().BeFalse();
     }
 
     /// <summary>
@@ -246,7 +246,7 @@ public class BillPayViewModelTests
         vm.ExecuteNextStep();
 
         vm.CurrentStep.Should().Be(3);
-        vm.Requires2FA.Should().BeTrue();
+        vm.Requires2Fa.Should().BeTrue();
     }
 
     /// <summary>
@@ -272,7 +272,7 @@ public class BillPayViewModelTests
     {
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 4;
-        vm.Requires2FA = false;
+        vm.Requires2Fa = false;
 
         vm.ExecuteBack();
 
@@ -287,7 +287,7 @@ public class BillPayViewModelTests
     {
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 4;
-        vm.Requires2FA = true;
+        vm.Requires2Fa = true;
 
         vm.ExecuteBack();
 
@@ -439,7 +439,7 @@ public class BillPayViewModelTests
         vm.Amount = 500m;
         vm.Fee = 1.0m;
         vm.ReceiptNumber = "RCP-TEST";
-        vm.Is2FAConfirmed = true;
+        vm.Is2FaConfirmed = true;
 
         vm.ResetForm();
 
@@ -450,7 +450,7 @@ public class BillPayViewModelTests
         vm.Fee.Should().Be(0);
         vm.ReceiptNumber.Should().BeEmpty();
         vm.ErrorMessage.Should().BeEmpty();
-        vm.Is2FAConfirmed.Should().BeFalse();
+        vm.Is2FaConfirmed.Should().BeFalse();
         vm.ShouldSaveBiller.Should().BeFalse();
     }
 
@@ -581,7 +581,7 @@ public class BillPayViewModelTests
             new AccountDto
             {
                 Id = 1,
-                IBAN = "RO49AAAA1B31007593840000",
+                Iban = "RO49AAAA1B31007593840000",
                 Currency = "RON",
                 Balance = 8500m,
                 AccountName = "RON Account",

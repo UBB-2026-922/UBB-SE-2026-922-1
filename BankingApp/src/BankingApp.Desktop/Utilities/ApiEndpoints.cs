@@ -69,17 +69,17 @@ public static class ApiEndpoints
     /// <summary>GET api/profile/sessions — list active sessions. DELETE api/profile/sessions/{id} — revoke a session.</summary>
     public const string Sessions = "api/profile/sessions";
 
-    /// <summary>GET api/bill-payment/billers — list active billers, optionally filtered by category.</summary>
-    public const string BillPayBillers = "api/bill-payment/billers";
+    /// <summary>GET api/billers - list active billers, optionally filtered by category.</summary>
+    public const string BillPayBillers = "api/billers";
 
-    /// <summary>GET api/bill-payment/billers/search — search billers by name and/or category.</summary>
-    public const string BillPayBillersSearch = "api/bill-payment/billers/search";
+    /// <summary>GET api/billers - search billers by name and/or category.</summary>
+    public const string BillPayBillersSearch = "api/billers";
 
-    /// <summary>GET api/bill-payment/saved-billers — list saved billers for the current user.</summary>
-    public const string BillPaySavedBillers = "api/bill-payment/saved-billers";
+    /// <summary>GET api/billers/saved - list saved billers for the current user.</summary>
+    public const string BillPaySavedBillers = "api/billers/saved";
 
-    /// <summary>POST api/bill-payment/saved-billers — save a biller for future use.</summary>
-    public const string BillPaySaveBiller = "api/bill-payment/saved-billers";
+    /// <summary>POST api/billers/saved - save a biller for future use.</summary>
+    public const string BillPaySaveBiller = "api/billers/saved";
 
     /// <summary>GET api/bill-payment/accounts — list available accounts for bill payment.</summary>
     public const string BillPayAccounts = "api/bill-payment/accounts";

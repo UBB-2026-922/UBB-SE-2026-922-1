@@ -14,9 +14,7 @@
     <ScrollViewer>
         <StackPanel Spacing="20" Padding="32" MaxWidth="700" HorizontalAlignment="Left">
 
-            <!-- ══════════════════════════════════════════
-                 STEP 1 — Select Biller
-                 ══════════════════════════════════════════ -->
+            <!-- STEP 1 - Select Biller -->
             <Border
                 Padding="24"
                 CornerRadius="12"
@@ -67,13 +65,10 @@
                             <ListView.ItemTemplate>
                                 <DataTemplate x:DataType="dto:SavedBillerDto">
                                     <StackPanel Padding="6">
-                                        <TextBlock Text="{Binding Nickname}"
+                                        <TextBlock Text="{Binding DisplayName}"
                                                    FontWeight="SemiBold"
                                                    Foreground="White" />
-                                        <TextBlock Text="{Binding Biller.Name}"
-                                                   FontSize="14"
-                                                   Foreground="#AAA" />
-                                        <TextBlock Text="{Binding Biller.Category}"
+                                        <TextBlock Text="{Binding DisplayCategory}"
                                                    FontSize="12"
                                                    Foreground="#777" />
                                     </StackPanel>
@@ -120,9 +115,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════════════════
-                 STEP 2 — Payment Details
-                 ══════════════════════════════════════════ -->
+            <!-- STEP 2 - Payment Details -->
             <Border
                 Padding="24"
                 CornerRadius="12"
@@ -167,7 +160,7 @@
                                     <TextBlock Text="{Binding AccountName}"
                                                FontWeight="SemiBold"
                                                Foreground="White" />
-                                    <TextBlock Text="{Binding IBAN}"
+                                    <TextBlock Text="{Binding Iban}"
                                                FontSize="13"
                                                Foreground="#AAA" />
                                     <TextBlock FontSize="12" Foreground="#777">
@@ -197,9 +190,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════════════════
-                 STEP 3 — 2FA Confirmation
-                 ══════════════════════════════════════════ -->
+            <!-- STEP 3 - 2FA Confirmation -->
             <Border
                 Padding="24"
                 CornerRadius="12"
@@ -208,24 +199,22 @@
                 BorderThickness="1"
                 Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=3}">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="Step 3 — 2FA Confirmation"
+                    <TextBlock Text="Step 3 - 2FA Confirmation"
                                FontSize="16" FontWeight="SemiBold"
                                Foreground="White"
                                HorizontalAlignment="Center"/>
                     <CheckBox Content="I confirm this transaction"
-                              IsChecked="{Binding Is2FAConfirmed, Mode=TwoWay}"
+                              IsChecked="{Binding Is2FaConfirmed, Mode=TwoWay}"
                               HorizontalAlignment="Center"
                               Foreground="White" />
                     <Button Content="Next"
                             Command="{Binding NextStepCommand}"
-                            IsEnabled="{Binding Is2FAConfirmed, Mode=OneWay}"
+                            IsEnabled="{Binding Is2FaConfirmed, Mode=OneWay}"
                             HorizontalAlignment="Center" Width="150"/>
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════════════════
-                 STEP 4 — Review & Confirm
-                 ══════════════════════════════════════════ -->
+            <!-- STEP 4 - Review and Confirm -->
             <Border
                 Padding="24"
                 CornerRadius="12"
@@ -268,7 +257,7 @@
                     <StackPanel Spacing="4">
                         <TextBlock Text="Source account" FontWeight="SemiBold" Foreground="#4ECDC4" />
                         <TextBlock Text="{Binding SelectedAccount.AccountName}" Foreground="White" />
-                        <TextBlock Text="{Binding SelectedAccount.IBAN}" Foreground="#AAA" />
+                        <TextBlock Text="{Binding SelectedAccount.Iban}" Foreground="#AAA" />
                     </StackPanel>
 
                     <TextBlock Text="{Binding ErrorMessage}"
@@ -285,9 +274,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- ══════════════════════════════════════════
-                 STEP 5 — Payment Result
-                 ══════════════════════════════════════════ -->
+            <!-- STEP 5 - Payment Result -->
             <Border
                 Padding="24"
                 CornerRadius="12"

@@ -1,5 +1,5 @@
-﻿// <copyright file="BillPaymentController.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillPaymentController.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BillPaymentController class.
@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BankingApp.Api.Controllers;
 
 /// <summary>
-///     Stub controller providing bill payment endpoints with mock data.
+///     Controller providing bill-payment endpoints used by the desktop client.
 /// </summary>
 [ApiController]
 [Route("api/bill-payment")]
@@ -59,10 +59,10 @@ public class BillPaymentController : ControllerBase
 
     private static readonly List<AccountDto> MockAccounts =
     [
-        new() { Id = 1, IBAN = "RO49AAAA1B31007593840000", Currency = "EUR", Balance = 5000.00m, AccountName = "Main EUR Account", Status = "Active" },
-        new() { Id = 2, IBAN = "RO49AAAA1B31007593840001", Currency = "USD", Balance = 1200.00m, AccountName = "USD Account", Status = "Active" },
-        new() { Id = 3, IBAN = "RO49AAAA1B31007593840002", Currency = "RON", Balance = 8500.00m, AccountName = "RON Account", Status = "Active" },
-        new() { Id = 4, IBAN = "RO49AAAA1B31007593840003", Currency = "EUR", Balance = 300.00m, AccountName = "Savings EUR Account", Status = "Active" },
+        new() { Id = 1, Iban = "RO49AAAA1B31007593840000", Currency = "EUR", Balance = 5000.00m, AccountName = "Main EUR Account", Status = "Active" },
+        new() { Id = 2, Iban = "RO49AAAA1B31007593840001", Currency = "USD", Balance = 1200.00m, AccountName = "USD Account", Status = "Active" },
+        new() { Id = 3, Iban = "RO49AAAA1B31007593840002", Currency = "RON", Balance = 8500.00m, AccountName = "RON Account", Status = "Active" },
+        new() { Id = 4, Iban = "RO49AAAA1B31007593840003", Currency = "EUR", Balance = 300.00m, AccountName = "Savings EUR Account", Status = "Active" },
     ];
 
     /// <summary>Returns the biller directory, optionally filtered by category.</summary>

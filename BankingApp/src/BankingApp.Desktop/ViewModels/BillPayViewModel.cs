@@ -1,5 +1,5 @@
-﻿// <copyright file="BillPayViewModel.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillPayViewModel.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BillPayViewModel class.
@@ -56,9 +56,9 @@ public class BillPayViewModel : INotifyPropertyChanged
     private decimal _fee;
     private string _receiptNumber = string.Empty;
     private string _errorMessage = string.Empty;
-    private bool _requires2FA;
-    private bool _is2FAConfirmed;
-    private string _twoFAToken = string.Empty;
+    private bool _requires2Fa;
+    private bool _is2FaConfirmed;
+    private string _twoFaToken = string.Empty;
     private bool _shouldSaveBiller;
 
     /// <summary>
@@ -237,24 +237,24 @@ public class BillPayViewModel : INotifyPropertyChanged
     }
 
     /// <summary>Gets or sets a value indicating whether 2FA is required.</summary>
-    public bool Requires2FA
+    public bool Requires2Fa
     {
-        get => _requires2FA;
-        set => SetProperty(ref _requires2FA, value);
+        get => _requires2Fa;
+        set => SetProperty(ref _requires2Fa, value);
     }
 
     /// <summary>Gets or sets a value indicating whether the user confirmed 2FA.</summary>
-    public bool Is2FAConfirmed
+    public bool Is2FaConfirmed
     {
-        get => _is2FAConfirmed;
-        set => SetProperty(ref _is2FAConfirmed, value);
+        get => _is2FaConfirmed;
+        set => SetProperty(ref _is2FaConfirmed, value);
     }
 
     /// <summary>Gets or sets the generated 2FA token.</summary>
-    public string TwoFAToken
+    public string TwoFaToken
     {
-        get => _twoFAToken;
-        set => SetProperty(ref _twoFAToken, value);
+        get => _twoFaToken;
+        set => SetProperty(ref _twoFaToken, value);
     }
 
     /// <summary>Gets or sets a value indicating whether to save the biller.</summary>
@@ -357,7 +357,7 @@ public class BillPayViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
             string query = SearchQuery ?? string.Empty;
-            string endpoint = $"{ApiEndpoints.BillPayBillersSearch}?query={Uri.EscapeDataString(query)}";
+            string endpoint = $"{ApiEndpoints.BillPayBillersSearch}?search={Uri.EscapeDataString(query)}";
             if (!string.IsNullOrWhiteSpace(SelectedCategory))
             {
                 endpoint += $"&category={Uri.EscapeDataString(SelectedCategory)}";
@@ -395,9 +395,9 @@ public class BillPayViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (parameter is SavedBillerDto savedBiller && savedBiller.Biller != null)
+        if (parameter is SavedBillerDto savedBiller)
         {
-            SelectedBiller = savedBiller.Biller;
+            SelectedBiller = savedBiller.ToBiller();
             if (!string.IsNullOrWhiteSpace(savedBiller.DefaultReference))
             {
                 BillerReference = savedBiller.DefaultReference!;
@@ -461,23 +461,23 @@ public class BillPayViewModel : INotifyPropertyChanged
             var twoFaResult = _apiClient
                 .GetAsync<Requires2FaResponseDto>($"{ApiEndpoints.BillPayRequires2Fa}?amount={Amount}")
                 .GetAwaiter().GetResult();
-            Requires2FA = !twoFaResult.IsError && twoFaResult.Value.Required;
+            Requires2Fa = !twoFaResult.IsError && twoFaResult.Value.Required;
 
-            CurrentStep = Requires2FA ? TwoFactorAuthenticationStep : ReviewAndConfirmStep;
+            CurrentStep = Requires2Fa ? TwoFactorAuthenticationStep : ReviewAndConfirmStep;
             return;
         }
 
         if (CurrentStep == TwoFactorAuthenticationStep)
         {
-            if (!Is2FAConfirmed)
+            if (!Is2FaConfirmed)
             {
                 ErrorMessage = "You must confirm the 2FA step.";
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(TwoFAToken))
+            if (string.IsNullOrWhiteSpace(TwoFaToken))
             {
-                TwoFAToken = GenerateTwoFAToken();
+                TwoFaToken = GenerateTwoFaToken();
             }
 
             CurrentStep = ReviewAndConfirmStep;
@@ -493,11 +493,11 @@ public class BillPayViewModel : INotifyPropertyChanged
 
         if (CurrentStep > SelectBillerStep)
         {
-            if (CurrentStep == ReviewAndConfirmStep && Requires2FA)
+            if (CurrentStep == ReviewAndConfirmStep && Requires2Fa)
             {
                 CurrentStep = TwoFactorAuthenticationStep;
             }
-            else if (CurrentStep == ReviewAndConfirmStep && !Requires2FA)
+            else if (CurrentStep == ReviewAndConfirmStep && !Requires2Fa)
             {
                 CurrentStep = PaymentDetailsStep;
             }
@@ -549,7 +549,7 @@ public class BillPayViewModel : INotifyPropertyChanged
                 BillerReference = BillerReference,
                 Amount = Amount,
                 IsPayInFull = false,
-                TwoFAToken = Requires2FA ? TwoFAToken : null,
+                TwoFaToken = Requires2Fa ? TwoFaToken : null,
             };
 
             var payResult = await _apiClient
@@ -612,7 +612,7 @@ public class BillPayViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private string GenerateTwoFAToken()
+    private string GenerateTwoFaToken()
     {
         var random = new Random();
         return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive).ToString();
@@ -631,9 +631,9 @@ public class BillPayViewModel : INotifyPropertyChanged
         SelectedAccount = null;
         IsPayInFull = false;
         ShouldSaveBiller = false;
-        Requires2FA = false;
-        Is2FAConfirmed = false;
-        TwoFAToken = string.Empty;
+        Requires2Fa = false;
+        Is2FaConfirmed = false;
+        TwoFaToken = string.Empty;
     }
 
     private void ApplySavedDefaultsForSelectedBiller()

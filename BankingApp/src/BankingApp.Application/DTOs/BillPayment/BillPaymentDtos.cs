@@ -1,5 +1,5 @@
-﻿// <copyright file="BillPaymentDtos.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillPaymentDtos.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains DTOs for the bill payment feature.
@@ -73,6 +73,24 @@ public class SavedBillerDto
     public string? Nickname { get; set; }
 
     /// <summary>
+    ///     Gets or sets the biller name returned by the main billers API.
+    /// </summary>
+    /// <value>The biller name.</value>
+    public string BillerName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Gets or sets the biller category returned by the main billers API.
+    /// </summary>
+    /// <value>The biller category.</value>
+    public string BillerCategory { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Gets or sets the biller logo URL returned by the main billers API.
+    /// </summary>
+    /// <value>The biller logo URL.</value>
+    public string? LogoUrl { get; set; }
+
+    /// <summary>
     ///     Gets or sets the default reference to pre-fill on selection.
     /// </summary>
     /// <value>The default reference.</value>
@@ -89,6 +107,34 @@ public class SavedBillerDto
     /// </summary>
     /// <value>The biller details.</value>
     public BillerDto? Biller { get; set; }
+
+    /// <summary>
+    ///     Gets the display name for the saved biller.
+    /// </summary>
+    /// <value>The display name.</value>
+    public string DisplayName => string.IsNullOrWhiteSpace(Nickname) ? BillerName : Nickname;
+
+    /// <summary>
+    ///     Gets the category display text for the saved biller.
+    /// </summary>
+    /// <value>The category display text.</value>
+    public string DisplayCategory => Biller?.Category ?? BillerCategory;
+
+    /// <summary>
+    ///     Converts the saved biller response into a biller selection.
+    /// </summary>
+    /// <returns>The selected biller.</returns>
+    public BillerDto ToBiller()
+    {
+        return Biller ?? new BillerDto
+        {
+            Id = BillerId,
+            Name = BillerName,
+            Category = BillerCategory,
+            LogoUrl = LogoUrl,
+            IsActive = true,
+        };
+    }
 }
 
 /// <summary>
@@ -130,7 +176,7 @@ public class BillPayRequestDto
     ///     Gets or sets the optional 2FA token for high-value payments.
     /// </summary>
     /// <value>The 2FA token.</value>
-    public string? TwoFAToken { get; set; }
+    public string? TwoFaToken { get; set; }
 }
 
 /// <summary>
@@ -232,7 +278,7 @@ public class AccountDto
     ///     Gets or sets the account IBAN.
     /// </summary>
     /// <value>The IBAN.</value>
-    public string IBAN { get; set; } = string.Empty;
+    public string Iban { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the account currency.
