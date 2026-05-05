@@ -5,15 +5,14 @@
 // Contains the ServiceCollectionExtensions class.
 // </summary>
 
-using BankingApp.Application.Services.Billers;
 using BankingApp.Application.Services.Beneficiary;
+using BankingApp.Application.Services.Billers;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Transfers;
-using BankingApp.Application.Services.Beneficiary;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BankingApp.Application.DependencyInjection;

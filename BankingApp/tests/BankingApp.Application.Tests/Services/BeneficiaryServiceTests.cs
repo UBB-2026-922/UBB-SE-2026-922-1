@@ -1,5 +1,5 @@
-﻿// <copyright file="BeneficiaryServiceTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BeneficiaryServiceTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Application.Repositories.Interfaces;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
-///     Unit tests for BeneficiaryService />.
+///     Unit tests for <see cref="BeneficiaryService" />.
 /// </summary>
 public class BeneficiaryServiceTests
 {
