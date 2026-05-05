@@ -174,7 +174,7 @@ public class PasswordRecoveryManagerTests
     }
 
     /// <summary>
-    ///     Controllable system clock stub — advances on demand so time-dependent logic can be tested deterministically.
+    ///     Controllable system clock stub - advances on demand so time-dependent logic can be tested deterministically.
     /// </summary>
     private sealed class FakeSystemClock : ISystemClock
     {

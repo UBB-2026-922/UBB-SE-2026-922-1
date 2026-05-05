@@ -1,6 +1,8 @@
 .vs/
 bin/
 obj/
+**/bin/
+**/obj/
 *.user
 *.suo
 .idea/
@@ -13,6 +15,10 @@ appsettings.Local.json
 
 # Tests
 TestResults/
+**/TestResults/
+*.trx
+*.coverage
+coverage.cobertura.xml
 
-# Chache
+# Cache
 **/__pycache__/

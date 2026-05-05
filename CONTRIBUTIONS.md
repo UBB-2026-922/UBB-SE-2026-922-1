@@ -66,6 +66,13 @@ If this document and StyleCop conflict, either follow StyleCop or update the Sty
 20. Add XML documentation to public APIs when the type or member is part of a cross-project contract.
 21. Write comments only when they explain intent, business rules, non-obvious tradeoffs, or external constraints.
 22. In XAML, use clear `x:Name` values for elements referenced from code-behind, keep bindings explicit, and use observable state (`INotifyPropertyChanged` or observable collections) when UI data changes after load.
+23. Name test methods with the `MethodOrScenario_WhenCondition_ExpectedResult` pattern.
+24. Structure tests with clear Arrange, Act, and Assert sections when the test has more than one step.
+25. Use focused unit tests for application/domain behavior and integration tests only when process, database, API routing, or dependency wiring must be verified.
+26. Mock dependencies at project boundaries; do not mock the class under test.
+27. Test expected failures and edge cases, not only the successful path.
+28. Keep test data explicit and local to the test unless sharing it removes real duplication without hiding intent.
+29. Do not introduce alternate databases or infrastructure providers in tests unless they are already approved for the project.
 
 ## Branch naming and Commit messages
 

@@ -53,7 +53,7 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<AppDatabaseContext>(options =>
             options.UseSqlServer(connectionString)
-                   .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
+                   .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
         services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
@@ -69,12 +69,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<IBillerDataAccess, BillerDataAccess>();
+        services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
+        services.AddScoped<IBillerRepository, BillerRepository>();
         services.AddScoped<ITransferDataAccess, TransferDataAccess>();
 
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
 
-        // ── Team B — Landing Zones (NotImplementedException) ─────────────────────
         // These registrations wire the interfaces defined in the Application layer to the
         // skeleton repository implementations in the Infrastructure layer.
         // Each skeleton throws NotImplementedException until replaced by a real implementation.
@@ -87,5 +89,4 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
-
 }
