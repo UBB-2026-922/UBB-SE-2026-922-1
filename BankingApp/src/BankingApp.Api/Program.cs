@@ -18,6 +18,7 @@ const string defaultLogFilePath = "logs/bankingapp-server-.log";
 const int retainedLogFileCountLimit = 14;
 const int commandLineExecutableArgumentCount = 1;
 const int internalServerErrorStatusCode = StatusCodes.Status500InternalServerError;
+const string applyDatabaseMigrationsConfigurationKey = "Database:ApplyMigrations";
 
 // Configure Serilog before building the host so that startup errors are also captured.
 Log.Logger = new LoggerConfiguration()
@@ -74,7 +75,12 @@ try
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     WebApplication application = builder.Build();
-    if (!application.Environment.IsEnvironment("Testing"))
+    bool applyDatabaseMigrations = bool.TryParse(
+        application.Configuration[applyDatabaseMigrationsConfigurationKey],
+        out bool configuredApplyDatabaseMigrations)
+        ? configuredApplyDatabaseMigrations
+        : true;
+    if (applyDatabaseMigrations && !application.Environment.IsEnvironment("Testing"))
     {
         using IServiceScope scope = application.Services.CreateScope();
         AppDatabaseContext databaseContext = scope.ServiceProvider.GetRequiredService<AppDatabaseContext>();

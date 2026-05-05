@@ -33,7 +33,10 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     public BankingAppWebFactory()
     {
         // These environment variables must be set before the host is built so that
-        // AddInfrastructure does not throw during startup configuration.
+        // AddInfrastructure does not throw and Program.cs does not run migrations.
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
+        Environment.SetEnvironmentVariable("Database__ApplyMigrations", "false");
         Environment.SetEnvironmentVariable("ConnectionStrings__BankingAppDb", TestConnectionString);
         Environment.SetEnvironmentVariable("Jwt__Secret", "integration-test-secret-that-is-long-enough-for-hmac");
         Environment.SetEnvironmentVariable("Otp__Secret", "integration-test-otp-secret-placeholder");

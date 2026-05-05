@@ -17,7 +17,7 @@ namespace BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 ///     shares one MsSqlContainer for the lifetime of that class.
 ///     Call <see cref="ResetAsync" /> before each test to wipe all data cleanly.
 /// </summary>
-// ReSharper disable once ClassNeverInstantiated.Global — xUnit instantiates fixtures via reflection.
+// ReSharper disable once ClassNeverInstantiated.Global - xUnit instantiates fixtures via reflection.
 public sealed class DatabaseFixture : IAsyncLifetime
 {
     private readonly MsSqlContainer _databaseContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2025-latest")
@@ -70,7 +70,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
     {
         DbContextOptions<AppDatabaseContext> options = new DbContextOptionsBuilder<AppDatabaseContext>()
             .UseSqlServer(_connectionString)
-            .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning))
+            .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
         return new AppDatabaseContext(options);
     }
