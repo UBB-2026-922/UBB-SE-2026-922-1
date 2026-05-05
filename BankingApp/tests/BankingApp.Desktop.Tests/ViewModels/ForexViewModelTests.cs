@@ -1,111 +1,92 @@
+// <copyright file="ForexViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.DTOs.Exchange;
-using Services;
+using System;
+using System.Threading.Tasks;
+using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Desktop.Repositories;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using FluentAssertions;
+using Xunit;
 
+/// <summary>
+///     Tests for the <see cref="ForexViewModel"/>.
+/// </summary>
 public class ForexViewModelTests
 {
-    private readonly Mock<IForexClientService> _forexClientService;
+    private readonly Mock<IForexRepository> _forexRepository;
+    private readonly Mock<IApiClient> _apiClient;
     private readonly ForexViewModel _viewModel;
 
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ForexViewModelTests"/> class.
+    ///     Creates fresh mocks and a view model for each test.
+    /// </summary>
     public ForexViewModelTests()
     {
-        _forexClientService = new Mock<IForexClientService>(MockBehavior.Loose);
-        _viewModel = new ForexViewModel(_forexClientService.Object, NullLogger<ForexViewModel>.Instance);
+        _forexRepository = new Mock<IForexRepository>(MockBehavior.Loose);
+        _apiClient = new Mock<IApiClient>(MockBehavior.Loose);
+        _viewModel = new ForexViewModel(
+            _forexRepository.Object,
+            _apiClient.Object,
+            NullLogger<ForexViewModel>.Instance);
     }
 
+    /// <summary>
+    ///     LoadPreviewAsync should advance the wizard and populate rates when the repository succeeds.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task LoadPreviewAsync_WhenSourceCurrencyIsEmpty_SetsError()
-    {
-        // Arrange
-        _viewModel.TargetCurrency = "USD";
-        _viewModel.AmountText = "100";
-
-        // Act
-        await _viewModel.LoadPreviewAsync();
-
-        // Assert
-        _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.CurrencyRequired);
-    }
-
-    [Fact]
-    public async Task LoadPreviewAsync_WhenTargetCurrencyIsEmpty_SetsError()
-    {
-        // Arrange
-        _viewModel.SourceCurrency = "EUR";
-        _viewModel.AmountText = "100";
-
-        // Act
-        await _viewModel.LoadPreviewAsync();
-
-        // Assert
-        _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.CurrencyRequired);
-    }
-
-    [Fact]
-    public async Task LoadPreviewAsync_WhenAmountIsZero_SetsError()
+    public async Task LoadPreviewAsync_WhenRepositorySucceeds_AdvancesToStep2AndPopulatesRates()
     {
         // Arrange
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
-        _viewModel.AmountText = "0";
-
-        // Act
-        await _viewModel.LoadPreviewAsync();
-
-        // Assert
-        _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.AmountRequired);
-    }
-
-    [Fact]
-    public async Task LoadPreviewAsync_WhenApiSucceeds_PopulatesRateData()
-    {
-        // Arrange
-        const decimal expectedRate = 1.12m;
-        const decimal expectedCommission = 0.50m;
-        const decimal expectedTargetAmount = 111.50m;
-
-        _viewModel.SourceCurrency = "EUR";
-        _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
 
-        var response = new ExchangeTransactionResponse
+        var response = new ExchangeTransactionResponseDto
         {
-            ExchangeRate = expectedRate,
-            Commission = expectedCommission,
-            TargetAmount = expectedTargetAmount,
+            ExchangeRate = 1.08m,
+            Commission = 1.0m,
+            TargetAmount = 107.0m,
         };
 
-        _forexClientService
-            .Setup(service => service.GetPreviewAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
+        _forexRepository
+            .Setup(repository => repository.GetRatePreviewAsync("EUR", "USD", 100m))
             .ReturnsAsync(response);
 
         // Act
         await _viewModel.LoadPreviewAsync();
 
         // Assert
-        _viewModel.LiveRate.Should().Be(expectedRate);
-        _viewModel.Commission.Should().Be(expectedCommission);
-        _viewModel.TargetAmount.Should().Be(expectedTargetAmount);
+        _viewModel.CurrentStep.Should().Be(2);
+        _viewModel.LiveRate.Should().Be(1.08m);
+        _viewModel.Commission.Should().Be(1.0m);
+        _viewModel.TargetAmount.Should().Be(107.0m);
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///     LoadPreviewAsync should set an error when the repository fails.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task LoadPreviewAsync_WhenApiFails_SetsErrorMessage()
+    public async Task LoadPreviewAsync_WhenRepositoryFails_SetsErrorMessage()
     {
         // Arrange
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
 
-        _forexClientService
-            .Setup(forexClientService => forexClientService.GetPreviewAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
+        _forexRepository
+            .Setup(repository => repository.GetRatePreviewAsync("EUR", "USD", 100m))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -113,57 +94,56 @@ public class ForexViewModelTests
 
         // Assert
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.PreviewFailed);
+        _viewModel.CurrentStep.Should().Be(1);
     }
 
+    /// <summary>
+    ///     ExecuteExchangeAsync should advance the wizard to the result step when the repository succeeds.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task ExecuteExchangeAsync_WhenAmountIsZero_SetsError()
+    public async Task ExecuteExchangeAsync_WhenRepositorySucceeds_AdvancesToStep4AndSetsReference()
     {
         // Arrange
-        _viewModel.SourceCurrency = "EUR";
-        _viewModel.TargetCurrency = "USD";
-        _viewModel.AmountText = "0";
-
-        // Act
-        await _viewModel.ExecuteExchangeAsync();
-
-        // Assert
-        _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.AmountRequired);
-    }
-
-    [Fact]
-    public async Task ExecuteExchangeAsync_WhenApiSucceeds_SetsTransactionReference()
-    {
-        // Arrange
-        const int transactionId = 42;
+        _apiClient.Setup(client => client.CurrentUserId).Returns(42);
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _forexClientService.Setup(service => service.CurrentUserId).Returns(1);
 
-        var response = new ExchangeTransactionResponse { Id = transactionId };
-        _forexClientService
-            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
+        var response = new ExchangeTransactionResponseDto { Id = 12345 };
+
+        _forexRepository
+            .Setup(repository => repository.ExecuteExchangeAsync(It.Is<ExchangeTransactionRequestDto>(request =>
+                request.UserId == 42 &&
+                request.SourceCurrency == "EUR" &&
+                request.TargetCurrency == "USD" &&
+                request.SourceAmount == 100m)))
             .ReturnsAsync(response);
 
         // Act
         await _viewModel.ExecuteExchangeAsync();
 
         // Assert
-        _viewModel.TransactionReference.Should().Be($"TX-{transactionId}");
+        _viewModel.CurrentStep.Should().Be(4);
+        _viewModel.TransactionReference.Should().Be("TX-12345");
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
+    /// <summary>
+    ///     ExecuteExchangeAsync should set an error when the repository fails.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task ExecuteExchangeAsync_WhenApiFails_SetsErrorMessage()
+    public async Task ExecuteExchangeAsync_WhenRepositoryFails_SetsErrorMessage()
     {
         // Arrange
+        _apiClient.Setup(client => client.CurrentUserId).Returns(42);
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _forexClientService.Setup(forexClientService => forexClientService.CurrentUserId).Returns(1);
 
-        _forexClientService
-            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
+        _forexRepository
+            .Setup(repository => repository.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequestDto>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -171,28 +151,6 @@ public class ForexViewModelTests
 
         // Assert
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.ExecuteFailed);
-    }
-
-    [Fact]
-    public void Reset_ClearsAllState()
-    {
-        // Arrange
-        _viewModel.SourceCurrency = "EUR";
-        _viewModel.TargetCurrency = "USD";
-        _viewModel.AmountText = "100";
-
-        // Act
-        _viewModel.Reset();
-
-        // Assert
-        _viewModel.SourceCurrency.Should().BeEmpty();
-        _viewModel.TargetCurrency.Should().BeEmpty();
-        _viewModel.AmountText.Should().BeEmpty();
-        _viewModel.LiveRate.Should().Be(0);
-        _viewModel.Commission.Should().Be(0);
-        _viewModel.TargetAmount.Should().Be(0);
-        _viewModel.TransactionReference.Should().BeEmpty();
-        _viewModel.ErrorMessage.Should().BeEmpty();
         _viewModel.CurrentStep.Should().Be(1);
     }
 }

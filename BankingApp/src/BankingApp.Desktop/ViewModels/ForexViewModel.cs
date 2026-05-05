@@ -1,18 +1,27 @@
+// <copyright file="ForexViewModel.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the ForexViewModel class.
+// </summary>
+
 namespace BankingApp.Desktop.ViewModels;
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Application.DTOs.Exchange;
-using Services;
-using Utilities;
+using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Desktop.Repositories;
+using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Manages exchange-rate preview and foreign-exchange execution for the desktop client.
+///     View model for the Forex currency exchange page. Drives a multi-step wizard
+///     that lets the user preview rates, lock a rate, and execute the exchange.
 /// </summary>
 public partial class ForexViewModel : INotifyPropertyChanged
 {
@@ -24,7 +33,8 @@ public partial class ForexViewModel : INotifyPropertyChanged
 
     private static readonly string[] _collection = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
-    private readonly IForexClientService _forexClientService;
+    private readonly IForexRepository _forexRepository;
+    private readonly IApiClient _apiClient;
     private readonly ILogger<ForexViewModel> _logger;
 
     private int _currentStep;
@@ -40,56 +50,48 @@ public partial class ForexViewModel : INotifyPropertyChanged
     private bool _isLoading;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ForexViewModel"/> class.
+    ///     Initializes a new instance of the <see cref="ForexViewModel"/> class.
     /// </summary>
-    /// <param name="forexClientService">Provides exchange preview and execution operations.</param>
-    /// <param name="logger">Writes operational diagnostics for the exchange flow.</param>
-    public ForexViewModel(IForexClientService forexClientService, ILogger<ForexViewModel> logger)
+    /// <param name="forexRepository">The repository for exchange data access.</param>
+    /// <param name="apiClient">The API client (used only for current user identity).</param>
+    /// <param name="logger">Logger for exchange errors.</param>
+    public ForexViewModel(IForexRepository forexRepository, IApiClient apiClient, ILogger<ForexViewModel> logger)
     {
-        _forexClientService = forexClientService ?? throw new ArgumentNullException(nameof(forexClientService));
+        _forexRepository = forexRepository ?? throw new ArgumentNullException(nameof(forexRepository));
+        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _currentStep = InitialStep;
         AvailableCurrencies = new ObservableCollection<string>(_collection);
     }
 
-    /// <inheritdoc />
+    /// <inheritdoc/>
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    /// <summary>
-    /// Gets the currencies available for exchange.
-    /// </summary>
+    /// <summary>Gets the available currencies for selection.</summary>
     public ObservableCollection<string> AvailableCurrencies { get; }
 
-    /// <summary>
-    /// Gets or sets the current step in the exchange flow.
-    /// </summary>
+    /// <summary>Gets or sets the current wizard step.</summary>
     public int CurrentStep
     {
         get => _currentStep;
-        private set => SetProperty(ref _currentStep, value);
+        set => SetProperty(ref _currentStep, value);
     }
 
-    /// <summary>
-    /// Gets or sets the currency being sold.
-    /// </summary>
+    /// <summary>Gets or sets the ISO 4217 source currency code.</summary>
     public string SourceCurrency
     {
         get => _sourceCurrency;
         set => SetProperty(ref _sourceCurrency, value);
     }
 
-    /// <summary>
-    /// Gets or sets the currency being bought.
-    /// </summary>
+    /// <summary>Gets or sets the ISO 4217 target currency code.</summary>
     public string TargetCurrency
     {
         get => _targetCurrency;
         set => SetProperty(ref _targetCurrency, value);
     }
 
-    /// <summary>
-    /// Gets or sets the source amount as entered by the user.
-    /// </summary>
+    /// <summary>Gets or sets the raw text from the amount input field.</summary>
     public string AmountText
     {
         get => _amountText;
@@ -102,59 +104,45 @@ public partial class ForexViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Gets the parsed source amount.
-    /// </summary>
+    /// <summary>Gets the parsed decimal amount.</summary>
     public decimal Amount => _amount;
 
-    /// <summary>
-    /// Gets or sets the live exchange rate shown in the preview.
-    /// </summary>
+    /// <summary>Gets or sets the live exchange rate.</summary>
     public decimal LiveRate
     {
         get => _liveRate;
-        private set => SetProperty(ref _liveRate, value);
+        set => SetProperty(ref _liveRate, value);
     }
 
-    /// <summary>
-    /// Gets or sets the commission shown in the preview.
-    /// </summary>
+    /// <summary>Gets or sets the commission for this exchange.</summary>
     public decimal Commission
     {
         get => _commission;
-        private set => SetProperty(ref _commission, value);
+        set => SetProperty(ref _commission, value);
     }
 
-    /// <summary>
-    /// Gets or sets the target amount shown in the preview.
-    /// </summary>
+    /// <summary>Gets or sets the computed target amount after conversion.</summary>
     public decimal TargetAmount
     {
         get => _targetAmount;
-        private set => SetProperty(ref _targetAmount, value);
+        set => SetProperty(ref _targetAmount, value);
     }
 
-    /// <summary>
-    /// Gets or sets the reference of the completed exchange transaction.
-    /// </summary>
+    /// <summary>Gets or sets the reference number of the completed transaction.</summary>
     public string TransactionReference
     {
         get => _transactionReference;
-        private set => SetProperty(ref _transactionReference, value);
+        set => SetProperty(ref _transactionReference, value);
     }
 
-    /// <summary>
-    /// Gets or sets the current user-facing error message.
-    /// </summary>
+    /// <summary>Gets or sets the most recent error message to display.</summary>
     public string ErrorMessage
     {
         get => _errorMessage;
-        private set => SetProperty(ref _errorMessage, value);
+        set => SetProperty(ref _errorMessage, value);
     }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the exchange flow is busy.
-    /// </summary>
+    /// <summary>Gets or sets a value indicating whether an API call is in progress.</summary>
     public bool IsLoading
     {
         get => _isLoading;
@@ -162,9 +150,9 @@ public partial class ForexViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Loads an exchange preview for the current currencies and amount.
+    ///     Fetches a rate preview from the repository and advances the wizard to the preview step.
     /// </summary>
-    /// <returns>A task that completes when the preview request finishes.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task LoadPreviewAsync()
     {
         ErrorMessage = string.Empty;
@@ -184,17 +172,17 @@ public partial class ForexViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            ErrorOr<ExchangeTransactionResponse> result =
-                await _forexClientService.GetPreviewAsync(SourceCurrency, TargetCurrency, _amount);
+            ErrorOr<ExchangeTransactionResponseDto> result =
+                await _forexRepository.GetRatePreviewAsync(SourceCurrency, TargetCurrency, _amount);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.Exchange.PreviewFailed;
-                _logger.RatePreviewFailed(result.Errors);
+                _logger.LogError("Rate preview failed: {Errors}", result.Errors);
                 return;
             }
 
-            ExchangeTransactionResponse preview = result.Value;
+            ExchangeTransactionResponseDto preview = result.Value;
             LiveRate = preview.ExchangeRate;
             Commission = preview.Commission;
             TargetAmount = preview.TargetAmount;
@@ -203,7 +191,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.RatePreviewFailedUnexpected(exception);
+            _logger.LogError(exception, "Rate preview failed unexpectedly");
         }
         finally
         {
@@ -212,9 +200,9 @@ public partial class ForexViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Executes the exchange using the values currently shown in the flow.
+    ///     Executes the currency exchange via the repository and advances to the result step.
     /// </summary>
-    /// <returns>A task that completes when the exchange request finishes.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task ExecuteExchangeAsync()
     {
         ErrorMessage = string.Empty;
@@ -228,21 +216,21 @@ public partial class ForexViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            var request = new ExchangeTransactionRequest
+            var request = new ExchangeTransactionRequestDto
             {
-                UserId = _forexClientService.CurrentUserId ?? 0,
+                UserId = _apiClient.CurrentUserId ?? 0,
                 SourceCurrency = SourceCurrency,
                 TargetCurrency = TargetCurrency,
                 SourceAmount = _amount,
             };
 
-            ErrorOr<ExchangeTransactionResponse> result =
-                await _forexClientService.ExecuteExchangeAsync(request);
+            ErrorOr<ExchangeTransactionResponseDto> result =
+                await _forexRepository.ExecuteExchangeAsync(request);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.Exchange.ExecuteFailed;
-                _logger.ExchangeExecutionFailed(result.Errors);
+                _logger.LogError("Exchange execution failed: {Errors}", result.Errors);
                 return;
             }
 
@@ -252,7 +240,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.ExchangeExecutionFailedUnexpected(exception);
+            _logger.LogError(exception, "Exchange execution failed unexpectedly");
         }
         finally
         {
@@ -261,7 +249,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Resets the exchange flow back to its initial state.
+    ///     Resets all state and returns the wizard to the first step.
     /// </summary>
     public void Reset()
     {
@@ -276,15 +264,19 @@ public partial class ForexViewModel : INotifyPropertyChanged
         CurrentStep = InitialStep;
     }
 
-    /// <summary>
-    /// Raises the <see cref="PropertyChanged"/> event.
-    /// </summary>
+    /// <summary>Raises PropertyChanged for the given property name.</summary>
     /// <param name="propertyName">The name of the property that changed.</param>
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+    /// <summary>Sets the backing field and raises PropertyChanged when the value differs.</summary>
+    /// <typeparam name="T">The property type.</typeparam>
+    /// <param name="field">The backing field reference.</param>
+    /// <param name="value">The new value.</param>
+    /// <param name="propertyName">The property name (auto-filled by the compiler).</param>
+    /// <returns><see langword="true"/> if the value changed; otherwise, <see langword="false"/>.</returns>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (Equals(field, value))

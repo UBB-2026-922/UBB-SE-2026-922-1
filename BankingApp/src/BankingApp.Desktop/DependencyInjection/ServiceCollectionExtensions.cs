@@ -1,8 +1,7 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
 using Master;
-using Services;
-using Services.Transfers;
+using Repositories;
 using Utilities;
 using ViewModels;
 using Views;
@@ -10,16 +9,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
-/// TODO: add docs.
+/// Provides extension methods to register desktop-client services in the DI container.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// TODO: add docs.
+    /// Adds all necessary client-side services, repositories, and view models to the service collection.
     /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
+    /// <param name="services">The service collection to add to.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The modified service collection.</returns>
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);
@@ -42,6 +41,10 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddTransient<ICountdownTimer, DispatcherCountdownTimer>();
+
+        // Repositories abstract the HTTP transport from ViewModels.
+        services.AddTransient<IForexRepository, ForexRepository>();
+        services.AddTransient<IRateAlertRepository, RateAlertRepository>();
 
         services.AddTransient<LoginViewModel>();
         services.AddTransient<RegisterViewModel>();
@@ -78,6 +81,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<RecurringPaymentView>();
         services.AddTransient<TransferView>();
         services.AddTransient<TransferHistoryView>();
+
         return services;
     }
 }

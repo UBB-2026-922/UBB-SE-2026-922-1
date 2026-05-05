@@ -1,8 +1,9 @@
-﻿// <copyright file="FXViewModelTests.cs" company="UBB-922">
+﻿// <copyright file="ForexViewModelTests.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Desktop.Repositories;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
@@ -15,6 +16,7 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 /// </summary>
 public class FXViewModelTests
 {
+    private readonly Mock<IForexRepository> _forexRepository;
     private readonly Mock<IApiClient> _apiClient;
     private readonly FXViewModel _viewModel;
 
@@ -24,8 +26,16 @@ public class FXViewModelTests
     /// </summary>
     public FXViewModelTests()
     {
+        _forexRepository = new Mock<IForexRepository>(MockBehavior.Loose);
         _apiClient = new Mock<IApiClient>(MockBehavior.Loose);
+<<<<<<< Updated upstream:BankingApp/tests/BankingApp.Desktop.Tests/ViewModels/FXViewModelTests.cs
         _viewModel = new FXViewModel(_apiClient.Object, NullLogger<FXViewModel>.Instance);
+=======
+        _viewModel = new ForexViewModel(
+            _forexRepository.Object,
+            _apiClient.Object,
+            NullLogger<ForexViewModel>.Instance);
+>>>>>>> Stashed changes:BankingApp/tests/BankingApp.Desktop.Tests/ViewModels/ForexViewModelTests.cs
     }
 
     /// <summary>
@@ -84,11 +94,11 @@ public class FXViewModelTests
     }
 
     /// <summary>
-    ///     LoadPreviewAsync should populate rate data when the API succeeds.
+    ///     LoadPreviewAsync should populate rate data when the repository succeeds.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task LoadPreviewAsync_WhenApiSucceeds_PopulatesRateData()
+    public async Task LoadPreviewAsync_WhenRepositorySucceeds_PopulatesRateData()
     {
         // Arrange
         const decimal expectedRate = 1.12m;
@@ -106,9 +116,9 @@ public class FXViewModelTests
             TargetAmount = expectedTargetAmount,
         };
 
-        _apiClient
-            .Setup(client => client.GetAsync<ExchangeTransactionResponseDto>(
-                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _forexRepository
+            .Setup(repository => repository.GetRatePreviewAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
             .ReturnsAsync(response);
 
         // Act
@@ -122,20 +132,20 @@ public class FXViewModelTests
     }
 
     /// <summary>
-    ///     LoadPreviewAsync should set error message when the API returns an error.
+    ///     LoadPreviewAsync should set error message when the repository returns an error.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task LoadPreviewAsync_WhenApiFails_SetsErrorMessage()
+    public async Task LoadPreviewAsync_WhenRepositoryFails_SetsErrorMessage()
     {
         // Arrange
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
 
-        _apiClient
-            .Setup(client => client.GetAsync<ExchangeTransactionResponseDto>(
-                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _forexRepository
+            .Setup(repository => repository.GetRatePreviewAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -169,7 +179,7 @@ public class FXViewModelTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task ExecuteExchangeAsync_WhenApiSucceeds_SetsTransactionReference()
+    public async Task ExecuteExchangeAsync_WhenRepositorySucceeds_SetsTransactionReference()
     {
         // Arrange
         const int transactionId = 42;
@@ -179,9 +189,9 @@ public class FXViewModelTests
         _apiClient.Setup(client => client.CurrentUserId).Returns(1);
 
         var response = new ExchangeTransactionResponseDto { Id = transactionId };
-        _apiClient
-            .Setup(client => client.PostAsync<ExchangeTransactionRequestDto, ExchangeTransactionResponseDto>(
-                It.IsAny<string>(), It.IsAny<object?>()))
+        _forexRepository
+            .Setup(repository => repository.ExecuteExchangeAsync(
+                It.IsAny<ExchangeTransactionRequestDto>()))
             .ReturnsAsync(response);
 
         // Act
@@ -193,11 +203,11 @@ public class FXViewModelTests
     }
 
     /// <summary>
-    ///     ExecuteExchangeAsync should set error message when the API returns an error.
+    ///     ExecuteExchangeAsync should set error message when the repository returns an error.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task ExecuteExchangeAsync_WhenApiFails_SetsErrorMessage()
+    public async Task ExecuteExchangeAsync_WhenRepositoryFails_SetsErrorMessage()
     {
         // Arrange
         _viewModel.SourceCurrency = "EUR";
@@ -205,9 +215,9 @@ public class FXViewModelTests
         _viewModel.AmountText = "100";
         _apiClient.Setup(client => client.CurrentUserId).Returns(1);
 
-        _apiClient
-            .Setup(client => client.PostAsync<ExchangeTransactionRequestDto, ExchangeTransactionResponseDto>(
-                It.IsAny<string>(), It.IsAny<object?>()))
+        _forexRepository
+            .Setup(repository => repository.ExecuteExchangeAsync(
+                It.IsAny<ExchangeTransactionRequestDto>()))
             .ReturnsAsync(Error.Failure());
 
         // Act

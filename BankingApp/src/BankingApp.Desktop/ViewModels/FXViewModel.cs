@@ -2,7 +2,7 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the FXViewModel class.
+// Contains the ForexViewModel class.
 // </summary>
 
 using System;
@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Desktop.Repositories;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,12 @@ public class FXViewModel : INotifyPropertyChanged
     private const int ResultStep = 4;
     private const decimal MinimumAmount = 0m;
 
+<<<<<<< Updated upstream:BankingApp/src/BankingApp.Desktop/ViewModels/FXViewModel.cs
+=======
+    private static readonly string[] _collection = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
+
+    private readonly IForexRepository _forexRepository;
+>>>>>>> Stashed changes:BankingApp/src/BankingApp.Desktop/ViewModels/ForexViewModel.cs
     private readonly IApiClient _apiClient;
     private readonly ILogger<FXViewModel> _logger;
 
@@ -48,10 +55,16 @@ public class FXViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Initializes a new instance of the <see cref="FXViewModel"/> class.
     /// </summary>
-    /// <param name="apiClient">The API client for backend communication.</param>
+    /// <param name="forexRepository">The repository for exchange data access.</param>
+    /// <param name="apiClient">The API client (used only for current user identity).</param>
     /// <param name="logger">Logger for exchange errors.</param>
+<<<<<<< Updated upstream:BankingApp/src/BankingApp.Desktop/ViewModels/FXViewModel.cs
     public FXViewModel(IApiClient apiClient, ILogger<FXViewModel> logger)
+=======
+    public ForexViewModel(IForexRepository forexRepository, IApiClient apiClient, ILogger<ForexViewModel> logger)
+>>>>>>> Stashed changes:BankingApp/src/BankingApp.Desktop/ViewModels/ForexViewModel.cs
     {
+        _forexRepository = forexRepository ?? throw new ArgumentNullException(nameof(forexRepository));
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _currentStep = InitialStep;
@@ -156,7 +169,7 @@ public class FXViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Fetches a rate preview from the API and advances the wizard to the preview step.
+    ///     Fetches a rate preview from the repository and advances the wizard to the preview step.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task LoadPreviewAsync()
@@ -178,8 +191,8 @@ public class FXViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            string endpoint = $"{ApiEndpoints.ExchangePreview}?sourceCurrency={SourceCurrency}&targetCurrency={TargetCurrency}&amount={_amount}";
-            ErrorOr<ExchangeTransactionResponseDto> result = await _apiClient.GetAsync<ExchangeTransactionResponseDto>(endpoint);
+            ErrorOr<ExchangeTransactionResponseDto> result =
+                await _forexRepository.GetRatePreviewAsync(SourceCurrency, TargetCurrency, _amount);
 
             if (result.IsError)
             {
@@ -206,7 +219,7 @@ public class FXViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Executes the currency exchange via the API and advances to the result step.
+    ///     Executes the currency exchange via the repository and advances to the result step.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task ExecuteExchangeAsync()
@@ -231,8 +244,7 @@ public class FXViewModel : INotifyPropertyChanged
             };
 
             ErrorOr<ExchangeTransactionResponseDto> result =
-                await _apiClient.PostAsync<ExchangeTransactionRequestDto, ExchangeTransactionResponseDto>(
-                    ApiEndpoints.ExchangeExecute, request);
+                await _forexRepository.ExecuteExchangeAsync(request);
 
             if (result.IsError)
             {

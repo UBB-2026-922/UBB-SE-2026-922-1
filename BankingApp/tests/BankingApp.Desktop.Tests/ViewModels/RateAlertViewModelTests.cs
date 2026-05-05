@@ -8,8 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.DTOs.RateAlerts;
-using Services;
+using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Desktop.Repositories;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
@@ -23,7 +23,8 @@ using Xunit;
 /// </summary>
 public class RateAlertViewModelTests
 {
-    private readonly Mock<IRateAlertClientService> _rateAlertClientService;
+    private readonly Mock<IRateAlertRepository> _rateAlertRepository;
+    private readonly Mock<IApiClient> _apiClient;
     private readonly RateAlertViewModel _viewModel;
 
     /// <summary>
@@ -32,27 +33,31 @@ public class RateAlertViewModelTests
     /// </summary>
     public RateAlertViewModelTests()
     {
-        _rateAlertClientService = new Mock<IRateAlertClientService>(MockBehavior.Loose);
-        _viewModel = new RateAlertViewModel(_rateAlertClientService.Object, NullLogger<RateAlertViewModel>.Instance);
+        _rateAlertRepository = new Mock<IRateAlertRepository>(MockBehavior.Loose);
+        _apiClient = new Mock<IApiClient>(MockBehavior.Loose);
+        _viewModel = new RateAlertViewModel(
+            _rateAlertRepository.Object,
+            _apiClient.Object,
+            NullLogger<RateAlertViewModel>.Instance);
     }
 
     /// <summary>
-    ///     LoadAlertsAsync should populate Alerts when the API succeeds.
+    ///     LoadAlertsAsync should populate Alerts when the repository succeeds.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task LoadAlertsAsync_WhenApiSucceeds_PopulatesAlerts()
+    public async Task LoadAlertsAsync_WhenRepositorySucceeds_PopulatesAlerts()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
+        _apiClient.Setup(client => client.CurrentUserId).Returns(1);
         var alerts = new List<RateAlertDto>
         {
             new RateAlertDto { Id = 1, BaseCurrency = "EUR", TargetCurrency = "USD", TargetRate = 1.10m },
             new RateAlertDto { Id = 2, BaseCurrency = "GBP", TargetCurrency = "RON", TargetRate = 5.80m },
         };
 
-        _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.GetAlertsAsync(It.IsAny<int>()))
+        _rateAlertRepository
+            .Setup(repository => repository.GetAlertsAsync(It.IsAny<int>()))
             .ReturnsAsync(alerts);
 
         // Act
@@ -64,16 +69,16 @@ public class RateAlertViewModelTests
     }
 
     /// <summary>
-    ///     LoadAlertsAsync should set error when the API fails.
+    ///     LoadAlertsAsync should set error when the repository fails.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task LoadAlertsAsync_WhenApiFails_SetsError()
+    public async Task LoadAlertsAsync_WhenRepositoryFails_SetsError()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
-        _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.GetAlertsAsync(It.IsAny<int>()))
+        _apiClient.Setup(client => client.CurrentUserId).Returns(1);
+        _rateAlertRepository
+            .Setup(repository => repository.GetAlertsAsync(It.IsAny<int>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -162,10 +167,10 @@ public class RateAlertViewModelTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task CreateAlertAsync_WhenApiSucceeds_AddsAlertAndClearsInputs()
+    public async Task CreateAlertAsync_WhenRepositorySucceeds_AddsAlertAndClearsInputs()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
+        _apiClient.Setup(client => client.CurrentUserId).Returns(1);
         _viewModel.BaseCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.TargetRateText = "1.10";
@@ -178,8 +183,8 @@ public class RateAlertViewModelTests
             TargetRate = 1.10m,
         };
 
-        _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.CreateAlertAsync(It.IsAny<RateAlertDto>()))
+        _rateAlertRepository
+            .Setup(repository => repository.CreateAlertAsync(It.IsAny<RateAlertDto>()))
             .ReturnsAsync(created);
 
         // Act
@@ -194,20 +199,20 @@ public class RateAlertViewModelTests
     }
 
     /// <summary>
-    ///     CreateAlertAsync should set error when the API fails.
+    ///     CreateAlertAsync should set error when the repository fails.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task CreateAlertAsync_WhenApiFails_SetsError()
+    public async Task CreateAlertAsync_WhenRepositoryFails_SetsError()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
+        _apiClient.Setup(client => client.CurrentUserId).Returns(1);
         _viewModel.BaseCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.TargetRateText = "1.10";
 
-        _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.CreateAlertAsync(It.IsAny<RateAlertDto>()))
+        _rateAlertRepository
+            .Setup(repository => repository.CreateAlertAsync(It.IsAny<RateAlertDto>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -222,14 +227,14 @@ public class RateAlertViewModelTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task DeleteAlertAsync_WhenApiSucceeds_RemovesAlert()
+    public async Task DeleteAlertAsync_WhenRepositorySucceeds_RemovesAlert()
     {
         // Arrange
         const int alertId = 1;
         _viewModel.Alerts.Add(new RateAlertDto { Id = alertId, BaseCurrency = "EUR", TargetCurrency = "USD" });
 
-        _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.DeleteAlertAsync(alertId))
+        _rateAlertRepository
+            .Setup(repository => repository.DeleteAlertAsync(alertId))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -241,18 +246,18 @@ public class RateAlertViewModelTests
     }
 
     /// <summary>
-    ///     DeleteAlertAsync should set error when the API fails.
+    ///     DeleteAlertAsync should set error when the repository fails.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
-    public async Task DeleteAlertAsync_WhenApiFails_SetsError()
+    public async Task DeleteAlertAsync_WhenRepositoryFails_SetsError()
     {
         // Arrange
         const int alertId = 1;
         _viewModel.Alerts.Add(new RateAlertDto { Id = alertId, BaseCurrency = "EUR", TargetCurrency = "USD" });
 
-        _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.DeleteAlertAsync(alertId))
+        _rateAlertRepository
+            .Setup(repository => repository.DeleteAlertAsync(alertId))
             .ReturnsAsync(Error.Failure());
 
         // Act

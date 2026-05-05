@@ -14,9 +14,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Application.DTOs.RateAlerts;
-using Services;
-using Utilities;
+using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Desktop.Repositories;
+using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
@@ -29,7 +29,8 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     private const decimal MinimumRate = 0m;
     private static readonly string[] _availableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
-    private readonly IRateAlertClientService _rateAlertClientService;
+    private readonly IRateAlertRepository _rateAlertRepository;
+    private readonly IApiClient _apiClient;
     private readonly ILogger<RateAlertViewModel> _logger;
 
     private ObservableCollection<RateAlertDto> _alerts = [];
@@ -43,11 +44,13 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Initializes a new instance of the <see cref="RateAlertViewModel" /> class.
     /// </summary>
-    /// <param name="rateAlertClientService">The rate alert client service for backend communication.</param>
+    /// <param name="rateAlertRepository">The repository for rate alert data access.</param>
+    /// <param name="apiClient">The API client (used only for current user identity).</param>
     /// <param name="logger">Logger for rate alert errors.</param>
-    public RateAlertViewModel(IRateAlertClientService rateAlertClientService, ILogger<RateAlertViewModel> logger)
+    public RateAlertViewModel(IRateAlertRepository rateAlertRepository, IApiClient apiClient, ILogger<RateAlertViewModel> logger)
     {
-        _rateAlertClientService = rateAlertClientService ?? throw new ArgumentNullException(nameof(rateAlertClientService));
+        _rateAlertRepository = rateAlertRepository ?? throw new ArgumentNullException(nameof(rateAlertRepository));
+        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         AvailableCurrencies = new ObservableCollection<string>(_availableCurrencyCodes);
     }
@@ -124,7 +127,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Loads all alerts for the current user.
+    ///     Loads the current user's rate alerts from the repository.
     /// </summary>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task LoadAlertsAsync()
@@ -133,8 +136,8 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            int userId = _rateAlertClientService.CurrentUserId ?? 0;
-            ErrorOr<List<RateAlertDto>> result = await _rateAlertClientService.GetAlertsAsync(userId);
+            int userId = _apiClient.CurrentUserId ?? 0;
+            ErrorOr<List<RateAlertDto>> result = await _rateAlertRepository.GetAlertsAsync(userId);
 
             if (result.IsError)
             {
@@ -157,7 +160,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Creates a new rate alert from the current form state.
+    ///     Validates inputs and creates a new rate alert via the repository.
     /// </summary>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task CreateAlertAsync()
@@ -199,14 +202,14 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         {
             var newAlert = new RateAlertDto
             {
-                UserId = _rateAlertClientService.CurrentUserId ?? 0,
+                UserId = _apiClient.CurrentUserId ?? 0,
                 BaseCurrency = BaseCurrency,
                 TargetCurrency = TargetCurrency,
                 TargetRate = parsedRate,
                 IsBuyAlert = IsBuyAlert,
             };
 
-            ErrorOr<RateAlertDto> result = await _rateAlertClientService.CreateAlertAsync(newAlert);
+            ErrorOr<RateAlertDto> result = await _rateAlertRepository.CreateAlertAsync(newAlert);
 
             if (result.IsError)
             {
@@ -233,7 +236,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Deletes the specified alert.
+    ///     Deletes the specified rate alert via the repository.
     /// </summary>
     /// <param name="alertId">The identifier of the alert to delete.</param>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
@@ -242,7 +245,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         ErrorMessage = string.Empty;
         try
         {
-            ErrorOr<Success> result = await _rateAlertClientService.DeleteAlertAsync(alertId);
+            ErrorOr<Success> result = await _rateAlertRepository.DeleteAlertAsync(alertId);
 
             if (result.IsError)
             {
