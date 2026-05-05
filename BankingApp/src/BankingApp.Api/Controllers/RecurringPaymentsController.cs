@@ -91,10 +91,10 @@ public class RecurringPaymentsController : ApiControllerBase
     ///     or an appropriate error response.
     /// </returns>
     [HttpPut("{id}/resume")]
-    public IActionResult Resume(int id)
+    public IActionResult ResumePayment(int id)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.Resume(userId, id);
+        ErrorOr<Success> result = _recurringPaymentService.ResumeRecurringPayment(userId, id);
         return ToActionResult(result);
     }
 

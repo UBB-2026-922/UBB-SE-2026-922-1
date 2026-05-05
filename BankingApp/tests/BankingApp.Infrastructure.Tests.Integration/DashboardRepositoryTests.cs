@@ -48,9 +48,6 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
-    /// <summary>
-    ///     Verifies the GetAccountsByUser_WhenUserHasAccounts_ReturnsAllAccounts scenario.
-    /// </summary>
     [Fact]
     public void GetAccountsByUser_WhenUserHasAccounts_ReturnsAllAccounts()
     {
@@ -70,11 +67,8 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         result.Value.First().Currency.Should().Be("RON");
     }
 
-    /// <summary>
-    ///     Verifies the GetRecentTransactions_WhenInsertedMoreThanLimit_ReturnsAtMostLimitItems scenario.
-    /// </summary>
     [Fact]
-    public void GetRecentTransactions_WhenInsertedMoreThanLimit_ReturnsAtMostLimitItems()
+    public void GetRecentTransactions_WhenInsertedMoreThanLimit_ShouldReturnAtMostLimitItems()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -91,9 +85,6 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         result.Value.Should().HaveCount(TransactionQueryLimit);
     }
 
-    /// <summary>
-    ///     Verifies the GetUnreadNotificationCount_WhenNotificationsExist_ReturnsCorrectCount scenario.
-    /// </summary>
     [Fact]
     public void GetUnreadNotificationCount_WhenNotificationsExist_ReturnsCorrectCount()
     {
@@ -111,9 +102,6 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         result.Value.Should().Be(SeedNotificationCount);
     }
 
-    /// <summary>
-    ///     Verifies the GetCardsByUser_WhenUserHasCards_ReturnsCardsForThatUser scenario.
-    /// </summary>
     [Fact]
     public void GetCardsByUser_WhenUserHasCards_ReturnsCardsForThatUser()
     {
@@ -139,7 +127,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         return _fixture.CreateDatabaseContext();
     }
 
-    private User SeedUser(AppDatabaseContext databaseContext)
+    private static User SeedUser(AppDatabaseContext databaseContext)
     {
         var faker = new Faker();
         var dataAccess = new UserDataAccess(databaseContext);
@@ -158,7 +146,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         return findResult.Value;
     }
 
-    private Account SeedAccount(AppDatabaseContext databaseContext, int userId, string? iban = null)
+    private static Account SeedAccount(AppDatabaseContext databaseContext, int userId, string? iban = null)
     {
         var faker = new Faker();
         iban ??= faker.Finance.Iban();
@@ -177,7 +165,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         return account;
     }
 
-    private void SeedCard(AppDatabaseContext databaseContext, int accountId, int userId)
+    private static void SeedCard(AppDatabaseContext databaseContext, int accountId, int userId)
     {
         var card = new Card
         {
@@ -194,7 +182,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         databaseContext.SaveChanges();
     }
 
-    private void SeedTransactions(AppDatabaseContext databaseContext, int accountId, int count)
+    private static void SeedTransactions(AppDatabaseContext databaseContext, int accountId, int count)
     {
         for (int index = 0; index < count; index++)
         {
@@ -216,7 +204,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         databaseContext.SaveChanges();
     }
 
-    private void SeedNotifications(AppDatabaseContext databaseContext, int userId, int count)
+    private static void SeedNotifications(AppDatabaseContext databaseContext, int userId, int count)
     {
         for (int index = 0; index < count; index++)
         {
@@ -235,7 +223,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         databaseContext.SaveChanges();
     }
 
-    private DashboardRepository MakeDashboardRepository(AppDatabaseContext databaseContext)
+    private static DashboardRepository MakeDashboardRepository(AppDatabaseContext databaseContext)
     {
         return new DashboardRepository(
             new AccountDataAccess(databaseContext),

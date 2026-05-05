@@ -14,6 +14,8 @@ namespace BankingApp.Infrastructure.Migrations
     /// <inheritdoc />
     public partial class AddBeneficiary : Migration
     {
+        private static readonly string[] _beneficiaryUserIdIbanColumns = ["UserId", "IBAN"];
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -46,7 +48,7 @@ namespace BankingApp.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Beneficiary_UserId_IBAN",
                 table: "Beneficiary",
-                columns: new[] { "UserId", "IBAN" },
+                columns: _beneficiaryUserIdIbanColumns,
                 unique: true);
         }
 

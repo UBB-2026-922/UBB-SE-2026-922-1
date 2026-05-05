@@ -108,7 +108,7 @@ public class RecurringPaymentService : IRecurringPaymentService
     }
 
     /// <inheritdoc />
-    public ErrorOr<Success> Resume(int userId, int id)
+    public ErrorOr<Success> ResumeRecurringPayment(int userId, int id)
     {
         ErrorOr<RecurringPayment> findResult = _repository.GetById(id);
         if (findResult.IsError) return findResult.FirstError;

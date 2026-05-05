@@ -8,6 +8,7 @@
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using ErrorOr;
+using System.Globalization;
 
 namespace BankingApp.Api.Middleware;
 
@@ -45,7 +46,7 @@ public class SessionValidationMiddleware
         IJsonWebTokenService jsonWebTokenService,
         ILogger<SessionValidationMiddleware> logger)
     {
-        string? path = context.Request.Path.Value?.ToLower();
+        string? path = context.Request.Path.Value?.ToLower(CultureInfo.InvariantCulture);
         // Public endpoints, no token needed
         if (IsPublicEndpoint(path))
         {
@@ -55,7 +56,7 @@ public class SessionValidationMiddleware
 
         string? authHeader = context.Request.Headers.Authorization.FirstOrDefault();
         // No token provided
-        if (authHeader == null || !authHeader.StartsWith(BearerPrefix))
+        if (authHeader == null || !authHeader.StartsWith(BearerPrefix, StringComparison.Ordinal))
         {
             await RejectRequest(context, "No token provided.");
             return;
@@ -93,7 +94,10 @@ public class SessionValidationMiddleware
 
     private static bool IsPublicEndpoint(string? path)
     {
-        return path is not null && Array.Exists(_publicEndpointPrefixes, path.StartsWith);
+        return path is not null &&
+               Array.Exists(
+                   _publicEndpointPrefixes,
+                   prefix => path.StartsWith(prefix, StringComparison.Ordinal));
     }
 
     private static async Task RejectRequest(HttpContext context, string error)

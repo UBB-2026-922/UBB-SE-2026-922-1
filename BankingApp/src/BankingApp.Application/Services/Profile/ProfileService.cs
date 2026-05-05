@@ -155,7 +155,8 @@ public class ProfileService : IProfileService
             return UserErrors.PasswordUpdateFailed;
         }
 
-        _logger.LogInformation("Password changed successfully for user {UserId}.", user.Id);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("Password changed successfully for user {UserId}.", user.Id);
         return Result.Success;
     }
 
@@ -180,7 +181,8 @@ public class ProfileService : IProfileService
             return UserErrors.Enable2FaFailed;
         }
 
-        _logger.LogInformation("2FA enabled for user {UserId} via {Method}.", userId, method);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("2FA enabled for user {UserId} via {Method}.", userId, method);
         return Result.Success;
     }
 
@@ -204,7 +206,8 @@ public class ProfileService : IProfileService
             return UserErrors.Disable2FaFailed;
         }
 
-        _logger.LogInformation("2FA disabled for user {UserId}.", userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("2FA disabled for user {UserId}.", userId);
         return Result.Success;
     }
 
@@ -359,7 +362,8 @@ public class ProfileService : IProfileService
             return result.FirstError;
         }
 
-        _logger.LogInformation("Session {SessionId} revoked for user {UserId}.", sessionId, userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("Session {SessionId} revoked for user {UserId}.", sessionId, userId);
         return Result.Success;
     }
 }

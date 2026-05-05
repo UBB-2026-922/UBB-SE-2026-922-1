@@ -57,7 +57,7 @@ public interface IRecurringPaymentService
     ///     Success, or <see cref="Error.NotFound" /> if the schedule does not exist,
     ///     or <see cref="ErrorType.Forbidden" /> if the user does not own the schedule.
     /// </returns>
-    ErrorOr<Success> Resume(int userId, int id);
+    ErrorOr<Success> ResumeRecurringPayment(int userId, int id);
 
     /// <summary>
     ///     Permanently cancels a recurring payment schedule.

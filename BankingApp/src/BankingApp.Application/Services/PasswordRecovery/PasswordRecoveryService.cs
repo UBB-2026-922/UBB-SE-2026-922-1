@@ -78,7 +78,8 @@ public class PasswordRecoveryService : IPasswordRecoveryService
             return PasswordResetErrors.SaveTokenFailed;
         }
 
-        _logger.LogInformation("Password reset email sent for user {UserId}.", user.Id);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("Password reset email sent for user {UserId}.", user.Id);
         _emailService.SendPasswordResetLink(user.Email, rawToken);
         return Result.Success;
     }
@@ -139,7 +140,8 @@ public class PasswordRecoveryService : IPasswordRecoveryService
             return PasswordResetErrors.ResetFailedSessionsNotInvalidated;
         }
 
-        _logger.LogInformation("Password reset successfully for user {UserId}.", resetToken.UserId);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("Password reset successfully for user {UserId}.", resetToken.UserId);
         return Result.Success;
     }
 

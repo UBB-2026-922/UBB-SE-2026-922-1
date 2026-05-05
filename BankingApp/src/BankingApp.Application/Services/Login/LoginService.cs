@@ -192,7 +192,8 @@ public class LoginService : ILoginService
         }
 
         _ = _authRepository.UpdateSessionToken(sessionResult.Value.Id);
-        _logger.LogInformation("User {UserId} logged out.", sessionResult.Value.UserId);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("User {UserId} logged out.", sessionResult.Value.UserId);
         return Result.Success;
     }
 
@@ -257,7 +258,8 @@ public class LoginService : ILoginService
         if (user.Preferred2FaMethod == TwoFactorMethod.Email) _emailService.SendOtpCode(user.Email, otpResult.Value);
 
         _otpAttemptTracker.Reset(user.Id);
-        _logger.LogInformation("2FA required for user {UserId} via {Method}.", user.Id, user.Preferred2FaMethod);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("2FA required for user {UserId} via {Method}.", user.Id, user.Preferred2FaMethod);
         return new RequiresTwoFactor(user.Id);
     }
 
@@ -296,7 +298,8 @@ public class LoginService : ILoginService
             return UserErrors.SessionCreationFailed;
         }
 
-        _logger.LogInformation("User {UserId} logged in successfully.", user.Id);
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("User {UserId} logged in successfully.", user.Id);
         _emailService.SendLoginAlert(user.Email);
         return new FullLogin(user.Id, token);
     }

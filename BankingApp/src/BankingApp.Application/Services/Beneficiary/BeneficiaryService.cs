@@ -97,10 +97,13 @@ public class BeneficiaryService : IBeneficiaryService
             return createResult.FirstError;
         }
 
-        _logger.LogInformation(
-            "Beneficiary {BeneficiaryId} created for user {UserId}.",
-            createResult.Value.Id,
-            userId);
+        if (_logger.IsEnabled(LogLevel.Information))
+        {
+            _logger.LogInformation(
+                "Beneficiary {BeneficiaryId} created for user {UserId}.",
+                createResult.Value.Id,
+                userId);
+        }
 
         return createResult.Value;
     }

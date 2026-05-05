@@ -6,6 +6,7 @@
 // </summary>
 
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using BankingApp.Application.Services.Security;
@@ -59,7 +60,8 @@ public class OtpService : IOtpService
     {
         try
         {
-            string code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpRangeMaximum).ToString();
+            string code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpRangeMaximum)
+                .ToString(CultureInfo.InvariantCulture);
             DateTime expiryTime = DateTime.UtcNow.AddMinutes(SmsOtpExpiryMinutes);
             _temporarySmsStorage[userId] = (code, expiryTime);
             return code;
@@ -153,7 +155,7 @@ public class OtpService : IOtpService
     private string GenerateHmacCode(int userId, long timeWindow)
     {
         string secret = $"{_otpServerSecret}_{userId}";
-        using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(secret));
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         byte[] hash = hmac.ComputeHash(BitConverter.GetBytes(timeWindow));
         int offset = hash.Last() & TruncationOffsetMask;
         int binary = ((hash.ElementAt(offset + FirstDynamicTruncationByteOffset) & SignBitMask) <<
@@ -163,6 +165,6 @@ public class OtpService : IOtpService
                      ((hash.ElementAt(offset + ThirdDynamicTruncationByteOffset) & ByteMask) <<
                       ThirdDynamicTruncationByteShift) |
                      (hash.ElementAt(offset + FourthDynamicTruncationByteOffset) & ByteMask);
-        return (binary % OtpModulus).ToString($"D{OtpDigitCount}");
+        return (binary % OtpModulus).ToString($"D{OtpDigitCount}", CultureInfo.InvariantCulture);
     }
 }

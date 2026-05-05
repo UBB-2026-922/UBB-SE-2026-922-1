@@ -63,7 +63,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         };
 
         // Act
-        HttpResponseMessage response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         // The endpoint is reachable (middleware did not reject). We accept any
@@ -93,7 +93,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         var request = new HttpRequestMessage(new HttpMethod(method), path);
 
         // Act
-        HttpResponseMessage response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -124,7 +124,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         if (method is "POST" or "PUT") request.Content = JsonContent.Create(new { });
 
         // Act
-        HttpResponseMessage response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
@@ -145,7 +145,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", invalidToken);
 
         // Act
-        HttpResponseMessage response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -169,7 +169,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", orphanToken);
 
         // Act
-        HttpResponseMessage response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -182,7 +182,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         const string nonExistentProtectedRoute = "/api/does-not-exist";
 
         // Act
-        HttpResponseMessage response = await _client.GetAsync(nonExistentProtectedRoute);
+        HttpResponseMessage response = await _client.GetAsync(nonExistentProtectedRoute, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -196,7 +196,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         // Act
-        HttpResponseMessage response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

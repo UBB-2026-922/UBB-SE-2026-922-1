@@ -290,10 +290,19 @@ public class RecurringPaymentServiceTests
         // Arrange
         var payments = new List<RecurringPayment>
         {
-            new() { Id = 1, UserId = 10, Amount = 50m, Frequency = RecurringFrequency.Monthly, Status = RecurringPaymentStatus.Active },
-            new() { Id = 2, UserId = 10, Amount = 30m, Frequency = RecurringFrequency.Weekly,  Status = RecurringPaymentStatus.Paused },
+            new()
+            {
+                Id = 1, UserId = 10, Amount = 50m, Frequency = RecurringFrequency.Monthly,
+                Status = RecurringPaymentStatus.Active
+            },
+            new()
+            {
+                Id = 2, UserId = 10, Amount = 30m, Frequency = RecurringFrequency.Weekly,
+                Status = RecurringPaymentStatus.Paused
+            },
         };
-        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(10)).Returns((ErrorOr<List<RecurringPayment>>)payments);
+        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(10))
+            .Returns((ErrorOr<List<RecurringPayment>>)payments);
 
         // Act
         ErrorOr<List<RecurringPaymentResponse>> result = _service.GetByUser(userId: 10);
@@ -301,14 +310,15 @@ public class RecurringPaymentServiceTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().HaveCount(2);
-        result.Value.Select(p => p.Id).Should().BeEquivalentTo(new[] { 1, 2 });
+        result.Value.Select(recoveryPaymentRepository => recoveryPaymentRepository.Id).Should().BeEquivalentTo([1, 2]);
     }
 
     [Fact]
     public void GetByUser_WhenRepositoryFails_ShouldReturnFailureError()
     {
         // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(99)).Returns(Error.Failure(description: "Query timed out."));
+        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(99))
+            .Returns(Error.Failure(description: "Query timed out."));
 
         // Act
         ErrorOr<List<RecurringPaymentResponse>> result = _service.GetByUser(userId: 99);
@@ -322,7 +332,8 @@ public class RecurringPaymentServiceTests
     public void Pause_WhenPaymentNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetById(999)).Returns(Error.NotFound(description: "Recurring payment not found."));
+        _recurringPaymentRepository.Setup(repository => repository.GetById(999))
+            .Returns(Error.NotFound(description: "Recurring payment not found."));
 
         // Act
         ErrorOr<Success> result = _service.Pause(userId: 1, id: 999);
@@ -337,7 +348,8 @@ public class RecurringPaymentServiceTests
     {
         // Arrange
         var payment = new RecurringPayment { Id = 5, UserId = 10, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(5)).Returns((ErrorOr<RecurringPayment>)payment);
+        _recurringPaymentRepository.Setup(repository => repository.GetById(5))
+            .Returns((ErrorOr<RecurringPayment>)payment);
 
         // Act
         ErrorOr<Success> result = _service.Pause(userId: 99, id: 5);
@@ -352,8 +364,11 @@ public class RecurringPaymentServiceTests
     {
         // Arrange
         var payment = new RecurringPayment { Id = 5, UserId = 42, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(5)).Returns((ErrorOr<RecurringPayment>)payment);
-        _recurringPaymentRepository.Setup(repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate => paymentToUpdate.Status == RecurringPaymentStatus.Paused)))
+        _recurringPaymentRepository.Setup(repository => repository.GetById(5))
+            .Returns((ErrorOr<RecurringPayment>)payment);
+        _recurringPaymentRepository.Setup(repository =>
+                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
+                    paymentToUpdate.Status == RecurringPaymentStatus.Paused)))
             .Returns(Result.Success);
 
         // Act
@@ -361,17 +376,21 @@ public class RecurringPaymentServiceTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        _recurringPaymentRepository.Verify(repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate => paymentToUpdate.Status == RecurringPaymentStatus.Paused)), Times.Once);
+        _recurringPaymentRepository.Verify(
+            repository =>
+                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
+                    paymentToUpdate.Status == RecurringPaymentStatus.Paused)), Times.Once);
     }
 
     [Fact]
     public void Resume_WhenPaymentNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetById(888)).Returns(Error.NotFound(description: "Recurring payment not found."));
+        _recurringPaymentRepository.Setup(repository => repository.GetById(888))
+            .Returns(Error.NotFound(description: "Recurring payment not found."));
 
         // Act
-        ErrorOr<Success> result = _service.Resume(userId: 1, id: 888);
+        ErrorOr<Success> result = _service.Resume(1, 888);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -383,23 +402,30 @@ public class RecurringPaymentServiceTests
     {
         // Arrange
         var payment = new RecurringPayment { Id = 6, UserId = 42, Status = RecurringPaymentStatus.Paused };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(6)).Returns((ErrorOr<RecurringPayment>)payment);
-        _recurringPaymentRepository.Setup(repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate => paymentToUpdate.Status == RecurringPaymentStatus.Active)))
+        _recurringPaymentRepository.Setup(repository => repository.GetById(6))
+            .Returns((ErrorOr<RecurringPayment>)payment);
+        _recurringPaymentRepository.Setup(repository =>
+                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
+                    paymentToUpdate.Status == RecurringPaymentStatus.Active)))
             .Returns(Result.Success);
 
         // Act
-        ErrorOr<Success> result = _service.Resume(userId: 42, id: 6);
+        ErrorOr<Success> result = _service.Resume(42, 6);
 
         // Assert
         result.IsError.Should().BeFalse();
-        _recurringPaymentRepository.Verify(repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate => paymentToUpdate.Status == RecurringPaymentStatus.Active)), Times.Once);
+        _recurringPaymentRepository.Verify(
+            repository =>
+                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
+                    paymentToUpdate.Status == RecurringPaymentStatus.Active)), Times.Once);
     }
 
     [Fact]
     public void Cancel_WhenPaymentNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetById(777)).Returns(Error.NotFound(description: "Recurring payment not found."));
+        _recurringPaymentRepository.Setup(repository => repository.GetById(777))
+            .Returns(Error.NotFound(description: "Recurring payment not found."));
 
         // Act
         ErrorOr<Success> result = _service.Cancel(userId: 1, id: 777);
@@ -414,7 +440,8 @@ public class RecurringPaymentServiceTests
     {
         // Arrange
         var payment = new RecurringPayment { Id = 7, UserId = 10, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(7)).Returns((ErrorOr<RecurringPayment>)payment);
+        _recurringPaymentRepository.Setup(repository => repository.GetById(7))
+            .Returns((ErrorOr<RecurringPayment>)payment);
 
         // Act
         ErrorOr<Success> result = _service.Cancel(userId: 55, id: 7);
@@ -429,8 +456,11 @@ public class RecurringPaymentServiceTests
     {
         // Arrange
         var payment = new RecurringPayment { Id = 7, UserId = 42, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(7)).Returns((ErrorOr<RecurringPayment>)payment);
-        _recurringPaymentRepository.Setup(repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate => paymentToUpdate.Status == RecurringPaymentStatus.Cancelled)))
+        _recurringPaymentRepository.Setup(repository => repository.GetById(7))
+            .Returns((ErrorOr<RecurringPayment>)payment);
+        _recurringPaymentRepository.Setup(repository =>
+                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
+                    paymentToUpdate.Status == RecurringPaymentStatus.Cancelled)))
             .Returns(Result.Success);
 
         // Act
@@ -438,6 +468,8 @@ public class RecurringPaymentServiceTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        _recurringPaymentRepository.Verify(repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate => paymentToUpdate.Status == RecurringPaymentStatus.Cancelled)), Times.Once);
+        _recurringPaymentRepository.Verify(
+            repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
+                paymentToUpdate.Status == RecurringPaymentStatus.Cancelled)), Times.Once);
     }
 }

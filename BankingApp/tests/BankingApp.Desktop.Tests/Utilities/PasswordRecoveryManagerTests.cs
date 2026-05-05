@@ -14,15 +14,11 @@ namespace BankingApp.Desktop.Tests.Utilities;
 /// </summary>
 public class PasswordRecoveryManagerTests
 {
-    private const string TestEmail = "user@example.com";
+    private static readonly String _testEmail = "user@example.com";
     private const int CooldownSeconds = 60;
     private const int HalfCooldownSeconds = 30;
     private const int JustPastCooldownSeconds = 61;
 
-    /// <summary>
-    ///     Before any request has been made, <see cref="IPasswordRecoveryManager.CanResendCode" />
-    ///     should be true and <see cref="IPasswordRecoveryManager.SecondsUntilResendAllowed" /> should be zero.
-    /// </summary>
     [Fact]
     public void CanResendCode_BeforeAnyRequest_ReturnsTrue()
     {
@@ -48,7 +44,7 @@ public class PasswordRecoveryManagerTests
         IPasswordRecoveryManager manager = BuildManager(clock, true);
 
         // Act
-        await manager.RequestCodeAsync(TestEmail);
+        await manager.RequestCodeAsync(_testEmail);
 
         // Assert
         manager.CanResendCode.Should().BeFalse();
@@ -68,7 +64,7 @@ public class PasswordRecoveryManagerTests
         IPasswordRecoveryManager manager = BuildManager(clock, true);
 
         // Act
-        await manager.RequestCodeAsync(TestEmail);
+        await manager.RequestCodeAsync(_testEmail);
         clock.Advance(TimeSpan.FromSeconds(CooldownSeconds));
 
         // Assert
@@ -90,10 +86,10 @@ public class PasswordRecoveryManagerTests
         IPasswordRecoveryManager manager = BuildManagerWithFakeResponder(clock, fake);
 
         // Act
-        ForgotPasswordState firstResult = await manager.RequestCodeAsync(TestEmail);
+        ForgotPasswordState firstResult = await manager.RequestCodeAsync(_testEmail);
         int callsAfterFirst = fake.RequestCount;
         clock.Advance(TimeSpan.FromSeconds(HalfCooldownSeconds));
-        ForgotPasswordState secondResult = await manager.RequestCodeAsync(TestEmail);
+        ForgotPasswordState secondResult = await manager.RequestCodeAsync(_testEmail);
 
         // Assert
         firstResult.Should().Be(ForgotPasswordState.EmailSent);
@@ -115,10 +111,10 @@ public class PasswordRecoveryManagerTests
         IPasswordRecoveryManager manager = BuildManagerWithFakeResponder(clock, fake);
 
         // Act
-        await manager.RequestCodeAsync(TestEmail);
+        await manager.RequestCodeAsync(_testEmail);
         int callsAfterFirst = fake.RequestCount;
         clock.Advance(TimeSpan.FromSeconds(JustPastCooldownSeconds));
-        await manager.RequestCodeAsync(TestEmail);
+        await manager.RequestCodeAsync(_testEmail);
 
         // Assert
         fake.RequestCount.Should().Be(callsAfterFirst + 1);

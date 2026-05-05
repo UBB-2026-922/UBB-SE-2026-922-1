@@ -39,10 +39,10 @@ public class UserRepository : IUserRepository
 
     /// <inheritdoc />
     /// <returns>The result of the operation.</returns>
-    /// <param name="id">The id value.</param>
-    public ErrorOr<User> FindById(int id)
+    /// <param name="userId">The userId value.</param>
+    public ErrorOr<User> FindById(int userId)
     {
-        return _userDataAccess.FindById(id);
+        return _userDataAccess.FindById(userId);
     }
 
     /// <inheritdoc />

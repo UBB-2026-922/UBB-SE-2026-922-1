@@ -70,7 +70,7 @@ public class AuthRepository : IAuthRepository
         ErrorOr<User> createdUser = _userDataAccess.FindByEmail(user.Email);
         if (createdUser.IsError) return createdUser.FirstError;
 
-        foreach (NotificationType type in Enum.GetValues(typeof(NotificationType)))
+        foreach (NotificationType type in Enum.GetValues<NotificationType>())
         {
             ErrorOr<Success> preferenceResult =
                 _notificationPreferenceDataAccess.Create(createdUser.Value.Id, type.ToDisplayName());

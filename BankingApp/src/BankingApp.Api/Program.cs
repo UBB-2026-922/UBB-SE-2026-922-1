@@ -10,6 +10,7 @@ using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DependencyInjection;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;
@@ -26,9 +27,10 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
     .Enrich.FromLogContext()
-    .WriteTo.Console()
+    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
     .WriteTo.File(
         defaultLogFilePath,
+        formatProvider: CultureInfo.InvariantCulture,
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: retainedLogFileCountLimit)
     .CreateBootstrapLogger();
@@ -44,9 +46,10 @@ try
             .ReadFrom.Configuration(context.Configuration)
             .ReadFrom.Services(services)
             .Enrich.FromLogContext()
-            .WriteTo.Console()
+            .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
             .WriteTo.File(
                 context.Configuration["Logging:FilePath"] ?? defaultLogFilePath,
+                formatProvider: CultureInfo.InvariantCulture,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: retainedLogFileCountLimit));
     builder.Services.AddControllers();

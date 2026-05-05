@@ -7,6 +7,7 @@
 
 using System.Net;
 using System.Net.Mail;
+using System.Globalization;
 using BankingApp.Application.Services.Notifications;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -72,7 +73,8 @@ public class EmailService : IEmailService
                           throw new InvalidOperationException("Email:SmtpHost is missing from _configuration.");
             int port = int.Parse(
                 _configuration["Email:SmtpPort"] ??
-                throw new InvalidOperationException("Email:SmtpPort is missing from _configuration."));
+                throw new InvalidOperationException("Email:SmtpPort is missing from _configuration."),
+                CultureInfo.InvariantCulture);
             string smtpUsername = _configuration["Email:SmtpUser"] ??
                                   throw new InvalidOperationException("Email:SmtpUser is missing from _configuration.");
             string smtpPassword = _configuration["Email:SmtpPass"] ??

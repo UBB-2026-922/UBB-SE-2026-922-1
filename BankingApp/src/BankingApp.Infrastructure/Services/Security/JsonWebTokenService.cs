@@ -6,6 +6,7 @@
 // </summary>
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using BankingApp.Application.Services.Security;
@@ -40,7 +41,7 @@ public class JsonWebTokenService : IJsonWebTokenService
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            Claim[] claims = new[] { new Claim("userId", userId.ToString()) };
+            Claim[] claims = new[] { new Claim("userId", userId.ToString(CultureInfo.InvariantCulture)) };
             var token = new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(TokenExpirationDays),

@@ -150,7 +150,7 @@ public sealed class SessionValidationMiddlewareTests
         _nextWasCalled.Should().BeFalse();
     }
 
-    private static HttpContext CreateHttpContext(string path, string? authorizationHeader = null)
+    private static DefaultHttpContext CreateHttpContext(string path, string? authorizationHeader = null)
     {
         var context = new DefaultHttpContext
         {
