@@ -23,7 +23,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     View model for the Rate Alerts page. Allows the user to create, view,
 ///     and delete exchange-rate alerts via the API.
 /// </summary>
-public class RateAlertViewModel : INotifyPropertyChanged
+public partial class RateAlertViewModel : INotifyPropertyChanged
 {
     private const decimal MinimumRate = 0m;
 

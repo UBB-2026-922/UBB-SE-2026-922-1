@@ -60,7 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<SessionsViewModel>();
         services.AddTransient<BeneficiariesViewModel>();
         services.AddTransient<ProfileViewModel>();
-        services.AddTransient<FXViewModel>();
+        services.AddTransient<ForexViewModel>();
         services.AddTransient<RateAlertViewModel>();
         services.AddTransient<TransferViewModel>();
         services.AddTransient<BillPayViewModel>();
@@ -76,7 +76,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<DashboardView>();
         services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();
-        services.AddTransient<FXPage>();
+        services.AddTransient<ForexPage>();
         services.AddTransient<RateAlertsPage>();
         services.AddTransient<BillPayView>();
         services.AddTransient<RecurringPaymentView>();

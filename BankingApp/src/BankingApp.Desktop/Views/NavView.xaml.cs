@@ -158,7 +158,7 @@ public sealed partial class NavView
     private void NavCurrencyExchange_Click(object sender, RoutedEventArgs e)
     {
         SetActiveNav(NavCurrencyExchange);
-        _navigationService.NavigateToContent<FXPage>();
+        _navigationService.NavigateToContent<ForexPage>();
     }
 
     private void NavRateAlerts_Click(object sender, RoutedEventArgs e)

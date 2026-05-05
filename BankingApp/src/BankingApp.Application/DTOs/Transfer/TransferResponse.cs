@@ -23,6 +23,9 @@ public class TransferResponse
     /// <summary>Gets or sets the identifier of the logged transaction.</summary>
     public int? TransactionId { get; set; }
 
+    /// <summary>Gets or sets the logged transaction reference when available.</summary>
+    public string? TransactionRef { get; set; }
+
     /// <summary>Gets or sets the recipient's full name.</summary>
     public string RecipientName { get; set; } = string.Empty;
 

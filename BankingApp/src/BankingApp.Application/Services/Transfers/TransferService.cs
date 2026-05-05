@@ -38,11 +38,97 @@ public class TransferService(
     private const int IbanMinLength = 15;
     private const int IbanMaxLength = 34;
     private const int IbanCountryCodeLength = 2;
+    private const int ExchangeRatePrecision = 4;
     private const string TransferRelatedEntityType = "Transfer";
+    private const string EurUsdPair = "EUR/USD";
+    private const string EurGbpPair = "EUR/GBP";
+    private const string EurRonPair = "EUR/RON";
+    private const string UsdRonPair = "USD/RON";
+    private const string GbpRonPair = "GBP/RON";
+    private const decimal EurUsdRate = 1.15m;
+    private const decimal EurGbpRate = 0.86m;
+    private const decimal EurRonRate = 5.09m;
+    private const decimal UsdRonRate = 4.41m;
+    private const decimal GbpRonRate = 5.90m;
 
     private readonly IDashboardRepository _dashboardRepository = dashboardRepository;
     private readonly IOtpService _otpService = otpService;
     private readonly ILogger<TransferService> _logger = logger;
+
+    /// <inheritdoc />
+    public ErrorOr<List<TransferAccountSelectionResponse>> GetAvailableAccounts(int userId)
+    {
+        ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
+        if (accountsResult.IsError)
+        {
+            return accountsResult.FirstError;
+        }
+
+        return accountsResult.Value
+            .Where(account => account.Status == AccountStatus.Active)
+            .OrderBy(account => account.AccountName)
+            .Select(account => new TransferAccountSelectionResponse
+            {
+                Id = account.Id,
+                Iban = account.Iban,
+                Currency = account.Currency,
+                Balance = account.Balance,
+                AccountName = account.AccountName ?? string.Empty,
+            })
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public ErrorOr<TransferIbanValidationResponse> ValidateRecipientIban(string iban)
+    {
+        bool isValid = IsValidIban(iban);
+        return new TransferIbanValidationResponse
+        {
+            IsValid = isValid,
+            BankName = isValid ? InferBankName(iban) : string.Empty,
+        };
+    }
+
+    /// <inheritdoc />
+    public ErrorOr<TransferFxPreviewResponse> GetFxPreview(string sourceCurrency, string targetCurrency, decimal amount)
+    {
+        if (string.IsNullOrWhiteSpace(sourceCurrency) || string.IsNullOrWhiteSpace(targetCurrency))
+        {
+            return Error.Validation(description: "Both currencies are required.");
+        }
+
+        if (amount <= 0)
+        {
+            return Error.Validation(description: "Amount must be greater than zero.");
+        }
+
+        if (sourceCurrency.Equals(targetCurrency, StringComparison.OrdinalIgnoreCase))
+        {
+            return new TransferFxPreviewResponse
+            {
+                ExchangeRate = 1m,
+                ConvertedAmount = amount,
+            };
+        }
+
+        ErrorOr<decimal> rateResult = GetExchangeRate(sourceCurrency, targetCurrency);
+        if (rateResult.IsError)
+        {
+            return rateResult.FirstError;
+        }
+
+        return new TransferFxPreviewResponse
+        {
+            ExchangeRate = rateResult.Value,
+            ConvertedAmount = Math.Round(amount * rateResult.Value, 2),
+        };
+    }
+
+    /// <inheritdoc />
+    public bool RequiresTwoFactorAuthentication(decimal amount)
+    {
+        return amount >= TwoFaAmountThreshold;
+    }
 
     /// <inheritdoc />
     /// <param name="request">The request value.</param>
@@ -172,6 +258,7 @@ public class TransferService(
             Id = transfer.Id,
             SourceAccountId = transfer.SourceAccountId,
             TransactionId = transfer.TransactionId,
+            TransactionRef = null,
             RecipientName = transfer.RecipientName,
             RecipientIban = transfer.RecipientIban,
             RecipientBankName = transfer.RecipientBankName,
@@ -182,6 +269,32 @@ public class TransferService(
             Status = DomainEnumMapper.ToApplication(transfer.Status),
             CreatedAt = transfer.CreatedAt,
         };
+    }
+
+    private static ErrorOr<decimal> GetExchangeRate(string sourceCurrency, string targetCurrency)
+    {
+        Dictionary<string, decimal> rates = new()
+        {
+            { EurUsdPair, EurUsdRate },
+            { EurGbpPair, EurGbpRate },
+            { EurRonPair, EurRonRate },
+            { UsdRonPair, UsdRonRate },
+            { GbpRonPair, GbpRonRate },
+        };
+
+        string directPair = $"{sourceCurrency.ToUpperInvariant()}/{targetCurrency.ToUpperInvariant()}";
+        if (rates.TryGetValue(directPair, out decimal directRate))
+        {
+            return directRate;
+        }
+
+        string inversePair = $"{targetCurrency.ToUpperInvariant()}/{sourceCurrency.ToUpperInvariant()}";
+        if (rates.TryGetValue(inversePair, out decimal inverseRate))
+        {
+            return Math.Round(1 / inverseRate, ExchangeRatePrecision);
+        }
+
+        return Error.NotFound(description: $"Rate not found for pair {sourceCurrency}/{targetCurrency}.");
     }
 
     private ErrorOr<Success> ValidateRequest(CreateTransferRequest request)
@@ -299,6 +412,22 @@ public class TransferService(
             return TransferErrors.PersistenceFailed;
         }
 
-        return MapToResponse(persistResult.Value);
+        Transfer persistedTransfer = persistResult.Value;
+        return new TransferResponse
+        {
+            Id = persistedTransfer.Id,
+            SourceAccountId = persistedTransfer.SourceAccountId,
+            TransactionId = persistedTransfer.TransactionId,
+            TransactionRef = logResult.Value.TransactionRef,
+            RecipientName = persistedTransfer.RecipientName,
+            RecipientIban = persistedTransfer.RecipientIban,
+            RecipientBankName = persistedTransfer.RecipientBankName,
+            Amount = persistedTransfer.Amount,
+            Currency = persistedTransfer.Currency,
+            Fee = persistedTransfer.Fee,
+            Reference = persistedTransfer.Reference,
+            Status = DomainEnumMapper.ToApplication(persistedTransfer.Status),
+            CreatedAt = persistedTransfer.CreatedAt,
+        };
     }
 }

@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Domain.Entities;
 using ErrorOr;
 
 namespace BankingApp.Application.Services.TeamB;
@@ -21,6 +22,13 @@ public interface IExchangeService
     /// <param name="amount">The amount to convert.</param>
     /// <returns>An <see cref="ExchangeTransactionResponseDto" /> with rate and preview amounts, or an error.</returns>
     ErrorOr<ExchangeTransactionResponseDto> GetRatePreview(string sourceCurrency, string targetCurrency, decimal amount);
+
+    /// <summary>Locks the current exchange rate for the authenticated user.</summary>
+    /// <param name="userId">The authenticated user identifier.</param>
+    /// <param name="sourceCurrency">The source currency code.</param>
+    /// <param name="targetCurrency">The target currency code.</param>
+    /// <returns>The locked rate details, or an error.</returns>
+    ErrorOr<LockedRate> LockRate(int userId, string sourceCurrency, string targetCurrency);
 
     /// <summary>Executes a currency exchange between two of the user's accounts.</summary>
     /// <param name="request">The exchange request details.</param>

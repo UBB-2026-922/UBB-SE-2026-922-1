@@ -20,8 +20,7 @@ namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Drives the multi-step transfer wizard.
-///     Migrated from BankingAppTeamB and adapted to use <see cref="IApiClient" />
-///     for all server communication instead of the Team B local service layer.
+///     Uses <see cref="IApiClient" /> for all server communication during the transfer flow.
 /// </summary>
 public partial class TransferViewModel : INotifyPropertyChanged
 {

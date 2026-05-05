@@ -33,6 +33,7 @@ dotnet_naming_style.pascal_case.capitalization = pascal_case
 dotnet_diagnostic.SA1101.severity = none
 dotnet_diagnostic.SA1309.severity = none
 dotnet_diagnostic.SA1515.severity = none
+dotnet_diagnostic.SA1010.severity = none
 
 dotnet_style_prefer_conditional_expression_over_assignment = false:warning
 dotnet_style_prefer_conditional_expression_over_return = false:warning

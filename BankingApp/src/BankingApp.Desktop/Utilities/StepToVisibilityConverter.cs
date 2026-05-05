@@ -15,7 +15,7 @@ namespace BankingApp.Desktop.Utilities;
 ///     Returns <see cref="Visibility.Visible" /> when the current wizard step matches
 ///     the target step number supplied as a string converter parameter; collapses otherwise.
 /// </summary>
-public class StepToVisibilityConverter : IValueConverter
+public partial class StepToVisibilityConverter : IValueConverter
 {
     /// <summary>
     ///     Converts an integer step value to <see cref="Visibility" /> by comparing it with

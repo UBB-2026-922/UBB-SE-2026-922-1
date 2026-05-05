@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="BankingApp.Desktop.Views.ForexPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
+        <StackPanel Spacing="16" MaxWidth="600" HorizontalAlignment="Left">
+
+            <TextBlock Text="Currency Exchange" FontSize="24" FontWeight="Bold" Margin="0,0,0,8" />
+
+            <ComboBox x:Name="SourceCurrencyCombo"
+                      Header="Source Currency"
+                      ItemsSource="{Binding AvailableCurrencies}"
+                      SelectedItem="{Binding SourceCurrency, Mode=TwoWay}"
+                      Width="250" />
+
+            <ComboBox x:Name="TargetCurrencyCombo"
+                      Header="Target Currency"
+                      ItemsSource="{Binding AvailableCurrencies}"
+                      SelectedItem="{Binding TargetCurrency, Mode=TwoWay}"
+                      Width="250" />
+
+            <TextBox x:Name="AmountInput"
+                     Header="Amount"
+                     Text="{Binding AmountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     PlaceholderText="e.g. 100"
+                     Width="250" />
+
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button x:Name="PreviewButton"
+                        Content="Preview Rate"
+                        Click="PreviewButton_Click" />
+
+                <Button x:Name="ExecuteButton"
+                        Content="Execute Exchange"
+                        Click="ExecuteButton_Click" />
+
+                <Button x:Name="ResetButton"
+                        Content="New Exchange"
+                        Click="ResetButton_Click" />
+            </StackPanel>
+
+            <!-- Preview results -->
+            <StackPanel Spacing="4" Margin="0,8,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Live Rate:" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding LiveRate}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Commission:" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Commission}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Target Amount:" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding TargetAmount}" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Transaction reference -->
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                <TextBlock Text="Transaction Reference:" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding TransactionReference}" />
+            </StackPanel>
+
+            <!-- Error message -->
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       FontWeight="Bold"
+                       TextWrapping="Wrap" />
+
+            <!-- Loading indicator -->
+            <ProgressRing IsActive="{Binding IsLoading}" Width="24" Height="24" HorizontalAlignment="Left" />
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
