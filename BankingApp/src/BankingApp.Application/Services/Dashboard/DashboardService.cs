@@ -6,7 +6,6 @@
 // </summary>
 
 using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Mapping;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
 using ErrorOr;
@@ -123,10 +122,10 @@ public class DashboardService : IDashboardService
                         Id = card.Id,
                         CardNumber = card.GetMaskedNumber(),
                         CardholderName = card.CardholderName,
-                        CardType = DomainEnumMapper.ToApplication(card.CardType),
+                        CardType = card.CardType,
                         CardBrand = card.CardBrand,
                         ExpiryDate = card.ExpiryDate,
-                        Status = DomainEnumMapper.ToApplication(card.Status),
+                        Status = card.Status,
                         IsContactlessEnabled = card.IsContactlessEnabled,
                         IsOnlineEnabled = card.IsOnlineEnabled,
                         AccountName = accountsById.TryGetValue(card.AccountId, out Account? account)
@@ -139,13 +138,13 @@ public class DashboardService : IDashboardService
                 .Select(transaction => new TransactionDataTransferObject
                 {
                     Id = transaction.Id,
-                    Direction = DomainEnumMapper.ToApplication(transaction.Direction),
+                    Direction = transaction.Direction,
                     Amount = transaction.Amount,
                     Currency = transaction.Currency,
                     Description = transaction.Description,
                     MerchantName = transaction.MerchantName,
                     CounterpartyName = transaction.CounterpartyName,
-                    Status = DomainEnumMapper.ToApplication(transaction.Status),
+                    Status = transaction.Status,
                     CreatedAt = transaction.CreatedAt,
                 })
                 .ToList(),

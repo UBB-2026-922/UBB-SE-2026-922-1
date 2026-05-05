@@ -6,7 +6,7 @@
 // </summary>
 
 using System.Text.Json.Serialization;
-using BankingApp.Application.Enums;
+using BankingApp.Domain.Enums;
 
 namespace BankingApp.Application.DataTransferObjects.Dashboard;
 

@@ -6,12 +6,11 @@
 // </summary>
 
 using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
-using BankingApp.Application.Mapping;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using BankingApp.Application.Utilities;
 using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
 using BankingApp.Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -198,7 +197,7 @@ public class ProfileService : IProfileService
         }
 
         User user = userResult.Value;
-        user.Enable2Fa(DomainEnumMapper.ToDomain(method));
+        user.Enable2Fa(method);
         if (_userRepository.UpdateUser(user).IsError)
         {
             _logger.LogError("Failed to enable 2FA for user {UserId}.", userId);
@@ -260,7 +259,7 @@ public class ProfileService : IProfileService
             {
                 Id = preference.Id,
                 UserId = preference.UserId,
-                Category = DomainEnumMapper.ToApplication(preference.Category),
+                Category = preference.Category,
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,
                 SmsEnabled = preference.SmsEnabled,
@@ -289,7 +288,7 @@ public class ProfileService : IProfileService
             {
                 Id = preference.Id,
                 UserId = preference.UserId,
-                Category = DomainEnumMapper.ToDomain(preference.Category),
+                Category = preference.Category,
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,
                 SmsEnabled = preference.SmsEnabled,

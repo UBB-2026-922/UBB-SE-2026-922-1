@@ -21,22 +21,24 @@ public static class NotificationTypeExtensions
     private const string DuePaymentDisplayName = "Due Payment";
     private const string SuspiciousActivityDisplayName = "Suspicious Activity";
 
-    /// <summary>
-    ///     Converts a <see cref="NotificationType" /> value to its human-readable display name.
-    /// </summary>
-    /// <param name="type">The notification type to convert.</param>
-    /// <returns>A display-friendly string representation of the notification type.</returns>
-    public static string ToDisplayName(this NotificationType type)
+    extension(NotificationType type)
     {
-        return type switch
+        /// <summary>
+        ///     Converts the <see cref="NotificationType" /> value to its human-readable display name.
+        /// </summary>
+        /// <returns>A display-friendly string representation of the notification type.</returns>
+        public string ToDisplayName()
         {
-            NotificationType.InboundTransfer => InboundTransferDisplayName,
-            NotificationType.OutboundTransfer => OutboundTransferDisplayName,
-            NotificationType.LowBalance => LowBalanceDisplayName,
-            NotificationType.DuePayment => DuePaymentDisplayName,
-            NotificationType.SuspiciousActivity => SuspiciousActivityDisplayName,
-            _ => type.ToString()
-        };
+            return type switch
+            {
+                NotificationType.InboundTransfer => InboundTransferDisplayName,
+                NotificationType.OutboundTransfer => OutboundTransferDisplayName,
+                NotificationType.LowBalance => LowBalanceDisplayName,
+                NotificationType.DuePayment => DuePaymentDisplayName,
+                NotificationType.SuspiciousActivity => SuspiciousActivityDisplayName,
+                _ => type.ToString()
+            };
+        }
     }
 
     /// <summary>

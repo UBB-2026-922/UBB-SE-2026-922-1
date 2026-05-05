@@ -9,9 +9,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 

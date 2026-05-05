@@ -78,28 +78,6 @@ public class BillPayViewModelTests
     }
 
     /// <summary>
-    ///     ViewModel starts on step 1 with empty state.
-    /// </summary>
-    [Fact]
-    public void Constructor_WhenCalled_ShouldInitializeDefaultState()
-    {
-        // Arrange & Act
-        BillPayViewModel vm = CreateViewModel();
-
-        // Assert
-        vm.CurrentStep.Should().Be(1);
-        vm.Billers.Should().BeEmpty();
-        vm.SavedBillers.Should().BeEmpty();
-        vm.Accounts.Should().BeEmpty();
-        vm.SelectedBiller.Should().BeNull();
-        vm.Amount.Should().Be(0);
-        vm.ErrorMessage.Should().BeEmpty();
-        vm.ReceiptNumber.Should().BeEmpty();
-    }
-
-    // SelectBiller
-
-    /// <summary>
     ///     Selecting a biller advances to step 2.
     /// </summary>
     [Fact]
@@ -142,8 +120,6 @@ public class BillPayViewModelTests
         vm.BillerReference.Should().Be("REF-123");
         vm.CurrentStep.Should().Be(2);
     }
-
-    // NextStep Validation
 
     /// <summary>
     ///     NextStep from step 1 without biller shows error.

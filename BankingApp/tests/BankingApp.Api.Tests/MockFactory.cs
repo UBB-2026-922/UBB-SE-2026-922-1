@@ -5,7 +5,6 @@
 using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.DataTransferObjects.Dashboard;
 using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
@@ -15,6 +14,7 @@ using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Security;
 using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 
 namespace BankingApp.Api.Tests;

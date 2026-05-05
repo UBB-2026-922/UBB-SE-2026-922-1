@@ -28,7 +28,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
     private Respawner? _respawner;
 
     /// <inheritdoc />
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _databaseContainer.StartAsync();
 
@@ -51,7 +51,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
     }
 
     /// <inheritdoc />
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (_connection != null)
         {

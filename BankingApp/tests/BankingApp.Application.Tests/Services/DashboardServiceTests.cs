@@ -9,7 +9,6 @@ using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-using ApplicationCardType = BankingApp.Application.Enums.CardType;
 
 namespace BankingApp.Application.Tests.Services;
 
@@ -142,7 +141,7 @@ public class DashboardServiceTests
         result.IsError.Should().BeFalse();
         result.Value.Cards.Should().ContainSingle();
         result.Value.Cards.First().CardholderName.Should().Be("Ada Lovelace");
-        result.Value.Cards.First().CardType.Should().Be(ApplicationCardType.Debit);
+        result.Value.Cards.First().CardType.Should().Be(CardType.Debit);
         result.Value.Cards.First().CardNumber.Should().Be("**** **** **** 3456");
         result.Value.Cards.First().AccountName.Should().Be("Checking");
         result.Value.Cards.First().AccountBalance.Should().Be(2500);

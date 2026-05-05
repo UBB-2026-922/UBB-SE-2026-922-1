@@ -5,7 +5,7 @@
 // Contains the TransferResponse class.
 // </summary>
 
-using TransferStatus = BankingApp.Application.Enums.TransferStatus;
+using BankingApp.Domain.Enums;
 
 namespace BankingApp.Application.DTOs.Transfer;
 

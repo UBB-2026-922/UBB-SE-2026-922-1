@@ -8,9 +8,9 @@
 using System;
 using System.Threading.Tasks;
 using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
+using BankingApp.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Desktop.ViewModels;

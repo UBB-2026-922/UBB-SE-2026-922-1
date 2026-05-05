@@ -6,7 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 
 namespace BankingApp.Application.Services.Profile;

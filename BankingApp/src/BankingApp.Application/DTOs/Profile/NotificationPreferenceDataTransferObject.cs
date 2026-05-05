@@ -5,7 +5,7 @@
 // Contains the NotificationPreferenceDataTransferObject class.
 // </summary>
 
-using BankingApp.Application.Enums;
+using BankingApp.Domain.Enums;
 
 namespace BankingApp.Application.DataTransferObjects.Profile;
 

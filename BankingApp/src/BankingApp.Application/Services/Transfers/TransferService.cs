@@ -6,7 +6,6 @@
 // </summary>
 
 using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Mapping;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using BankingApp.Application.Services.Transfers;
@@ -266,7 +265,7 @@ public class TransferService(
             Currency = transfer.Currency,
             Fee = transfer.Fee,
             Reference = transfer.Reference,
-            Status = DomainEnumMapper.ToApplication(transfer.Status),
+            Status = transfer.Status,
             CreatedAt = transfer.CreatedAt,
         };
     }
@@ -426,7 +425,7 @@ public class TransferService(
             Currency = persistedTransfer.Currency,
             Fee = persistedTransfer.Fee,
             Reference = persistedTransfer.Reference,
-            Status = DomainEnumMapper.ToApplication(persistedTransfer.Status),
+            Status = persistedTransfer.Status,
             CreatedAt = persistedTransfer.CreatedAt,
         };
     }

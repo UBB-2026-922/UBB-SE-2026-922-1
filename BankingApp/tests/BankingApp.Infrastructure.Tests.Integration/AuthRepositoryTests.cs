@@ -41,17 +41,17 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
     /// <summary>
     ///     Initializes the test fixture.
     /// </summary>
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-        return _fixture.ResetAsync();
+        return new ValueTask(_fixture.ResetAsync());
     }
 
     /// <summary>
     ///     Disposes the test fixture.
     /// </summary>
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>

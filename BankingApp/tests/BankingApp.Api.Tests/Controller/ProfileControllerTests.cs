@@ -4,8 +4,8 @@
 
 using BankingApp.Api.Controllers;
 using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
 using BankingApp.Application.Services.Profile;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

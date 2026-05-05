@@ -5,7 +5,7 @@
 // Contains the Enable2FARequest class.
 // </summary>
 
-using BankingApp.Application.Enums;
+using BankingApp.Domain.Enums;
 
 namespace BankingApp.Application.DataTransferObjects.Profile;
 

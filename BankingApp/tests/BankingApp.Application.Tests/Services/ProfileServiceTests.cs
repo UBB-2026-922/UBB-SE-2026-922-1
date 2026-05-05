@@ -10,7 +10,6 @@ using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-using ApplicationTwoFactorMethod = BankingApp.Application.Enums.TwoFactorMethod;
 
 namespace BankingApp.Application.Tests.Services;
 
@@ -288,7 +287,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<Success> result = _service.Enable2Fa(NonExistentUserId, ApplicationTwoFactorMethod.Email);
+        ErrorOr<Success> result = _service.Enable2Fa(NonExistentUserId, TwoFactorMethod.Email);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -308,7 +307,7 @@ public class ProfileServiceTests
             .Returns(Result.Success);
 
         // Act
-        ErrorOr<Success> result = _service.Enable2Fa(userId, ApplicationTwoFactorMethod.Email);
+        ErrorOr<Success> result = _service.Enable2Fa(userId, TwoFactorMethod.Email);
 
         // Assert
         result.IsError.Should().BeFalse();

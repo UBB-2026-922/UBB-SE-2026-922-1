@@ -5,8 +5,8 @@
 // Contains the ProfileInfo class.
 // </summary>
 
-using BankingApp.Application.Mapping;
 using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
 
 namespace BankingApp.Application.DataTransferObjects.Profile;
 
@@ -40,7 +40,7 @@ public class ProfileInfo
             Nationality = user.Nationality;
             PreferredLanguage = user.PreferredLanguage;
             Is2FaEnabled = user.Is2FaEnabled;
-            Preferred2FaMethod = DomainEnumMapper.ToApplication(user.Preferred2FaMethod);
+            Preferred2FaMethod = user.Preferred2FaMethod;
         }
     }
 
@@ -122,5 +122,5 @@ public class ProfileInfo
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public Enums.TwoFactorMethod? Preferred2FaMethod { get; set; }
+    public TwoFactorMethod? Preferred2FaMethod { get; set; }
 }

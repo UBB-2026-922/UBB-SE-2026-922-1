@@ -37,15 +37,15 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
     }
 
     /// <inheritdoc />
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-        return _fixture.ResetAsync();
+        return new ValueTask(_fixture.ResetAsync());
     }
 
     /// <inheritdoc />
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>
