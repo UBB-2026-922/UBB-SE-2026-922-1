@@ -1,11 +1,11 @@
-﻿// <copyright file="SavedBillerDataTransferObject.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="SavedBillerDataTransferObject.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the SavedBillerDataTransferObject class.
 // </summary>
 
-namespace BankingApp.Application.DataTransferObjects.Billers;
+namespace BankingApp.Application.DTOs.Billers;
 
 /// <summary>
 ///     Represents a saved biller entry in API responses.

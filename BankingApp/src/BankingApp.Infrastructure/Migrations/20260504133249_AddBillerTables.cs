@@ -1,5 +1,5 @@
-﻿// <copyright file="20260504133249_AddBillerTables.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="20260504133249_AddBillerTables.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the AddBillerTables migration.

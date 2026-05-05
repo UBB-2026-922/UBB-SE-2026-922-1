@@ -1,11 +1,11 @@
-﻿// <copyright file="SaveBillerRequest.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="SaveBillerRequest.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the SaveBillerRequest class.
 // </summary>
 
-namespace BankingApp.Application.DataTransferObjects.Billers;
+namespace BankingApp.Application.DTOs.Billers;
 
 /// <summary>
 ///     Request body for saving a biller.

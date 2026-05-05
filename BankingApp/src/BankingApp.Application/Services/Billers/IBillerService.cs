@@ -1,11 +1,11 @@
-﻿// <copyright file="IBillerService.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="IBillerService.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the IBillerService interface.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Billers;
+using BankingApp.Application.DTOs.Billers;
 using ErrorOr;
 
 namespace BankingApp.Application.Services.Billers;

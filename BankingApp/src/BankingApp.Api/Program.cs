@@ -18,7 +18,6 @@ const string defaultLogFilePath = "logs/bankingapp-server-.log";
 const int retainedLogFileCountLimit = 14;
 const int commandLineExecutableArgumentCount = 1;
 const int internalServerErrorStatusCode = StatusCodes.Status500InternalServerError;
-const string applyDatabaseMigrationsConfigurationKey = "Database:ApplyMigrations";
 
 // Configure Serilog before building the host so that startup errors are also captured.
 Log.Logger = new LoggerConfiguration()

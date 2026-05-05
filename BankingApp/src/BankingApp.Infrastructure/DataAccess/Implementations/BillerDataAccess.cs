@@ -1,5 +1,5 @@
-﻿// <copyright file="BillerDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillerDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BillerDataAccess class.
@@ -34,10 +34,10 @@ public class BillerDataAccess : IBillerDataAccess
         IQueryable<Biller> query = _databaseContext.Billers;
         if (activeOnly)
         {
-            query = query.Where(b => b.IsActive);
+            query = query.Where(biller => biller.IsActive);
         }
 
-        return query.OrderBy(b => b.Name).ToList();
+        return query.OrderBy(biller => biller.Name).ToList();
     }
 
     /// <inheritdoc />
@@ -46,22 +46,22 @@ public class BillerDataAccess : IBillerDataAccess
         IQueryable<Biller> query = _databaseContext.Billers;
         if (activeOnly)
         {
-            query = query.Where(b => b.IsActive);
+            query = query.Where(biller => biller.IsActive);
         }
 
-        query = query.Where(b => b.Name.Contains(searchTerm));
+        query = query.Where(biller => biller.Name.Contains(searchTerm));
         if (!string.IsNullOrWhiteSpace(category))
         {
-            query = query.Where(b => b.Category == category);
+            query = query.Where(biller => biller.Category == category);
         }
 
-        return query.OrderBy(b => b.Name).ToList();
+        return query.OrderBy(biller => biller.Name).ToList();
     }
 
     /// <inheritdoc />
     public ErrorOr<Biller> FindById(int id)
     {
-        Biller? biller = _databaseContext.Billers.FirstOrDefault(b => b.Id == id);
+        Biller? biller = _databaseContext.Billers.FirstOrDefault(candidateBiller => candidateBiller.Id == id);
         if (biller is null)
         {
             return BillerErrors.BillerNotFound;

@@ -1,11 +1,11 @@
-﻿// <copyright file="BillerService.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillerService.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BillerService class.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Billers;
+using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Errors;
@@ -75,7 +75,7 @@ public class BillerService : IBillerService
         }
 
         ErrorOr<List<SavedBiller>> existingResult = _billerRepository.GetSavedBillers(userId);
-        if (!existingResult.IsError && existingResult.Value.Any(s => s.BillerId == request.BillerId))
+        if (!existingResult.IsError && existingResult.Value.Any(savedBiller => savedBiller.BillerId == request.BillerId))
         {
             return BillerErrors.BillerAlreadySaved;
         }
@@ -108,7 +108,7 @@ public class BillerService : IBillerService
             return savedResult.Errors;
         }
 
-        SavedBiller? entry = savedResult.Value.FirstOrDefault(s => s.Id == savedBillerId);
+        SavedBiller? entry = savedResult.Value.FirstOrDefault(savedBiller => savedBiller.Id == savedBillerId);
         if (entry is null)
         {
             return BillerErrors.SavedBillerNotFound;
@@ -117,26 +117,26 @@ public class BillerService : IBillerService
         return _billerRepository.DeleteSavedBiller(savedBillerId);
     }
 
-    private static BillerDataTransferObject ToDto(Biller b) =>
+    private static BillerDataTransferObject ToDto(Biller biller) =>
         new()
         {
-            Id = b.Id,
-            Name = b.Name,
-            Category = b.Category,
-            LogoUrl = b.LogoUrl,
-            IsActive = b.IsActive,
+            Id = biller.Id,
+            Name = biller.Name,
+            Category = biller.Category,
+            LogoUrl = biller.LogoUrl,
+            IsActive = biller.IsActive,
         };
 
-    private static SavedBillerDataTransferObject ToSavedDto(SavedBiller s) =>
+    private static SavedBillerDataTransferObject ToSavedDto(SavedBiller savedBiller) =>
         new()
         {
-            Id = s.Id,
-            BillerId = s.BillerId,
-            BillerName = s.Biller?.Name ?? string.Empty,
-            BillerCategory = s.Biller?.Category ?? string.Empty,
-            LogoUrl = s.Biller?.LogoUrl,
-            Nickname = s.Nickname,
-            DefaultReference = s.DefaultReference,
-            CreatedAt = s.CreatedAt,
+            Id = savedBiller.Id,
+            BillerId = savedBiller.BillerId,
+            BillerName = savedBiller.Biller?.Name ?? string.Empty,
+            BillerCategory = savedBiller.Biller?.Category ?? string.Empty,
+            LogoUrl = savedBiller.Biller?.LogoUrl,
+            Nickname = savedBiller.Nickname,
+            DefaultReference = savedBiller.DefaultReference,
+            CreatedAt = savedBiller.CreatedAt,
         };
 }

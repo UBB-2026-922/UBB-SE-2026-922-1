@@ -233,22 +233,22 @@ public class AppDatabaseContext : DbContext
         modelBuilder.Entity<Biller>(entity =>
         {
             entity.ToTable("Biller");
-            entity.HasKey(b => b.Id);
-            entity.Property(b => b.Name).IsRequired().HasMaxLength(200);
-            entity.Property(b => b.Category).IsRequired().HasMaxLength(100);
-            entity.Property(b => b.LogoUrl).HasMaxLength(500);
-            entity.Property(b => b.IsActive).HasDefaultValue(true);
+            entity.HasKey(biller => biller.Id);
+            entity.Property(biller => biller.Name).IsRequired().HasMaxLength(200);
+            entity.Property(biller => biller.Category).IsRequired().HasMaxLength(100);
+            entity.Property(biller => biller.LogoUrl).HasMaxLength(500);
+            entity.Property(biller => biller.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<SavedBiller>(entity =>
         {
             entity.ToTable("SavedBiller");
-            entity.HasKey(s => s.Id);
-            entity.Property(s => s.Nickname).HasMaxLength(100);
-            entity.Property(s => s.DefaultReference).HasMaxLength(200);
-            entity.Property(s => s.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.HasOne(s => s.Biller).WithMany().HasForeignKey(s => s.BillerId);
-            entity.HasOne<User>().WithMany().HasForeignKey(s => s.UserId);
+            entity.HasKey(savedBiller => savedBiller.Id);
+            entity.Property(savedBiller => savedBiller.Nickname).HasMaxLength(100);
+            entity.Property(savedBiller => savedBiller.DefaultReference).HasMaxLength(200);
+            entity.Property(savedBiller => savedBiller.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasOne(savedBiller => savedBiller.Biller).WithMany().HasForeignKey(savedBiller => savedBiller.BillerId);
+            entity.HasOne<User>().WithMany().HasForeignKey(savedBiller => savedBiller.UserId);
         });
 
         modelBuilder.Entity<Transfer>(entity =>

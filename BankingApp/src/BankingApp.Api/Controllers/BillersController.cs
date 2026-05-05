@@ -1,11 +1,11 @@
-﻿// <copyright file="BillersController.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="BillersController.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the BillersController class.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Billers;
+using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.Services.Billers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -39,9 +39,9 @@ public class BillersController : ApiControllerBase
     [HttpGet]
     public IActionResult GetBillers([FromQuery] string? search, [FromQuery] string? category)
     {
-        if (!string.IsNullOrWhiteSpace(search))
+        if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(category))
         {
-            return ToActionResult(_billerService.SearchBillers(search, category), data => Ok(data));
+            return ToActionResult(_billerService.SearchBillers(search ?? string.Empty, category), data => Ok(data));
         }
 
         return ToActionResult(_billerService.GetBillerDirectory(), data => Ok(data));

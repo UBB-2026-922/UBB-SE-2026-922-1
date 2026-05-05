@@ -1,5 +1,5 @@
-﻿// <copyright file="SavedBillerDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="SavedBillerDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the SavedBillerDataAccess class.
@@ -33,9 +33,9 @@ public class SavedBillerDataAccess : ISavedBillerDataAccess
     public ErrorOr<List<SavedBiller>> FindByUserId(int userId)
     {
         return _databaseContext.SavedBillers
-            .Include(s => s.Biller)
-            .Where(s => s.UserId == userId)
-            .OrderByDescending(s => s.CreatedAt)
+            .Include(savedBiller => savedBiller.Biller)
+            .Where(savedBiller => savedBiller.UserId == userId)
+            .OrderByDescending(savedBiller => savedBiller.CreatedAt)
             .ToList();
     }
 
@@ -50,7 +50,7 @@ public class SavedBillerDataAccess : ISavedBillerDataAccess
     /// <inheritdoc />
     public ErrorOr<Success> Delete(int id)
     {
-        SavedBiller? entry = _databaseContext.SavedBillers.FirstOrDefault(s => s.Id == id);
+        SavedBiller? entry = _databaseContext.SavedBillers.FirstOrDefault(savedBiller => savedBiller.Id == id);
         if (entry is null)
         {
             return BillerErrors.SavedBillerNotFound;
