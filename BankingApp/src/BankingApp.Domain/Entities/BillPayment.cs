@@ -2,123 +2,91 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the BillPayment entity for Team B's bill payment feature.
+// Contains the BillPayment entity for the bill payment feature.
 // </summary>
 
+using System;
 using BankingApp.Domain.Enums;
 
 namespace BankingApp.Domain.Entities;
 
 /// <summary>
-///     Represents a one-off bill payment made by a user to a registered biller.
-///     Maps to the SQL table <c>BillPayment</c> introduced by Team B.
+/// Represents a one-off bill payment made by a user to a registered biller.
 /// </summary>
-/// <remarks>
-///     <para>
-///         Reuses the base entity <see cref="User" /> via <see cref="UserId" /> (Many-to-One):
-///         every payment is owned by exactly one user.
-///     </para>
-///     <para>
-///         Reuses the base entity <see cref="Account" /> via <see cref="SourceAccountId" /> (Many-to-One):
-///         the debit account must exist in the <c>Account</c> table.
-///     </para>
-///     <para>
-///         Optionally references the base entity <see cref="Transaction" /> via <see cref="TransactionId" />
-///         (One-to-One, nullable): when the payment is processed, the resulting ledger entry is linked here.
-///     </para>
-///     <para>
-///         References <see cref="Biller" /> via <see cref="BillerId" /> (Many-to-One):
-///         a payment must target a registered biller.
-///     </para>
-/// </remarks>
 public class BillPayment
 {
     /// <summary>
-    ///     Gets or sets the unique identifier for this bill payment.
+    /// Gets or sets the unique identifier for this bill payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public int Id { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the <see cref="User" /> who made this payment.
+    /// Gets or sets the identifier of the user who initiated the payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public int UserId { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the source <see cref="Account" /> debited for this payment.
+    /// Gets or sets the user associated with this payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    public User? User { get; set; }
+
+    /// <summary>
+    /// Gets or sets the identifier of the source account from which the funds are drawn.
+    /// </summary>
     public int SourceAccountId { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the <see cref="Biller" /> that receives this payment.
+    /// Gets or sets the source account associated with this payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    public Account? SourceAccount { get; set; }
+
+    /// <summary>
+    /// Gets or sets the identifier of the biller receiving the payment.
+    /// </summary>
     public int BillerId { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the linked <see cref="Transaction" /> ledger entry,
-    ///     or <see langword="null" /> when the payment has not yet been executed.
+    /// Gets or sets the biller associated with this payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    public Biller? Biller { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional identifier of the overarching transaction.
+    /// </summary>
     public int? TransactionId { get; set; }
 
     /// <summary>
-    ///     Gets or sets the biller-specific reference number (e.g., invoice number or contract ID).
+    /// Gets or sets the overarching transaction associated with this payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    public Transaction? Transaction { get; set; }
+
+    /// <summary>
+    /// Gets or sets the reference code or invoice number provided by the biller.
+    /// </summary>
     public string BillerReference { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Gets or sets the amount paid to the biller.
+    /// Gets or sets the amount paid to the biller.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public decimal Amount { get; set; }
 
     /// <summary>
-    ///     Gets or sets the processing fee charged for this payment.
+    /// Gets or sets the processing fee charged for this payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public decimal Fee { get; set; }
 
     /// <summary>
-    ///     Gets or sets the unique receipt number issued upon payment confirmation.
+    /// Gets or sets the unique receipt number generated for this payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public string ReceiptNumber { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Gets or sets the current processing status of the payment.
+    /// Gets or sets the current status of the bill payment.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public BillPaymentStatus Status { get; set; }
 
     /// <summary>
-    ///     Gets or sets the date and time (UTC) when this payment was created.
+    /// Gets or sets the date and time when the payment was created.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

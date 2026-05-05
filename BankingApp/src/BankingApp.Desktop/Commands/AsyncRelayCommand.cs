@@ -14,7 +14,7 @@ namespace BankingApp.Desktop.Commands;
 /// <summary>
 ///     A command that executes an asynchronous action and prevents concurrent execution.
 /// </summary>
-public class AsyncRelayCommand : ICommand
+public partial class AsyncRelayCommand : ICommand
 {
     private readonly Func<object?, Task> _executeAsyncAction;
     private bool _isExecutionInProgress;

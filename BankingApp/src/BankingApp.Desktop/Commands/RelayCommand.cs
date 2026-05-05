@@ -13,7 +13,7 @@ namespace BankingApp.Desktop.Commands;
 /// <summary>
 ///     A basic command that delegates execution to a provided action.
 /// </summary>
-public class RelayCommand : ICommand
+public partial class RelayCommand : ICommand
 {
     private readonly Action<object?> _executeAction;
     private readonly Func<object?, bool>? _canExecutePredicate;

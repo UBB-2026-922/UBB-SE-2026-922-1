@@ -37,7 +37,7 @@ public class ExchangeService : IExchangeService
     private const decimal UsdRonRate = 4.41m;
     private const decimal GbpRonRate = 5.90m;
 
-    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(CacheDurationSeconds);
+    private static readonly TimeSpan _cacheDuration = TimeSpan.FromSeconds(CacheDurationSeconds);
 
     private readonly IExchangeRepository _exchangeRepository;
     private readonly Dictionary<int, LockedRate> _lockedRates = new();
@@ -237,7 +237,7 @@ public class ExchangeService : IExchangeService
 
     private Dictionary<string, decimal> GetLiveRates()
     {
-        if (_cachedRates != null && DateTime.UtcNow - _ratesLastFetched < CacheDuration)
+        if (_cachedRates != null && DateTime.UtcNow - _ratesLastFetched < _cacheDuration)
         {
             return _cachedRates;
         }
