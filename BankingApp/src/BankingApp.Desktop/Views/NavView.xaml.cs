@@ -41,7 +41,7 @@ public sealed partial class NavView
         _navButtons =
         [
             NavDashboard, NavTransfers, NavBillPayments, NavCards,
-            NavTransferHistory, NavCurrencyExchange, NavSavings,
+            NavTransferHistory, NavCurrencyExchange, NavRateAlerts, NavSavings,
             NavInvestments, NavStatistics, NavSupport, NavProfile,
             NavBeneficiaries
         ];
