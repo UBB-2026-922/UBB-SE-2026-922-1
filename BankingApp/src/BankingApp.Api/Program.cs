@@ -5,6 +5,7 @@
 // Contains the Program class.
 // </summary>
 
+using BankingApp.Api.HostedServices;
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Infrastructure.DataAccess;
@@ -74,6 +75,7 @@ try
     });
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddHostedService<FinanceBackgroundService>();
     WebApplication application = builder.Build();
     bool applyDatabaseMigrations = bool.TryParse(
         application.Configuration[applyDatabaseMigrationsConfigurationKey],

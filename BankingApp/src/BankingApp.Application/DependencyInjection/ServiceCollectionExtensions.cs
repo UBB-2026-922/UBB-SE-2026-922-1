@@ -15,6 +15,10 @@ using BankingApp.Application.Services.RecurringPayments;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Transfers;
 using Microsoft.Extensions.DependencyInjection;
+using ExchangeServiceContract = BankingApp.Application.Services.TeamB.IExchangeService;
+using ExchangeServiceImplementation = BankingApp.Application.Services.TeamB.ExchangeService;
+using RateAlertServiceContract = BankingApp.Application.Services.TeamB.IRateAlertService;
+using RateAlertServiceImplementation = BankingApp.Application.Services.TeamB.RateAlertService;
 
 namespace BankingApp.Application.DependencyInjection;
 
@@ -36,9 +40,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IBillerService, BillerService>();
-        services.AddScoped<ITransferService, TransferService>();
-        services.AddScoped<IBeneficiaryService, BeneficiaryService>();
-        services.AddScoped<IRecurringPaymentService, RecurringPaymentService>();
+        services.AddScoped<BankingApp.Application.Services.Transfers.ITransferService, TransferService>();
+        services.AddScoped<BankingApp.Application.Services.Beneficiary.IBeneficiaryService, BeneficiaryService>();
+        services.AddScoped<BankingApp.Application.Services.RecurringPayments.IRecurringPaymentService, RecurringPaymentService>();
+        services.AddScoped<IRecurringPaymentProcessingService, RecurringPaymentProcessingService>();
+        services.AddScoped<ExchangeServiceContract, ExchangeServiceImplementation>();
+        services.AddScoped<RateAlertServiceContract, RateAlertServiceImplementation>();
         return services;
     }
 }

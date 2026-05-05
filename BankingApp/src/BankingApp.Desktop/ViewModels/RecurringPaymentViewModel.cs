@@ -24,8 +24,7 @@ namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Drives the recurring payment management screen.
-///     Migrated from BankingAppTeamB and adapted to use <see cref="IApiClient" />
-///     for all server communication instead of the Team B local service layer.
+///     Uses <see cref="IApiClient" /> for all server communication during recurring-payment management.
 /// </summary>
 public class RecurringPaymentViewModel : INotifyPropertyChanged
 {
@@ -291,21 +290,18 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
 
-            // Load Accounts
             ErrorOr<List<AccountDto>> accountsResult = await _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
             if (!accountsResult.IsError)
             {
                 Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
             }
 
-            // Load Payments
             ErrorOr<List<RecurringPaymentResponse>> paymentsResult = await _apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments);
             if (!paymentsResult.IsError)
             {
                 Payments = new ObservableCollection<RecurringPaymentResponse>(paymentsResult.Value);
             }
 
-            // Load Billers
             ErrorOr<List<BillerDto>> billersResult = await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers);
             if (!billersResult.IsError)
             {

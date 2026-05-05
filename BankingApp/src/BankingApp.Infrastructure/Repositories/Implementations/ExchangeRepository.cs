@@ -2,43 +2,142 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
-// Contains the dummy ExchangeRepository skeleton for Team B integration.
+// Contains the ExchangeRepository class.
 // </summary>
 
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
+using BankingApp.Infrastructure.DataAccess;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
-///     Skeleton implementation of <see cref="IExchangeRepository" />.
-///     All members throw <see cref="NotImplementedException" /> and serve as
-///     landing zones for the Team B integration task.
+///     EF Core implementation of <see cref="IExchangeRepository" />.
 /// </summary>
 public class ExchangeRepository : IExchangeRepository
 {
+    private const string ExchangeRelatedEntityType = "Exchange";
+    private readonly AppDatabaseContext _databaseContext;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ExchangeRepository" /> class.
+    /// </summary>
+    /// <param name="databaseContext">The application database context.</param>
+    public ExchangeRepository(AppDatabaseContext databaseContext)
+    {
+        _databaseContext = databaseContext;
+    }
+
     /// <inheritdoc />
     public ErrorOr<ExchangeTransaction> GetById(int id)
     {
-        throw new NotImplementedException();
+        ExchangeTransaction? exchange = _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == id);
+        if (exchange is null)
+        {
+            return Error.NotFound(description: "Exchange transaction not found.");
+        }
+
+        return exchange;
     }
 
     /// <inheritdoc />
     public ErrorOr<List<ExchangeTransaction>> GetByUserId(int userId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            return _databaseContext.ExchangeTransactions
+                .Where(transaction => transaction.UserId == userId)
+                .OrderByDescending(transaction => transaction.CreatedAt)
+                .ToList();
+        }
+        catch (Exception exception)
+        {
+            return Error.Failure(description: exception.Message);
+        }
     }
 
     /// <inheritdoc />
     public ErrorOr<ExchangeTransaction> Create(ExchangeTransaction exchange)
     {
-        throw new NotImplementedException();
+        using var databaseTransaction = _databaseContext.Database.BeginTransaction();
+
+        try
+        {
+            Account? sourceAccount = _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.SourceAccountId);
+            if (sourceAccount is null)
+            {
+                return Error.NotFound(description: "Source account not found.");
+            }
+
+            Account? targetAccount = _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.TargetAccountId);
+            if (targetAccount is null)
+            {
+                return Error.NotFound(description: "Target account not found.");
+            }
+
+            decimal totalDebit = exchange.SourceAmount;
+            if (sourceAccount.Balance < totalDebit)
+            {
+                return Error.Forbidden(description: "Insufficient funds for exchange.");
+            }
+
+            sourceAccount.Balance -= totalDebit;
+            targetAccount.Balance += exchange.TargetAmount;
+
+            var ledgerTransaction = new Transaction
+            {
+                AccountId = sourceAccount.Id,
+                TransactionRef = $"FX-{Guid.NewGuid():N}"[..20].ToUpperInvariant(),
+                Type = ExchangeRelatedEntityType,
+                Direction = TransactionDirection.Out,
+                Amount = exchange.SourceAmount,
+                Currency = exchange.SourceCurrency,
+                BalanceAfter = sourceAccount.Balance,
+                CounterpartyName = $"Exchange to {exchange.TargetCurrency}",
+                Fee = exchange.Commission,
+                ExchangeRate = exchange.ExchangeRate,
+                Status = TransactionStatus.Completed,
+                RelatedEntityType = ExchangeRelatedEntityType,
+                CreatedAt = exchange.CreatedAt,
+            };
+
+            _databaseContext.Transactions.Add(ledgerTransaction);
+            _databaseContext.SaveChanges();
+
+            exchange.TransactionId = ledgerTransaction.Id;
+            _databaseContext.ExchangeTransactions.Add(exchange);
+            _databaseContext.SaveChanges();
+            databaseTransaction.Commit();
+            return exchange;
+        }
+        catch (Exception exception)
+        {
+            databaseTransaction.Rollback();
+            return Error.Failure(description: exception.Message);
+        }
     }
 
     /// <inheritdoc />
-    public ErrorOr<ExchangeTransaction> UpdateStatus(int exchangeId, Domain.Enums.ExchangeTransactionStatus status)
+    public ErrorOr<ExchangeTransaction> UpdateStatus(int exchangeId, ExchangeTransactionStatus status)
     {
-        throw new NotImplementedException();
+        try
+        {
+            ExchangeTransaction? exchange = _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == exchangeId);
+            if (exchange is null)
+            {
+                return Error.NotFound(description: "Exchange transaction not found.");
+            }
+
+            exchange.Status = status;
+            _databaseContext.SaveChanges();
+            return exchange;
+        }
+        catch (Exception exception)
+        {
+            return Error.Failure(description: exception.Message);
+        }
     }
 }
