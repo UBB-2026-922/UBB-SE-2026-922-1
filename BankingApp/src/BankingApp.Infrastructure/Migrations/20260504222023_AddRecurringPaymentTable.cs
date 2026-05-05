@@ -1,5 +1,5 @@
-﻿// <copyright file="20260504222023_AddRecurringPaymentTable.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="20260504222023_AddRecurringPaymentTable.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the AddRecurringPaymentTable migration.
@@ -42,12 +42,33 @@ namespace BankingApp.Infrastructure.Migrations
                     table.CheckConstraint("CK_RecurringPayment_Frequency", "Frequency IN ('Daily', 'Weekly', 'BiWeekly', 'Monthly', 'Quarterly', 'Yearly')");
                     table.CheckConstraint("CK_RecurringPayment_Status", "Status IN ('Active', 'Paused', 'Cancelled')");
                     table.ForeignKey(
+                        name: "FK_RecurringPayment_Account_SourceAccountId",
+                        column: x => x.SourceAccountId,
+                        principalTable: "Account",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_RecurringPayment_Biller_BillerId",
+                        column: x => x.BillerId,
+                        principalTable: "Biller",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_RecurringPayment_User_UserId",
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecurringPayment_BillerId",
+                table: "RecurringPayment",
+                column: "BillerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecurringPayment_SourceAccountId",
+                table: "RecurringPayment",
+                column: "SourceAccountId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RecurringPayment_UserId",

@@ -598,6 +598,10 @@ namespace BankingApp.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BillerId");
+
+                    b.HasIndex("SourceAccountId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("RecurringPayment", null, t =>
@@ -1045,6 +1049,18 @@ namespace BankingApp.Infrastructure.Migrations
 
             modelBuilder.Entity("BankingApp.Domain.Entities.RecurringPayment", b =>
                 {
+                    b.HasOne("BankingApp.Domain.Entities.Biller", null)
+                        .WithMany()
+                        .HasForeignKey("BillerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                        .WithMany()
+                        .HasForeignKey("SourceAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")

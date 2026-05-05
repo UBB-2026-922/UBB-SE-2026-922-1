@@ -1,4 +1,4 @@
-// <copyright file="RecurringPayment.cs" company="UBB-922">
+﻿// <copyright file="RecurringPayment.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>

@@ -1,5 +1,5 @@
-﻿// <copyright file="RecurringPaymentConfiguration.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="RecurringPaymentConfiguration.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the RecurringPaymentConfiguration class.
@@ -66,6 +66,19 @@ public class RecurringPaymentConfiguration : IEntityTypeConfiguration<RecurringP
 
         entity.Property(r => r.CreatedAt)
             .HasDefaultValueSql("GETUTCDATE()");
+
+        entity.HasIndex(r => r.BillerId);
+        entity.HasIndex(r => r.SourceAccountId);
+        entity.HasIndex(r => r.UserId);
+
+        entity.HasOne<Biller>()
+            .WithMany()
+            .HasForeignKey(r => r.BillerId);
+
+        entity.HasOne<Account>()
+            .WithMany()
+            .HasForeignKey(r => r.SourceAccountId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         entity.HasOne<User>().WithMany().HasForeignKey(r => r.UserId);
     }
