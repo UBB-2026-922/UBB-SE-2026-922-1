@@ -81,44 +81,6 @@ public class ProfileController : ApiControllerBase
     }
 
     /// <summary>
-    ///     Retrieves all OAuth provider links associated with the currently authenticated user.
-    /// </summary>
-    /// <returns>
-    ///     200 OK with a list of <see cref="OAuthLinkDataTransferObject" /> on success (may be empty),
-    ///     or 404 Not Found if the user does not exist.
-    /// </returns>
-    [HttpGet("oauth-links")]
-    public IActionResult GetOAuthLinks()
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetOAuthLinks(userId), links => Ok(links));
-    }
-
-    /// <summary>
-    ///     Links a supported OAuth provider to the currently authenticated user.
-    /// </summary>
-    /// <param name="request">The provider link request.</param>
-    /// <returns>204 No Content on success, or 400/404/409 if linking fails.</returns>
-    [HttpPost("oauth/link")]
-    public IActionResult LinkOAuth([FromBody] LinkOAuthRequest request)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.LinkOAuth(userId, request.Provider));
-    }
-
-    /// <summary>
-    ///     Unlinks a supported OAuth provider from the currently authenticated user.
-    /// </summary>
-    /// <param name="provider">The provider to unlink.</param>
-    /// <returns>204 No Content on success, or 400/404 if unlinking fails.</returns>
-    [HttpDelete("oauth/{provider}")]
-    public IActionResult UnlinkOAuth(string provider)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.UnlinkOAuth(userId, provider));
-    }
-
-    /// <summary>
     ///     Retrieves the notification preferences of the currently authenticated user.
     /// </summary>
     /// <returns>

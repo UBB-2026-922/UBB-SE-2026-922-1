@@ -36,9 +36,6 @@ public class AppDatabaseContext : DbContext
     /// <summary>Gets or sets the sessions table.</summary>
     public DbSet<Session> Sessions { get; set; }
 
-    /// <summary>Gets or sets the OAuth links table.</summary>
-    public DbSet<OAuthLink> OAuthLinks { get; set; }
-
     /// <summary>Gets or sets the accounts table.</summary>
     public DbSet<Account> Accounts { get; set; }
 
@@ -130,17 +127,6 @@ public class AppDatabaseContext : DbContext
             entity.Property(session => session.IsRevoked).HasDefaultValue(false);
             entity.Property(session => session.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<User>().WithMany().HasForeignKey(session => session.UserId);
-        });
-
-        modelBuilder.Entity<OAuthLink>(entity =>
-        {
-            entity.ToTable("OAuthLink");
-            entity.HasKey(oauthLink => oauthLink.Id);
-            entity.Property(oauthLink => oauthLink.Provider).IsRequired().HasMaxLength(20);
-            entity.Property(oauthLink => oauthLink.ProviderUserId).IsRequired().HasMaxLength(255);
-            entity.Property(oauthLink => oauthLink.ProviderEmail).HasMaxLength(255);
-            entity.Property(oauthLink => oauthLink.LinkedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.HasOne<User>().WithMany().HasForeignKey(oauthLink => oauthLink.UserId);
         });
 
         modelBuilder.Entity<Account>(entity =>

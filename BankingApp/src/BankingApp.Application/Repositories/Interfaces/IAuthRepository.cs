@@ -25,17 +25,6 @@ public interface IAuthRepository
     /// <returns>The result of the operation.</returns>
     ErrorOr<Success> CreateUser(User user);
 
-    /// <summary>Finds an OAuth link by its provider name and provider-specific user identifier.</summary>
-    /// <param name="provider">The provider value.</param>
-    /// <param name="providerUserId">The providerUserId value.</param>
-    /// <returns>The result of the operation.</returns>
-    ErrorOr<OAuthLink> FindOAuthLink(string provider, string providerUserId);
-
-    /// <summary>Creates a new OAuth link record.</summary>
-    /// <param name="link">The link value.</param>
-    /// <returns>The result of the operation.</returns>
-    ErrorOr<Success> CreateOAuthLink(OAuthLink link);
-
     /// <summary>Creates a new session for the specified user.</summary>
     /// <param name="userId">The userId value.</param>
     /// <param name="token">The token value.</param>

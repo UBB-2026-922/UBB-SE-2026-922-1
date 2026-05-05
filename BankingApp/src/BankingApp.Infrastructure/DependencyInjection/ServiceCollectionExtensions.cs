@@ -57,7 +57,6 @@ public static class ServiceCollectionExtensions
                    .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
-        services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
         services.AddScoped<IPasswordResetTokenDataAccess, PasswordResetTokenDataAccess>();
         services.AddScoped<INotificationPreferenceDataAccess, NotificationPreferenceDataAccess>();
         services.AddScoped<IAccountDataAccess, AccountDataAccess>();

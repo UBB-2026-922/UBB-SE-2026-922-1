@@ -30,20 +30,6 @@ public interface ILoginService
     ErrorOr<LoginSuccess> Login(LoginRequest request, SessionMetadata? metadata = null);
 
     /// <summary>
-    ///     Authenticates a user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth login details.</param>
-    /// <param name="metadata">Request-derived metadata to store with the created session.</param>
-    /// <returns>
-    ///     A task that resolves to a <see cref="FullLogin" /> or <see cref="RequiresTwoFactor" /> on success,
-    ///     a validation error with code <c>unsupported_provider</c> if the provider is not supported,
-    ///     a validation error with code <c>invalid_google_token</c> if the Google token is rejected,
-    ///     a forbidden error with code <c>account_locked</c> if the account is locked,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    Task<ErrorOr<LoginSuccess>> OAuthLoginAsync(OAuthLoginRequest request, SessionMetadata? metadata = null);
-
-    /// <summary>
     ///     Verifies a OTP for 2FA.
     /// </summary>
     /// <param name="request">The OTP verification details.</param>

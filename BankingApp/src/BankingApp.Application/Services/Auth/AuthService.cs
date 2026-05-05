@@ -16,7 +16,7 @@ using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using BankingApp.Domain.Errors;
 using ErrorOr;
-using Google.Apis.Auth;
+
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Application.Services.Auth;
@@ -31,7 +31,6 @@ public class AuthService : IAuthService
     private const int PasswordResetTokenExpiryMinutes = 30;
     private const int PasswordResetTokenByteLength = 32;
     private const int FailedLoginAttemptIncrement = 1;
-    private const string GoogleOAuthProvider = "Google";
     private const string DefaultLanguage = "en";
     private readonly IAuthRepository _authRepository;
     private readonly IEmailService _emailService;
@@ -144,165 +143,6 @@ public class AuthService : IAuthService
         }
 
         _logger.LogInformation("User registered successfully.");
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <param name="request">The request value.</param>
-    /// <returns>The result of the operation.</returns>
-    public async Task<ErrorOr<LoginSuccess>> OAuthLoginAsync(OAuthLoginRequest request)
-    {
-        if (!request.Provider.Equals(GoogleOAuthProvider, StringComparison.OrdinalIgnoreCase))
-        {
-            return AuthErrors.UnsupportedProvider;
-        }
-
-        GoogleJsonWebSignature.Payload payload;
-        try
-        {
-            payload = await GoogleJsonWebSignature.ValidateAsync(request.ProviderToken);
-        }
-        catch (InvalidJwtException)
-        {
-            _logger.LogWarning("OAuth login rejected: invalid Google token.");
-            return AuthErrors.InvalidGoogleToken;
-        }
-
-        string providerUserId = payload.Subject;
-        string email = payload.Email;
-        string fullName = payload.Name;
-        ErrorOr<OAuthLink> linkResult = _authRepository.FindOAuthLink(request.Provider, providerUserId);
-        User? user = null;
-        if (!linkResult.IsError)
-        {
-            ErrorOr<User> userResult = _authRepository.FindUserById(linkResult.Value.UserId);
-            if (!userResult.IsError)
-            {
-                user = userResult.Value;
-            }
-        }
-
-        if (user is null)
-        {
-            ErrorOr<User> byEmailResult = _authRepository.FindUserByEmail(email);
-            if (!byEmailResult.IsError)
-            {
-                user = byEmailResult.Value;
-            }
-            else
-            {
-                var newUser = new User
-                {
-                    Email = email,
-                    FullName = fullName,
-                    PreferredLanguage = DefaultLanguage,
-                    Is2FaEnabled = false,
-                    IsLocked = false,
-                    FailedLoginAttempts = 0,
-                };
-                if (_authRepository.CreateUser(newUser).IsError)
-                {
-                    _logger.LogError("OAuth user creation failed for provider {Provider}.", request.Provider);
-                    return UserErrors.UserCreationFailed;
-                }
-
-                ErrorOr<User> createdResult = _authRepository.FindUserByEmail(email);
-                if (createdResult.IsError)
-                {
-                    _logger.LogError(
-                        "Failed to retrieve user after OAuth creation for provider {Provider}.",
-                        request.Provider);
-                    return UserErrors.UserRetrievalFailed;
-                }
-
-                user = createdResult.Value;
-            }
-
-            var newLink = new OAuthLink
-            {
-                UserId = user.Id,
-                Provider = request.Provider,
-                ProviderUserId = providerUserId,
-                ProviderEmail = email,
-            };
-            if (_authRepository.CreateOAuthLink(newLink).IsError)
-            {
-                _logger.LogError(
-                    "Failed to create OAuth link for user {UserId}, provider {Provider}.",
-                    user.Id,
-                    request.Provider);
-                return UserErrors.OAuthLinkFailed;
-            }
-        }
-
-        Error? lockError = CheckAccountLock(user);
-        if (lockError is not null)
-        {
-            return lockError.Value;
-        }
-
-        return user.Is2FaEnabled ? Handle2Fa(user) : CompleteLogin(user);
-    }
-
-    /// <inheritdoc />
-    /// <param name="request">The request value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> OAuthRegister(OAuthRegisterRequest request)
-    {
-        if (!ValidationUtilities.IsValidEmail(request.Email))
-        {
-            return AuthErrors.InvalidEmail;
-        }
-
-        if (!_authRepository.FindOAuthLink(request.Provider, request.ProviderToken).IsError)
-        {
-            return AuthErrors.OAuthAlreadyRegistered;
-        }
-
-        int targetUserId;
-        ErrorOr<User> existingUserResult = _authRepository.FindUserByEmail(request.Email);
-        if (!existingUserResult.IsError)
-        {
-            targetUserId = existingUserResult.Value.Id;
-        }
-        else
-        {
-            var newUser = new User
-            {
-                Email = request.Email,
-                PasswordHash = null,
-                FullName = request.FullName,
-                PreferredLanguage = DefaultLanguage,
-                Is2FaEnabled = false,
-                IsLocked = false,
-                FailedLoginAttempts = 0,
-            };
-            if (_authRepository.CreateUser(newUser).IsError)
-            {
-                return UserErrors.UserCreationFailed;
-            }
-
-            ErrorOr<User> savedUserResult = _authRepository.FindUserByEmail(request.Email);
-            if (savedUserResult.IsError)
-            {
-                return UserErrors.UserRetrievalFailed;
-            }
-
-            targetUserId = savedUserResult.Value.Id;
-        }
-
-        var newLink = new OAuthLink
-        {
-            UserId = targetUserId,
-            Provider = request.Provider,
-            ProviderUserId = request.ProviderToken,
-            ProviderEmail = request.Email,
-        };
-        if (_authRepository.CreateOAuthLink(newLink).IsError)
-        {
-            return UserErrors.OAuthLinkFailed;
-        }
-
         return Result.Success;
     }
 

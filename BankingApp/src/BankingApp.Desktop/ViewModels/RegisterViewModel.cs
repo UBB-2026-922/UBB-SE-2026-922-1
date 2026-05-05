@@ -11,11 +11,8 @@ using System.Threading.Tasks;
 using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
-using Duende.IdentityModel.OidcClient;
 using ErrorOr;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using LoginRequest = Duende.IdentityModel.OidcClient.LoginRequest;
 
 namespace BankingApp.Desktop.ViewModels;
 
@@ -25,24 +22,17 @@ namespace BankingApp.Desktop.ViewModels;
 public class RegisterViewModel
 {
     private readonly IApiClient _apiClient;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<RegisterViewModel> _logger;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="RegisterViewModel" /> class.
     /// </summary>
     /// <param name="apiClient">The API client used for registration requests.</param>
-    /// <param name="configuration">
-    ///     The application _configuration. Reads <c>OAuth:Google:Authority</c>,
-    ///     <c>OAuth:Google:ClientId</c>, <c>OAuth:Google:ClientSecret</c>, and
-    ///     <c>OAuth:Google:RedirectUri</c> when performing an OAuth registration.
-    /// </param>
     /// <param name="logger">Logger for registration flow errors.</param>
     /// <returns>The result of the operation.</returns>
-    public RegisterViewModel(IApiClient apiClient, IConfiguration configuration, ILogger<RegisterViewModel> logger)
+    public RegisterViewModel(IApiClient apiClient, ILogger<RegisterViewModel> logger)
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<RegisterState>(RegisterState.Idle);
     }
@@ -105,81 +95,6 @@ public class RegisterViewModel
                     State.SetValue(RegisterState.Error);
                 }
             });
-    }
-
-    /// <summary>
-    ///     Registers or signs in a user through the specified OAuth provider.
-    /// </summary>
-    /// <param name="provider">The OAuth provider to use.</param>
-    /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
-    public async Task OAuthRegister(string provider)
-    {
-        State.SetValue(RegisterState.Loading);
-        try
-        {
-            if (!provider.Equals("google", StringComparison.OrdinalIgnoreCase))
-            {
-                State.SetValue(RegisterState.Error);
-                return;
-            }
-
-            string authority = _configuration["OAuth:Google:Authority"]
-                               ?? throw new InvalidOperationException(
-                                   "OAuth:Google:Authority is missing from _configuration.");
-            string clientId = _configuration["OAuth:Google:ClientId"]
-                              ?? throw new InvalidOperationException(
-                                  "OAuth:Google:ClientId is missing from _configuration.");
-            string clientSecret = _configuration["OAuth:Google:ClientSecret"]
-                                  ?? throw new InvalidOperationException(
-                                      "OAuth:Google:ClientSecret is missing from _configuration.");
-            string redirectUri = _configuration["OAuth:Google:RedirectUri"]
-                                 ?? throw new InvalidOperationException(
-                                     "OAuth:Google:RedirectUri is missing from _configuration.");
-            var options = new OidcClientOptions
-            {
-                Authority = authority,
-                ClientId = clientId,
-                ClientSecret = clientSecret,
-                Scope = "openid email profile",
-                RedirectUri = redirectUri,
-                Browser = new SystemBrowser(new Uri(redirectUri).Port),
-            };
-            options.Policy.Discovery.ValidateEndpoints = false;
-            var oidcClient = new OidcClient(options);
-            LoginResult loginResult = await oidcClient.LoginAsync(new LoginRequest());
-            if (loginResult.IsError)
-            {
-                State.SetValue(RegisterState.Error);
-                return;
-            }
-
-            var apiRequest = new OAuthLoginRequest
-            {
-                Provider = "Google",
-                ProviderToken = loginResult.IdentityToken,
-            };
-            ErrorOr<LoginSuccessResponse> result =
-                await _apiClient.PostAsync<OAuthLoginRequest, LoginSuccessResponse>(
-                    ApiEndpoints.OAuthLogin,
-                    apiRequest);
-            result.Switch(
-                response =>
-                {
-                    _apiClient.SetToken(response.Token!);
-                    _apiClient.CurrentUserId = response.UserId;
-                    State.SetValue(RegisterState.AutoLoggedIn);
-                },
-                errors =>
-                {
-                    _logger.LogError("OAuthRegister failed: {Errors}", errors);
-                    State.SetValue(RegisterState.Error);
-                });
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "OAuthRegister OIDC flow failed.");
-            State.SetValue(RegisterState.Error);
-        }
     }
 
     private RegisterState? ValidateLocally(string email, string password, string confirmPassword, string fullName)

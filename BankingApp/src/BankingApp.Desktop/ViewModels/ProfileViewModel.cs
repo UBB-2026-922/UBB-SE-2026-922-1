@@ -29,21 +29,18 @@ public class ProfileViewModel
     /// </summary>
     /// <param name="personalInfo">The personal info sub-ViewModel.</param>
     /// <param name="security">The security sub-ViewModel.</param>
-    /// <param name="oauthViewModel">The OAuth sub-ViewModel.</param>
     /// <param name="notifications">The notifications sub-ViewModel.</param>
     /// <param name="sessions">The sessions sub-ViewModel.</param>
     /// <param name="logger">Logger for profile coordination errors.</param>
     public ProfileViewModel(
         PersonalInfoViewModel personalInfo,
         SecurityViewModel security,
-        OAuthViewModel oauthViewModel,
         NotificationsViewModel notifications,
         SessionsViewModel sessions,
         ILogger<ProfileViewModel> logger)
     {
         PersonalInfo = personalInfo ?? throw new ArgumentNullException(nameof(personalInfo));
         Security = security ?? throw new ArgumentNullException(nameof(security));
-        OAuth = oauthViewModel ?? throw new ArgumentNullException(nameof(oauthViewModel));
         Notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
         Sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -82,14 +79,6 @@ public class ProfileViewModel
     ///     Gets or sets the current value.
     /// </value>
     public SecurityViewModel Security { get; }
-
-    /// <summary>
-    ///     Gets the OAuth sub-ViewModel.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public OAuthViewModel OAuth { get; }
 
     /// <summary>
     ///     Gets the notifications sub-ViewModel.
@@ -142,12 +131,6 @@ public class ProfileViewModel
     {
         State.SetValue(ProfileState.Loading);
         if (!await PersonalInfo.LoadProfile())
-        {
-            State.SetValue(ProfileState.Error);
-            return false;
-        }
-
-        if (!await OAuth.LoadOAuthLinks())
         {
             State.SetValue(ProfileState.Error);
             return false;

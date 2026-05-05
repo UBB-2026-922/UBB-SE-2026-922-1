@@ -192,28 +192,6 @@ public class AuthController : ApiControllerBase
     }
 
     /// <summary>
-    ///     Authenticates a user via an external OAuth provider (e.g. Google).
-    ///     If the user does not exist, a new account is created automatically.
-    /// </summary>
-    /// <param name="request">The OAuth login request containing the provider name and provider token.</param>
-    /// <returns>
-    ///     200 OK with a <see cref="LoginSuccessResponse" /> on success,
-    ///     400 Bad Request if the provider/token is missing or the provider is unsupported,
-    ///     or 403 Forbidden if the account is locked.
-    /// </returns>
-    [HttpPost("oauth-login")]
-    public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Provider) || string.IsNullOrWhiteSpace(request.ProviderToken))
-        {
-            return BadRequest(new ApplicationErrorResponse { Error = "Provider and ProviderToken are required." });
-        }
-
-        ErrorOr<LoginSuccess> result = await _loginService.OAuthLoginAsync(request, GetSessionMetadata());
-        return ToActionResult(result, MapLoginSuccess);
-    }
-
-    /// <summary>
     ///     Verifies whether a password reset token is valid before allowing the user to proceed.
     /// </summary>
     /// <param name="request">The request containing the reset token to validate.</param>

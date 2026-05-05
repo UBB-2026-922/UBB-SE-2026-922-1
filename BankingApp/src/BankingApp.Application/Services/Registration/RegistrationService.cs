@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 namespace BankingApp.Application.Services.Registration;
 
 /// <summary>
-///     Provides user registration operations, including standard and OAuth registration.
+///     Provides user registration operations.
 /// </summary>
 public class RegistrationService : IRegistrationService
 {
@@ -82,83 +82,6 @@ public class RegistrationService : IRegistrationService
         }
 
         _logger.LogInformation("User registered successfully.");
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <param name="request">The request value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> OAuthRegister(OAuthRegisterRequest request)
-    {
-        if (!ValidationUtilities.IsValidEmail(request.Email))
-        {
-            return AuthErrors.InvalidEmail;
-        }
-
-        ErrorOr<OAuthLink> existingLinkResult = _authRepository.FindOAuthLink(request.Provider, request.ProviderToken);
-        if (!existingLinkResult.IsError)
-        {
-            return AuthErrors.OAuthAlreadyRegistered;
-        }
-
-        if (existingLinkResult.FirstError.Type != ErrorType.NotFound)
-        {
-            _logger.LogError(
-                "Database error while checking OAuth link: {Error}",
-                existingLinkResult.FirstError.Description);
-            return UserErrors.DatabaseError;
-        }
-
-        int targetUserId;
-        ErrorOr<User> existingUserResult = _authRepository.FindUserByEmail(request.Email);
-        if (!existingUserResult.IsError)
-        {
-            targetUserId = existingUserResult.Value.Id;
-        }
-        else if (existingUserResult.FirstError.Type != ErrorType.NotFound)
-        {
-            _logger.LogError(
-                "Database error while checking existing user during OAuth register: {Error}",
-                existingUserResult.FirstError.Description);
-            return UserErrors.DatabaseError;
-        }
-        else
-        {
-            var newUser = new User
-            {
-                Email = request.Email,
-                FullName = request.FullName,
-                PreferredLanguage = DefaultLanguage,
-                Is2FaEnabled = false,
-                IsLocked = false,
-                FailedLoginAttempts = 0,
-            };
-            if (_authRepository.CreateUser(newUser).IsError)
-            {
-                return UserErrors.UserCreationFailed;
-            }
-
-            ErrorOr<User> savedUserResult = _authRepository.FindUserByEmail(request.Email);
-            if (savedUserResult.IsError)
-            {
-                return UserErrors.UserRetrievalFailed;
-            }
-
-            targetUserId = savedUserResult.Value.Id;
-        }
-
-        var newLink = new OAuthLink
-        {
-            UserId = targetUserId,
-            Provider = request.Provider,
-            ProviderUserId = request.ProviderToken,
-            ProviderEmail = request.Email,
-        };
-        if (_authRepository.CreateOAuthLink(newLink).IsError)
-        {
-            return UserErrors.OAuthLinkFailed;
-        }
-
         return Result.Success;
     }
 

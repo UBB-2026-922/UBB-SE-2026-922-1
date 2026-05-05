@@ -55,7 +55,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<PersonalInfoViewModel>();
         services.AddTransient<SecurityViewModel>();
-        services.AddTransient<OAuthViewModel>();
         services.AddTransient<NotificationsViewModel>();
         services.AddTransient<SessionsViewModel>();
         services.AddTransient<BeneficiariesViewModel>();

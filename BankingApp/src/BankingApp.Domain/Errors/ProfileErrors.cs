@@ -46,7 +46,4 @@ public static class ProfileErrors
     public static readonly Error IncorrectPassword =
         Error.Validation("incorrect_password", "Current password is incorrect. Please try again.");
 
-    /// <summary>The requested OAuth provider is not supported for linking.</summary>
-    public static readonly Error UnsupportedOAuthProvider =
-        Error.Validation("unsupported_provider", "Only Google OAuth is supported.");
 }

@@ -156,7 +156,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         _viewModel.IsInitializingView = true;
         TwoFactorToggle.IsOn = user.Is2FaEnabled;
         _viewModel.IsInitializingView = false;
-        PopulateOAuthLinks(_viewModel.OAuth.OAuthLinks);
         PopulateNotificationPreferences(_viewModel.Notifications.NotificationPreferences);
         Update2FaVisuals();
     }
@@ -384,26 +383,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private async void RemoveConnectedAccount_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button { Tag: OAuthLinkDataTransferObject link })
-        {
-            bool success = await _viewModel.OAuth.UnlinkOAuth(link.Provider);
-            if (success)
-            {
-                PopulateOAuthLinks(_viewModel.OAuth.OAuthLinks);
-            }
-            else
-            {
-                ShowError("Failed to remove account.");
-            }
-        }
-    }
-
-    private void ManageDevicesButton_Click(object sender, RoutedEventArgs e)
-    {
-    }
-
     private async void NotificationToggle_Toggled(object sender, RoutedEventArgs e)
     {
         if (_viewModel.IsInitializingView)
@@ -562,25 +541,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         TabSecurityBtn.Style = (Style)Resources["TabButtonStyle"];
         TabNotificationsBtn.Style = (Style)Resources["TabButtonActiveStyle"];
         TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
-    }
-
-    private void PopulateOAuthLinks(List<OAuthLinkDataTransferObject>? links)
-    {
-        OAuthLinksPanel.Children.Clear();
-        if (links == null)
-        {
-            return;
-        }
-
-        foreach (Button button in links.Select(link => new Button
-                 {
-                     Content = link.ProviderEmail ?? link.Provider,
-                     Tag = link,
-                 }))
-        {
-            button.Click += RemoveConnectedAccount_Click;
-            OAuthLinksPanel.Children.Add(button);
-        }
     }
 
     private void PopulateNotificationPreferences(List<NotificationPreferenceDataTransferObject>? preferences)

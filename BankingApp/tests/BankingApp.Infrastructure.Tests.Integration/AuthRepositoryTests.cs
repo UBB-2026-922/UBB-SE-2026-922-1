@@ -216,13 +216,11 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
     {
         var userDataAccess = new UserDataAccess(databaseContext);
         var sessionDataAccess = new SessionDataAccess(databaseContext);
-        var oauthLinkDataAccess = new OAuthLinkDataAccess(databaseContext);
         var passwordResetTokenDataAccess = new PasswordResetTokenDataAccess(databaseContext);
         var notificationPreferenceDataAccess = new NotificationPreferenceDataAccess(databaseContext);
         return new AuthRepository(
             userDataAccess,
             sessionDataAccess,
-            oauthLinkDataAccess,
             passwordResetTokenDataAccess,
             notificationPreferenceDataAccess);
     }

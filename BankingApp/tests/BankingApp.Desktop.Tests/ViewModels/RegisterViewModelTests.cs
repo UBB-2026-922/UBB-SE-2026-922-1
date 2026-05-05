@@ -49,7 +49,6 @@ public class RegisterViewModelTests
         // Arrange
         var viewModel = new RegisterViewModel(
             _apiClient.Object,
-            _configuration,
             NullLogger<RegisterViewModel>.Instance);
 
         // Act
@@ -70,7 +69,6 @@ public class RegisterViewModelTests
         // Arrange
         var viewModel = new RegisterViewModel(
             _apiClient.Object,
-            _configuration,
             NullLogger<RegisterViewModel>.Instance);
 
         // Act
@@ -91,7 +89,6 @@ public class RegisterViewModelTests
         // Arrange
         var viewModel = new RegisterViewModel(
             _apiClient.Object,
-            _configuration,
             NullLogger<RegisterViewModel>.Instance);
 
         // Act
@@ -112,7 +109,6 @@ public class RegisterViewModelTests
         // Arrange
         var viewModel = new RegisterViewModel(
             _apiClient.Object,
-            _configuration,
             NullLogger<RegisterViewModel>.Instance);
 
         _apiClient
@@ -137,7 +133,6 @@ public class RegisterViewModelTests
         // Arrange
         var viewModel = new RegisterViewModel(
             _apiClient.Object,
-            _configuration,
             NullLogger<RegisterViewModel>.Instance);
 
         _apiClient

@@ -19,11 +19,10 @@ using Microsoft.Extensions.Logging;
 namespace BankingApp.Application.Services.Profile;
 
 /// <summary>
-///     Provides user profile management operations including personal info, passwords, 2FA, OAuth, and notifications.
+///     Provides user profile management operations including personal info, passwords, 2FA, and notifications.
 /// </summary>
 public class ProfileService : IProfileService
 {
-    private const string GoogleOAuthProvider = "Google";
     private readonly IHashService _hashService;
     private readonly ILogger<ProfileService> _logger;
     private readonly IUserRepository _userRepository;
@@ -237,141 +236,6 @@ public class ProfileService : IProfileService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<OAuthLinkDataTransferObject>> GetOAuthLinks(int userId)
-    {
-        ErrorOr<User> userResult = _userRepository.FindById(userId);
-        if (userResult.IsError)
-        {
-            _logger.LogWarning("OAuth links fetch failed: user {UserId} not found.", userId);
-            return userResult.FirstError;
-        }
-
-        ErrorOr<List<OAuthLink>> linksResult = _userRepository.GetLinkedProviders(userId);
-        if (linksResult.IsError)
-        {
-            _logger.LogError(
-                "Failed to fetch OAuth links for user {UserId}: {Error}",
-                userId,
-                linksResult.FirstError.Description);
-            return linksResult.FirstError;
-        }
-
-        return linksResult.Value
-            .Select(oauthLink => new OAuthLinkDataTransferObject
-            {
-                Id = oauthLink.Id,
-                Provider = oauthLink.Provider,
-                ProviderEmail = oauthLink.ProviderEmail,
-                LinkedAt = oauthLink.LinkedAt,
-            })
-            .ToList();
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <param name="provider">The provider value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> LinkOAuth(int userId, string provider)
-    {
-        if (!IsSupportedOAuthProvider(provider))
-        {
-            return ProfileErrors.UnsupportedOAuthProvider;
-        }
-
-        ErrorOr<User> userResult = _userRepository.FindById(userId);
-        if (userResult.IsError)
-        {
-            _logger.LogWarning("OAuth link failed: user {UserId} not found.", userId);
-            return userResult.FirstError;
-        }
-
-        ErrorOr<List<OAuthLink>> linksResult = _userRepository.GetLinkedProviders(userId);
-        if (linksResult.IsError)
-        {
-            _logger.LogError(
-                "Failed to fetch OAuth links for user {UserId}: {Error}",
-                userId,
-                linksResult.FirstError.Description);
-            return linksResult.FirstError;
-        }
-
-        if (linksResult.Value.Any(link => string.Equals(
-                link.Provider,
-                GoogleOAuthProvider,
-                StringComparison.OrdinalIgnoreCase)))
-        {
-            return AuthErrors.OAuthAlreadyLinked;
-        }
-
-        var providerUserId = $"local:{userId}:{GoogleOAuthProvider}";
-        ErrorOr<Success> result = _userRepository.SaveOAuthLink(
-            userId,
-            GoogleOAuthProvider,
-            providerUserId,
-            userResult.Value.Email);
-        if (result.IsError)
-        {
-            _logger.LogError(
-                "Failed to link Google OAuth for user {UserId}: {Error}",
-                userId,
-                result.FirstError.Description);
-            return result.FirstError;
-        }
-
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <param name="provider">The provider value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> UnlinkOAuth(int userId, string provider)
-    {
-        if (!IsSupportedOAuthProvider(provider))
-        {
-            return ProfileErrors.UnsupportedOAuthProvider;
-        }
-
-        ErrorOr<User> userResult = _userRepository.FindById(userId);
-        if (userResult.IsError)
-        {
-            _logger.LogWarning("OAuth unlink failed: user {UserId} not found.", userId);
-            return userResult.FirstError;
-        }
-
-        ErrorOr<List<OAuthLink>> linksResult = _userRepository.GetLinkedProviders(userId);
-        if (linksResult.IsError)
-        {
-            _logger.LogError(
-                "Failed to fetch OAuth links for user {UserId}: {Error}",
-                userId,
-                linksResult.FirstError.Description);
-            return linksResult.FirstError;
-        }
-
-        OAuthLink? link = linksResult.Value.FirstOrDefault(oauthLink =>
-            string.Equals(oauthLink.Provider, GoogleOAuthProvider, StringComparison.OrdinalIgnoreCase));
-        if (link is null)
-        {
-            return AuthErrors.OAuthLinkNotFound;
-        }
-
-        ErrorOr<Success> result = _userRepository.DeleteOAuthLink(link.Id);
-        if (result.IsError)
-        {
-            _logger.LogError(
-                "Failed to unlink Google OAuth for user {UserId}: {Error}",
-                userId,
-                result.FirstError.Description);
-            return result.FirstError;
-        }
-
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <returns>The result of the operation.</returns>
     public ErrorOr<List<NotificationPreferenceDataTransferObject>> GetNotificationPreferences(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
@@ -522,10 +386,5 @@ public class ProfileService : IProfileService
 
         _logger.LogInformation("Session {SessionId} revoked for user {UserId}.", sessionId, userId);
         return Result.Success;
-    }
-
-    private static bool IsSupportedOAuthProvider(string provider)
-    {
-        return string.Equals(provider, GoogleOAuthProvider, StringComparison.OrdinalIgnoreCase);
     }
 }

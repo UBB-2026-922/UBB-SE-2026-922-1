@@ -1168,38 +1168,6 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <Border Background="#FAFBFF" CornerRadius="12" BorderBrush="#E2E8F0"
-                                            BorderThickness="1" Padding="18,16">
-                                        <StackPanel Spacing="12">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Border Width="30" Height="30" CornerRadius="8" Background="#EFF4FF"
-                                                        Margin="0,0,10,0">
-                                                    <FontIcon Glyph="&#xE8FD;" FontSize="14" Foreground="#2563EB"
-                                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                </Border>
-                                                <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock Text="Connected Accounts"
-                                                               Style="{StaticResource SectionTitleStyle}"
-                                                               FontSize="13.5" />
-                                                    <TextBlock Text="Manage third-party sign-in providers"
-                                                               FontSize="11.5" Foreground="#94A3B8" />
-                                                </StackPanel>
-                                            </StackPanel>
-                                            <Border Height="1" Background="#E2E8F0" />
-                                            <StackPanel x:Name="OAuthLinksPanel" />
-                                            <Button x:Name="ManageDevicesButton"
-                                                    Style="{StaticResource OutlineButtonStyle}"
-                                                    HorizontalAlignment="Left" Click="ManageDevicesButton_Click">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <FontIcon Glyph="&#xE8FA;" FontSize="11" Margin="0,0,6,0"
-                                                              Foreground="#2563EB" />
-                                                    <TextBlock Text="Manage Connected Accounts"
-                                                               VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
-                                        </StackPanel>
-                                    </Border>
-
                                     <Border CornerRadius="12" BorderThickness="1" BorderBrush="#FECACA" Padding="18,16">
                                         <Border.Background>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">

@@ -110,7 +110,6 @@ public sealed partial class LoginView : IStateObserver<LoginState>
     private void EnableForm()
     {
         SignInButton.IsEnabled = true;
-        GoogleLoginButton.IsEnabled = true;
     }
 
     private void ShowLoading()
@@ -118,7 +117,6 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         LoadingRing.IsActive = true;
         LoadingRing.Visibility = Visibility.Visible;
         SignInButton.IsEnabled = false;
-        GoogleLoginButton.IsEnabled = false;
     }
 
     private void HideLoading()
@@ -138,11 +136,6 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         }
 
         await _viewModel.Login(email, password);
-    }
-
-    private async void GoogleLoginButton_Click(object sender, RoutedEventArgs e)
-    {
-        await _viewModel.OAuthLogin("Google");
     }
 
     private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)

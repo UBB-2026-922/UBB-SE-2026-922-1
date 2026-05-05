@@ -11,7 +11,7 @@ using ErrorOr;
 namespace BankingApp.Application.Services.Registration;
 
 /// <summary>
-///     Defines operations for user registration, including standard and OAuth registration.
+///     Defines operations for user registration.
 /// </summary>
 public interface IRegistrationService
 {
@@ -28,16 +28,4 @@ public interface IRegistrationService
     ///     or a failure error if user creation fails.
     /// </returns>
     ErrorOr<Success> Register(RegisterRequest request);
-
-    /// <summary>
-    ///     Registers a new user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth registration details.</param>
-    /// <returns>
-    ///     <see cref="Result.Success" /> on success,
-    ///     a validation error if the email is invalid,
-    ///     a conflict error if the OAuth account is already registered,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    ErrorOr<Success> OAuthRegister(OAuthRegisterRequest request);
 }

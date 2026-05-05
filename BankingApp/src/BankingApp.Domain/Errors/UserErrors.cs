@@ -22,10 +22,6 @@ public static class UserErrors
     public static readonly Error UserRetrievalFailed =
         Error.Failure("user_retrieval_failed", "Failed to retrieve created user.");
 
-    /// <summary>The OAuth link record could not be persisted.</summary>
-    public static readonly Error OAuthLinkFailed =
-        Error.Failure("oauth_link_failed", "Failed to link OAuth account.");
-
     /// <summary>A login session could not be created for the user.</summary>
     public static readonly Error SessionCreationFailed =
         Error.Failure("session_failed", "Failed to create session.");

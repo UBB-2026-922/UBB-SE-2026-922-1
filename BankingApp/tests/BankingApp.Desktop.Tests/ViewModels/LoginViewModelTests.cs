@@ -48,7 +48,7 @@ public class LoginViewModelTests
     public void CanLogin_WhenValid_ReturnsTrue()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, _configuration, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
 
         // Act & Assert
         viewModel.CanLogin("test@test.com", "password").Should().BeTrue();
@@ -61,7 +61,7 @@ public class LoginViewModelTests
     public void CanLogin_WhenInvalid_ReturnsFalse()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, _configuration, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
 
         // Act & Assert
         viewModel.CanLogin(string.Empty, "password").Should().BeFalse();
@@ -79,7 +79,7 @@ public class LoginViewModelTests
     public async Task Login_WhenSuccess_SetsStateToSuccessAndSetsUserId()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, _configuration, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
         var response = new LoginSuccessResponse { Token = "test-token", UserId = 1, Requires2Fa = false };
 
         _apiClient
@@ -105,7 +105,7 @@ public class LoginViewModelTests
     public async Task Login_WhenRequires2FA_SetsStateToRequire2Fa()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, _configuration, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
         var response = new LoginSuccessResponse { UserId = 1, Requires2Fa = true };
 
         _apiClient
@@ -130,7 +130,7 @@ public class LoginViewModelTests
     public async Task Login_WhenUnauthorized_SetsStateToInvalidCredentials()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, _configuration, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
 
         _apiClient
             .Setup(postsAsync =>
@@ -153,7 +153,7 @@ public class LoginViewModelTests
     public async Task Login_WhenServerError_SetsErrorState()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, _configuration, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
 
         _apiClient
             .Setup(postsAsync =>

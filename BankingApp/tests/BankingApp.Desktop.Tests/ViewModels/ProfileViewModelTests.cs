@@ -14,7 +14,6 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 /// <summary>
 ///     Tests for the profile sub-ViewModels: <see cref="ProfileViewModel" />,
 ///     <see cref="PersonalInfoViewModel" />, <see cref="SecurityViewModel" />,
-///     <see cref="OAuthViewModel" />, and <see cref="NotificationsViewModel" />.
 /// </summary>
 public class ProfileViewModelTests
 {
@@ -355,80 +354,6 @@ public class ProfileViewModelTests
     }
 
     /// <summary>
-    ///     Verifies the UnlinkOAuth_WhenProviderExists_RemovesAndReturnsTrue scenario.
-    /// </summary>
-    [Fact]
-    public async Task UnlinkOAuth_WhenProviderExists_RemovesAndReturnsTrue()
-    {
-        // Arrange
-        const string provider = "Google";
-        const string providerEmail = "user@gmail.com";
-        var viewModel = new OAuthViewModel(_apiClient.Object, NullLogger<OAuthViewModel>.Instance);
-        viewModel.OAuthLinks.Add(
-            new OAuthLinkDataTransferObject { Provider = provider, ProviderEmail = providerEmail });
-        _apiClient
-            .Setup(deletesAsync => deletesAsync.DeleteAsync($"{ApiEndpoints.UnlinkOAuth}/{provider}"))
-            .ReturnsAsync(Result.Success);
-
-        // Act
-        bool result = await viewModel.UnlinkOAuth(provider);
-
-        // Assert
-        result.Should().BeTrue();
-        viewModel.OAuthLinks.Should().BeEmpty();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
-    }
-
-    /// <summary>
-    ///     Verifies the UnlinkOAuth_WhenProviderDoesNotExist_ReturnsFalse scenario.
-    /// </summary>
-    [Fact]
-    public async Task UnlinkOAuth_WhenProviderDoesNotExist_ReturnsFalse()
-    {
-        // Arrange
-        const string provider = "Facebook";
-        var viewModel = new OAuthViewModel(_apiClient.Object, NullLogger<OAuthViewModel>.Instance);
-
-        // Act
-        bool result = await viewModel.UnlinkOAuth(provider);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    /// <summary>
-    ///     Verifies the UnlinkOAuth_WhenProviderIsNullOrWhitespace_ReturnsFalse scenario.
-    /// </summary>
-    [Fact]
-    public async Task UnlinkOAuth_WhenProviderIsNullOrWhitespace_ReturnsFalse()
-    {
-        // Arrange
-        var viewModel = new OAuthViewModel(_apiClient.Object, NullLogger<OAuthViewModel>.Instance);
-
-        // Assert
-        (await viewModel.UnlinkOAuth(string.Empty)).Should().BeFalse();
-        (await viewModel.UnlinkOAuth("  ")).Should().BeFalse();
-    }
-
-    /// <summary>
-    ///     Verifies the LinkOAuth_WhenAlreadyLinked_ReturnsFalse scenario.
-    /// </summary>
-    [Fact]
-    public async Task LinkOAuth_WhenAlreadyLinked_ReturnsFalse()
-    {
-        // Arrange
-        const string provider = "Google";
-        var viewModel = new OAuthViewModel(_apiClient.Object, NullLogger<OAuthViewModel>.Instance);
-        viewModel.OAuthLinks.Add(new OAuthLinkDataTransferObject { Provider = provider });
-
-        // Act
-        bool result = await viewModel.LinkOAuth(provider);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    /// <summary>
     ///     Verifies the LoadProfile_WhenPersonalInfoFails_SetsErrorState scenario.
     /// </summary>
     [Fact]
@@ -442,7 +367,6 @@ public class ProfileViewModelTests
         var profileVm = new ProfileViewModel(
             new PersonalInfoViewModel(_apiClient.Object, NullLogger<PersonalInfoViewModel>.Instance),
             new SecurityViewModel(_apiClient.Object, NullLogger<SecurityViewModel>.Instance),
-            new OAuthViewModel(_apiClient.Object, NullLogger<OAuthViewModel>.Instance),
             new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance),
             new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance),
             NullLogger<ProfileViewModel>.Instance);
@@ -465,7 +389,6 @@ public class ProfileViewModelTests
         var profileVm = new ProfileViewModel(
             new PersonalInfoViewModel(_apiClient.Object, NullLogger<PersonalInfoViewModel>.Instance),
             new SecurityViewModel(_apiClient.Object, NullLogger<SecurityViewModel>.Instance),
-            new OAuthViewModel(_apiClient.Object, NullLogger<OAuthViewModel>.Instance),
             new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance),
             new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance),
             NullLogger<ProfileViewModel>.Instance);

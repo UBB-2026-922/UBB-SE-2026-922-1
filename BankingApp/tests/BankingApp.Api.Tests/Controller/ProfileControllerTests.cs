@@ -151,24 +151,6 @@ public sealed class ProfileControllerTests
     }
 
     /// <summary>
-    ///     Verifies the GetOAuthLinks_WhenSuccess_ReturnsOk scenario.
-    /// </summary>
-    [Fact]
-    public void GetOAuthLinks_WhenSuccess_ReturnsOk()
-    {
-        // Arrange
-        var links = new List<OAuthLinkDataTransferObject>();
-        _profileService.Setup(getsOAuthLinks => getsOAuthLinks.GetOAuthLinks(1)).Returns(links);
-        ProfileController controller = CreateController(1);
-
-        // Act
-        IActionResult result = controller.GetOAuthLinks();
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    /// <summary>
     ///     Verifies the GetNotificationPreferences_WhenSuccess_ReturnsOk scenario.
     /// </summary>
     [Fact]

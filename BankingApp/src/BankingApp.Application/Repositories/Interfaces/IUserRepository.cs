@@ -42,24 +42,6 @@ public interface IUserRepository
     /// <returns>The result of the operation.</returns>
     ErrorOr<Success> RevokeSession(int userId, int sessionId);
 
-    /// <summary>Gets all OAuth provider links for the specified user.</summary>
-    /// <param name="userId">The userId value.</param>
-    /// <returns>The result of the operation.</returns>
-    ErrorOr<List<OAuthLink>> GetLinkedProviders(int userId);
-
-    /// <summary>Creates a new OAuth link for the specified user.</summary>
-    /// <param name="userId">The userId value.</param>
-    /// <param name="provider">The provider value.</param>
-    /// <param name="providerUserId">The providerUserId value.</param>
-    /// <param name="email">The email value.</param>
-    /// <returns>The result of the operation.</returns>
-    ErrorOr<Success> SaveOAuthLink(int userId, string provider, string providerUserId, string? email);
-
-    /// <summary>Deletes an OAuth link by its identifier.</summary>
-    /// <param name="linkId">The linkId value.</param>
-    /// <returns>The result of the operation.</returns>
-    ErrorOr<Success> DeleteOAuthLink(int linkId);
-
     /// <summary>Gets all notification preferences for the specified user.</summary>
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>

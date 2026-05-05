@@ -58,7 +58,6 @@
         <ProjectCapability Include="Msix"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Duende.IdentityModel.OidcClient" Version="7.1.0"/>
         <PackageReference Include="ErrorOr" Version="2.1.0"/>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0"/>

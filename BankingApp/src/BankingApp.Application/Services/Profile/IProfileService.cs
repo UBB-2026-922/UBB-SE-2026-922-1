@@ -13,7 +13,7 @@ namespace BankingApp.Application.Services.Profile;
 
 /// <summary>
 ///     Defines operations for managing user profiles, including personal info, passwords,
-///     2FA, OAuth links, and notification preferences.
+///     2FA, and notification preferences.
 /// </summary>
 public interface IProfileService
 {
@@ -74,33 +74,6 @@ public interface IProfileService
     ///     or a failure error if the database update fails.
     /// </returns>
     ErrorOr<Success> Disable2Fa(int userId);
-
-    /// <summary>
-    ///     Retrieves all OAuth provider links for the specified user.
-    /// </summary>
-    /// <param name="userId">The identifier of the user.</param>
-    /// <returns>
-    ///     The list of <see cref="OAuthLinkDataTransferObject" /> on success (may be empty),
-    ///     a not-found error if the user does not exist,
-    ///     or a failure error if the repository call fails.
-    /// </returns>
-    ErrorOr<List<OAuthLinkDataTransferObject>> GetOAuthLinks(int userId);
-
-    /// <summary>
-    ///     Links an OAuth provider account to the specified user. Not yet implemented.
-    /// </summary>
-    /// <param name="userId">The identifier of the user.</param>
-    /// <param name="provider">The OAuth provider to link.</param>
-    /// <returns>A failure error — not implemented.</returns>
-    ErrorOr<Success> LinkOAuth(int userId, string provider);
-
-    /// <summary>
-    ///     Unlinks an OAuth provider account from the specified user. Not yet implemented.
-    /// </summary>
-    /// <param name="userId">The identifier of the user.</param>
-    /// <param name="provider">The OAuth provider to unlink.</param>
-    /// <returns>A failure error — not implemented.</returns>
-    ErrorOr<Success> UnlinkOAuth(int userId, string provider);
 
     /// <summary>
     ///     Retrieves all notification preferences for the specified user.

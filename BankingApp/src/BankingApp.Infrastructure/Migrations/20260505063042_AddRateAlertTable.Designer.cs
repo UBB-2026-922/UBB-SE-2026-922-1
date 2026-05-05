@@ -4,6 +4,7 @@ using BankingApp.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BankingApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDatabaseContext))]
-    partial class AppDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260505063042_AddRateAlertTable")]
+    partial class AddRateAlertTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -529,6 +532,43 @@ namespace BankingApp.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("NotificationPreference", (string)null);
+                });
+
+            modelBuilder.Entity("BankingApp.Domain.Entities.OAuthLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("LinkedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ProviderEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ProviderUserId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OAuthLink", (string)null);
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.PasswordResetToken", b =>
@@ -1188,7 +1228,7 @@ namespace BankingApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BankingApp.Domain.Entities.PasswordResetToken", b =>
+            modelBuilder.Entity("BankingApp.Domain.Entities.OAuthLink", b =>
                 {
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()
@@ -1197,7 +1237,7 @@ namespace BankingApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BankingApp.Domain.Entities.RateAlert", b =>
+            modelBuilder.Entity("BankingApp.Domain.Entities.PasswordResetToken", b =>
                 {
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()

@@ -176,66 +176,6 @@ public class ProfileServiceTests
     }
 
     [Fact]
-    public void LinkOAuth_WhenGoogleIsNotLinked_SavesGoogleLink()
-    {
-        // Arrange
-        const int userId = 1;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, Email = "ada@test.com" });
-        _userRepository
-            .Setup(getsLinkedProviders => getsLinkedProviders.GetLinkedProviders(userId))
-            .Returns(new List<OAuthLink>());
-        _userRepository
-            .Setup(savesOAuthLink => savesOAuthLink.SaveOAuthLink(userId, "Google", It.IsAny<string>(), "ada@test.com"))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _service.LinkOAuth(userId, "Google");
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _userRepository.Verify(
-            savesOAuthLink => savesOAuthLink.SaveOAuthLink(userId, "Google", It.IsAny<string>(), "ada@test.com"),
-            Times.Once);
-    }
-
-    [Fact]
-    public void LinkOAuth_WhenProviderIsUnsupported_ReturnsValidationError()
-    {
-        // Act
-        ErrorOr<Success> result = _service.LinkOAuth(1, "Facebook");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("unsupported_provider");
-    }
-
-    [Fact]
-    public void UnlinkOAuth_WhenGoogleIsLinked_DeletesLink()
-    {
-        // Arrange
-        const int userId = 1;
-        const int linkId = 7;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId });
-        _userRepository
-            .Setup(getsLinkedProviders => getsLinkedProviders.GetLinkedProviders(userId))
-            .Returns(new List<OAuthLink> { new() { Id = linkId, Provider = "Google" } });
-        _userRepository
-            .Setup(deletesOAuthLink => deletesOAuthLink.DeleteOAuthLink(linkId))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _service.UnlinkOAuth(userId, "Google");
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _userRepository.Verify(deletesOAuthLink => deletesOAuthLink.DeleteOAuthLink(linkId), Times.Once);
-    }
-
-    [Fact]
     public void ChangePassword_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
         // Arrange

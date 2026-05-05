@@ -114,11 +114,6 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
             FullNameBox.Text);
     }
 
-    private async void GoogleRegisterButton_Click(object sender, RoutedEventArgs e)
-    {
-        await _viewModel.OAuthRegister("Google");
-    }
-
     private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<LoginView>();

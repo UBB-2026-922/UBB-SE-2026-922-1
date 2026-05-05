@@ -28,10 +28,6 @@ internal static class MockFactory
             .Returns(Error.NotFound());
         mock.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>()))
             .Returns(Result.Success);
-        mock.Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(Error.NotFound());
-        mock.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
-            .Returns(Result.Success);
         mock.Setup(createsSession => createsSession.CreateSession(
                 It.IsAny<int>(),
                 It.IsAny<string>(),

@@ -35,10 +35,6 @@ internal static class MockFactory
             .Returns((ErrorOr<LoginSuccess>)new FullLogin(0, string.Empty));
         mock.Setup(verifiesOtp => verifiesOtp.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata?>()))
             .Returns((ErrorOr<LoginSuccess>)new FullLogin(0, string.Empty));
-        mock.Setup(oauthLoginAsync => oauthLoginAsync.OAuthLoginAsync(
-                It.IsAny<OAuthLoginRequest>(),
-                It.IsAny<SessionMetadata?>()))
-            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(0, string.Empty));
         mock.Setup(logout => logout.Logout(It.IsAny<string>()))
             .Returns(Result.Success);
         mock.Setup(resendOtp => resendOtp.ResendOtp(It.IsAny<int>(), It.IsAny<string>()))
@@ -54,8 +50,6 @@ internal static class MockFactory
     {
         var mock = new Mock<IRegistrationService>(MockBehavior.Strict);
         mock.Setup(register => register.Register(It.IsAny<RegisterRequest>()))
-            .Returns(Result.Success);
-        mock.Setup(oauthRegister => oauthRegister.OAuthRegister(It.IsAny<OAuthRegisterRequest>()))
             .Returns(Result.Success);
         return mock;
     }
@@ -104,12 +98,6 @@ internal static class MockFactory
         mock.Setup(enables2Fa => enables2Fa.Enable2Fa(It.IsAny<int>(), It.IsAny<TwoFactorMethod>()))
             .Returns(Result.Success);
         mock.Setup(disables2Fa => disables2Fa.Disable2Fa(It.IsAny<int>()))
-            .Returns(Result.Success);
-        mock.Setup(getsOAuthLinks => getsOAuthLinks.GetOAuthLinks(It.IsAny<int>()))
-            .Returns(new List<OAuthLinkDataTransferObject>());
-        mock.Setup(linksOAuth => linksOAuth.LinkOAuth(It.IsAny<int>(), It.IsAny<string>()))
-            .Returns(Result.Success);
-        mock.Setup(unlinksOAuth => unlinksOAuth.UnlinkOAuth(It.IsAny<int>(), It.IsAny<string>()))
             .Returns(Result.Success);
         mock.Setup(getsNotificationPreferences =>
                 getsNotificationPreferences.GetNotificationPreferences(It.IsAny<int>()))

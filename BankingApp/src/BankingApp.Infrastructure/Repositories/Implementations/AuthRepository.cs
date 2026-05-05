@@ -20,7 +20,6 @@ namespace BankingApp.Infrastructure.Repositories.Implementations;
 public class AuthRepository : IAuthRepository
 {
     private readonly INotificationPreferenceDataAccess _notificationPreferenceDataAccess;
-    private readonly IOAuthLinkDataAccess _oauthLinkDataAccess;
     private readonly IPasswordResetTokenDataAccess _passwordResetTokenDataAccess;
     private readonly ISessionDataAccess _sessionDataAccess;
     private readonly IUserDataAccess _userDataAccess;
@@ -30,19 +29,16 @@ public class AuthRepository : IAuthRepository
     /// </summary>
     /// <param name="userDataAccess">The user data access component.</param>
     /// <param name="sessionDataAccess">The session data access component.</param>
-    /// <param name="oauthLinkDataAccess">The OAuth link data access component.</param>
     /// <param name="passwordResetTokenDataAccess">The password reset token data access component.</param>
     /// <param name="notificationPreferenceDataAccess">The notification preference data access component.</param>
     public AuthRepository(
         IUserDataAccess userDataAccess,
         ISessionDataAccess sessionDataAccess,
-        IOAuthLinkDataAccess oauthLinkDataAccess,
         IPasswordResetTokenDataAccess passwordResetTokenDataAccess,
         INotificationPreferenceDataAccess notificationPreferenceDataAccess)
     {
         _userDataAccess = userDataAccess;
         _sessionDataAccess = sessionDataAccess;
-        _oauthLinkDataAccess = oauthLinkDataAccess;
         _passwordResetTokenDataAccess = passwordResetTokenDataAccess;
         _notificationPreferenceDataAccess = notificationPreferenceDataAccess;
     }
@@ -91,23 +87,6 @@ public class AuthRepository : IAuthRepository
         }
 
         return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <param name="provider">The provider value.</param>
-    /// <param name="providerUserId">The providerUserId value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<OAuthLink> FindOAuthLink(string provider, string providerUserId)
-    {
-        return _oauthLinkDataAccess.FindByProvider(provider, providerUserId);
-    }
-
-    /// <inheritdoc />
-    /// <param name="link">The link value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> CreateOAuthLink(OAuthLink link)
-    {
-        return _oauthLinkDataAccess.Create(link.UserId, link.Provider, link.ProviderUserId, link.ProviderEmail);
     }
 
     /// <inheritdoc />

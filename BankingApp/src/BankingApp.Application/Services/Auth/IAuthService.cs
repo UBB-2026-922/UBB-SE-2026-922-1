@@ -29,19 +29,6 @@ public interface IAuthService
     ErrorOr<LoginSuccess> Login(LoginRequest request);
 
     /// <summary>
-    ///     Authenticates a user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth login details.</param>
-    /// <returns>
-    ///     A task that resolves to a <see cref="FullLogin" /> or <see cref="RequiresTwoFactor" /> on success,
-    ///     a validation error with code <c>unsupported_provider</c> if the provider is not supported,
-    ///     a validation error with code <c>invalid_google_token</c> if the Google token is rejected,
-    ///     a forbidden error with code <c>account_locked</c> if the account is locked,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    Task<ErrorOr<LoginSuccess>> OAuthLoginAsync(OAuthLoginRequest request);
-
-    /// <summary>
     ///     Registers a new user with email and password.
     /// </summary>
     /// <param name="request">The registration details.</param>
@@ -54,18 +41,6 @@ public interface IAuthService
     ///     or a failure error if user creation fails.
     /// </returns>
     ErrorOr<Success> Register(RegisterRequest request);
-
-    /// <summary>
-    ///     Registers a new user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth registration details.</param>
-    /// <returns>
-    ///     <see cref="Result.Success" /> on success,
-    ///     a validation error if the email is invalid,
-    ///     a conflict error if the OAuth account is already registered,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    ErrorOr<Success> OAuthRegister(OAuthRegisterRequest request);
 
     /// <summary>
     ///     Verifies a OTP for 2FA.
