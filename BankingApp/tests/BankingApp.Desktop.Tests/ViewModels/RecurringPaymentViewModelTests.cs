@@ -56,11 +56,11 @@ public class RecurringPaymentViewModelTests
             new BillerDto { Id = 1, Name = "Electric Co" },
         };
 
-        _apiClient.Setup(api => api.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts))
+        _apiClient.Setup(apiClient => apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts))
             .ReturnsAsync(accounts);
-        _apiClient.Setup(api => api.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments))
+        _apiClient.Setup(apiClient => apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments))
             .ReturnsAsync(payments);
-        _apiClient.Setup(api => api.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers))
+        _apiClient.Setup(apiClient => apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers))
             .ReturnsAsync(billers);
 
         // Act
@@ -101,7 +101,7 @@ public class RecurringPaymentViewModelTests
             StartDate = startDate,
         };
 
-        _apiClient.Setup(api => api.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
+        _apiClient.Setup(apiClient => apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
                 ApiEndpoints.RecurringPayments,
                 It.Is<CreateRecurringPaymentRequest>(dto =>
                     dto.BillerId == biller.Id &&
@@ -132,7 +132,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(api => api.PutAsync<object>(
+        _apiClient.Setup(apiClient => apiClient.PutAsync<object>(
                 $"{ApiEndpoints.RecurringPayments}/{payment.Id}/pause",
                 It.IsAny<object>()))
             .ReturnsAsync(Result.Success);
@@ -155,7 +155,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Paused };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(api => api.PutAsync<object>(
+        _apiClient.Setup(apiClient => apiClient.PutAsync<object>(
                 $"{ApiEndpoints.RecurringPayments}/{payment.Id}/resume",
                 It.IsAny<object>()))
             .ReturnsAsync(Result.Success);
@@ -178,7 +178,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(api => api.DeleteAsync(
+        _apiClient.Setup(apiClient => apiClient.DeleteAsync(
                 $"{ApiEndpoints.RecurringPayments}/{payment.Id}"))
             .ReturnsAsync(Result.Success);
 
@@ -196,8 +196,10 @@ public class RecurringPaymentViewModelTests
     [Fact]
     public void ErrorMessage_WhenSet_ShouldExposeVisibleErrorState()
     {
+        // Act
         _viewModel.ErrorMessage = "Failure";
 
+        // Assert
         _viewModel.ErrorMessageVisibility.Should().Be(Visibility.Visible);
     }
 }

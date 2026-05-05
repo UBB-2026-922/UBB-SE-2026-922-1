@@ -16,9 +16,9 @@ namespace BankingApp.Application.Tests.Services;
 /// </summary>
 public class BillerServiceTests
 {
-    private const int UserId = 1;
-    private const int BillerId = 10;
-    private const int SavedBillerId = 100;
+    private const int DefaultUserId = 1;
+    private const int DefaultBillerId = 10;
+    private const int DefaultSavedBillerId = 100;
 
     private readonly Mock<IBillerRepository> _billerRepository = new(MockBehavior.Strict);
     private readonly BillerService _service;
@@ -124,15 +124,15 @@ public class BillerServiceTests
     public void GetSavedBillers_WhenSavedBillersExist_ReturnsMappedDtos()
     {
         // Arrange
-        var biller = new Biller { Id = BillerId, Name = "Gas Co", Category = "Utilities" };
+        var biller = new Biller { Id = DefaultBillerId, Name = "Gas Co", Category = "Utilities" };
         var saved = new List<SavedBiller>
         {
-            new() { Id = SavedBillerId, UserId = UserId, BillerId = BillerId, Nickname = "Home Gas", Biller = biller, CreatedAt = DateTime.UtcNow },
+            new() { Id = DefaultSavedBillerId, UserId = DefaultUserId, BillerId = DefaultBillerId, Nickname = "Home Gas", Biller = biller, CreatedAt = DateTime.UtcNow },
         };
-        _billerRepository.Setup(repository => repository.GetSavedBillers(UserId)).Returns(saved);
+        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(saved);
 
         // Act
-        ErrorOr<List<SavedBillerDataTransferObject>> result = _service.GetSavedBillers(UserId);
+        ErrorOr<List<SavedBillerDataTransferObject>> result = _service.GetSavedBillers(DefaultUserId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -146,10 +146,10 @@ public class BillerServiceTests
     public void GetSavedBillers_WhenNoneSaved_ReturnsEmptyList()
     {
         // Arrange
-        _billerRepository.Setup(repository => repository.GetSavedBillers(UserId)).Returns(new List<SavedBiller>());
+        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
 
         // Act
-        ErrorOr<List<SavedBillerDataTransferObject>> result = _service.GetSavedBillers(UserId);
+        ErrorOr<List<SavedBillerDataTransferObject>> result = _service.GetSavedBillers(DefaultUserId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -165,16 +165,16 @@ public class BillerServiceTests
     public void SaveBiller_WhenValidAndNotAlreadySaved_ReturnsCreatedDto()
     {
         // Arrange
-        var biller = new Biller { Id = BillerId, Name = "Internet Co", Category = "Telecoms" };
-        var request = new SaveBillerRequest { BillerId = BillerId, Nickname = "Home Internet" };
-        _billerRepository.Setup(repository => repository.GetBillerById(BillerId)).Returns(biller);
-        _billerRepository.Setup(repository => repository.GetSavedBillers(UserId)).Returns(new List<SavedBiller>());
+        var biller = new Biller { Id = DefaultBillerId, Name = "Internet Co", Category = "Telecoms" };
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId, Nickname = "Home Internet" };
+        _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(biller);
+        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
         _billerRepository
             .Setup(repository => repository.SaveBiller(It.IsAny<SavedBiller>()))
             .Returns((SavedBiller savedBiller) => savedBiller);
 
         // Act
-        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(UserId, request);
+        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(DefaultUserId, request);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -189,11 +189,11 @@ public class BillerServiceTests
     public void SaveBiller_WhenBillerNotFound_ReturnsBillerNotFoundError()
     {
         // Arrange
-        var request = new SaveBillerRequest { BillerId = BillerId };
-        _billerRepository.Setup(repository => repository.GetBillerById(BillerId)).Returns(BillerErrors.BillerNotFound);
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId };
+        _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(BillerErrors.BillerNotFound);
 
         // Act
-        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(UserId, request);
+        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(DefaultUserId, request);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -207,17 +207,17 @@ public class BillerServiceTests
     public void SaveBiller_WhenAlreadySaved_ReturnsBillerAlreadySavedError()
     {
         // Arrange
-        var biller = new Biller { Id = BillerId, Name = "Water Co", Category = "Utilities" };
-        var existing = new List<SavedBiller>
+        var biller = new Biller { Id = DefaultBillerId, Name = "Water Co", Category = "Utilities" };
+        var existingSavedBillers = new List<SavedBiller>
         {
-            new() { Id = SavedBillerId, UserId = UserId, BillerId = BillerId, Biller = biller },
+            new() { Id = DefaultSavedBillerId, UserId = DefaultUserId, BillerId = DefaultBillerId, Biller = biller },
         };
-        var request = new SaveBillerRequest { BillerId = BillerId };
-        _billerRepository.Setup(repository => repository.GetBillerById(BillerId)).Returns(biller);
-        _billerRepository.Setup(repository => repository.GetSavedBillers(UserId)).Returns(existing);
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId };
+        _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(biller);
+        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(existingSavedBillers);
 
         // Act
-        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(UserId, request);
+        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(DefaultUserId, request);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -233,15 +233,15 @@ public class BillerServiceTests
     public void RemoveSavedBiller_WhenEntryExists_ReturnsSuccess()
     {
         // Arrange
-        var saved = new List<SavedBiller>
+        var existingSavedBillers = new List<SavedBiller>
         {
-            new() { Id = SavedBillerId, UserId = UserId, BillerId = BillerId },
+            new() { Id = DefaultSavedBillerId, UserId = DefaultUserId, BillerId = DefaultBillerId },
         };
-        _billerRepository.Setup(repository => repository.GetSavedBillers(UserId)).Returns(saved);
-        _billerRepository.Setup(repository => repository.DeleteSavedBiller(SavedBillerId)).Returns(Result.Success);
+        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(existingSavedBillers);
+        _billerRepository.Setup(repository => repository.DeleteSavedBiller(DefaultSavedBillerId)).Returns(Result.Success);
 
         // Act
-        ErrorOr<Success> result = _service.RemoveSavedBiller(UserId, SavedBillerId);
+        ErrorOr<Success> result = _service.RemoveSavedBiller(DefaultUserId, DefaultSavedBillerId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -254,10 +254,10 @@ public class BillerServiceTests
     public void RemoveSavedBiller_WhenEntryNotFound_ReturnsSavedBillerNotFoundError()
     {
         // Arrange
-        _billerRepository.Setup(repository => repository.GetSavedBillers(UserId)).Returns(new List<SavedBiller>());
+        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
 
         // Act
-        ErrorOr<Success> result = _service.RemoveSavedBiller(UserId, SavedBillerId);
+        ErrorOr<Success> result = _service.RemoveSavedBiller(DefaultUserId, DefaultSavedBillerId);
 
         // Assert
         result.IsError.Should().BeTrue();

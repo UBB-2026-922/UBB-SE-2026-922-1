@@ -1,4 +1,8 @@
-﻿using BankingApp.Domain.Entities;
+﻿// <copyright file="NotificationTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+
+using BankingApp.Domain.Entities;
 
 namespace BankingApp.Domain.Tests.Entities;
 

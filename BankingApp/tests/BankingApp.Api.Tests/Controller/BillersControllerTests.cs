@@ -17,9 +17,9 @@ namespace BankingApp.Api.Tests.Controller;
 [Trait("Category", "Unit")]
 public sealed class BillersControllerTests
 {
-    private const int UserId = 1;
-    private const int BillerId = 10;
-    private const int SavedBillerId = 100;
+    private const int DefaultUserId = 1;
+    private const int DefaultBillerId = 10;
+    private const int DefaultSavedBillerId = 100;
 
     private readonly Mock<IBillerService> _billerService = new(MockBehavior.Strict);
 
@@ -32,7 +32,7 @@ public sealed class BillersControllerTests
         // Arrange
         var billers = new List<BillerDataTransferObject>
         {
-            new() { Id = BillerId, Name = "Water Co", Category = "Utilities" },
+            new() { Id = DefaultBillerId, Name = "Water Co", Category = "Utilities" },
         };
         _billerService.Setup(service => service.GetBillerDirectory()).Returns(billers);
         BillersController controller = CreateController();
@@ -60,7 +60,7 @@ public sealed class BillersControllerTests
         BillersController controller = CreateController();
 
         // Act
-        IActionResult result = controller.GetBillers(null, category);
+        IActionResult result = controller.GetBillers(search: null, category);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
@@ -76,9 +76,9 @@ public sealed class BillersControllerTests
         // Arrange
         var savedBillers = new List<SavedBillerDataTransferObject>
         {
-            new() { Id = SavedBillerId, BillerId = BillerId, BillerName = "Water Co" },
+            new() { Id = DefaultSavedBillerId, BillerId = DefaultBillerId, BillerName = "Water Co" },
         };
-        _billerService.Setup(service => service.GetSavedBillers(UserId)).Returns(savedBillers);
+        _billerService.Setup(service => service.GetSavedBillers(DefaultUserId)).Returns(savedBillers);
         BillersController controller = CreateController();
 
         // Act
@@ -96,15 +96,15 @@ public sealed class BillersControllerTests
     public void SaveBiller_WhenRequestIsValid_ReturnsCreated()
     {
         // Arrange
-        var request = new SaveBillerRequest { BillerId = BillerId, Nickname = "Home Water" };
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId, Nickname = "Home Water" };
         var savedBiller = new SavedBillerDataTransferObject
         {
-            Id = SavedBillerId,
-            BillerId = BillerId,
+            Id = DefaultSavedBillerId,
+            BillerId = DefaultBillerId,
             BillerName = "Water Co",
             Nickname = "Home Water",
         };
-        _billerService.Setup(service => service.SaveBiller(UserId, request)).Returns(savedBiller);
+        _billerService.Setup(service => service.SaveBiller(DefaultUserId, request)).Returns(savedBiller);
         BillersController controller = CreateController();
 
         // Act
@@ -123,11 +123,11 @@ public sealed class BillersControllerTests
     public void RemoveSavedBiller_WhenEntryExists_ReturnsNoContent()
     {
         // Arrange
-        _billerService.Setup(service => service.RemoveSavedBiller(UserId, SavedBillerId)).Returns(Result.Success);
+        _billerService.Setup(service => service.RemoveSavedBiller(DefaultUserId, DefaultSavedBillerId)).Returns(Result.Success);
         BillersController controller = CreateController();
 
         // Act
-        IActionResult result = controller.RemoveSavedBiller(SavedBillerId);
+        IActionResult result = controller.RemoveSavedBiller(DefaultSavedBillerId);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -140,7 +140,7 @@ public sealed class BillersControllerTests
         {
             Items =
             {
-                ["UserId"] = UserId,
+                ["UserId"] = DefaultUserId,
             },
         };
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
