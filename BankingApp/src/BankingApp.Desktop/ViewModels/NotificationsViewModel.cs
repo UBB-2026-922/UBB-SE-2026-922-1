@@ -82,7 +82,7 @@ public partial class NotificationsViewModel
                 ApiEndpoints.NotificationPreferences);
         if (preferencesResult.IsError)
         {
-            _logger.LogError("LoadNotificationPreferences: request failed: {Errors}", preferencesResult.Errors);
+            _logger.LoadNotificationPreferencesFailed(preferencesResult.Errors);
             return false;
         }
 
@@ -110,7 +110,7 @@ public partial class NotificationsViewModel
             },
             errors =>
             {
-                _logger.LogError("UpdateNotificationPreferences failed: {Errors}", errors);
+                _logger.UpdateNotificationPreferencesFailed(errors);
                 State.SetValue(ProfileState.Error);
                 return false;
             });

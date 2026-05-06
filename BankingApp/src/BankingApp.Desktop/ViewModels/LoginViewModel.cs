@@ -41,10 +41,7 @@ public partial class LoginViewModel
             _ => LoginState.Idle,
             errors =>
             {
-                if (_logger.IsEnabled(LogLevel.Critical))
-                    _logger.LogCritical(
-                        "ApiClient is not configured; login is unavailable. Error count: {ErrorCount}",
-                        errors.Count);
+                _logger.LoginUnavailableApiClientNotConfigured(errors.Count);
                 return LoginState.ServerNotConfigured;
             });
         State = new ObservableState<LoginState>(initialState);
@@ -113,7 +110,7 @@ public partial class LoginViewModel
                 }
                 else
                 {
-                    _logger.LogError("Login failed: {Errors}", errors);
+                    _logger.LoginFailed(errors);
                     State.SetValue(LoginState.Error);
                 }
             });

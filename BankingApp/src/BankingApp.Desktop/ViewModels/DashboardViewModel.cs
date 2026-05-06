@@ -311,7 +311,7 @@ public partial class DashboardViewModel
                     ErrorType.NotFound => UserMessages.Dashboard.NotFound,
                     _ => UserMessages.Dashboard.LoadFailed
                 };
-                _logger.LogError("LoadDashboard failed: {Errors}", errors);
+                _logger.LoadDashboardFailed(errors);
                 State.SetValue(DashboardState.Error);
                 return errors.First();
             });

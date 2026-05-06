@@ -131,7 +131,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.LoadFailed;
-                _logger.LogError("Load alerts failed: {Errors}", result.Errors);
+                _logger.LoadAlertsFailed(result.Errors);
                 return;
             }
 
@@ -140,7 +140,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Load alerts failed unexpectedly");
+            _logger.LoadAlertsFailedUnexpected(exception);
         }
         finally
         {
@@ -204,7 +204,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.CreateFailed;
-                _logger.LogError("Create alert failed: {Errors}", result.Errors);
+                _logger.CreateAlertFailed(result.Errors);
                 return;
             }
 
@@ -217,7 +217,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Create alert failed unexpectedly");
+            _logger.CreateAlertFailedUnexpected(exception);
         }
         finally
         {
@@ -241,7 +241,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.DeleteFailed;
-                _logger.LogError("Delete alert failed: {Errors}", result.Errors);
+                _logger.DeleteAlertFailed(result.Errors);
                 return;
             }
 
@@ -251,7 +251,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Delete alert failed unexpectedly");
+            _logger.DeleteAlertFailedUnexpected(exception);
         }
     }
 

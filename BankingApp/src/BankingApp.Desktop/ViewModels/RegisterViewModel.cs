@@ -91,7 +91,7 @@ public partial class RegisterViewModel
                 }
                 else
                 {
-                    _logger.LogError("Register failed: {Errors}", errors);
+                    _logger.RegisterFailed(errors);
                     State.SetValue(RegisterState.Error);
                 }
             });

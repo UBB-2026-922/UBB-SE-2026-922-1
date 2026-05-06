@@ -82,12 +82,12 @@ public partial class PersonalInfoViewModel
         ErrorOr<ProfileInfo> profileResult = await _apiClient.GetAsync<ProfileInfo>(ApiEndpoints.Profile);
         if (profileResult.IsError)
         {
-            _logger.LogError("LoadProfile: profile request failed: {Errors}", profileResult.Errors);
+            _logger.LoadProfileFailed(profileResult.Errors);
             State.SetValue(ProfileState.Error);
             return false;
         }
 
-        ProfileInfo = profileResult.Value;
+        ProfileInfo = profileResult.Value ?? new ProfileInfo();
         State.SetValue(ProfileState.UpdateSuccess);
         return true;
     }
@@ -131,7 +131,7 @@ public partial class PersonalInfoViewModel
             },
             errors =>
             {
-                _logger.LogError("UpdatePersonalInfo failed: {Errors}", errors);
+                _logger.UpdatePersonalInfoFailed(errors);
                 State.SetValue(ProfileState.Error);
                 return false;
             });
@@ -166,7 +166,7 @@ public partial class PersonalInfoViewModel
             },
             errors =>
             {
-                _logger.LogError("VerifyPassword failed: {Errors}", errors);
+                _logger.VerifyPasswordFailed(errors);
                 State.SetValue(ProfileState.Error);
                 return false;
             });

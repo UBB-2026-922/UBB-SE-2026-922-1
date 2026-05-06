@@ -142,7 +142,7 @@ public class TransferHistoryViewModel : INotifyPropertyChanged
         }
         catch (Exception loadException)
         {
-            _logger.LogError(loadException, "Unexpected error loading transfer history.");
+            _logger.LoadTransferHistoryFailedUnexpected(loadException);
             ErrorMessage = UserMessages.TransferHistory.LoadFailed;
         }
         finally

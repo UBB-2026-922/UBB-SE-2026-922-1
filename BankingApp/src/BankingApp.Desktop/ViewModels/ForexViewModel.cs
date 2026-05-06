@@ -185,7 +185,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.Exchange.PreviewFailed;
-                _logger.LogError("Rate preview failed: {Errors}", result.Errors);
+                _logger.RatePreviewFailed(result.Errors);
                 return;
             }
 
@@ -198,7 +198,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Rate preview failed unexpectedly");
+            _logger.RatePreviewFailedUnexpected(exception);
         }
         finally
         {
@@ -238,7 +238,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.Exchange.ExecuteFailed;
-                _logger.LogError("Exchange execution failed: {Errors}", result.Errors);
+                _logger.ExchangeExecutionFailed(result.Errors);
                 return;
             }
 
@@ -248,7 +248,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Exchange execution failed unexpectedly");
+            _logger.ExchangeExecutionFailedUnexpected(exception);
         }
         finally
         {

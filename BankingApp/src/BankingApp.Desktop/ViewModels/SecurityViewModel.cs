@@ -91,7 +91,7 @@ public partial class SecurityViewModel
             },
             errors =>
             {
-                _logger.LogError("ChangePassword failed: {Errors}", errors);
+                _logger.ChangePasswordFailed(errors);
                 State.SetValue(ProfileState.Error);
                 string message = errors.First().Code == "incorrect_password"
                     ? UserMessages.Security.IncorrectPassword
@@ -118,7 +118,7 @@ public partial class SecurityViewModel
             },
             errors =>
             {
-                _logger.LogError("EnableTwoFactor failed: {Errors}", errors);
+                _logger.EnableTwoFactorFailed(errors);
                 State.SetValue(ProfileState.Error);
                 return false;
             });
@@ -140,7 +140,7 @@ public partial class SecurityViewModel
             },
             errors =>
             {
-                _logger.LogError("DisableTwoFactor failed: {Errors}", errors);
+                _logger.DisableTwoFactorFailed(errors);
                 State.SetValue(ProfileState.Error);
                 return false;
             });

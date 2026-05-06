@@ -8,6 +8,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using BankingApp.Desktop.DependencyInjection;
 using BankingApp.Desktop.Master;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,7 @@ namespace BankingApp.Desktop;
 public partial class App
 {
     private const int RetainedLoggingFileCountLimit = 14;
+    private static string _logDirectory = string.Empty;
     private Window? _window;
 
     /// <summary>
@@ -33,6 +35,10 @@ public partial class App
     public App()
     {
         ConfigureLogging();
+        RegisterGlobalExceptionLogging();
+        Log.Information("Desktop app starting. BaseDirectory={BaseDirectory}, LogDirectory={LogDirectory}.",
+            AppContext.BaseDirectory,
+            _logDirectory);
         IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", false)
@@ -73,6 +79,7 @@ public partial class App
     /// </param>
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
+        Log.Information("Desktop app launched.");
         IAppNavigationService navigationService = Services.GetRequiredService<IAppNavigationService>();
         _window = new MainWindow(navigationService);
         _window.Activate();
@@ -80,10 +87,11 @@ public partial class App
 
     private static void ConfigureLogging()
     {
-        string logDirectory = Path.Combine(
+        _logDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "BankingApp",
             "Logs");
+        Directory.CreateDirectory(_logDirectory);
         const string loggingFileFormat = "bankingapp-client-.log";
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
@@ -93,10 +101,39 @@ public partial class App
             // Writes to a daily rolling file outside the repository.
             // Log path: %LocalAppData%\BankingApp\Logs\bankingapp-client-YYYYMMDD.log
             .WriteTo.File(
-                Path.Combine(logDirectory, loggingFileFormat),
+                Path.Combine(_logDirectory, loggingFileFormat),
                 formatProvider: CultureInfo.InvariantCulture,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: RetainedLoggingFileCountLimit)
             .CreateLogger();
+    }
+
+    private void RegisterGlobalExceptionLogging()
+    {
+        UnhandledException += OnUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        Log.Fatal(e.Exception, "UI thread unhandled exception.");
+        Log.CloseAndFlush();
+    }
+
+    private static void OnCurrentDomainUnhandledException(object? sender, System.UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+            Log.Fatal(exception, "AppDomain unhandled exception. IsTerminating={IsTerminating}.", e.IsTerminating);
+        else
+            Log.Fatal("AppDomain unhandled non-exception object. IsTerminating={IsTerminating}.", e.IsTerminating);
+
+        Log.CloseAndFlush();
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        Log.Error(e.Exception, "Unobserved task exception.");
+        Log.CloseAndFlush();
     }
 }

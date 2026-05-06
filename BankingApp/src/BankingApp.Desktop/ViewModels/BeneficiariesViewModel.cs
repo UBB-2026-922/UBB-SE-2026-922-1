@@ -21,7 +21,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     View model for the beneficiaries page in the desktop application.
 ///     Handles loading, adding and deleting beneficiaries and navigation interactions.
 /// </summary>
-public partial class BeneficiariesViewModel
+public class BeneficiariesViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly IAppNavigationService _navigationService;
@@ -88,7 +88,7 @@ public partial class BeneficiariesViewModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load beneficiaries");
+            _logger.FailedToLoadBeneficiaries(ex);
             ErrorMessage = "An unexpected error occurred while loading beneficiaries.";
             return Error.Failure();
         }
@@ -113,7 +113,7 @@ public partial class BeneficiariesViewModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete beneficiary {Id}", id);
+            _logger.FailedToDeleteBeneficiary(ex, id);
             ErrorMessage = "An unexpected error occurred while deleting the beneficiary.";
             return false;
         }
@@ -141,9 +141,9 @@ public partial class BeneficiariesViewModel
             IsAddFormVisible = false;
             return true;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Failed to add beneficiary");
+            _logger.FailedToAddBeneficiary(exception);
             ErrorMessage = "An unexpected error occurred while saving the beneficiary.";
             return false;
         }

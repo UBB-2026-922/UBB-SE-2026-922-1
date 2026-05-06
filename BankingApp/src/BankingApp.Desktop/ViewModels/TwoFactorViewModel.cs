@@ -232,7 +232,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
             errors =>
             {
                 if (errors.First().Type != ErrorType.Unauthorized)
-                    _logger.LogError("VerifyOtp failed: {Errors}", errors);
+                    _logger.VerifyOtpFailed(errors);
 
                 ApplyInvalidOtp();
             });
@@ -262,7 +262,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
             null);
         result.Switch(
             _ => { },
-            errors => _logger.LogError("ResendOtp failed: {Errors}", errors));
+            errors => _logger.ResendOtpFailed(errors));
     }
 
     private void OnCountdownTick(object? sender, EventArgs e)

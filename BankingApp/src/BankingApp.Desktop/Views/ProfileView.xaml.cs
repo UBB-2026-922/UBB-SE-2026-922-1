@@ -21,6 +21,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Serilog;
 
 namespace BankingApp.Desktop.Views;
 
@@ -56,6 +57,9 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     private const byte SessionMutedTextRed = 148;
     private const byte SessionMutedTextGreen = 163;
     private const byte SessionMutedTextBlue = 184;
+    private const byte PrimaryTextRed = 30;
+    private const byte PrimaryTextGreen = 41;
+    private const byte PrimaryTextBlue = 59;
     private readonly IAppNavigationService _navigationService;
     private readonly ProfileViewModel _viewModel;
     private bool _isChangingPasswordFlow;
@@ -84,6 +88,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     {
         DispatcherQueue.TryEnqueue(() =>
         {
+            Log.Information("ProfileView state changed to {State}.", state);
             if (_isUpdatingToggle)
             {
                 if (state == ProfileState.Error) ShowError("Failed to save notification preferences.");
@@ -98,7 +103,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     break;
                 case ProfileState.UpdateSuccess:
                     ShowLoading(false);
-                    PopulateUi();
+                    TryPopulateUi("state-update");
                     break;
                 case ProfileState.Error:
                     ShowLoading(false);
@@ -132,15 +137,60 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         ShowLoading(true);
-        await _viewModel.LoadProfile();
-        ShowLoading(false);
-        PopulateUi();
-        SetEditingEnabled(false);
+        try
+        {
+            Log.Information("ProfileView load started.");
+            bool loaded = await _viewModel.LoadProfile();
+            Log.Information(
+                "ProfileView load finished. Success={Loaded}, UserId={UserId}, PreferencesCount={PreferencesCount}.",
+                loaded,
+                _viewModel.ProfileInfo.UserId,
+                _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
+            ShowLoading(false);
+            if (!loaded)
+            {
+                ShowError("Failed to load profile.");
+                return;
+            }
+
+            TryPopulateUi("page-load");
+            SetEditingEnabled(false);
+        }
+        catch (Exception exception)
+        {
+            Log.Error(exception, "ProfileView load crashed.");
+            ShowLoading(false);
+            ShowError($"Failed to load profile: {exception.Message}");
+        }
+    }
+
+    private void TryPopulateUi(string trigger)
+    {
+        try
+        {
+            PopulateUi();
+        }
+        catch (Exception exception)
+        {
+            Log.Error(
+                exception,
+                "ProfileView UI population failed. Trigger={Trigger}, UserId={UserId}, FullName={FullName}, PreferencesCount={PreferencesCount}.",
+                trigger,
+                _viewModel.ProfileInfo.UserId,
+                _viewModel.ProfileInfo.FullName,
+                _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
+            throw;
+        }
     }
 
     private void PopulateUi()
     {
         ProfileInfo user = _viewModel.ProfileInfo;
+        Log.Information(
+            "ProfileView populating UI for UserId={UserId}, HasPhone={HasPhone}, Preferred2FaMethod={Preferred2FaMethod}.",
+            user.UserId,
+            !string.IsNullOrWhiteSpace(user.PhoneNumber),
+            user.Preferred2FaMethod);
         ProfileCardName.Text = user.FullName ?? string.Empty;
         ProfileCardEmail.Text = user.Email ?? string.Empty;
         ProfileCardPhone.Text = user.PhoneNumber ?? string.Empty;
@@ -399,6 +449,11 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private void Update2FaVisuals()
     {
+        Log.Information(
+            "ProfileView updating 2FA visuals. PhoneActive={PhoneActive}, EmailActive={EmailActive}, PhoneDisplay={PhoneDisplay}.",
+            _viewModel.IsPhoneTwoFactorActive,
+            _viewModel.IsEmailTwoFactorActive,
+            _viewModel.PersonalInfo.TwoFactorPhoneDisplay);
         TwoFactorPhoneDisplay.Text = _viewModel.PersonalInfo.TwoFactorPhoneDisplay;
         if (!_viewModel.PersonalInfo.HasPhoneNumber)
             ConfigureActionButton(
@@ -521,6 +576,9 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private void PopulateNotificationPreferences(List<NotificationPreferenceDataTransferObject>? preferences)
     {
+        Log.Information(
+            "ProfileView populating notification preferences. Count={Count}.",
+            preferences?.Count ?? 0);
         _viewModel.IsInitializingView = true;
         NotificationPreferencesPanel.Children.Clear();
         if (preferences == null)
@@ -547,7 +605,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 Text = preference.Category.ToDisplayName(),
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = NotificationPreferenceFontSize,
-                Foreground = (Brush)Resources["TextPrimary"]
+                Foreground = GetPrimaryTextBrush()
             };
             var toggle = new ToggleSwitch
             {
@@ -564,6 +622,19 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
 
         _viewModel.IsInitializingView = false;
+    }
+
+    private Brush GetPrimaryTextBrush()
+    {
+        if (Resources.TryGetValue("TextPrimary", out object resource) && resource is Brush brush)
+            return brush;
+
+        return new SolidColorBrush(
+            ColorHelper.FromArgb(
+                OpaqueColorAlpha,
+                PrimaryTextRed,
+                PrimaryTextGreen,
+                PrimaryTextBlue));
     }
 
     private async void TabSessionsBtn_Click(object sender, RoutedEventArgs e)

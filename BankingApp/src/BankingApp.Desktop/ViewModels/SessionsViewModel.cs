@@ -79,7 +79,7 @@ public partial class SessionsViewModel
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Failed to load sessions for user {UserId}", userId);
+            _logger.LoadSessionsFailed(exception, userId);
             ActiveSessions = new List<SessionDataTransferObject>();
             State.SetValue(ProfileState.Error);
             return false;
@@ -102,7 +102,7 @@ public partial class SessionsViewModel
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "Failed to revoke session {SessionId}", sessionId);
+            _logger.RevokeSessionFailed(exception, sessionId);
             State.SetValue(ProfileState.Error);
             return false;
         }

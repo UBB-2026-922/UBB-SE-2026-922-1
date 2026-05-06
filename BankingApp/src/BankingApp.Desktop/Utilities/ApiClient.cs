@@ -47,7 +47,7 @@ public sealed partial class ApiClient : IApiClient, IDisposable
             _configurationError = Error.Failure(
                 "ApiClient.MissingBaseUrl",
                 "ApiBaseUrl is missing from configuration.");
-            _logger.LogCritical("ApiBaseUrl is missing from configuration. The client cannot connect to the server.");
+            _logger.ApiBaseUrlMissing();
             // Dummy client — requests must not be issued when configurationError is set.
             _httpClient = new HttpClient();
         }
