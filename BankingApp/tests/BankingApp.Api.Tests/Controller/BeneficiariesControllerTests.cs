@@ -12,9 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingApp.Api.Tests.Controller;
 
-/// <summary>
-///     Unit tests for <see cref="BeneficiariesController" />.
-/// </summary>
 [Trait("Category", "Unit")]
 public sealed class BeneficiariesControllerTests
 {
@@ -23,9 +20,6 @@ public sealed class BeneficiariesControllerTests
 
     private readonly Mock<IBeneficiaryService> _beneficiaryService = new(MockBehavior.Strict);
 
-    /// <summary>
-    ///     Verifies that all beneficiaries for the authenticated user are returned as 200 OK.
-    /// </summary>
     [Fact]
     public void GetBeneficiaries_WhenServiceReturnsList_ReturnsOkWithMappedDtos()
     {
@@ -50,9 +44,6 @@ public sealed class BeneficiariesControllerTests
         _beneficiaryService.Verify(service => service.GetByUserId(DefaultUserId), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies that a service error from GetByUserId is surfaced as the mapped HTTP error.
-    /// </summary>
     [Fact]
     public void GetBeneficiaries_WhenServiceReturnsError_ReturnsErrorResponse()
     {
@@ -70,9 +61,6 @@ public sealed class BeneficiariesControllerTests
             .Which.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 
-    /// <summary>
-    ///     Verifies that a single beneficiary is returned as 200 OK when found.
-    /// </summary>
     [Fact]
     public void GetBeneficiaryById_WhenBeneficiaryExists_ReturnsOkWithDto()
     {
@@ -93,9 +81,6 @@ public sealed class BeneficiariesControllerTests
         dto.Name.Should().Be("Alice");
     }
 
-    /// <summary>
-    ///     Verifies that a NotFound error from the service is mapped to 404.
-    /// </summary>
     [Fact]
     public void GetBeneficiaryById_WhenBeneficiaryNotFound_ReturnsNotFound()
     {
@@ -112,9 +97,6 @@ public sealed class BeneficiariesControllerTests
         result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies that a valid create request returns 200 OK with the mapped DTO.
-    /// </summary>
     [Fact]
     public void CreateBeneficiary_WhenRequestIsValid_ReturnsOkWithCreatedDto()
     {
@@ -142,9 +124,6 @@ public sealed class BeneficiariesControllerTests
         dto.BankName.Should().Be("BRD");
     }
 
-    /// <summary>
-    ///     Verifies that a validation error from Create is mapped to 400 Bad Request.
-    /// </summary>
     [Fact]
     public void CreateBeneficiary_WhenServiceReturnsValidationError_ReturnsBadRequest()
     {
@@ -162,9 +141,6 @@ public sealed class BeneficiariesControllerTests
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies that a conflict error (duplicate IBAN) from Create is mapped to 409 Conflict.
-    /// </summary>
     [Fact]
     public void CreateBeneficiary_WhenIbanAlreadyExists_ReturnsConflict()
     {
@@ -186,9 +162,6 @@ public sealed class BeneficiariesControllerTests
         result.Should().BeOfType<ConflictObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies that a successful update returns 204 No Content.
-    /// </summary>
     [Fact]
     public void UpdateBeneficiary_WhenUpdateSucceeds_ReturnsNoContent()
     {
@@ -216,9 +189,6 @@ public sealed class BeneficiariesControllerTests
         result.Should().BeOfType<NoContentResult>();
     }
 
-    /// <summary>
-    ///     Verifies that a NotFound error from Update is mapped to 404.
-    /// </summary>
     [Fact]
     public void UpdateBeneficiary_WhenBeneficiaryNotFound_ReturnsNotFound()
     {
@@ -236,9 +206,6 @@ public sealed class BeneficiariesControllerTests
         result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies that the route id is used as the beneficiary identifier, not any id on the request body.
-    /// </summary>
     [Fact]
     public void UpdateBeneficiary_WhenCalled_UsesRouteIdNotRequestBodyId()
     {
@@ -258,9 +225,6 @@ public sealed class BeneficiariesControllerTests
         _beneficiaryService.Verify(service => service.Update(It.Is<Beneficiary>(beneficiary => beneficiary.Id == routeId)), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies that a successful deletion returns 204 No Content.
-    /// </summary>
     [Fact]
     public void DeleteBeneficiary_WhenBeneficiaryExists_ReturnsNoContent()
     {
@@ -278,9 +242,6 @@ public sealed class BeneficiariesControllerTests
         _beneficiaryService.Verify(service => service.Delete(DefaultBeneficiaryId, DefaultUserId), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies that a NotFound error from Delete is mapped to 404.
-    /// </summary>
     [Fact]
     public void DeleteBeneficiary_WhenBeneficiaryNotFound_ReturnsNotFound()
     {
@@ -297,9 +258,6 @@ public sealed class BeneficiariesControllerTests
         result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies that the authenticated user id is forwarded to the delete service call.
-    /// </summary>
     [Fact]
     public void DeleteBeneficiary_WhenCalled_ForwardsAuthenticatedUserIdToService()
     {
