@@ -103,4 +103,37 @@ public class BillPaymentsControllerTests
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.NotNull(badRequestResult.Value);
     }
+
+    [Fact]
+    public void CalculateFee_WhenValidAmount_ReturnsOkResultWithFee()
+    {
+        // Arrange
+        decimal amount = 100m;
+        decimal expectedFee = 2.5m;
+        _mockBillPaymentService.Setup(s => s.CalculateFee(amount)).Returns(expectedFee);
+
+        // Act
+        var result = _controller.CalculateFee(amount);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<FeeResponseDto>(okResult.Value);
+        Assert.Equal(expectedFee, response.Fee);
+    }
+
+    [Fact]
+    public void Requires2Fa_WhenAmountRequires_ReturnsOkResultWithExpectedValue()
+    {
+        // Arrange
+        decimal amount = 5000m;
+        _mockBillPaymentService.Setup(s => s.Requires2Fa(amount)).Returns(true);
+
+        // Act
+        var result = _controller.Requires2Fa(amount);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<Requires2FaResponseDto>(okResult.Value);
+        Assert.True(response.Required);
+    }
 }
