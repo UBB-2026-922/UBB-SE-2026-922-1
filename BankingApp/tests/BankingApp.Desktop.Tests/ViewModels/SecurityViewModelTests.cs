@@ -29,4 +29,26 @@ public class SecurityViewModelTests
         _mockLogger = new Mock<ILogger<SecurityViewModel>>();
         _viewModel = new SecurityViewModel(_mockApiClient.Object, _mockLogger.Object);
     }
+
+    [Fact]
+    public async Task ChangePassword_WhenPasswordTooShort_ReturnsFalseWithLengthError()
+    {
+        // Act
+        var result = await _viewModel.ChangePassword(1, "OldPass123!", "Short1!", "Short1!");
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal(UserMessages.Security.MinimumLengthRequired, result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenPasswordsDoNotMatch_ReturnsFalseWithMismatchError()
+    {
+        // Act
+        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "Different123!");
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal(UserMessages.Security.PasswordMismatch, result.ErrorMessage);
+    }
 }
