@@ -7,7 +7,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Auth;
 using ErrorOr;
 
 namespace BankingApp.Desktop.Utilities;

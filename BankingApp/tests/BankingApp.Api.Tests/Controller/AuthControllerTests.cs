@@ -1,5 +1,4 @@
 ﻿using BankingApp.Api.Controllers;
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Registration;
@@ -8,6 +7,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankingApp.Api.Tests.Controller;
+
+using Application.DTOs.Auth;
 
 [Trait("Category", "Unit")]
 public sealed class AuthControllerTests

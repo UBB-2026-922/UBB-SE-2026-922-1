@@ -1,6 +1,6 @@
 ﻿namespace BankingApp.Api.Controllers;
 
-using Application.DataTransferObjects.Beneficiary;
+using Application.DTOs.Beneficiary;
 using Application.Services.Beneficiary;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;

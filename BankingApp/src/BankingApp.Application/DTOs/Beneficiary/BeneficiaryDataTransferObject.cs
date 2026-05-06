@@ -1,11 +1,4 @@
-﻿// <copyright file="BeneficiaryDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiaryDataTransferObject class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Beneficiary;
+﻿namespace BankingApp.Application.DTOs.Beneficiary;
 
 /// <summary>
 ///     Represents beneficiary data returned by the API.

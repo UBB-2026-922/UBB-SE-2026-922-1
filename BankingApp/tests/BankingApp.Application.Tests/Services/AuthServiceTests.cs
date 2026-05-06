@@ -1,5 +1,4 @@
-﻿using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Application.Repositories.Interfaces;
+﻿using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Auth;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
@@ -9,6 +8,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Application.Tests.Services;
+
+using DTOs.Auth;
 
 public sealed class AuthServiceTests
 {

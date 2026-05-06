@@ -1,16 +1,9 @@
-﻿// <copyright file="SaveBillerRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SaveBillerRequest class.
-// </summary>
-
-namespace BankingApp.Application.DTOs.Billers;
+﻿namespace BankingApp.Application.DTOs.Billers;
 
 /// <summary>
 ///     Request body for saving a biller.
 /// </summary>
-public class SaveBillerRequest
+public class SaveBillerRequestDto
 {
     /// <summary>Gets or sets the identifier of the biller to save.</summary>
     /// <value>Gets or sets the current value.</value>

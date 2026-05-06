@@ -1,11 +1,4 @@
-﻿// <copyright file="ResetPasswordRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ResetPasswordRequest class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Auth;
+﻿namespace BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Represents a request to reset a password using a reset token.

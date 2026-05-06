@@ -1,11 +1,4 @@
-﻿// <copyright file="CreateBeneficiaryRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the CreateBeneficiaryRequest class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Beneficiary;
+﻿namespace BankingApp.Application.DTOs.Beneficiary;
 
 /// <summary>
 ///     Represents the data required to create a beneficiary.

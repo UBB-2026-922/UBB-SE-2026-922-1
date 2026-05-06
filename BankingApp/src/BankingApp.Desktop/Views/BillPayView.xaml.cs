@@ -6,7 +6,8 @@
 // </summary>
 
 using System;
-using BankingApp.Application.DTOs.BillPayment;
+using BankingApp.Application.DTOs.Billers;
+using BankingApp.Application.DTOs.BillPayments;
 using BankingApp.Desktop.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

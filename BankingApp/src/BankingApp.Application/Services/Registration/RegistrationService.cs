@@ -5,7 +5,6 @@
 // Contains the RegistrationService class.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
@@ -16,6 +15,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Application.Services.Registration;
+
+using DTOs.Auth;
 
 /// <summary>
 ///     Provides user registration operations.

@@ -11,13 +11,14 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Desktop.ViewModels;
+
+using Application.DTOs.Auth;
 
 /// <summary>
 ///     Coordinates OTP verification and resend operations for the 2FA flow.

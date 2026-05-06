@@ -57,7 +57,7 @@ public class BillersController : ApiControllerBase
     /// <param name="request">The save request.</param>
     /// <returns>201 Created with the saved biller DTO.</returns>
     [HttpPost("saved")]
-    public IActionResult SaveBiller([FromBody] SaveBillerRequest request)
+    public IActionResult SaveBiller([FromBody] SaveBillerRequestDto request)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(

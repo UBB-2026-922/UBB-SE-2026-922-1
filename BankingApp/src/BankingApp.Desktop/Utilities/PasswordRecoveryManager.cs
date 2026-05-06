@@ -8,11 +8,12 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Desktop.Enums;
 using ErrorOr;
 
 namespace BankingApp.Desktop.Utilities;
+
+using Application.DTOs.Auth;
 
 /// <summary>
 ///     Implements <see cref="IPasswordRecoveryManager" /> by delegating network calls

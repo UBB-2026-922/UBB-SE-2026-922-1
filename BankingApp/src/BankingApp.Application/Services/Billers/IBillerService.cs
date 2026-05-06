@@ -17,24 +17,24 @@ public interface IBillerService
 {
     /// <summary>Returns all active billers.</summary>
     /// <returns>The list of active billers.</returns>
-    ErrorOr<List<BillerDataTransferObject>> GetBillerDirectory();
+    ErrorOr<List<BillerDto>> GetBillerDirectory();
 
     /// <summary>Searches the biller directory by name and/or category.</summary>
     /// <param name="searchTerm">Text to match against biller names.</param>
     /// <param name="category">Optional category filter.</param>
     /// <returns>The matching billers.</returns>
-    ErrorOr<List<BillerDataTransferObject>> SearchBillers(string searchTerm, string? category = null);
+    ErrorOr<List<BillerDto>> SearchBillers(string searchTerm, string? category = null);
 
     /// <summary>Returns all billers saved by the specified user.</summary>
     /// <param name="userId">The user identifier.</param>
     /// <returns>The list of saved biller DTOs.</returns>
-    ErrorOr<List<SavedBillerDataTransferObject>> GetSavedBillers(int userId);
+    ErrorOr<List<SavedBillerDto>> GetSavedBillers(int userId);
 
     /// <summary>Saves a biller for the specified user.</summary>
     /// <param name="userId">The user identifier.</param>
     /// <param name="request">The save request data.</param>
     /// <returns>The created saved biller DTO, or an error.</returns>
-    ErrorOr<SavedBillerDataTransferObject> SaveBiller(int userId, SaveBillerRequest request);
+    ErrorOr<SavedBillerDto> SaveBiller(int userId, SaveBillerRequestDto request);
 
     /// <summary>Removes a saved biller for the specified user.</summary>
     /// <param name="userId">The user identifier.</param>

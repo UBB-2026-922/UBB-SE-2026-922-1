@@ -3,7 +3,6 @@
 // </copyright>
 
 using BankingApp.Api.Controllers;
-using BankingApp.Application.DataTransferObjects.Beneficiary;
 using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Domain.Entities;
 using ErrorOr;
@@ -11,6 +10,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BankingApp.Api.Tests.Controller;
+
+using Application.DTOs.Beneficiary;
 
 [Trait("Category", "Unit")]
 public sealed class BeneficiariesControllerTests

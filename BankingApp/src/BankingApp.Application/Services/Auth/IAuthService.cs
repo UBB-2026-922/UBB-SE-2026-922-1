@@ -5,10 +5,11 @@
 // Contains the IAuthService interface.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using ErrorOr;
 
 namespace BankingApp.Application.Services.Auth;
+
+using DTOs.Auth;
 
 /// <summary>
 ///     Defines operations for user authentication, registration, and password management.

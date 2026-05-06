@@ -5,10 +5,11 @@
 // Contains the ILoginService interface.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using ErrorOr;
 
 namespace BankingApp.Application.Services.Login;
+
+using DTOs.Auth;
 
 /// <summary>
 ///     Defines operations for user login, logout, OAuth login, and 2FA.

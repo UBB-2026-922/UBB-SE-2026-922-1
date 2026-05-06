@@ -1,11 +1,4 @@
-﻿// <copyright file="LoginSuccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for LoginSuccess.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Auth;
+﻿namespace BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Represents a successful login outcome. Pattern-match on the concrete type to

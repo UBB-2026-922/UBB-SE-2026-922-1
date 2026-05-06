@@ -1,16 +1,9 @@
-﻿// <copyright file="BillerDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillerDataTransferObject class.
-// </summary>
-
-namespace BankingApp.Application.DTOs.Billers;
+﻿namespace BankingApp.Application.DTOs.Billers;
 
 /// <summary>
 ///     Represents a biller in API responses.
 /// </summary>
-public class BillerDataTransferObject
+public class BillerDto
 {
     /// <summary>Gets or sets the unique identifier for the biller.</summary>
     /// <value>Gets or sets the current value.</value>

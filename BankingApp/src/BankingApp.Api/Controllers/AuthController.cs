@@ -1,7 +1,7 @@
 ﻿namespace BankingApp.Api.Controllers;
 
-using Application.DataTransferObjects.Auth;
 using Application.DTOs;
+using Application.DTOs.Auth;
 using Application.Services.Login;
 using Application.Services.PasswordRecovery;
 using Application.Services.Registration;

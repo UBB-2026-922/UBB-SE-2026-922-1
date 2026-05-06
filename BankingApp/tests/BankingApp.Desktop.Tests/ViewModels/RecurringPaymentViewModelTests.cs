@@ -5,7 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.BillPayment;
+using BankingApp.Application.DTOs.Billers;
+using BankingApp.Application.DTOs.BillPayments;
 using BankingApp.Application.DTOs.RecurringPayments;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;

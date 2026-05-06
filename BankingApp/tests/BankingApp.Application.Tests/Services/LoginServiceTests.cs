@@ -2,7 +2,6 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
@@ -13,6 +12,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Application.Tests.Services;
+
+using DTOs.Auth;
 
 /// <summary>
 ///     Unit tests for <see cref="LoginService" />.

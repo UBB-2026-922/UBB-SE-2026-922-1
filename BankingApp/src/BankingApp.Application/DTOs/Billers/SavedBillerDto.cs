@@ -1,20 +1,17 @@
-﻿// <copyright file="SavedBillerDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SavedBillerDataTransferObject class.
-// </summary>
-
-namespace BankingApp.Application.DTOs.Billers;
+﻿namespace BankingApp.Application.DTOs.Billers;
 
 /// <summary>
 ///     Represents a saved biller entry in API responses.
 /// </summary>
-public class SavedBillerDataTransferObject
+public class SavedBillerDto
 {
     /// <summary>Gets or sets the unique identifier for the saved biller entry.</summary>
     /// <value>Gets or sets the current value.</value>
     public int Id { get; set; }
+
+    /// <summary>Gets or sets the owning user identifier.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public int UserId { get; set; }
 
     /// <summary>Gets or sets the identifier of the biller.</summary>
     /// <value>Gets or sets the current value.</value>
@@ -43,4 +40,30 @@ public class SavedBillerDataTransferObject
     /// <summary>Gets or sets the date and time the biller was saved.</summary>
     /// <value>Gets or sets the current value.</value>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>Gets or sets the associated biller details.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public BillerDto? Biller { get; set; }
+
+    /// <summary>Gets the display name for the saved biller.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string DisplayName => string.IsNullOrWhiteSpace(Nickname) ? BillerName : Nickname;
+
+    /// <summary>Gets the category display text for the saved biller.</summary>
+    /// <value>Gets or sets the current value.</value>
+    public string DisplayCategory => Biller?.Category ?? BillerCategory;
+
+    /// <summary>Converts the saved biller into a biller selection.</summary>
+    /// <returns>The biller DTO.</returns>
+    public BillerDto ToBiller()
+    {
+        return Biller ?? new BillerDto
+        {
+            Id = BillerId,
+            Name = BillerName,
+            Category = BillerCategory,
+            LogoUrl = LogoUrl,
+            IsActive = true
+        };
+    }
 }

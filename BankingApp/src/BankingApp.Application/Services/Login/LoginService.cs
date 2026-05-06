@@ -5,7 +5,6 @@
 // Contains the LoginService class.
 // </summary>
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
@@ -18,6 +17,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Application.Services.Login;
+
+using DTOs.Auth;
 
 /// <summary>
 ///     Provides login, logout, OAuth login, and 2FA operations.

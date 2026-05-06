@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.BillPayment;
+using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.DTOs.BillPayments;
 using BankingApp.Application.Services.BillPayments;
 using BankingApp.Domain.Entities;
@@ -199,7 +199,7 @@ public class BillPaymentsControllerTests
     public async Task SaveBiller_WhenValidRequestAndServiceReturnsTrue_ReturnsOkResult()
     {
         // Arrange
-        var request = new SaveBillerDto
+        var request = new SaveBillerRequestDto
         {
             BillerId = 2,
             Nickname = "My Biller",
@@ -220,7 +220,7 @@ public class BillPaymentsControllerTests
     public async Task SaveBiller_WhenServiceReturnsFalse_ReturnsBadRequest()
     {
         // Arrange
-        var request = new SaveBillerDto
+        var request = new SaveBillerRequestDto
         {
             BillerId = 2,
             Nickname = "My Biller",
@@ -241,7 +241,7 @@ public class BillPaymentsControllerTests
     public async Task SaveBiller_WhenServiceThrowsException_ReturnsBadRequest()
     {
         // Arrange
-        var request = new SaveBillerDto { Nickname = "test" };
+        var request = new SaveBillerRequestDto { Nickname = "test" };
         _mockBillPaymentService
             .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
             .ThrowsAsync(new Exception("Service error"));

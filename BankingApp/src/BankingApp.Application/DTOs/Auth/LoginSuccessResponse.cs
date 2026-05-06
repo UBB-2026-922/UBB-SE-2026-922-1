@@ -1,11 +1,4 @@
-﻿// <copyright file="LoginSuccessResponse.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for LoginSuccessResponse.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Auth;
+﻿namespace BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     The JSON response body returned by a successful login or OTP-verification endpoint.

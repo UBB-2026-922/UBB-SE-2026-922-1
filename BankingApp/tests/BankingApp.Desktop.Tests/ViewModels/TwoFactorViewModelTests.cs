@@ -2,7 +2,6 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
@@ -10,6 +9,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Auth;
 
 /// <summary>
 ///     Tests for <see cref="TwoFactorViewModel" />.

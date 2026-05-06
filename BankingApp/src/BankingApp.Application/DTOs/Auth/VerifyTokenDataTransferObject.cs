@@ -1,11 +1,4 @@
-﻿// <copyright file="VerifyTokenDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the VerifyTokenDataTransferObject class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Auth;
+﻿namespace BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Data transfer object used for reset token verification requests.

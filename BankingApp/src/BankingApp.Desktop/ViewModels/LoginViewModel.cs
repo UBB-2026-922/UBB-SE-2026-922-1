@@ -8,13 +8,14 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Desktop.ViewModels;
+
+using Application.DTOs.Auth;
 
 /// <summary>
 ///     Coordinates credential-based login requests for the login view.

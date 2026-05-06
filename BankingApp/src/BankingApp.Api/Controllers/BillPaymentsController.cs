@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.DTOs.BillPayment;
+using Application.DTOs.Billers;
 using Application.DTOs.BillPayments;
 using Application.Services.BillPayments;
 using Domain.Entities;
@@ -108,7 +108,6 @@ public class BillPaymentsController : ApiControllerBase
                 BillerReference = request.BillerReference,
                 Amount = request.Amount,
                 IsPayInFull = request.IsPayInFull,
-                TwoFaToken = request.TwoFaToken,
             });
 
             return Ok(new BillPayResponseDto
@@ -132,7 +131,7 @@ public class BillPaymentsController : ApiControllerBase
     /// <param name="request">The save biller request details.</param>
     /// <returns>A success message.</returns>
     [HttpPost("save-biller")]
-    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerDto request)
+    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerRequestDto request)
     {
         try
         {
@@ -140,7 +139,7 @@ public class BillPaymentsController : ApiControllerBase
             bool success = await _billPaymentService.SaveBillerForUserAsync(
                 userId,
                 request.BillerId,
-                request.Nickname);
+                request.Nickname ?? string.Empty);
 
             if (success)
             {
@@ -164,7 +163,6 @@ public class BillPaymentsController : ApiControllerBase
             Currency = account.Currency,
             Balance = account.Balance,
             AccountName = account.AccountName ?? string.Empty,
-            Status = account.Status.ToString(),
         };
     }
 }

@@ -7,7 +7,6 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
@@ -20,6 +19,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Application.Services.Auth;
+
+using DTOs.Auth;
 
 /// <summary>
 ///     Provides authentication, registration, OTP verification, and password management operations.

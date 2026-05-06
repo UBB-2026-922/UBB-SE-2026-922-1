@@ -6,7 +6,8 @@
 // </summary>
 
 using System.Collections.Generic;
-using BankingApp.Application.DTOs.BillPayment;
+using BankingApp.Application.DTOs.Billers;
+using BankingApp.Application.DTOs.BillPayments;
 using BankingApp.Desktop.Master;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
@@ -614,8 +615,7 @@ public class BillPayViewModelTests
                 Iban = "RO49AAAA1B31007593840000",
                 Currency = "RON",
                 Balance = 8500m,
-                AccountName = "RON Account",
-                Status = "Active"
+                AccountName = "RON Account"
             }
         ];
     }
