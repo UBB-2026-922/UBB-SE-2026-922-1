@@ -1,10 +1,3 @@
-﻿// <copyright file="20260505071752_DropOAuthLinkTable.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DropOAuthLinkTable migration.
-// </summary>
-
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 

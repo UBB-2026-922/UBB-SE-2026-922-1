@@ -1,7 +1,3 @@
-﻿// <copyright file="RecurringPaymentsControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Api.Controllers;
 using BankingApp.Application.DTOs.RecurringPayments;
 using BankingApp.Application.Services.RecurringPayments;

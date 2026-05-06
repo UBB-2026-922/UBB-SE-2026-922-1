@@ -1,6 +1,6 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
-using Application.DataTransferObjects.Profile;
+using Application.DTOs.Profile;
 using Application.Services.Profile;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +29,7 @@ public class ProfileController : ApiControllerBase
     ///     Retrieves the profile information of the currently authenticated user.
     /// </summary>
     /// <returns>
-    ///     200 OK with a <see cref="ProfileInfo" /> on success,
+    ///     200 OK with a <see cref="ProfileDto" /> on success,
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet]
@@ -77,7 +77,7 @@ public class ProfileController : ApiControllerBase
     ///     Retrieves the notification preferences of the currently authenticated user.
     /// </summary>
     /// <returns>
-    ///     200 OK with a list of <see cref="NotificationPreferenceDataTransferObject" /> on success (it may be empty),
+    ///     200 OK with a list of <see cref="NotificationPreferenceDto" /> on success (it may be empty),
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet("notifications/preferences")]
@@ -97,7 +97,7 @@ public class ProfileController : ApiControllerBase
     /// </returns>
     [HttpPut("notifications/preferences")]
     public IActionResult UpdateNotificationPreferences(
-        [FromBody] List<NotificationPreferenceDataTransferObject> preferences)
+        [FromBody] List<NotificationPreferenceDto> preferences)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(_profileService.UpdateNotificationPreferences(userId, preferences));
@@ -130,7 +130,7 @@ public class ProfileController : ApiControllerBase
     ///     or 400/404 if enabling 2FA fails.
     /// </returns>
     [HttpPut("2fa/enable")]
-    public IActionResult Enable2Fa([FromBody] Enable2FaRequest request)
+    public IActionResult Enable2Fa([FromBody] EnableTwoFaRequest request)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(_profileService.Enable2Fa(userId, request.Method));

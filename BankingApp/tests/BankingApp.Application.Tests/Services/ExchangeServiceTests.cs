@@ -1,7 +1,3 @@
-﻿// <copyright file="ExchangeServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Exchange;
@@ -58,7 +54,7 @@ public class ExchangeServiceTests
         string sourceCurrency = string.Empty;
 
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result =
+        ErrorOr<ExchangeTransactionResponse> result =
             _service.GetRatePreview(sourceCurrency, UsdCurrency, ValidAmount);
 
         // Assert
@@ -76,7 +72,7 @@ public class ExchangeServiceTests
         string targetCurrency = string.Empty;
 
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result =
+        ErrorOr<ExchangeTransactionResponse> result =
             _service.GetRatePreview(EurCurrency, targetCurrency, ValidAmount);
 
         // Assert
@@ -91,7 +87,7 @@ public class ExchangeServiceTests
     public void GetRatePreview_WhenCurrenciesAreTheSame_ReturnsValidationError()
     {
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview(EurCurrency, EurCurrency, ValidAmount);
+        ErrorOr<ExchangeTransactionResponse> result = _service.GetRatePreview(EurCurrency, EurCurrency, ValidAmount);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -105,7 +101,7 @@ public class ExchangeServiceTests
     public void GetRatePreview_WhenAmountIsZero_ReturnsValidationError()
     {
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview(EurCurrency, UsdCurrency, 0m);
+        ErrorOr<ExchangeTransactionResponse> result = _service.GetRatePreview(EurCurrency, UsdCurrency, 0m);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -119,7 +115,7 @@ public class ExchangeServiceTests
     public void GetRatePreview_WhenCurrencyPairIsUnsupported_ReturnsNotFoundError()
     {
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview("JPY", "CHF", ValidAmount);
+        ErrorOr<ExchangeTransactionResponse> result = _service.GetRatePreview("JPY", "CHF", ValidAmount);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -133,7 +129,7 @@ public class ExchangeServiceTests
     public void GetRatePreview_WhenValidEurToUsdRequest_ReturnsPreviewWithCorrectRate()
     {
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview(EurCurrency, UsdCurrency, ValidAmount);
+        ErrorOr<ExchangeTransactionResponse> result = _service.GetRatePreview(EurCurrency, UsdCurrency, ValidAmount);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -153,7 +149,7 @@ public class ExchangeServiceTests
         decimal expectedTarget = ValidAmount * EurUsdRate - expectedCommission;
 
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview(EurCurrency, UsdCurrency, ValidAmount);
+        ErrorOr<ExchangeTransactionResponse> result = _service.GetRatePreview(EurCurrency, UsdCurrency, ValidAmount);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -256,7 +252,7 @@ public class ExchangeServiceTests
     public void ExecuteExchange_WhenNoRateLockExists_ReturnsValidationError()
     {
         // Arrange
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             UserId = NonExistentUserId,
             SourceAccountId = ValidSourceAccountId,
@@ -267,7 +263,7 @@ public class ExchangeServiceTests
         };
 
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.ExecuteExchange(request);
+        ErrorOr<ExchangeTransactionResponse> result = _service.ExecuteExchange(request);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -283,7 +279,7 @@ public class ExchangeServiceTests
         // Arrange
         _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
 
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             UserId = ValidUserId,
             SourceAccountId = ValidSourceAccountId,
@@ -294,7 +290,7 @@ public class ExchangeServiceTests
         };
 
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.ExecuteExchange(request);
+        ErrorOr<ExchangeTransactionResponse> result = _service.ExecuteExchange(request);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -312,7 +308,7 @@ public class ExchangeServiceTests
         // Arrange
         _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
 
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             UserId = ValidUserId,
             SourceAccountId = ValidSourceAccountId,
@@ -342,7 +338,7 @@ public class ExchangeServiceTests
             .Returns(new List<ExchangeTransaction>());
 
         // Act
-        ErrorOr<List<ExchangeTransactionResponseDto>> result = _service.GetExchangeHistory(ValidUserId);
+        ErrorOr<List<ExchangeTransactionResponse>> result = _service.GetExchangeHistory(ValidUserId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -361,7 +357,7 @@ public class ExchangeServiceTests
             .Returns(Error.Failure());
 
         // Act
-        ErrorOr<List<ExchangeTransactionResponseDto>> result = _service.GetExchangeHistory(ValidUserId);
+        ErrorOr<List<ExchangeTransactionResponse>> result = _service.GetExchangeHistory(ValidUserId);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -396,7 +392,7 @@ public class ExchangeServiceTests
             .Returns(exchanges);
 
         // Act
-        ErrorOr<List<ExchangeTransactionResponseDto>> result = _service.GetExchangeHistory(ValidUserId);
+        ErrorOr<List<ExchangeTransactionResponse>> result = _service.GetExchangeHistory(ValidUserId);
 
         // Assert
         result.IsError.Should().BeFalse();

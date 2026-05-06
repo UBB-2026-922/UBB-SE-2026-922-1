@@ -1,14 +1,7 @@
-﻿// <copyright file="RelayCommand.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RelayCommand class.
-// </summary>
+﻿namespace BankingApp.Desktop.Commands;
 
 using System;
 using System.Windows.Input;
-
-namespace BankingApp.Desktop.Commands;
 
 /// <summary>
 ///     A basic command that delegates execution to a provided action.

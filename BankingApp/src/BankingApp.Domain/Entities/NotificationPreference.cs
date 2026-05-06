@@ -1,10 +1,3 @@
-﻿// <copyright file="NotificationPreference.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the NotificationPreference class.
-// </summary>
-
 using BankingApp.Domain.Enums;
 
 namespace BankingApp.Domain.Entities;

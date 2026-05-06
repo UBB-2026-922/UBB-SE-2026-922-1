@@ -1,10 +1,3 @@
-﻿// <copyright file="BeneficiariesViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiariesViewModel class.
-// </summary>
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -39,14 +32,14 @@ public class BeneficiariesViewModel
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        Beneficiaries = new List<BeneficiaryDataTransferObject>();
+        Beneficiaries = new List<BeneficiaryDto>();
         ErrorMessage = string.Empty;
     }
 
     /// <summary>
     ///     Gets the currently loaded list of beneficiaries.
     /// </summary>
-    public List<BeneficiaryDataTransferObject> Beneficiaries { get; private set; }
+    public List<BeneficiaryDto> Beneficiaries { get; private set; }
 
     /// <summary>
     ///     Gets or sets a value indicating whether the add-beneficiary form is visible in the UI.
@@ -73,8 +66,8 @@ public class BeneficiariesViewModel
     {
         try
         {
-            ErrorOr<List<BeneficiaryDataTransferObject>> result =
-                await _apiClient.GetAsync<List<BeneficiaryDataTransferObject>>(ApiEndpoints.Beneficiaries);
+            ErrorOr<List<BeneficiaryDto>> result =
+                await _apiClient.GetAsync<List<BeneficiaryDto>>(ApiEndpoints.Beneficiaries);
 
             if (result.IsError)
             {
@@ -153,7 +146,7 @@ public class BeneficiariesViewModel
     ///     Marks a beneficiary for use in a transfer and navigates to the transfer view (placeholder).
     /// </summary>
     /// <param name="beneficiary">The beneficiary to use for a transfer.</param>
-    public void UseForTransfer(BeneficiaryDataTransferObject? beneficiary)
+    public void UseForTransfer(BeneficiaryDto? beneficiary)
     {
         if (beneficiary == null) return;
 

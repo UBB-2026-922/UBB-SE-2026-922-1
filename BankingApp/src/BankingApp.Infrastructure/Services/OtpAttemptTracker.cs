@@ -1,10 +1,3 @@
-﻿// <copyright file="OtpAttemptTracker.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the OtpAttemptTracker class.
-// </summary>
-
 using System.Collections.Concurrent;
 using BankingApp.Application.Services.Login;
 

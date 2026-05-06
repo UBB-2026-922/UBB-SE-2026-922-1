@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
 using Application.DTOs.Billers;
 using Application.Services.Billers;
@@ -57,7 +57,7 @@ public class BillersController : ApiControllerBase
     /// <param name="request">The save request.</param>
     /// <returns>201 Created with the saved biller DTO.</returns>
     [HttpPost("saved")]
-    public IActionResult SaveBiller([FromBody] SaveBillerRequestDto request)
+    public IActionResult SaveBiller([FromBody] SaveBillerRequest request)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(

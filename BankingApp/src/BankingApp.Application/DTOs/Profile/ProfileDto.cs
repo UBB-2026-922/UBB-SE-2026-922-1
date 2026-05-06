@@ -1,47 +1,39 @@
-﻿// <copyright file="ProfileInfo.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileInfo class.
-// </summary>
+namespace BankingApp.Application.DTOs.Profile;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.DataTransferObjects.Profile;
+using Domain.Entities;
+using Domain.Enums;
 
 /// <summary>
 ///     Represents the profile information of a user.
 /// </summary>
-public class ProfileInfo
+public class ProfileDto
 {
     /// <summary>
-    ///     Initializes a new instance of the <see cref="ProfileInfo" /> class.
+    ///     Initializes a new instance of the <see cref="ProfileDto" /> class.
     /// </summary>
-    public ProfileInfo()
+    public ProfileDto()
     {
     }
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="ProfileInfo" /> class
+    ///     Initializes a new instance of the <see cref="ProfileDto" /> class
     ///     from a user entity.
     /// </summary>
     /// <param name="user">The user entity to extract profile info from.</param>
-    public ProfileInfo(User user)
+    public ProfileDto(User user)
     {
-        if (user != null)
-        {
-            UserId = user.Id;
-            Email = user.Email;
-            FullName = user.FullName;
-            PhoneNumber = user.PhoneNumber;
-            DateOfBirth = user.DateOfBirth;
-            Address = user.Address;
-            Nationality = user.Nationality;
-            PreferredLanguage = user.PreferredLanguage;
-            Is2FaEnabled = user.Is2FaEnabled;
-            Preferred2FaMethod = user.Preferred2FaMethod;
-        }
+        ArgumentNullException.ThrowIfNull(user);
+
+        UserId = user.Id;
+        Email = user.Email;
+        FullName = user.FullName;
+        PhoneNumber = user.PhoneNumber;
+        DateOfBirth = user.DateOfBirth;
+        Address = user.Address;
+        Nationality = user.Nationality;
+        PreferredLanguage = user.PreferredLanguage;
+        Is2FaEnabled = user.Is2FaEnabled;
+        Preferred2FaMethod = user.Preferred2FaMethod;
     }
 
     /// <summary>

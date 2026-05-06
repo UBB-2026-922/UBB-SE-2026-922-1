@@ -1,18 +1,10 @@
-﻿// <copyright file="RateAlertService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RateAlertService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.RateAlerts;
 
-using BankingApp.Application.DTOs.Exchange;
-using BankingApp.Application.DTOs.RateAlerts;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Exchange;
-using BankingApp.Domain.Entities;
+using Repositories.Interfaces;
+using Exchange;
+using Domain.Entities;
+using DTOs.RateAlerts;
 using ErrorOr;
-
-namespace BankingApp.Application.Services.RateAlerts;
 
 /// <summary>
 ///     Implements application-level operations for managing FX rate alerts.
@@ -37,9 +29,12 @@ public class RateAlertService : IRateAlertService
     public ErrorOr<List<RateAlertDto>> GetAlerts(int userId)
     {
         ErrorOr<List<RateAlert>> result = _rateAlertRepository.GetByUserId(userId);
-        if (result.IsError) return result.Errors;
+        if (result.IsError)
+        {
+            return result.Errors;
+        }
 
-        return result.Value.Select(MapToDto).ToList();
+        return result.Value.ConvertAll(MapToDto);
     }
 
     /// <inheritdoc />
@@ -52,10 +47,16 @@ public class RateAlertService : IRateAlertService
             dto.TargetRate,
             dto.IsBuyAlert,
             DateTime.UtcNow);
-        if (alertResult.IsError) return alertResult.Errors;
+        if (alertResult.IsError)
+        {
+            return alertResult.Errors;
+        }
 
         ErrorOr<RateAlert> createResult = _rateAlertRepository.Create(alertResult.Value);
-        if (createResult.IsError) return createResult.Errors;
+        if (createResult.IsError)
+        {
+            return createResult.Errors;
+        }
 
         return MapToDto(createResult.Value);
     }
@@ -70,26 +71,16 @@ public class RateAlertService : IRateAlertService
     public ErrorOr<int> ProcessAlerts()
     {
         ErrorOr<List<RateAlert>> alertsResult = _rateAlertRepository.GetUntriggeredAlerts();
-        if (alertsResult.IsError) return alertsResult.Errors;
-
-        int triggeredCount = 0;
-
-        foreach (RateAlert alert in alertsResult.Value)
+        if (alertsResult.IsError)
         {
-            ErrorOr<ExchangeTransactionResponseDto> previewResult = _exchangeService.GetRatePreview(
-                alert.BaseCurrency,
-                alert.TargetCurrency,
-                1m);
-
-            if (previewResult.IsError) continue;
-
-            if (!alert.ShouldTrigger(previewResult.Value.ExchangeRate)) continue;
-
-            ErrorOr<RateAlert> markResult = _rateAlertRepository.MarkTriggered(alert.Id);
-            if (!markResult.IsError) triggeredCount++;
+            return alertsResult.Errors;
         }
 
-        return triggeredCount;
+        return (from alert in alertsResult.Value
+            let previewResult = _exchangeService.GetRatePreview(alert.BaseCurrency, alert.TargetCurrency, 1m)
+            where !previewResult.IsError
+            where alert.ShouldTrigger(previewResult.Value.ExchangeRate)
+            select _rateAlertRepository.MarkTriggered(alert.Id)).Count(markResult => !markResult.IsError);
     }
 
     private static RateAlertDto MapToDto(RateAlert alert)

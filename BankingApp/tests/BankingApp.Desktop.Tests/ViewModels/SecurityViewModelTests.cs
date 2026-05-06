@@ -1,12 +1,8 @@
-﻿// <copyright file="SecurityViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
@@ -17,6 +13,8 @@ using Moq;
 using Xunit;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Profile;
 
 public class SecurityViewModelTests
 {
@@ -110,7 +108,7 @@ public class SecurityViewModelTests
     {
         // Arrange
         _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -142,7 +140,7 @@ public class SecurityViewModelTests
     {
         // Arrange
         _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -175,7 +173,7 @@ public class SecurityViewModelTests
         // Arrange
         var error = Error.Failure("server_error", "Description");
         _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(error);
 
         // Act

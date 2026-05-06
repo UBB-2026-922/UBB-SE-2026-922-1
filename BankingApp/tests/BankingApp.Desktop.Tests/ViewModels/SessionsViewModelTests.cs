@@ -1,8 +1,4 @@
-﻿// <copyright file="SessionsViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
@@ -19,7 +15,7 @@ public class SessionsViewModelTests
     {
         // Arrange
         const int userId = 7;
-        var sessions = new List<SessionDataTransferObject>
+        var sessions = new List<SessionDto>
         {
             new() { Id = 1, DeviceInfo = "Desktop" },
             new() { Id = 2, DeviceInfo = "Phone" },
@@ -28,7 +24,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
 
         _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDto>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
             .ReturnsAsync(sessions);
 
         // Act
@@ -48,7 +44,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
 
         _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDto>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure(description: "server error"));
 
         // Act
@@ -68,7 +64,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
 
         _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDto>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("boom"));
 
         // Act

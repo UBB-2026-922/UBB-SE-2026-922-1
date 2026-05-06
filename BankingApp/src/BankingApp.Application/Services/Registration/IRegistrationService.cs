@@ -1,15 +1,8 @@
-﻿// <copyright file="IRegistrationService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IRegistrationService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Registration;
 
 using ErrorOr;
 
-namespace BankingApp.Application.Services.Registration;
-
-using DTOs.Auth;
+using BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Defines operations for user registration.
@@ -28,5 +21,5 @@ public interface IRegistrationService
     ///     a conflict error with code <c>email_registered</c> if the email is already in use,
     ///     or a failure error if user creation fails.
     /// </returns>
-    ErrorOr<Success> Register(RegisterRequest request);
+    public ErrorOr<Success> Register(RegisterRequest request);
 }

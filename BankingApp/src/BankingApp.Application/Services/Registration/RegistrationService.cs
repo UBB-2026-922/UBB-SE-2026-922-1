@@ -1,22 +1,15 @@
-﻿// <copyright file="RegistrationService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RegistrationService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Registration;
 
-using BankingApp.Application.Logging;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
+using Logging;
+using Repositories.Interfaces;
+using Security;
+using Utilities;
+using Domain.Entities;
+using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Application.Services.Registration;
-
-using DTOs.Auth;
+using BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Provides user registration operations.
@@ -50,7 +43,10 @@ public class RegistrationService : IRegistrationService
     public ErrorOr<Success> Register(RegisterRequest request)
     {
         Error? validationError = ValidateRegistration(request);
-        if (validationError is not null) return validationError.Value;
+        if (validationError is not null)
+        {
+            return validationError.Value;
+        }
 
         ErrorOr<User> existingUserResult = _authRepository.FindUserByEmail(request.Email);
         if (!existingUserResult.IsError)
@@ -66,7 +62,10 @@ public class RegistrationService : IRegistrationService
         }
 
         ErrorOr<User> newUserResult = CreateUserFromRequest(request);
-        if (newUserResult.IsError) return newUserResult.FirstError;
+        if (newUserResult.IsError)
+        {
+            return newUserResult.FirstError;
+        }
 
         ErrorOr<Success> createResult = _authRepository.CreateUser(newUserResult.Value);
         if (createResult.IsError)
@@ -81,11 +80,20 @@ public class RegistrationService : IRegistrationService
 
     private static Error? ValidateRegistration(RegisterRequest request)
     {
-        if (!ValidationUtilities.IsValidEmail(request.Email)) return AuthErrors.InvalidEmail;
+        if (!ValidationUtilities.IsValidEmail(request.Email))
+        {
+            return AuthErrors.InvalidEmail;
+        }
 
-        if (!ValidationUtilities.IsStrongPassword(request.Password)) return ProfileErrors.WeakPassword;
+        if (!ValidationUtilities.IsStrongPassword(request.Password))
+        {
+            return ProfileErrors.WeakPassword;
+        }
 
-        if (string.IsNullOrWhiteSpace(request.FullName)) return ProfileErrors.FullNameRequired;
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return ProfileErrors.FullNameRequired;
+        }
 
         return null;
     }
@@ -93,21 +101,22 @@ public class RegistrationService : IRegistrationService
     private ErrorOr<User> CreateUserFromRequest(RegisterRequest request)
     {
         ErrorOr<string> hashResult = _hashService.GetHash(request.Password);
-        if (hashResult.IsError)
+        if (!hashResult.IsError)
         {
-            _logger.RegistrationHashGenerationFailed();
-            return hashResult.FirstError;
+            return new User
+            {
+                Email = request.Email,
+                PasswordHash = hashResult.Value,
+                FullName = request.FullName,
+                PreferredLanguage = DefaultLanguage,
+                Is2FaEnabled = false,
+                IsLocked = false,
+                FailedLoginAttempts = 0
+            };
         }
 
-        return new User
-        {
-            Email = request.Email,
-            PasswordHash = hashResult.Value,
-            FullName = request.FullName,
-            PreferredLanguage = DefaultLanguage,
-            Is2FaEnabled = false,
-            IsLocked = false,
-            FailedLoginAttempts = 0
-        };
+        _logger.RegistrationHashGenerationFailed();
+        return hashResult.FirstError;
+
     }
 }

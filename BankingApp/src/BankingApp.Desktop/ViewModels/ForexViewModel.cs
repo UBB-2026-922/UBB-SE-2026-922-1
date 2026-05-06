@@ -1,10 +1,3 @@
-﻿// <copyright file="ForexViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the FXViewModel class.
-// </summary>
-
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -179,8 +172,8 @@ public partial class ForexViewModel : INotifyPropertyChanged
         {
             string endpoint =
                 $"{ApiEndpoints.ExchangePreview}?sourceCurrency={SourceCurrency}&targetCurrency={TargetCurrency}&amount={_amount}";
-            ErrorOr<ExchangeTransactionResponseDto> result =
-                await _apiClient.GetAsync<ExchangeTransactionResponseDto>(endpoint);
+            ErrorOr<ExchangeTransactionResponse> result =
+                await _apiClient.GetAsync<ExchangeTransactionResponse>(endpoint);
 
             if (result.IsError)
             {
@@ -189,7 +182,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
                 return;
             }
 
-            ExchangeTransactionResponseDto preview = result.Value;
+            ExchangeTransactionResponse preview = result.Value;
             LiveRate = preview.ExchangeRate;
             Commission = preview.Commission;
             TargetAmount = preview.TargetAmount;
@@ -223,7 +216,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            var request = new ExchangeTransactionRequestDto
+            var request = new ExchangeTransactionRequest
             {
                 UserId = _apiClient.CurrentUserId ?? 0,
                 SourceCurrency = SourceCurrency,
@@ -231,8 +224,8 @@ public partial class ForexViewModel : INotifyPropertyChanged
                 SourceAmount = _amount
             };
 
-            ErrorOr<ExchangeTransactionResponseDto> result =
-                await _apiClient.PostAsync<ExchangeTransactionRequestDto, ExchangeTransactionResponseDto>(
+            ErrorOr<ExchangeTransactionResponse> result =
+                await _apiClient.PostAsync<ExchangeTransactionRequest, ExchangeTransactionResponse>(
                     ApiEndpoints.ExchangeExecute, request);
 
             if (result.IsError)

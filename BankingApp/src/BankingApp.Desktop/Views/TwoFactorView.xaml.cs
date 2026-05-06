@@ -1,10 +1,3 @@
-﻿// <copyright file="TwoFactorView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for TwoFactorView.xaml.
-// </summary>
-
 using System;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Master;

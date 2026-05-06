@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
 using System;
 using System.Collections.Generic;
@@ -75,7 +75,7 @@ public class BillPaymentsController : ApiControllerBase
     [HttpGet("fee")]
     public IActionResult CalculateFee([FromQuery] decimal amount)
     {
-        return Ok(new FeeResponseDto { Fee = _billPaymentService.CalculateFee(amount) });
+        return Ok(new FeeResponse { Fee = _billPaymentService.CalculateFee(amount) });
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public class BillPaymentsController : ApiControllerBase
     [HttpGet("requires-2fa")]
     public IActionResult Requires2Fa([FromQuery] decimal amount)
     {
-        return Ok(new Requires2FaResponseDto { Required = _billPaymentService.Requires2Fa(amount) });
+        return Ok(new RequiresTwoFaResponse { Required = _billPaymentService.Requires2Fa(amount) });
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class BillPaymentsController : ApiControllerBase
     /// <param name="request">The payment request details.</param>
     /// <returns>The processed bill payment record.</returns>
     [HttpPost("pay")]
-    public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequestDto request)
+    public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequest request)
     {
         try
         {
@@ -110,7 +110,7 @@ public class BillPaymentsController : ApiControllerBase
                 IsPayInFull = request.IsPayInFull,
             });
 
-            return Ok(new BillPayResponseDto
+            return Ok(new BillPayResponse
             {
                 Id = payment.Id,
                 ReceiptNumber = payment.ReceiptNumber,
@@ -131,7 +131,7 @@ public class BillPaymentsController : ApiControllerBase
     /// <param name="request">The save biller request details.</param>
     /// <returns>A success message.</returns>
     [HttpPost("save-biller")]
-    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerRequestDto request)
+    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerRequest request)
     {
         try
         {

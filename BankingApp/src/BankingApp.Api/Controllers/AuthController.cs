@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
 using Application.DTOs;
 using Application.DTOs.Auth;
@@ -192,7 +192,7 @@ public class AuthController : ApiControllerBase
     ///     or 400 Bad Request with a specific error code if the token is expired, already used, or invalid.
     /// </returns>
     [HttpPost("verify-reset-token")]
-    public IActionResult VerifyResetToken([FromBody] VerifyTokenDataTransferObject request)
+    public IActionResult VerifyResetToken([FromBody] VerifyResetTokenRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Token))
         {

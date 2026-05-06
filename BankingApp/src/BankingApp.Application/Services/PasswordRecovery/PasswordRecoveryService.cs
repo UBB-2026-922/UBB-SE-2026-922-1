@@ -1,22 +1,15 @@
-﻿// <copyright file="PasswordRecoveryService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the PasswordRecoveryService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.PasswordRecovery;
 
 using System.Security.Cryptography;
 using System.Text;
-using BankingApp.Application.Logging;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
+using Logging;
+using Repositories.Interfaces;
+using Notifications;
+using Security;
+using Domain.Entities;
+using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.PasswordRecovery;
 
 /// <summary>
 ///     Provides password reset and recovery operations.
@@ -90,7 +83,10 @@ public class PasswordRecoveryService : IPasswordRecoveryService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> ResetPassword(string token, string newPassword)
     {
-        if (string.IsNullOrWhiteSpace(token)) return PasswordResetErrors.TokenInvalid;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return PasswordResetErrors.TokenInvalid;
+        }
 
         string tokenHash = ComputeSha256Hash(token);
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
@@ -142,25 +138,37 @@ public class PasswordRecoveryService : IPasswordRecoveryService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> VerifyResetToken(string token)
     {
-        if (string.IsNullOrWhiteSpace(token)) return PasswordResetErrors.TokenInvalid;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return PasswordResetErrors.TokenInvalid;
+        }
 
         string tokenHash = ComputeSha256Hash(token);
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
-        if (tokenResult.IsError) return PasswordResetErrors.TokenInvalid;
+        if (tokenResult.IsError)
+        {
+            return PasswordResetErrors.TokenInvalid;
+        }
 
         return ValidateResetToken(tokenResult.Value);
     }
 
     private static ErrorOr<Success> ValidateResetToken(PasswordResetToken resetToken)
     {
-        if (resetToken.UsedAt != null) return PasswordResetErrors.TokenAlreadyUsed;
+        if (resetToken.UsedAt != null)
+        {
+            return PasswordResetErrors.TokenAlreadyUsed;
+        }
 
-        if (resetToken.ExpiresAt < DateTime.UtcNow) return PasswordResetErrors.TokenExpired;
+        if (resetToken.ExpiresAt < DateTime.UtcNow)
+        {
+            return PasswordResetErrors.TokenExpired;
+        }
 
         return Result.Success;
     }
 
-    private string ComputeSha256Hash(string rawData)
+    private static string ComputeSha256Hash(string rawData)
     {
         byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawData));
         return Convert.ToHexString(bytes).ToLowerInvariant();

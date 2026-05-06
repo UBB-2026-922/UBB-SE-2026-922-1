@@ -1,9 +1,4 @@
-﻿// <copyright file="DashboardViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System.Globalization;
-using BankingApp.Application.DataTransferObjects.Dashboard;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
@@ -12,6 +7,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Dashboard;
 
 public class DashboardViewModelTests
 {
@@ -41,16 +38,16 @@ public class DashboardViewModelTests
         const decimal transactionAmount = 12.5m;
         const int unreadCount = 4;
 
-        var response = new DashboardResponse
+        var response = new DashboardDto
         {
-            CurrentUser = new UserSummaryDataTransferObject
+            CurrentUser = new UserSummaryDto
             {
                 FullName = fullName,
                 Email = email
             },
             Cards =
             [
-                new CardDataTransferObject
+                new CardDto
                 {
                     CardBrand = cardBrand,
                     CardType = cardType,
@@ -64,7 +61,7 @@ public class DashboardViewModelTests
             ],
             RecentTransactions =
             [
-                new TransactionDataTransferObject
+                new TransactionDto
                 {
                     MerchantName = merchantName,
                     Direction = TransactionDirection.Out,
@@ -76,7 +73,7 @@ public class DashboardViewModelTests
         };
         _apiClient
             .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         // Act
@@ -89,7 +86,7 @@ public class DashboardViewModelTests
 
         // Assert - current user
         _viewModel.CurrentUser.Should().BeEquivalentTo(
-            new UserSummaryDataTransferObject
+            new UserSummaryDto
             {
                 FullName = fullName,
                 Email = email
@@ -124,8 +121,8 @@ public class DashboardViewModelTests
         // Arrange
         _apiClient
             .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new DashboardResponse());
+                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DashboardDto());
 
         // Act
         ErrorOr<Success> result = await _viewModel.LoadDashboard(TestContext.Current.CancellationToken);
@@ -142,7 +139,7 @@ public class DashboardViewModelTests
         // Arrange
         _apiClient
             .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Unauthorized());
 
         // Act
@@ -160,7 +157,7 @@ public class DashboardViewModelTests
         // Arrange
         _apiClient
             .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.NotFound());
 
         // Act
@@ -178,7 +175,7 @@ public class DashboardViewModelTests
         // Arrange
         _apiClient
             .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -418,7 +415,7 @@ public class DashboardViewModelTests
         string cardNumber = "1234567812345678")
     {
         var cards = Enumerable.Range(0, cardCount)
-            .Select(_ => new CardDataTransferObject
+            .Select(_ => new CardDto
             {
                 CardBrand = cardBrand,
                 CardType = cardType,
@@ -427,15 +424,15 @@ public class DashboardViewModelTests
             })
             .ToList();
 
-        var response = new DashboardResponse
+        var response = new DashboardDto
         {
-            CurrentUser = new UserSummaryDataTransferObject { FullName = "Test User" },
+            CurrentUser = new UserSummaryDto { FullName = "Test User" },
             Cards = cards
         };
 
         _apiClient
             .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         await _viewModel.LoadDashboard(TestContext.Current.CancellationToken);

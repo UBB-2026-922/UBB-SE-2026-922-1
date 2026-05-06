@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Dashboard;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Domain.Enums;
@@ -12,6 +11,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Desktop.ViewModels;
+
+using Application.DTOs.Dashboard;
 
 /// <summary>
 ///     Loads and exposes the data required by the dashboard view.
@@ -43,8 +44,8 @@ public partial class DashboardViewModel
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         CurrentUser = null;
         State = new ObservableState<DashboardState>(DashboardState.Idle);
-        Cards = new List<CardDataTransferObject>();
-        RecentTransactions = new List<TransactionDataTransferObject>();
+        Cards = new List<CardDto>();
+        RecentTransactions = new List<TransactionDto>();
         RecentTransactionItems = new List<DashboardTransactionItem>();
         UnreadNotificationCount = 0;
         ErrorMessage = string.Empty;
@@ -65,7 +66,7 @@ public partial class DashboardViewModel
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public UserSummaryDataTransferObject? CurrentUser { get; private set; }
+    public UserSummaryDto? CurrentUser { get; private set; }
 
     /// <summary>
     ///     Gets the formatted dashboard transaction rows for display.
@@ -205,7 +206,7 @@ public partial class DashboardViewModel
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    private List<CardDataTransferObject> Cards { get; set; }
+    private List<CardDto> Cards { get; set; }
 
     /// <summary>
     ///     Gets the currently selected card, or <see langword="null" /> if no cards are available.
@@ -214,9 +215,9 @@ public partial class DashboardViewModel
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    private CardDataTransferObject? SelectedCard => Cards.Count > 0 ? Cards.ElementAt(CurrentCardIndex) : null;
+    private CardDto? SelectedCard => Cards.Count > 0 ? Cards.ElementAt(CurrentCardIndex) : null;
 
-    private List<TransactionDataTransferObject> RecentTransactions { get; set; }
+    private List<TransactionDto> RecentTransactions { get; set; }
 
     /// <summary>
     ///     Navigates to the previous card if possible.
@@ -280,7 +281,7 @@ public partial class DashboardViewModel
     {
         State.SetValue(DashboardState.Loading);
         ErrorMessage = string.Empty;
-        ErrorOr<DashboardResponse> result = await _apiClient.GetAsync<DashboardResponse>(
+        ErrorOr<DashboardDto> result = await _apiClient.GetAsync<DashboardDto>(
             ApiEndpoints.Dashboard,
             cancellationToken);
         return result.Match<ErrorOr<Success>>(
@@ -332,7 +333,7 @@ public partial class DashboardViewModel
     }
 
     private static List<DashboardTransactionItem> BuildTransactionItems(
-        IEnumerable<TransactionDataTransferObject> transactions)
+        IEnumerable<TransactionDto> transactions)
     {
         return transactions
             .Select(transaction => new DashboardTransactionItem
@@ -344,7 +345,7 @@ public partial class DashboardViewModel
             .ToList();
     }
 
-    private static string GetMerchantDisplayName(TransactionDataTransferObject transaction)
+    private static string GetMerchantDisplayName(TransactionDto transaction)
     {
         return FirstNonEmpty(
             transaction.MerchantName,
@@ -353,7 +354,7 @@ public partial class DashboardViewModel
             "Transaction");
     }
 
-    private static string FormatAmountDisplay(TransactionDataTransferObject transaction)
+    private static string FormatAmountDisplay(TransactionDto transaction)
     {
         string sign = transaction.Direction switch
         {

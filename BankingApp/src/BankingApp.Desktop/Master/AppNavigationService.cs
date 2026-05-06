@@ -1,15 +1,8 @@
-﻿// <copyright file="AppNavigationService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AppNavigationService class.
-// </summary>
+﻿namespace BankingApp.Desktop.Master;
 
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
-
-namespace BankingApp.Desktop.Master;
 
 /// <summary>
 ///     Provides navigation services for the application, enabling switching between pages and managing navigation
@@ -21,7 +14,7 @@ namespace BankingApp.Desktop.Master;
 ///     the Frame.Content property directly rather than calling <see cref="Frame.Navigate(Type)" />,
 ///     because the latter instantiates pages via reflection and bypasses the container.
 /// </remarks>
-public partial class AppNavigationService : IAppNavigationService
+public class AppNavigationService : IAppNavigationService
 {
     private readonly IServiceProvider _serviceProvider;
     private Frame? _contentFrame;

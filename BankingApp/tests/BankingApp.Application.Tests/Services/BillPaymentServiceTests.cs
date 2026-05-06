@@ -1,7 +1,3 @@
-﻿// <copyright file="BillPaymentServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System;
 using System.Threading.Tasks;
 using BankingApp.Application.DTOs.BillPayments;

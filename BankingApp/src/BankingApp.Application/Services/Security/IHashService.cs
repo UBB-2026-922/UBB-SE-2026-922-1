@@ -1,13 +1,6 @@
-﻿// <copyright file="IHashService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IHashService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Security;
 
 using ErrorOr;
-
-namespace BankingApp.Application.Services.Security;
 
 /// <summary>
 ///     Defines operations for hashing and verifying values.
@@ -22,7 +15,7 @@ public interface IHashService
     ///     The hashed string on success,
     ///     or a failure error if the underlying cryptographic operation throws.
     /// </returns>
-    ErrorOr<string> GetHash(string input);
+    public ErrorOr<string> GetHash(string input);
 
     /// <summary>
     ///     Verifies that a plain-text input matches a previously computed BCrypt hash.
@@ -34,5 +27,5 @@ public interface IHashService
     ///     <see langword="false" /> if it does not,
     ///     or a failure error if the hash is malformed or the verification throws.
     /// </returns>
-    ErrorOr<bool> Verify(string input, string hash);
+    public ErrorOr<bool> Verify(string input, string hash);
 }

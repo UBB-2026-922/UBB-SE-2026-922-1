@@ -1,9 +1,4 @@
-﻿// <copyright file="MockFactory.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
@@ -19,6 +14,8 @@ using ErrorOr;
 namespace BankingApp.Api.Tests;
 
 using Application.DTOs.Auth;
+using Application.DTOs.Dashboard;
+using Application.DTOs.Profile;
 
 /// <summary>
 ///     Factory methods for creating Moq mocks with sensible default return values.
@@ -79,7 +76,7 @@ internal static class MockFactory
     {
         var mock = new Mock<IDashboardService>(MockBehavior.Strict);
         mock.Setup(getsDashboardData => getsDashboardData.GetDashboardData(It.IsAny<int>()))
-            .Returns(new DashboardResponse());
+            .Returns(new DashboardDto());
         return mock;
     }
 
@@ -91,7 +88,7 @@ internal static class MockFactory
     {
         var mock = new Mock<IProfileService>(MockBehavior.Strict);
         mock.Setup(getsProfile => getsProfile.GetProfile(It.IsAny<int>()))
-            .Returns(new ProfileInfo());
+            .Returns(new ProfileDto());
         mock.Setup(updatesPersonalInfo => updatesPersonalInfo.UpdatePersonalInfo(It.IsAny<UpdateProfileRequest>()))
             .Returns(Result.Success);
         mock.Setup(changesPassword => changesPassword.ChangePassword(It.IsAny<ChangePasswordRequest>()))
@@ -102,15 +99,15 @@ internal static class MockFactory
             .Returns(Result.Success);
         mock.Setup(getsNotificationPreferences =>
                 getsNotificationPreferences.GetNotificationPreferences(It.IsAny<int>()))
-            .Returns(new List<NotificationPreferenceDataTransferObject>());
+            .Returns(new List<NotificationPreferenceDto>());
         mock.Setup(updatesNotificationPreferences => updatesNotificationPreferences.UpdateNotificationPreferences(
                 It.IsAny<int>(),
-                It.IsAny<List<NotificationPreferenceDataTransferObject>>()))
+                It.IsAny<List<NotificationPreferenceDto>>()))
             .Returns(Result.Success);
         mock.Setup(verifiesPassword => verifiesPassword.VerifyPassword(It.IsAny<int>(), It.IsAny<string>()))
             .Returns(true);
         mock.Setup(getsActiveSessions => getsActiveSessions.GetActiveSessions(It.IsAny<int>()))
-            .Returns(new List<SessionDataTransferObject>());
+            .Returns(new List<SessionDto>());
         mock.Setup(revokesSession => revokesSession.RevokeSession(It.IsAny<int>(), It.IsAny<int>()))
             .Returns(Result.Success);
         return mock;

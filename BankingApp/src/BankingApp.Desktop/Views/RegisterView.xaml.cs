@@ -1,10 +1,3 @@
-﻿// <copyright file="RegisterView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for RegisterView.xaml.
-// </summary>
-
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Master;
 using BankingApp.Desktop.Utilities;

@@ -1,16 +1,9 @@
-﻿// <copyright file="ExchangeTransactionRequestDto.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ExchangeTransactionRequestDto class.
-// </summary>
-
 namespace BankingApp.Application.DTOs.Exchange;
 
 /// <summary>
 ///     Carries the input data required to execute a currency exchange.
 /// </summary>
-public class ExchangeTransactionRequestDto
+public class ExchangeTransactionRequest
 {
     /// <summary>Gets or sets the identifier of the user initiating the exchange.</summary>
     /// <value>Gets or sets the current value.</value>

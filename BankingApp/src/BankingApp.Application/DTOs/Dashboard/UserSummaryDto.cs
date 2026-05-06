@@ -1,16 +1,9 @@
-﻿// <copyright file="UserSummaryDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the UserSummaryDataTransferObject class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Dashboard;
+﻿namespace BankingApp.Application.DTOs.Dashboard;
 
 /// <summary>
 ///     Data transfer object containing the user information shown on the dashboard.
 /// </summary>
-public class UserSummaryDataTransferObject
+public class UserSummaryDto
 {
     /// <summary>
     ///     Gets or sets the full name of the user.

@@ -1,7 +1,3 @@
-﻿// <copyright file="BillerServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Billers;
@@ -166,7 +162,7 @@ public class BillerServiceTests
     {
         // Arrange
         var biller = new Biller { Id = DefaultBillerId, Name = "Internet Co", Category = "Telecoms" };
-        var request = new SaveBillerRequestDto { BillerId = DefaultBillerId, Nickname = "Home Internet" };
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId, Nickname = "Home Internet" };
         _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(biller);
         _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
         _billerRepository
@@ -189,7 +185,7 @@ public class BillerServiceTests
     public void SaveBiller_WhenBillerNotFound_ReturnsBillerNotFoundError()
     {
         // Arrange
-        var request = new SaveBillerRequestDto { BillerId = DefaultBillerId };
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId };
         _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(BillerErrors.BillerNotFound);
 
         // Act
@@ -212,7 +208,7 @@ public class BillerServiceTests
         {
             new() { Id = DefaultSavedBillerId, UserId = DefaultUserId, BillerId = DefaultBillerId, Biller = biller },
         };
-        var request = new SaveBillerRequestDto { BillerId = DefaultBillerId };
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId };
         _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(biller);
         _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(existingSavedBillers);
 

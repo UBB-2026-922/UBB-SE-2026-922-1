@@ -1,14 +1,7 @@
-﻿// <copyright file="NotificationsViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the NotificationsViewModel class.
-// </summary>
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
@@ -34,7 +27,7 @@ public partial class NotificationsViewModel
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<ProfileState>(ProfileState.Idle);
-        NotificationPreferences = new List<NotificationPreferenceDataTransferObject>();
+        NotificationPreferences = new List<NotificationPreferenceDto>();
     }
 
     /// <summary>
@@ -51,7 +44,7 @@ public partial class NotificationsViewModel
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public List<NotificationPreferenceDataTransferObject> NotificationPreferences { get; private set; }
+    public List<NotificationPreferenceDto> NotificationPreferences { get; private set; }
 
     /// <summary>
     ///     Toggles one notification preference and saves the updated list.
@@ -60,7 +53,7 @@ public partial class NotificationsViewModel
     /// <param name="enabled">Whether email notifications should be enabled.</param>
     /// <returns><see langword="true" /> if the update was saved; otherwise, <see langword="false" />.</returns>
     public async Task<bool> ToggleNotificationPreference(
-        NotificationPreferenceDataTransferObject preference,
+        NotificationPreferenceDto preference,
         bool enabled)
     {
         bool previousValue = preference.EmailEnabled;
@@ -77,8 +70,8 @@ public partial class NotificationsViewModel
     /// <returns><see langword="true" /> if loaded successfully; otherwise, <see langword="false" />.</returns>
     public async Task<bool> LoadNotificationPreferences()
     {
-        ErrorOr<List<NotificationPreferenceDataTransferObject>> preferencesResult =
-            await _apiClient.GetAsync<List<NotificationPreferenceDataTransferObject>>(
+        ErrorOr<List<NotificationPreferenceDto>> preferencesResult =
+            await _apiClient.GetAsync<List<NotificationPreferenceDto>>(
                 ApiEndpoints.NotificationPreferences);
         if (preferencesResult.IsError)
         {
@@ -95,7 +88,7 @@ public partial class NotificationsViewModel
     /// </summary>
     /// <param name="preferences">The preferences to persist.</param>
     /// <returns><see langword="true" /> if the preferences were updated; otherwise, <see langword="false" />.</returns>
-    public async Task<bool> UpdateNotificationPreferences(List<NotificationPreferenceDataTransferObject> preferences)
+    public async Task<bool> UpdateNotificationPreferences(List<NotificationPreferenceDto> preferences)
     {
         if (preferences.Count == default) return false;
 

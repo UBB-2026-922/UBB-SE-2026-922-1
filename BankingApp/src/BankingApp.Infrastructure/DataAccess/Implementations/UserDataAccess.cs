@@ -1,10 +1,3 @@
-﻿// <copyright file="UserDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the UserDataAccess class.
-// </summary>
-
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
 using ErrorOr;

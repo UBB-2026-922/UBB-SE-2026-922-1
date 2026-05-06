@@ -1,4 +1,4 @@
-﻿using BankingApp.Api.Controllers;
+using BankingApp.Api.Controllers;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Registration;
@@ -326,7 +326,7 @@ public sealed class AuthControllerTests
         AuthController controller = CreateController();
 
         // Act
-        IActionResult result = controller.VerifyResetToken(new VerifyTokenDataTransferObject { Token = "valid-token" });
+        IActionResult result = controller.VerifyResetToken(new VerifyResetTokenRequest { Token = "valid-token" });
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -339,7 +339,7 @@ public sealed class AuthControllerTests
         AuthController controller = CreateController();
 
         // Act
-        IActionResult result = controller.VerifyResetToken(new VerifyTokenDataTransferObject { Token = string.Empty });
+        IActionResult result = controller.VerifyResetToken(new VerifyResetTokenRequest { Token = string.Empty });
 
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>();

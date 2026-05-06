@@ -1,7 +1,3 @@
-﻿// <summary>
-// Contains the BeneficiariesView page code-behind.
-// </summary>
-
 using BankingApp.Application.DTOs.Beneficiaries;
 using BankingApp.Desktop.ViewModels;
 using Microsoft.UI.Xaml;
@@ -52,7 +48,7 @@ public sealed partial class BeneficiariesView
 
     private async void Delete_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        BeneficiaryDataTransferObject? beneficiary = TryGetBeneficiaryFromSender(sender);
+        BeneficiaryDto? beneficiary = TryGetBeneficiaryFromSender(sender);
         if (beneficiary is null) return;
 
         await ViewModel.DeleteBeneficiaryAsync(beneficiary.Id);
@@ -60,14 +56,14 @@ public sealed partial class BeneficiariesView
 
     private void Use_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        BeneficiaryDataTransferObject? beneficiary = TryGetBeneficiaryFromSender(sender);
+        BeneficiaryDto? beneficiary = TryGetBeneficiaryFromSender(sender);
         if (beneficiary is null) return;
 
         ViewModel.UseForTransfer(beneficiary);
     }
 
-    private static BeneficiaryDataTransferObject? TryGetBeneficiaryFromSender(object sender)
+    private static BeneficiaryDto? TryGetBeneficiaryFromSender(object sender)
     {
-        return sender is Button { Tag: BeneficiaryDataTransferObject beneficiary } ? beneficiary : null;
+        return sender is Button { Tag: BeneficiaryDto beneficiary } ? beneficiary : null;
     }
 }

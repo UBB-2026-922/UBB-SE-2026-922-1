@@ -1,9 +1,3 @@
-﻿// <copyright file="20260426134342_InitialCreate.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the InitialCreate migration.
-// </summary>
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable

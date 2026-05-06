@@ -1,10 +1,3 @@
-﻿// <copyright file="BillPayViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPayViewModel class.
-// </summary>
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -438,13 +431,13 @@ public partial class BillPayViewModel : INotifyPropertyChanged
             }
 
             // Calculate fee and check 2FA via API
-            ErrorOr<FeeResponseDto> feeResult = _apiClient
-                .GetAsync<FeeResponseDto>($"{ApiEndpoints.BillPayFee}?amount={Amount}")
+            ErrorOr<FeeResponse> feeResult = _apiClient
+                .GetAsync<FeeResponse>($"{ApiEndpoints.BillPayFee}?amount={Amount}")
                 .GetAwaiter().GetResult();
             Fee = !feeResult.IsError ? feeResult.Value.Fee : 0m;
 
-            ErrorOr<Requires2FaResponseDto> twoFaResult = _apiClient
-                .GetAsync<Requires2FaResponseDto>($"{ApiEndpoints.BillPayRequires2Fa}?amount={Amount}")
+            ErrorOr<RequiresTwoFaResponse> twoFaResult = _apiClient
+                .GetAsync<RequiresTwoFaResponse>($"{ApiEndpoints.BillPayRequires2Fa}?amount={Amount}")
                 .GetAwaiter().GetResult();
             Requires2Fa = !twoFaResult.IsError && twoFaResult.Value.Required;
 
@@ -518,7 +511,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
                 return;
             }
 
-            var request = new BillPayRequestDto
+            var request = new BillPayRequest
             {
                 SourceAccountId = SelectedAccount.Id,
                 BillerId = SelectedBiller.Id,
@@ -528,8 +521,8 @@ public partial class BillPayViewModel : INotifyPropertyChanged
                 TwoFaToken = Requires2Fa ? TwoFaToken : null
             };
 
-            ErrorOr<BillPayResponseDto> payResult = await _apiClient
-                .PostAsync<BillPayRequestDto, BillPayResponseDto>(ApiEndpoints.BillPayPay, request);
+            ErrorOr<BillPayResponse> payResult = await _apiClient
+                .PostAsync<BillPayRequest, BillPayResponse>(ApiEndpoints.BillPayPay, request);
 
             if (payResult.IsError)
             {
@@ -545,7 +538,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
 
                 if (!alreadySaved)
                 {
-                    var saveRequest = new SaveBillerRequestDto
+                    var saveRequest = new SaveBillerRequest
                     {
                         BillerId = SelectedBiller.Id,
                         Nickname = SelectedBiller.Name,
@@ -553,7 +546,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
                     };
 
                     ErrorOr<SavedBillerDto> saveResult = await _apiClient
-                        .PostAsync<SaveBillerRequestDto, SavedBillerDto>(ApiEndpoints.BillPaySaveBiller, saveRequest);
+                        .PostAsync<SaveBillerRequest, SavedBillerDto>(ApiEndpoints.BillPaySaveBiller, saveRequest);
 
                     if (!saveResult.IsError) SavedBillers.Add(saveResult.Value);
                 }

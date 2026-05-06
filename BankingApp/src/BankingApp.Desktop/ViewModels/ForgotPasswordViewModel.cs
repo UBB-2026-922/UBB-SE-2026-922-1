@@ -1,10 +1,3 @@
-﻿// <copyright file="ForgotPasswordViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ForgotPasswordViewModel class.
-// </summary>
-
 using System;
 using System.Threading.Tasks;
 using BankingApp.Desktop.Enums;

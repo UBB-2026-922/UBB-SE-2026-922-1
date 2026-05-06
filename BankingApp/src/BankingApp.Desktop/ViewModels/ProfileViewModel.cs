@@ -1,13 +1,6 @@
-﻿// <copyright file="ProfileViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileViewModel class.
-// </summary>
-
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Domain.Enums;
@@ -97,7 +90,7 @@ public partial class ProfileViewModel : IDisposable
     /// <value>
     ///     The current user's profile details (convenience accessor).
     /// </value>
-    public ProfileInfo ProfileInfo => PersonalInfo.ProfileInfo;
+    public ProfileDto ProfileDto => PersonalInfo.ProfileDto;
 
     /// <summary>
     ///     Gets a value indicating whether phone-based 2FA is active.
@@ -106,7 +99,7 @@ public partial class ProfileViewModel : IDisposable
     ///     Gets or sets the current value.
     /// </value>
     public bool IsPhoneTwoFactorActive =>
-        ProfileInfo is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Phone };
+        ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Phone };
 
     /// <summary>
     ///     Gets a value indicating whether email-based 2FA is active.
@@ -115,7 +108,7 @@ public partial class ProfileViewModel : IDisposable
     ///     Gets or sets the current value.
     /// </value>
     public bool IsEmailTwoFactorActive =>
-        ProfileInfo is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Email };
+        ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Email };
 
     /// <summary>
     ///     Loads the current user's profile, OAuth links, and notification preferences.
@@ -151,8 +144,8 @@ public partial class ProfileViewModel : IDisposable
         bool success = await Security.EnableTwoFactor(method);
         if (!success) return false;
 
-        ProfileInfo.Is2FaEnabled = true;
-        ProfileInfo.Preferred2FaMethod = method;
+        ProfileDto.Is2FaEnabled = true;
+        ProfileDto.Preferred2FaMethod = method;
         return true;
     }
 
@@ -165,8 +158,8 @@ public partial class ProfileViewModel : IDisposable
         bool success = await Security.DisableTwoFactor();
         if (!success) return false;
 
-        ProfileInfo.Is2FaEnabled = false;
-        ProfileInfo.Preferred2FaMethod = null;
+        ProfileDto.Is2FaEnabled = false;
+        ProfileDto.Preferred2FaMethod = null;
         return true;
     }
 
@@ -180,8 +173,8 @@ public partial class ProfileViewModel : IDisposable
         bool success = await Security.SetTwoFactorEnabled(enabled);
         if (!success) return false;
 
-        ProfileInfo.Is2FaEnabled = enabled;
-        ProfileInfo.Preferred2FaMethod = enabled ? TwoFactorMethod.Email : null;
+        ProfileDto.Is2FaEnabled = enabled;
+        ProfileDto.Preferred2FaMethod = enabled ? TwoFactorMethod.Email : null;
         return true;
     }
 
@@ -191,7 +184,7 @@ public partial class ProfileViewModel : IDisposable
     /// <param name="preference">The preference to toggle.</param>
     /// <param name="enabled">The new enabled value.</param>
     /// <returns><see langword="true" /> if the preference was saved; otherwise, <see langword="false" />.</returns>
-    public Task<bool> ToggleNotificationPreference(NotificationPreferenceDataTransferObject preference, bool enabled)
+    public Task<bool> ToggleNotificationPreference(NotificationPreferenceDto preference, bool enabled)
     {
         return Notifications.ToggleNotificationPreference(preference, enabled);
     }
@@ -202,7 +195,7 @@ public partial class ProfileViewModel : IDisposable
     /// <returns>A result indicating whether sessions were loaded and why loading may have failed.</returns>
     public async Task<(bool Success, string? ErrorMessage)> LoadSessionsForCurrentUser()
     {
-        int? userId = ProfileInfo.UserId;
+        int? userId = ProfileDto.UserId;
         if (userId == null) return (false, "User not loaded.");
 
         bool loaded = await Sessions.LoadSessionsAsync(userId.Value);

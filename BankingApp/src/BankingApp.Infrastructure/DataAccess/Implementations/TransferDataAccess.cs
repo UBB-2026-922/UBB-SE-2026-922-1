@@ -1,10 +1,3 @@
-﻿// <copyright file="TransferDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferDataAccess class.
-// </summary>
-
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;

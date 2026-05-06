@@ -1,14 +1,7 @@
-﻿// <copyright file="ValidationUtilities.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ValidationUtilities class.
-// </summary>
+﻿namespace BankingApp.Application.Utilities;
 
 using EmailValidation;
 using PhoneNumbers;
-
-namespace BankingApp.Application.Utilities;
 
 /// <summary>
 ///     Provides common input validation helper methods.
@@ -36,7 +29,10 @@ public static class ValidationUtilities
     /// <returns><see langword="true" /> if the password is strong; otherwise, <see langword="false" />.</returns>
     public static bool IsStrongPassword(string password)
     {
-        if (string.IsNullOrWhiteSpace(password)) return false;
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return false;
+        }
 
         return password.Length >= MinPasswordLength
                && password.Any(char.IsUpper)
@@ -63,7 +59,10 @@ public static class ValidationUtilities
     /// <returns><see langword="true" /> if both passwords are non-null and equal; otherwise, <see langword="false" />.</returns>
     public static bool PasswordsMatch(string? firstPassword, string? secondPassword)
     {
-        if (firstPassword == null || secondPassword == null) return false;
+        if (firstPassword == null || secondPassword == null)
+        {
+            return false;
+        }
 
         return firstPassword == secondPassword;
     }
@@ -91,7 +90,10 @@ public static class ValidationUtilities
     /// <returns>The normalized E.164 phone number if valid; otherwise, <see langword="null" />.</returns>
     public static string? NormalizePhoneNumber(string phone, string defaultRegion = "RO")
     {
-        if (string.IsNullOrWhiteSpace(phone)) return null;
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            return null;
+        }
 
         var phoneUtil = PhoneNumberUtil.GetInstance();
         try

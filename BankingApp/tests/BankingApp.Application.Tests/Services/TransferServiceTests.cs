@@ -1,7 +1,3 @@
-﻿// <copyright file="TransferServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Application.DTOs.Transfer;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;

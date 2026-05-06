@@ -1,13 +1,6 @@
-﻿// <copyright file="PersonalInfoViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the PersonalInfoViewModel class.
-// </summary>
-
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
@@ -34,7 +27,7 @@ public partial class PersonalInfoViewModel
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<ProfileState>(ProfileState.Idle);
-        ProfileInfo = new ProfileInfo();
+        ProfileDto = new ProfileDto();
     }
 
     /// <summary>
@@ -51,7 +44,7 @@ public partial class PersonalInfoViewModel
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public ProfileInfo ProfileInfo { get; private set; }
+    public ProfileDto ProfileDto { get; private set; }
 
     /// <summary>
     ///     Gets a value indicating whether the user has a phone number on file.
@@ -59,7 +52,7 @@ public partial class PersonalInfoViewModel
     /// <value>
     ///     A value indicating whether the user has a phone number on file.
     /// </value>
-    public bool HasPhoneNumber => !string.IsNullOrEmpty(ProfileInfo.PhoneNumber);
+    public bool HasPhoneNumber => !string.IsNullOrEmpty(ProfileDto.PhoneNumber);
 
     /// <summary>
     ///     Gets the display text for the two-factor phone field.
@@ -70,7 +63,7 @@ public partial class PersonalInfoViewModel
     ///     Returns a placeholder when no phone number has been set.
     /// </value>
     public string TwoFactorPhoneDisplay =>
-        HasPhoneNumber ? ProfileInfo.PhoneNumber! : UserMessages.Profile.NoPhoneNumber;
+        HasPhoneNumber ? ProfileDto.PhoneNumber! : UserMessages.Profile.NoPhoneNumber;
 
     /// <summary>
     ///     Loads the current user's profile information from the server.
@@ -79,7 +72,7 @@ public partial class PersonalInfoViewModel
     public async Task<bool> LoadProfile()
     {
         State.SetValue(ProfileState.Loading);
-        ErrorOr<ProfileInfo> profileResult = await _apiClient.GetAsync<ProfileInfo>(ApiEndpoints.Profile);
+        ErrorOr<ProfileDto> profileResult = await _apiClient.GetAsync<ProfileDto>(ApiEndpoints.Profile);
         if (profileResult.IsError)
         {
             _logger.LoadProfileFailed(profileResult.Errors);
@@ -87,7 +80,7 @@ public partial class PersonalInfoViewModel
             return false;
         }
 
-        ProfileInfo = profileResult.Value ?? new ProfileInfo();
+        ProfileDto = profileResult.Value ?? new ProfileDto();
         State.SetValue(ProfileState.UpdateSuccess);
         return true;
     }
@@ -103,7 +96,7 @@ public partial class PersonalInfoViewModel
     public async Task<bool> UpdatePersonalInfo(string? phone, string? address, string password, string? fullName = null)
     {
         State.SetValue(ProfileState.Loading);
-        if (ProfileInfo.UserId == null)
+        if (ProfileDto.UserId == null)
         {
             State.SetValue(ProfileState.Error);
             return false;
@@ -111,21 +104,24 @@ public partial class PersonalInfoViewModel
 
         string? trimmedPhone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
         string? trimmedAddress = string.IsNullOrWhiteSpace(address) ? null : address.Trim();
-        string? trimmedFullName = string.IsNullOrWhiteSpace(fullName) ? ProfileInfo.FullName : fullName.Trim();
-        var request = new UpdateProfileRequest(ProfileInfo.UserId, trimmedPhone, trimmedAddress)
+        string? trimmedFullName = string.IsNullOrWhiteSpace(fullName) ? ProfileDto.FullName : fullName.Trim();
+        var request = new UpdateProfileRequest
         {
+            UserId = ProfileDto.UserId,
             FullName = trimmedFullName,
-            DateOfBirth = ProfileInfo.DateOfBirth,
-            Nationality = ProfileInfo.Nationality,
-            PreferredLanguage = ProfileInfo.PreferredLanguage
+            PhoneNumber = trimmedPhone,
+            DateOfBirth = ProfileDto.DateOfBirth,
+            Address = trimmedAddress,
+            Nationality = ProfileDto.Nationality,
+            PreferredLanguage = ProfileDto.PreferredLanguage
         };
         ErrorOr<Success> result = await _apiClient.PutAsync(ApiEndpoints.Profile, request);
         return result.Match(
             _ =>
             {
-                ProfileInfo.FullName = trimmedFullName;
-                ProfileInfo.PhoneNumber = trimmedPhone;
-                ProfileInfo.Address = trimmedAddress;
+                ProfileDto.FullName = trimmedFullName;
+                ProfileDto.PhoneNumber = trimmedPhone;
+                ProfileDto.Address = trimmedAddress;
                 State.SetValue(ProfileState.UpdateSuccess);
                 return true;
             },
@@ -145,7 +141,7 @@ public partial class PersonalInfoViewModel
     public async Task<bool> VerifyPassword(string password)
     {
         State.SetValue(ProfileState.Loading);
-        if (ProfileInfo.UserId == null)
+        if (ProfileDto.UserId == null)
         {
             State.SetValue(ProfileState.Error);
             return false;

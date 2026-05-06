@@ -1,13 +1,6 @@
-﻿// <copyright file="IOtpService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IOtpService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Security;
 
 using ErrorOr;
-
-namespace BankingApp.Application.Services.Security;
 
 /// <summary>
 ///     Defines operations for generating and verifying OTPs.
@@ -22,7 +15,7 @@ public interface IOtpService
     ///     The generated TOTP code on success,
     ///     or a failure error if the underlying HMAC operation throws.
     /// </returns>
-    ErrorOr<string> GenerateTotp(int userId);
+    public ErrorOr<string> GenerateTotp(int userId);
 
     /// <summary>
     ///     Verifies a TOTP for the specified user.
@@ -34,7 +27,7 @@ public interface IOtpService
     ///     <see langword="false" /> if it does not match,
     ///     or a failure error if the underlying HMAC operation throws.
     /// </returns>
-    ErrorOr<bool> VerifyTotp(int userId, string code);
+    public ErrorOr<bool> VerifyTotp(int userId, string code);
 
     /// <summary>
     ///     Generates an SMS OTP for the specified user.
@@ -44,7 +37,7 @@ public interface IOtpService
     ///     The generated SMS OTP code on success,
     ///     or a failure error if the underlying random number generation throws.
     /// </returns>
-    ErrorOr<string> GenerateSmsOtp(int userId);
+    public ErrorOr<string> GenerateSmsOtp(int userId);
 
     /// <summary>
     ///     Verifies an SMS OTP for the specified user.
@@ -56,18 +49,18 @@ public interface IOtpService
     ///     <see langword="false" /> if it does not match or has expired,
     ///     or a failure error if an unexpected exception occurs.
     /// </returns>
-    ErrorOr<bool> VerifySmsOtp(int userId, string code);
+    public ErrorOr<bool> VerifySmsOtp(int userId, string code);
 
     /// <summary>
     ///     Determines whether a token has expired.
     /// </summary>
     /// <param name="expiredAt">The expiration time to check.</param>
     /// <returns><see langword="true" /> if the current time is past the expiration; otherwise, <see langword="false" />.</returns>
-    bool IsExpired(DateTime expiredAt);
+    public bool IsExpired(DateTime expiredAt);
 
     /// <summary>
     ///     Invalidates any stored OTP for the specified user.
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
-    void InvalidateOtp(int userId);
+    public void InvalidateOtp(int userId);
 }

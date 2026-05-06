@@ -1,6 +1,6 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.Beneficiary;
+using Application.DTOs.Beneficiaries;
 using Application.Services.Beneficiary;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -112,9 +112,9 @@ public class BeneficiariesController : ApiControllerBase
         return ToActionResult(_beneficiaryService.Delete(id, userId));
     }
 
-    private static BeneficiaryDataTransferObject MapToDto(Beneficiary beneficiary)
+    private static BeneficiaryDto MapToDto(Beneficiary beneficiary)
     {
-        return new BeneficiaryDataTransferObject
+        return new BeneficiaryDto
         {
             Id = beneficiary.Id,
             Name = beneficiary.Name,

@@ -9,29 +9,29 @@ public class AccountDto
     ///     Gets or sets the account identifier.
     /// </summary>
     /// <value>The account identifier.</value>
-    public int Id { get; init; }
+    public int Id { get; set; }
 
     /// <summary>
     ///     Gets or sets the account IBAN.
     /// </summary>
     /// <value>The IBAN.</value>
-    public string Iban { get; init; } = string.Empty;
+    public string Iban { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the account currency.
     /// </summary>
     /// <value>The currency code.</value>
-    public string Currency { get; init; } = string.Empty;
+    public string Currency { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the account balance.
     /// </summary>
     /// <value>The account balance.</value>
-    public decimal Balance { get; init; }
+    public decimal Balance { get; set; }
 
     /// <summary>
     ///     Gets or sets the account display name.
     /// </summary>
     /// <value>The account name.</value>
-    public string AccountName { get; init; } = string.Empty;
+    public string AccountName { get; set; } = string.Empty;
 }

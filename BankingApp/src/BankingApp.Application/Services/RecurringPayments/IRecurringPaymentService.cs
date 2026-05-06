@@ -1,14 +1,7 @@
-﻿// <copyright file="IRecurringPaymentService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IRecurringPaymentService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.RecurringPayments;
 
 using BankingApp.Application.DTOs.RecurringPayments;
 using ErrorOr;
-
-namespace BankingApp.Application.Services.RecurringPayments;
 
 /// <summary>
 ///     Defines business operations for managing recurring payment schedules.
@@ -25,7 +18,7 @@ public interface IRecurringPaymentService
     ///     or <see cref="ErrorType.Validation" /> if the request contains invalid data,
     ///     or <see cref="ErrorType.Failure" /> if the persistence operation failed.
     /// </returns>
-    ErrorOr<RecurringPaymentResponse> Create(int userId, CreateRecurringPaymentRequest request);
+    public ErrorOr<RecurringPaymentResponse> Create(int userId, CreateRecurringPaymentRequest request);
 
     /// <summary>
     ///     Returns all recurring payment schedules owned by the specified user.
@@ -35,7 +28,7 @@ public interface IRecurringPaymentService
     ///     A list of <see cref="RecurringPaymentResponse" /> DTOs,
     ///     or <see cref="ErrorType.Failure" /> if the query failed.
     /// </returns>
-    ErrorOr<List<RecurringPaymentResponse>> GetByUser(int userId);
+    public ErrorOr<List<RecurringPaymentResponse>> GetByUser(int userId);
 
     /// <summary>
     ///     Pauses an active recurring payment schedule.
@@ -46,7 +39,7 @@ public interface IRecurringPaymentService
     ///     Success, or <see cref="Error.NotFound" /> if the schedule does not exist,
     ///     or <see cref="ErrorType.Forbidden" /> if the user does not own the schedule.
     /// </returns>
-    ErrorOr<Success> Pause(int userId, int id);
+    public ErrorOr<Success> Pause(int userId, int id);
 
     /// <summary>
     ///     Resumes a paused recurring payment schedule.
@@ -57,7 +50,7 @@ public interface IRecurringPaymentService
     ///     Success, or <see cref="Error.NotFound" /> if the schedule does not exist,
     ///     or <see cref="ErrorType.Forbidden" /> if the user does not own the schedule.
     /// </returns>
-    ErrorOr<Success> ResumeRecurringPayment(int userId, int id);
+    public ErrorOr<Success> ResumeRecurringPayment(int userId, int id);
 
     /// <summary>
     ///     Permanently cancels a recurring payment schedule.
@@ -68,5 +61,5 @@ public interface IRecurringPaymentService
     ///     Success, or <see cref="Error.NotFound" /> if the schedule does not exist,
     ///     or <see cref="ErrorType.Forbidden" /> if the user does not own the schedule.
     /// </returns>
-    ErrorOr<Success> Cancel(int userId, int id);
+    public ErrorOr<Success> Cancel(int userId, int id);
 }

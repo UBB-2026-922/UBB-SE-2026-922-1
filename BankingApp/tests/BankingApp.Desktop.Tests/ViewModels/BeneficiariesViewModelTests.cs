@@ -1,7 +1,3 @@
-﻿// <copyright file="BeneficiariesViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,15 +28,15 @@ public class BeneficiariesViewModelTests
     [Fact]
     public async Task LoadBeneficiaries_WhenResponseIsValid_PopulatesViewModel()
     {
-        var data = new List<BeneficiaryDataTransferObject>
+        var data = new List<BeneficiaryDto>
         {
-            new BeneficiaryDataTransferObject { Id = 1, Name = "Alice", Iban = "DE123", BankName = "Bank A" },
-            new BeneficiaryDataTransferObject { Id = 2, Name = "Bob", Iban = "DE456", BankName = "Bank B" }
+            new BeneficiaryDto { Id = 1, Name = "Alice", Iban = "DE123", BankName = "Bank A" },
+            new BeneficiaryDto { Id = 2, Name = "Bob", Iban = "DE456", BankName = "Bank B" }
         };
 
         _apiClient
             .Setup(gets =>
-                gets.GetAsync<List<BeneficiaryDataTransferObject>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                gets.GetAsync<List<BeneficiaryDto>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(data);
 
         ErrorOr<Success> result = await _viewModel.LoadBeneficiariesAsync();
@@ -55,7 +51,7 @@ public class BeneficiariesViewModelTests
     {
         _apiClient
             .Setup(gets =>
-                gets.GetAsync<List<BeneficiaryDataTransferObject>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                gets.GetAsync<List<BeneficiaryDto>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Unauthorized());
 
         ErrorOr<Success> result = await _viewModel.LoadBeneficiariesAsync();

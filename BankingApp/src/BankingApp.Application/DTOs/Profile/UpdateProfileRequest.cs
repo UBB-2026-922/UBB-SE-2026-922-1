@@ -1,36 +1,10 @@
-﻿// <copyright file="UpdateProfileRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the UpdateProfileRequest class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Profile;
+﻿namespace BankingApp.Application.DTOs.Profile;
 
 /// <summary>
 ///     Represents a request to update user profile fields.
 /// </summary>
 public class UpdateProfileRequest
 {
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="UpdateProfileRequest" /> class.
-    /// </summary>
-    public UpdateProfileRequest()
-    {
-    }
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="UpdateProfileRequest" /> class.
-    /// </summary>
-    /// <param name="userId">The user identifier.</param>
-    /// <param name="phoneNumber">The new phone number.</param>
-    /// <param name="address">The new address.</param>
-    public UpdateProfileRequest(int? userId, string? phoneNumber, string? address)
-    {
-        UserId = userId;
-        PhoneNumber = phoneNumber;
-        Address = address;
-    }
 
     /// <summary>
     ///     Gets or sets the identifier of the user whose profile is being updated.

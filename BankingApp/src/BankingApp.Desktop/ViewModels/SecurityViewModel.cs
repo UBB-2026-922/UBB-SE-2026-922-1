@@ -1,14 +1,7 @@
-﻿// <copyright file="SecurityViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SecurityViewModel class.
-// </summary>
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Domain.Enums;
@@ -16,6 +9,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Desktop.ViewModels;
+
+using Application.DTOs.Profile;
 
 /// <summary>
 ///     Handles security-related profile operations such as password changes
@@ -108,7 +103,7 @@ public partial class SecurityViewModel
     public async Task<bool> EnableTwoFactor(TwoFactorMethod method)
     {
         State.SetValue(ProfileState.Loading);
-        var request = new Enable2FaRequest { Method = method };
+        var request = new EnableTwoFaRequest { Method = method };
         ErrorOr<Success> result = await _apiClient.PutAsync(ApiEndpoints.Enable2Fa, request);
         return result.Match(
             _ =>

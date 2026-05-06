@@ -1,20 +1,12 @@
-﻿// <copyright file="RecurringPaymentService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringPaymentService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.RecurringPayments;
 
-using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Application.Logging;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Logging;
+using Repositories.Interfaces;
+using Utilities;
+using Domain.Entities;
+using DTOs.RecurringPayments;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.RecurringPayments;
 
 /// <summary>
 ///     Orchestrates creation, state transitions, and retrieval of recurring payment schedules.
@@ -52,36 +44,49 @@ public class RecurringPaymentService : IRecurringPaymentService
             request.StartDate,
             request.EndDate,
             _clock.UtcNow);
-        if (paymentResult.IsError) return paymentResult.FirstError;
-
-        ErrorOr<RecurringPayment> createResult = _repository.Create(paymentResult.Value);
-        if (createResult.IsError)
+        if (paymentResult.IsError)
         {
-            _logger.RecurringPaymentCreateFailed(userId, createResult.FirstError.Description);
-            return createResult.FirstError;
+            return paymentResult.FirstError;
         }
 
-        return MapToResponse(createResult.Value);
+        ErrorOr<RecurringPayment> createResult = _repository.Create(paymentResult.Value);
+        if (!createResult.IsError)
+        {
+            return MapToResponse(createResult.Value);
+        }
+
+        _logger.RecurringPaymentCreateFailed(userId, createResult.FirstError.Description);
+        return createResult.FirstError;
+
     }
 
     /// <inheritdoc />
     public ErrorOr<List<RecurringPaymentResponse>> GetByUser(int userId)
     {
         ErrorOr<List<RecurringPayment>> result = _repository.GetByUserId(userId);
-        if (result.IsError) return result.FirstError;
+        if (result.IsError)
+        {
+            return result.FirstError;
+        }
 
-        return result.Value.Select(MapToResponse).ToList();
+        return result.Value.ConvertAll(MapToResponse);
     }
 
     /// <inheritdoc />
     public ErrorOr<Success> Pause(int userId, int id)
     {
         ErrorOr<RecurringPayment> findResult = _repository.GetById(id);
-        if (findResult.IsError) return findResult.FirstError;
+        if (findResult.IsError)
+        {
+            return findResult.FirstError;
+        }
 
         RecurringPayment payment = findResult.Value;
         ErrorOr<Success> pauseResult = payment.Pause(userId);
-        if (pauseResult.IsError) return pauseResult.FirstError;
+        if (pauseResult.IsError)
+        {
+            return pauseResult.FirstError;
+        }
 
         return _repository.Update(payment);
     }
@@ -90,11 +95,17 @@ public class RecurringPaymentService : IRecurringPaymentService
     public ErrorOr<Success> ResumeRecurringPayment(int userId, int id)
     {
         ErrorOr<RecurringPayment> findResult = _repository.GetById(id);
-        if (findResult.IsError) return findResult.FirstError;
+        if (findResult.IsError)
+        {
+            return findResult.FirstError;
+        }
 
         RecurringPayment payment = findResult.Value;
         ErrorOr<Success> resumeResult = payment.Resume(userId);
-        if (resumeResult.IsError) return resumeResult.FirstError;
+        if (resumeResult.IsError)
+        {
+            return resumeResult.FirstError;
+        }
 
         return _repository.Update(payment);
     }
@@ -103,11 +114,17 @@ public class RecurringPaymentService : IRecurringPaymentService
     public ErrorOr<Success> Cancel(int userId, int id)
     {
         ErrorOr<RecurringPayment> findResult = _repository.GetById(id);
-        if (findResult.IsError) return findResult.FirstError;
+        if (findResult.IsError)
+        {
+            return findResult.FirstError;
+        }
 
         RecurringPayment payment = findResult.Value;
         ErrorOr<Success> cancelResult = payment.Cancel(userId);
-        if (cancelResult.IsError) return cancelResult.FirstError;
+        if (cancelResult.IsError)
+        {
+            return cancelResult.FirstError;
+        }
 
         return _repository.Update(payment);
     }

@@ -1,10 +1,3 @@
-﻿// <copyright file="ApplicationErrorResponse.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for ApplicationErrorResponse.
-// </summary>
-
 namespace BankingApp.Application.DTOs;
 
 /// <summary>
@@ -17,12 +10,12 @@ public sealed class ApplicationErrorResponse
     /// <summary>
     ///     Gets or sets the human-readable error description.
     /// </summary>
-    public string Error { get; init; } = string.Empty;
+    public string Error { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets a machine-readable error code for client branching
     ///     (e.g. <c>"token_expired"</c>, <c>"account_locked"</c>).
     ///     Empty string when no specific code applies.
     /// </summary>
-    public string ErrorCode { get; init; } = string.Empty;
+    public string ErrorCode { get; set; } = string.Empty;
 }

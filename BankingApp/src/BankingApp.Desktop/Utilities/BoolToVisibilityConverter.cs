@@ -1,10 +1,3 @@
-﻿// <copyright file="BoolToVisibilityConverter.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BoolToVisibilityConverter class.
-// </summary>
-
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;

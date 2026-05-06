@@ -1,18 +1,11 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ServiceCollectionExtensions class.
-// </summary>
+﻿namespace BankingApp.Desktop.DependencyInjection;
 
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
-using BankingApp.Desktop.Views;
+using Master;
+using Utilities;
+using ViewModels;
+using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace BankingApp.Desktop.DependencyInjection;
 
 /// <summary>
 ///     Provides extension methods for registering client-side services

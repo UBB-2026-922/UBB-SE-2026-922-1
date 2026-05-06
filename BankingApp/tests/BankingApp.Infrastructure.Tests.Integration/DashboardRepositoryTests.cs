@@ -1,7 +1,3 @@
-﻿// <copyright file="DashboardRepositoryTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;

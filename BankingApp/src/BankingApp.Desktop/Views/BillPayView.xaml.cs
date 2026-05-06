@@ -1,10 +1,3 @@
-﻿// <copyright file="BillPayView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for BillPayView.xaml.
-// </summary>
-
 using System;
 using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.DTOs.BillPayments;

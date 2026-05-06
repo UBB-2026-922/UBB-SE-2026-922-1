@@ -1,10 +1,3 @@
-﻿// <copyright file="ObservableState.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ObservableState class.
-// </summary>
-
 using System.Collections.Generic;
 
 namespace BankingApp.Desktop.Utilities;

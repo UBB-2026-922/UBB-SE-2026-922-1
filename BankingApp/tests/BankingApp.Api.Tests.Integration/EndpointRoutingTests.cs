@@ -1,7 +1,3 @@
-﻿// <copyright file="EndpointRoutingTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;

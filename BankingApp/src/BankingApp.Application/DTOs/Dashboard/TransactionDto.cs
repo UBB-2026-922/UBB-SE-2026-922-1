@@ -1,19 +1,12 @@
-﻿// <copyright file="TransactionDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransactionDataTransferObject class.
-// </summary>
+﻿namespace BankingApp.Application.DTOs.Dashboard;
 
 using System.Text.Json.Serialization;
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.DataTransferObjects.Dashboard;
+using Domain.Enums;
 
 /// <summary>
 ///     Data transfer object representing a recent transaction on the dashboard.
 /// </summary>
-public class TransactionDataTransferObject
+public class TransactionDto
 {
     /// <summary>
     ///     Gets or sets the unique identifier for the transaction.

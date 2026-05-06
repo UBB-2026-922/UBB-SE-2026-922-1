@@ -1,16 +1,9 @@
-﻿// <copyright file="FxPreviewDto.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the FxPreviewDto class.
-// </summary>
-
-namespace BankingApp.Desktop.Models;
+﻿namespace BankingApp.Desktop.Models;
 
 /// <summary>
 ///     Response from the FX preview endpoint showing the converted amount and exchange rate.
 /// </summary>
-public partial class FxPreviewDto
+public abstract class ForexPreviewDto
 {
     /// <summary>
     ///     Gets or sets the exchange rate applied for the currency conversion.

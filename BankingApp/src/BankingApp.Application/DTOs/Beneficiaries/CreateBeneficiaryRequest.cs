@@ -1,15 +1,10 @@
-﻿namespace BankingApp.Application.DTOs.Beneficiary;
+namespace BankingApp.Application.DTOs.Beneficiaries;
 
 /// <summary>
-///     Represents the data required to update a beneficiary.
+///     Represents the data required to create a beneficiary.
 /// </summary>
-public class UpdateBeneficiaryRequest
+public class CreateBeneficiaryRequest
 {
-    /// <summary>
-    ///     Gets or sets the beneficiary identifier.
-    /// </summary>
-    public int Id { get; set; }
-
     /// <summary>
     ///     Gets or sets the beneficiary name.
     /// </summary>

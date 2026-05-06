@@ -1,7 +1,3 @@
-﻿// <copyright file="TransferViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System.Collections.Generic;
 using BankingApp.Desktop.Models;
 using BankingApp.Desktop.Utilities;

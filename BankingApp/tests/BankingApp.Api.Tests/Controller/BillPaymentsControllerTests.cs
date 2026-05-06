@@ -1,7 +1,3 @@
-﻿// <copyright file="BillPaymentsControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -118,7 +114,7 @@ public class BillPaymentsControllerTests
 
         // Assert
         var actionResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<FeeResponseDto>(actionResult.Value);
+        var response = Assert.IsType<FeeResponse>(actionResult.Value);
         Assert.Equal(expectedFee, response.Fee);
     }
 
@@ -134,7 +130,7 @@ public class BillPaymentsControllerTests
 
         // Assert
         var actionResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<Requires2FaResponseDto>(actionResult.Value);
+        var response = Assert.IsType<RequiresTwoFaResponse>(actionResult.Value);
         Assert.True(response.Required);
     }
 
@@ -142,7 +138,7 @@ public class BillPaymentsControllerTests
     public async Task ProcessPayment_WhenValidRequest_ReturnsOkResultWithPaymentDetails()
     {
         // Arrange
-        var request = new BillPayRequestDto
+        var request = new BillPayRequest
         {
             SourceAccountId = 1,
             BillerId = 2,
@@ -170,7 +166,7 @@ public class BillPaymentsControllerTests
 
         // Assert
         var actionResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<BillPayResponseDto>(actionResult.Value);
+        var response = Assert.IsType<BillPayResponse>(actionResult.Value);
         Assert.Equal(expectedPayment.Id, response.Id);
         Assert.Equal(expectedPayment.ReceiptNumber, response.ReceiptNumber);
         Assert.Equal(expectedPayment.Fee, response.Fee);
@@ -182,7 +178,7 @@ public class BillPaymentsControllerTests
     public async Task ProcessPayment_WhenServiceThrowsException_ReturnsBadRequest()
     {
         // Arrange
-        var request = new BillPayRequestDto();
+        var request = new BillPayRequest();
         _mockBillPaymentService
             .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ThrowsAsync(new Exception("Insufficient funds"));
@@ -199,7 +195,7 @@ public class BillPaymentsControllerTests
     public async Task SaveBiller_WhenValidRequestAndServiceReturnsTrue_ReturnsOkResult()
     {
         // Arrange
-        var request = new SaveBillerRequestDto
+        var request = new SaveBillerRequest
         {
             BillerId = 2,
             Nickname = "My Biller",
@@ -220,7 +216,7 @@ public class BillPaymentsControllerTests
     public async Task SaveBiller_WhenServiceReturnsFalse_ReturnsBadRequest()
     {
         // Arrange
-        var request = new SaveBillerRequestDto
+        var request = new SaveBillerRequest
         {
             BillerId = 2,
             Nickname = "My Biller",
@@ -241,7 +237,7 @@ public class BillPaymentsControllerTests
     public async Task SaveBiller_WhenServiceThrowsException_ReturnsBadRequest()
     {
         // Arrange
-        var request = new SaveBillerRequestDto { Nickname = "test" };
+        var request = new SaveBillerRequest { Nickname = "test" };
         _mockBillPaymentService
             .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
             .ThrowsAsync(new Exception("Service error"));

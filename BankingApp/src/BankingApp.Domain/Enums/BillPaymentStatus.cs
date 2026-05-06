@@ -1,10 +1,3 @@
-﻿// <copyright file="BillPaymentStatus.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentStatus enum.
-// </summary>
-
 namespace BankingApp.Domain.Enums;
 
 /// <summary>

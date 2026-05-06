@@ -1,10 +1,3 @@
-﻿// <copyright file="INotificationPreferenceDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the INotificationPreferenceDataAccess interface.
-// </summary>
-
 using BankingApp.Domain.Entities;
 using ErrorOr;
 

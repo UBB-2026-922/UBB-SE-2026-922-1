@@ -1,10 +1,3 @@
-﻿// <copyright file="LoginViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the LoginViewModel class.
-// </summary>
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;

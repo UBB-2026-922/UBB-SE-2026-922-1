@@ -1,16 +1,9 @@
-﻿// <copyright file="SessionDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SessionDataTransferObject class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Profile;
+namespace BankingApp.Application.DTOs.Profile;
 
 /// <summary>
 ///     Represents the safe session details exposed to profile clients.
 /// </summary>
-public class SessionDataTransferObject
+public class SessionDto
 {
     /// <summary>
     ///     Gets or sets the unique identifier for the session.
@@ -51,20 +44,4 @@ public class SessionDataTransferObject
     ///     Gets or sets the current value.
     /// </value>
     public DateTime? LastActiveAt { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the date and time when the session expires.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public DateTime ExpiresAt { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the date and time when the session was created.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public DateTime CreatedAt { get; set; }
 }

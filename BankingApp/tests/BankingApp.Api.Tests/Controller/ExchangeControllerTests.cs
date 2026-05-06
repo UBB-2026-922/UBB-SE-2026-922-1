@@ -1,7 +1,3 @@
-﻿// <copyright file="ExchangeControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,7 +41,7 @@ public class ExchangeControllerTests
     public void GetPreview_WhenPreviewAndLockBothSucceed_ReturnsOkWithPreviewDto()
     {
         // Arrange
-        var previewDto = new ExchangeTransactionResponseDto { ExchangeRate = 1.2m };
+        var previewDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
         var lockedRate = new LockedRate { Rate = 1.2m };
 
         _mockExchangeService
@@ -61,7 +57,7 @@ public class ExchangeControllerTests
 
         // Assert
         var actionResult = Assert.IsType<OkObjectResult>(result);
-        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(actionResult.Value);
+        var actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -87,7 +83,7 @@ public class ExchangeControllerTests
     public void GetPreview_WhenLockRateFails_ReturnsMappedError()
     {
         // Arrange
-        var previewDto = new ExchangeTransactionResponseDto { ExchangeRate = 1.2m };
+        var previewDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
         var error = Error.Validation("Code", "Description");
 
         _mockExchangeService
@@ -111,7 +107,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenBothAccountIdsAreProvidedAndValid_ReturnsOkWithExchangeDto()
     {
         // Arrange
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             SourceAccountId = 10,
             TargetAccountId = 20,
@@ -126,7 +122,7 @@ public class ExchangeControllerTests
             new Account { Id = 20, Currency = "USD" },
         };
 
-        var responseDto = new ExchangeTransactionResponseDto { ExchangeRate = 1.2m };
+        var responseDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
 
         _mockBillPaymentRepository
             .Setup(r => r.GetAccountsByUserIdAsync(1))
@@ -141,7 +137,7 @@ public class ExchangeControllerTests
 
         // Assert
         var actionResult = Assert.IsType<OkObjectResult>(result);
-        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(actionResult.Value);
+        var actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -149,7 +145,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenAccountIdsAreZeroAndCurrencyMatchFound_ResolvesAccountsAndReturnsOk()
     {
         // Arrange
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             SourceAccountId = 0,
             TargetAccountId = 0,
@@ -164,14 +160,14 @@ public class ExchangeControllerTests
             new Account { Id = 20, Currency = "USD" },
         };
 
-        var responseDto = new ExchangeTransactionResponseDto { ExchangeRate = 1.2m };
+        var responseDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
 
         _mockBillPaymentRepository
             .Setup(r => r.GetAccountsByUserIdAsync(1))
             .ReturnsAsync(userAccounts);
 
         _mockExchangeService
-            .Setup(s => s.ExecuteExchange(It.Is<ExchangeTransactionRequestDto>(req => req.SourceAccountId == 10 && req.TargetAccountId == 20)))
+            .Setup(s => s.ExecuteExchange(It.Is<ExchangeTransactionRequest>(req => req.SourceAccountId == 10 && req.TargetAccountId == 20)))
             .Returns(responseDto);
 
         // Act
@@ -179,7 +175,7 @@ public class ExchangeControllerTests
 
         // Assert
         var actionResult = Assert.IsType<OkObjectResult>(result);
-        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(actionResult.Value);
+        var actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -187,7 +183,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenAccountIdsAreZeroAndNoCurrencyMatchFound_ReturnsNotFound()
     {
         // Arrange
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             SourceAccountId = 0,
             TargetAccountId = 0,
@@ -217,7 +213,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenProvidedAccountsDoNotBelongToUser_ReturnsNotFound()
     {
         // Arrange
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             SourceAccountId = 10,
             TargetAccountId = 20,
@@ -247,7 +243,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenExecuteExchangeFails_ReturnsMappedError()
     {
         // Arrange
-        var request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequest
         {
             SourceAccountId = 10,
             TargetAccountId = 20,
@@ -285,10 +281,10 @@ public class ExchangeControllerTests
     public void GetHistory_WhenHistoryExistsForUser_ReturnsOkWithList()
     {
         // Arrange
-        var historyList = new List<ExchangeTransactionResponseDto>
+        var historyList = new List<ExchangeTransactionResponse>
         {
-            new ExchangeTransactionResponseDto { Id = 1, SourceCurrency = "EUR", TargetCurrency = "USD" },
-            new ExchangeTransactionResponseDto { Id = 2, SourceCurrency = "GBP", TargetCurrency = "EUR" },
+            new ExchangeTransactionResponse { Id = 1, SourceCurrency = "EUR", TargetCurrency = "USD" },
+            new ExchangeTransactionResponse { Id = 2, SourceCurrency = "GBP", TargetCurrency = "EUR" },
         };
 
         _mockExchangeService
@@ -300,7 +296,7 @@ public class ExchangeControllerTests
 
         // Assert
         var actionResult = Assert.IsType<OkObjectResult>(result);
-        var actualList = Assert.IsType<List<ExchangeTransactionResponseDto>>(actionResult.Value);
+        var actualList = Assert.IsType<List<ExchangeTransactionResponse>>(actionResult.Value);
         Assert.Equal(2, actualList.Count);
     }
 

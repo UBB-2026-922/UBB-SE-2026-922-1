@@ -1,10 +1,3 @@
-﻿// <copyright file="BillPaymentRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentRepository class.
-// </summary>
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

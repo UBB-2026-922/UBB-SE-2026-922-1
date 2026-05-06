@@ -1,10 +1,3 @@
-﻿// <copyright file="ObservableViewBase.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for ObservableViewBase.
-// </summary>
-
 namespace BankingApp.Desktop.Utilities;
 
 /// <summary>

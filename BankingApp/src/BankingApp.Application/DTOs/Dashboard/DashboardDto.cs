@@ -1,16 +1,9 @@
-﻿// <copyright file="DashboardResponse.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardResponse class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Dashboard;
+namespace BankingApp.Application.DTOs.Dashboard;
 
 /// <summary>
 ///     Represents the response containing dashboard data for a user.
 /// </summary>
-public class DashboardResponse
+public class DashboardDto
 {
     /// <summary>
     ///     Gets or sets the current user information.
@@ -18,7 +11,7 @@ public class DashboardResponse
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public UserSummaryDataTransferObject? CurrentUser { get; set; }
+    public UserSummaryDto? CurrentUser { get; set; }
 
     /// <summary>
     ///     Gets or sets the list of cards belonging to the user.
@@ -27,7 +20,7 @@ public class DashboardResponse
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public List<CardDataTransferObject> Cards { get; set; } = new();
+    public List<CardDto> Cards { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets the list of recent transactions.
@@ -36,7 +29,7 @@ public class DashboardResponse
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public List<TransactionDataTransferObject> RecentTransactions { get; set; } = new();
+    public List<TransactionDto> RecentTransactions { get; set; } = [];
 
     /// <summary>
     ///     Gets or sets the count of unread notifications.
@@ -52,5 +45,5 @@ public class DashboardResponse
     /// <value>
     ///     A list of transactions representing pending transfers.
     /// </value>
-    public List<TransactionDataTransferObject> PendingTransfers { get; set; } = new();
+    public List<TransactionDto> PendingTransfers { get; set; } = [];
 }

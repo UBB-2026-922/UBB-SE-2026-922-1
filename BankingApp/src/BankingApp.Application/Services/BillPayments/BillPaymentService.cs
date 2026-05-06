@@ -1,17 +1,10 @@
-﻿// <copyright file="BillPaymentService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.BillPayments;
 
 using System.Globalization;
 using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.Services.BillPayments;
+using Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
 
 /// <summary>
 /// Implements the business logic for bill payments.
@@ -51,7 +44,9 @@ public class BillPaymentService : IBillPaymentService
                            throw new KeyNotFoundException("Source account not found.");
 
         if (account.UserId != request.UserId)
+        {
             throw new InvalidOperationException("Source account does not belong to the authenticated user.");
+        }
 
         if (request.Amount <= 0)
         {
@@ -63,7 +58,9 @@ public class BillPaymentService : IBillPaymentService
         decimal totalAmount = request.Amount + fee;
 
         if (account.Balance < totalAmount)
+        {
             throw new InvalidOperationException("Insufficient funds to pay this bill (including fees).");
+        }
 
         account.Balance -= totalAmount;
         await _billRepository.UpdateAccountAsync(account);

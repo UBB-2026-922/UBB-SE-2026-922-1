@@ -1,8 +1,4 @@
-﻿// <copyright file="ProfileViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
@@ -10,6 +6,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Profile;
 
 /// <summary>
 ///     Tests for the profile sub-ViewModels: <see cref="ProfileViewModel" />,
@@ -20,10 +18,10 @@ public class ProfileViewModelTests
     private readonly Mock<IApiClient> _apiClient = new(MockBehavior.Strict);
 
     /// <summary>
-    ///     Verifies the LoadProfile_WhenApiReturnsProfile_PopulatesProfileInfo scenario.
+    ///     Verifies the LoadProfile_WhenApiReturnsProfile_PopulatesProfileDto scenario.
     /// </summary>
     [Fact]
-    public async Task LoadProfile_WhenApiReturnsProfile_PopulatesProfileInfo()
+    public async Task LoadProfile_WhenApiReturnsProfile_PopulatesProfileDto()
     {
         // Arrange
         const int userId = 1;
@@ -33,9 +31,9 @@ public class ProfileViewModelTests
         var viewModel = new PersonalInfoViewModel(_apiClient.Object, NullLogger<PersonalInfoViewModel>.Instance);
 
         _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<ProfileInfo>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(getsAsync => getsAsync.GetAsync<ProfileDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(
-                new ProfileInfo
+                new ProfileDto
                 {
                     UserId = userId,
                     Email = email,
@@ -49,8 +47,8 @@ public class ProfileViewModelTests
         // Assert
         success.Should().BeTrue();
         viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
-        viewModel.ProfileInfo.FullName.Should().Be(fullName);
-        viewModel.ProfileInfo.Email.Should().Be(email);
+        viewModel.ProfileDto.FullName.Should().Be(fullName);
+        viewModel.ProfileDto.Email.Should().Be(email);
     }
 
     /// <summary>
@@ -63,7 +61,7 @@ public class ProfileViewModelTests
         var viewModel = new PersonalInfoViewModel(_apiClient.Object, NullLogger<PersonalInfoViewModel>.Instance);
 
         _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<ProfileInfo>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(getsAsync => getsAsync.GetAsync<ProfileDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure(description: "server down"));
 
         // Act
@@ -290,14 +288,14 @@ public class ProfileViewModelTests
         // Arrange
         const int preferenceId = 1;
         var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
-        var notificationPreference = new NotificationPreferenceDataTransferObject
+        var notificationPreference = new NotificationPreferenceDto
             { Id = preferenceId, EmailEnabled = false };
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _apiClient
             .Setup(putsAsync => putsAsync.PutAsync(
                 It.IsAny<string>(),
-                It.IsAny<List<NotificationPreferenceDataTransferObject>>()))
+                It.IsAny<List<NotificationPreferenceDto>>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -318,14 +316,14 @@ public class ProfileViewModelTests
         // Arrange
         const int preferenceId = 1;
         var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
-        var notificationPreference = new NotificationPreferenceDataTransferObject
+        var notificationPreference = new NotificationPreferenceDto
             { Id = preferenceId, EmailEnabled = true };
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _apiClient
             .Setup(putsAsync => putsAsync.PutAsync(
                 It.IsAny<string>(),
-                It.IsAny<List<NotificationPreferenceDataTransferObject>>()))
+                It.IsAny<List<NotificationPreferenceDto>>()))
             .ReturnsAsync(Error.Failure(description: "server error"));
 
         // Act
@@ -347,7 +345,7 @@ public class ProfileViewModelTests
 
         // Act
         bool result =
-            await viewModel.UpdateNotificationPreferences(new List<NotificationPreferenceDataTransferObject>());
+            await viewModel.UpdateNotificationPreferences(new List<NotificationPreferenceDto>());
 
         // Assert
         result.Should().BeFalse();
@@ -361,7 +359,7 @@ public class ProfileViewModelTests
     {
         // Arrange
         _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<ProfileInfo>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Setup(getsAsync => getsAsync.GetAsync<ProfileDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure(description: "fail"));
 
         var profileVm = new ProfileViewModel(

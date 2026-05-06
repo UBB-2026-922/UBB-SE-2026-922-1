@@ -1,15 +1,9 @@
-﻿// <copyright file="IProfileService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IProfileService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Profile;
 
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Domain.Enums;
+using Domain.Enums;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.Profile;
+using BankingApp.Application.DTOs.Profile;
 
 /// <summary>
 ///     Defines operations for managing user profiles, including personal info, passwords,
@@ -22,10 +16,10 @@ public interface IProfileService
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <returns>
-    ///     The user's <see cref="ProfileInfo" /> on success,
+    ///     The user's <see cref="ProfileDto" /> on success,
     ///     or a not-found error if the user does not exist.
     /// </returns>
-    ErrorOr<ProfileInfo> GetProfile(int userId);
+    public ErrorOr<ProfileDto> GetProfile(int userId);
 
     /// <summary>
     ///     Updates the personal information (phone, address) of the specified user.
@@ -37,7 +31,7 @@ public interface IProfileService
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the database update fails.
     /// </returns>
-    ErrorOr<Success> UpdatePersonalInfo(UpdateProfileRequest request);
+    public ErrorOr<Success> UpdatePersonalInfo(UpdateProfileRequest request);
 
     /// <summary>
     ///     Changes the password of the specified user after verifying the current password.
@@ -50,7 +44,7 @@ public interface IProfileService
     ///     a validation error with code <c>incorrect_password</c> if the current password is wrong,
     ///     or a failure error if the database update fails.
     /// </returns>
-    ErrorOr<Success> ChangePassword(ChangePasswordRequest request);
+    public ErrorOr<Success> ChangePassword(ChangePasswordRequest request);
 
     /// <summary>
     ///     Enables 2FA for the specified user.
@@ -62,7 +56,7 @@ public interface IProfileService
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the database update fails.
     /// </returns>
-    ErrorOr<Success> Enable2Fa(int userId, TwoFactorMethod method);
+    public ErrorOr<Success> Enable2Fa(int userId, TwoFactorMethod method);
 
     /// <summary>
     ///     Disables 2FA for the specified user.
@@ -73,18 +67,18 @@ public interface IProfileService
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the database update fails.
     /// </returns>
-    ErrorOr<Success> Disable2Fa(int userId);
+    public ErrorOr<Success> Disable2Fa(int userId);
 
     /// <summary>
     ///     Retrieves all notification preferences for the specified user.
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <returns>
-    ///     The list of <see cref="NotificationPreferenceDataTransferObject" /> on success (may be empty),
+    ///     The list of <see cref="NotificationPreferenceDto" /> on success (it may be empty),
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the repository call fails.
     /// </returns>
-    ErrorOr<List<NotificationPreferenceDataTransferObject>> GetNotificationPreferences(int userId);
+    public ErrorOr<List<NotificationPreferenceDto>> GetNotificationPreferences(int userId);
 
     /// <summary>
     ///     Updates the notification preferences of the specified user.
@@ -96,9 +90,9 @@ public interface IProfileService
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the database update fails.
     /// </returns>
-    ErrorOr<Success> UpdateNotificationPreferences(
+    public ErrorOr<Success> UpdateNotificationPreferences(
         int userId,
-        List<NotificationPreferenceDataTransferObject> preferences);
+        List<NotificationPreferenceDto> preferences);
 
     /// <summary>
     ///     Verifies whether the supplied plain-text password matches the user's stored hash.
@@ -111,18 +105,18 @@ public interface IProfileService
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the hash verification throws.
     /// </returns>
-    ErrorOr<bool> VerifyPassword(int userId, string password);
+    public ErrorOr<bool> VerifyPassword(int userId, string password);
 
     /// <summary>
     ///     Gets all active sessions for the specified user.
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <returns>
-    ///     The list of active <see cref="SessionDataTransferObject" /> on success,
+    ///     The list of active <see cref="SessionDto" /> on success,
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the repository call fails.
     /// </returns>
-    ErrorOr<List<SessionDataTransferObject>> GetActiveSessions(int userId);
+    public ErrorOr<List<SessionDto>> GetActiveSessions(int userId);
 
     /// <summary>
     ///     Revokes a specific session for the specified user.
@@ -134,5 +128,5 @@ public interface IProfileService
     ///     a not-found error if the user does not exist,
     ///     or a failure error if the revocation fails.
     /// </returns>
-    ErrorOr<Success> RevokeSession(int userId, int sessionId);
+    public ErrorOr<Success> RevokeSession(int userId, int sessionId);
 }

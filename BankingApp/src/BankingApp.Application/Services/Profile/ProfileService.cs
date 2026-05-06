@@ -1,22 +1,16 @@
-﻿// <copyright file="ProfileService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Profile;
 
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Logging;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Errors;
+using Logging;
+using Repositories.Interfaces;
+using Security;
+using Utilities;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Application.Services.Profile;
+using BankingApp.Application.DTOs.Profile;
 
 /// <summary>
 ///     Provides user profile management operations including personal info, passwords, 2FA, and notifications.
@@ -44,7 +38,7 @@ public class ProfileService : IProfileService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<ProfileInfo> GetProfile(int userId)
+    public ErrorOr<ProfileDto> GetProfile(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
@@ -53,7 +47,7 @@ public class ProfileService : IProfileService
             return userResult.FirstError;
         }
 
-        return new ProfileInfo(userResult.Value);
+        return new ProfileDto(userResult.Value);
     }
 
     /// <inheritdoc />
@@ -61,7 +55,10 @@ public class ProfileService : IProfileService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> UpdatePersonalInfo(UpdateProfileRequest request)
     {
-        if (request.UserId == null) return ProfileErrors.UserIdRequired;
+        if (request.UserId == null)
+        {
+            return ProfileErrors.UserIdRequired;
+        }
 
         int userId = request.UserId.Value;
         ErrorOr<User> userResult = _userRepository.FindById(userId);
@@ -74,38 +71,57 @@ public class ProfileService : IProfileService
         User user = userResult.Value;
         if (request.FullName != null)
         {
-            if (string.IsNullOrWhiteSpace(request.FullName)) return ProfileErrors.FullNameRequired;
+            if (string.IsNullOrWhiteSpace(request.FullName))
+            {
+                return ProfileErrors.FullNameRequired;
+            }
 
             user.FullName = request.FullName.Trim();
         }
 
         if (request.PhoneNumber != null)
         {
-            if (!ValidationUtilities.IsValidPhoneNumber(request.PhoneNumber)) return ProfileErrors.InvalidPhone;
+            if (!ValidationUtilities.IsValidPhoneNumber(request.PhoneNumber))
+            {
+                return ProfileErrors.InvalidPhone;
+            }
 
             user.PhoneNumber = request.PhoneNumber;
         }
 
-        if (request.DateOfBirth != null) user.DateOfBirth = request.DateOfBirth;
+        if (request.DateOfBirth != null)
+        {
+            user.DateOfBirth = request.DateOfBirth;
+        }
 
-        if (request.Address != null) user.Address = request.Address.Trim();
+        if (request.Address != null)
+        {
+            user.Address = request.Address.Trim();
+        }
 
-        if (request.Nationality != null) user.Nationality = request.Nationality.Trim();
+        if (request.Nationality != null)
+        {
+            user.Nationality = request.Nationality.Trim();
+        }
 
         if (request.PreferredLanguage != null)
         {
-            if (string.IsNullOrWhiteSpace(request.PreferredLanguage)) return ProfileErrors.PreferredLanguageRequired;
+            if (string.IsNullOrWhiteSpace(request.PreferredLanguage))
+            {
+                return ProfileErrors.PreferredLanguageRequired;
+            }
 
             user.PreferredLanguage = request.PreferredLanguage.Trim();
         }
 
-        if (_userRepository.UpdateUser(user).IsError)
+        if (!_userRepository.UpdateUser(user).IsError)
         {
-            _logger.ProfileUpdateFailed(userId);
-            return UserErrors.UpdateFailed;
+            return Result.Success;
         }
 
-        return Result.Success;
+        _logger.ProfileUpdateFailed(userId);
+        return UserErrors.UpdateFailed;
+
     }
 
     /// <inheritdoc />
@@ -121,7 +137,10 @@ public class ProfileService : IProfileService
         }
 
         User user = userResult.Value;
-        if (!ValidationUtilities.IsStrongPassword(request.NewPassword)) return ProfileErrors.WeakPasswordChange;
+        if (!ValidationUtilities.IsStrongPassword(request.NewPassword))
+        {
+            return ProfileErrors.WeakPasswordChange;
+        }
 
         if (user.PasswordHash is null)
         {
@@ -212,7 +231,7 @@ public class ProfileService : IProfileService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<NotificationPreferenceDataTransferObject>> GetNotificationPreferences(int userId)
+    public ErrorOr<List<NotificationPreferenceDto>> GetNotificationPreferences(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
@@ -229,7 +248,7 @@ public class ProfileService : IProfileService
         }
 
         return preferencesResult.Value
-            .Select(preference => new NotificationPreferenceDataTransferObject
+            .Select(preference => new NotificationPreferenceDto
             {
                 Id = preference.Id,
                 UserId = preference.UserId,
@@ -248,7 +267,7 @@ public class ProfileService : IProfileService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> UpdateNotificationPreferences(
         int userId,
-        List<NotificationPreferenceDataTransferObject> preferences)
+        List<NotificationPreferenceDto> preferences)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
@@ -304,7 +323,7 @@ public class ProfileService : IProfileService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<SessionDataTransferObject>> GetActiveSessions(int userId)
+    public ErrorOr<List<SessionDto>> GetActiveSessions(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
@@ -321,15 +340,13 @@ public class ProfileService : IProfileService
         }
 
         return sessionsResult.Value
-            .Select(session => new SessionDataTransferObject
+            .Select(session => new SessionDto
             {
                 Id = session.Id,
                 DeviceInfo = session.DeviceInfo,
                 Browser = session.Browser,
                 IpAddress = session.IpAddress,
-                LastActiveAt = session.LastActiveAt,
-                ExpiresAt = session.ExpiresAt,
-                CreatedAt = session.CreatedAt
+                LastActiveAt = session.LastActiveAt
             })
             .ToList();
     }

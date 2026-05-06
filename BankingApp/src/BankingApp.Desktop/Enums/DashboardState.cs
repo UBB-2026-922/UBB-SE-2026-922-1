@@ -1,11 +1,4 @@
-﻿// <copyright file="DashboardState.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardState values.
-// </summary>
-
-namespace BankingApp.Desktop.Enums;
+﻿namespace BankingApp.Desktop.Enums;
 
 /// <summary>
 ///     Represents the possible states of the dashboard loading flow.

@@ -1,13 +1,6 @@
-﻿// <copyright file="RecurringPaymentResponse.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringPaymentResponse class.
-// </summary>
+﻿namespace BankingApp.Application.DTOs.RecurringPayments;
 
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.DTOs.RecurringPayments;
+using Domain.Enums;
 
 /// <summary>
 ///     Response payload representing a recurring payment schedule.

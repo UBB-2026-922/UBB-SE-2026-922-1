@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Application.DTOs.Beneficiaries;
+namespace BankingApp.Application.DTOs.Beneficiaries;
 
 /// <summary>
-///     Represents a beneficiary saved by a user for future transfers.
+///     Represents the data required to update a beneficiary.
 /// </summary>
-public class BeneficiaryDataTransferObject
+public class UpdateBeneficiaryRequest
 {
     /// <summary>
     ///     Gets or sets the beneficiary identifier.
@@ -13,12 +13,12 @@ public class BeneficiaryDataTransferObject
     /// <summary>
     ///     Gets or sets the beneficiary name.
     /// </summary>
-    public string? Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the beneficiary IBAN.
     /// </summary>
-    public string? Iban { get; set; }
+    public string Iban { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the beneficiary bank name.

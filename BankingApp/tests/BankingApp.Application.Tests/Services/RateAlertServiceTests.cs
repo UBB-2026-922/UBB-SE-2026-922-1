@@ -1,7 +1,3 @@
-﻿// <copyright file="RateAlertServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Application.DTOs.RateAlerts;
 using BankingApp.Application.Repositories.Interfaces;
@@ -55,7 +51,7 @@ public class RateAlertServiceTests
         _exchangeService
             .Setup(getsPreview =>
                 getsPreview.GetRatePreview(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         _service = new RateAlertService(_rateAlertRepository.Object, _exchangeService.Object);
     }
@@ -379,7 +375,7 @@ public class RateAlertServiceTests
 
         _exchangeService
             .Setup(getsPreview => getsPreview.GetRatePreview(EurCurrency, UsdCurrency, 1m))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         // Act
         ErrorOr<int> result = _service.ProcessAlerts();
@@ -417,7 +413,7 @@ public class RateAlertServiceTests
 
         _exchangeService
             .Setup(getsPreview => getsPreview.GetRatePreview(EurCurrency, UsdCurrency, 1m))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         // Act
         ErrorOr<int> result = _service.ProcessAlerts();
@@ -455,7 +451,7 @@ public class RateAlertServiceTests
 
         _exchangeService
             .Setup(getsPreview => getsPreview.GetRatePreview(EurCurrency, UsdCurrency, 1m))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         // Act
         ErrorOr<int> result = _service.ProcessAlerts();

@@ -1,10 +1,3 @@
-﻿// <copyright file="RecurringPaymentConfiguration.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringPaymentConfiguration class.
-// </summary>
-
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;

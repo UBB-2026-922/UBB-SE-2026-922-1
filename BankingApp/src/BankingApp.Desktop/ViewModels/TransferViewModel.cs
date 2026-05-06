@@ -1,11 +1,4 @@
-﻿// <copyright file="TransferViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferViewModel class.
-// </summary>
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -584,7 +577,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
             string endpoint =
                 $"{ApiEndpoints.TransferFxPreview}?from={SelectedAccount.Currency}&to={Currency}&amount={Amount}";
 
-            ErrorOr<FxPreviewDto> result = await _apiClient.GetAsync<FxPreviewDto>(endpoint);
+            ErrorOr<ForexPreviewDto> result = await _apiClient.GetAsync<ForexPreviewDto>(endpoint);
 
             if (result.IsError)
             {
@@ -592,7 +585,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
                 return;
             }
 
-            FxPreviewDto preview = result.Value;
+            ForexPreviewDto preview = result.Value;
 
             if (preview.ExchangeRate == IdentityExchangeRate)
                 FxPreviewText = $"{Amount:F2} {Currency}";

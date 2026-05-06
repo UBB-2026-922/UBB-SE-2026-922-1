@@ -1,8 +1,3 @@
-﻿// <copyright file="DashboardServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Application.DataTransferObjects.Dashboard;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Domain.Entities;
@@ -11,6 +6,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Application.Tests.Services;
+
+using DTOs.Dashboard;
 
 /// <summary>
 ///     Unit tests for <see cref="DashboardService" />.
@@ -69,7 +66,7 @@ public class DashboardServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(NonExistentUserId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(NonExistentUserId);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -91,7 +88,7 @@ public class DashboardServiceTests
             .Returns(new User { Id = userId, FullName = fullName, Email = email });
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -135,7 +132,7 @@ public class DashboardServiceTests
                 });
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -163,7 +160,7 @@ public class DashboardServiceTests
             .Returns(Error.Failure());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -208,7 +205,7 @@ public class DashboardServiceTests
                 });
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -233,7 +230,7 @@ public class DashboardServiceTests
             .Returns(Error.Failure());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -256,7 +253,7 @@ public class DashboardServiceTests
             .Returns(Error.Failure());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -315,7 +312,7 @@ public class DashboardServiceTests
             .Returns(transactions2);
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -339,7 +336,7 @@ public class DashboardServiceTests
             .Returns(unreadCount);
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();

@@ -10,7 +10,32 @@ env:
   TEST_FLAGS: --configuration Release --no-restore --logger trx --results-directory TestResults
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore BankingApp/src/BankingApp.Api/BankingApp.Api.csproj
+
+      - name: Build
+        run: dotnet build BankingApp/src/BankingApp.Api/BankingApp.Api.csproj --no-restore --configuration Release
+
   backend-tests:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

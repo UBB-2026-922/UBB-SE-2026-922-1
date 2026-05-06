@@ -1,6 +1,6 @@
 ﻿namespace BankingApp.Api.Controllers;
 
-using Application.DataTransferObjects.Dashboard;
+using Application.DTOs.Dashboard;
 using Application.Services.Dashboard;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,7 +29,7 @@ public class DashboardController : ApiControllerBase
     ///     The user ID is extracted from the HTTP context, set by the authentication middleware.
     /// </summary>
     /// <returns>
-    ///     200 OK with a <see cref="DashboardResponse" /> on success,
+    ///     200 OK with a <see cref="DashboardDto" /> on success,
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet]

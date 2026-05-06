@@ -1,14 +1,7 @@
-﻿// <copyright file="SessionsViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SessionsViewModel class.
-// </summary>
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
@@ -35,7 +28,7 @@ public partial class SessionsViewModel
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<ProfileState>(ProfileState.Idle);
-        ActiveSessions = new List<SessionDataTransferObject>();
+        ActiveSessions = new List<SessionDto>();
     }
 
     /// <summary>
@@ -52,7 +45,7 @@ public partial class SessionsViewModel
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public List<SessionDataTransferObject> ActiveSessions { get; private set; }
+    public List<SessionDto> ActiveSessions { get; private set; }
 
     /// <summary>
     ///     Loads all active sessions for the specified user from the server.
@@ -64,11 +57,11 @@ public partial class SessionsViewModel
         State.SetValue(ProfileState.Loading);
         try
         {
-            ErrorOr<List<SessionDataTransferObject>> result =
-                await _apiClient.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions);
+            ErrorOr<List<SessionDto>> result =
+                await _apiClient.GetAsync<List<SessionDto>>(ApiEndpoints.Sessions);
             if (result.IsError)
             {
-                ActiveSessions = new List<SessionDataTransferObject>();
+                ActiveSessions = new List<SessionDto>();
                 State.SetValue(ProfileState.Error);
                 return false;
             }
@@ -80,7 +73,7 @@ public partial class SessionsViewModel
         catch (Exception exception)
         {
             _logger.LoadSessionsFailed(exception, userId);
-            ActiveSessions = new List<SessionDataTransferObject>();
+            ActiveSessions = new List<SessionDto>();
             State.SetValue(ProfileState.Error);
             return false;
         }

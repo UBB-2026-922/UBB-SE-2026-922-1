@@ -1,10 +1,3 @@
-﻿// <copyright file="MainWindow.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for MainWindow.xaml.
-// </summary>
-
 using BankingApp.Desktop.Master;
 using BankingApp.Desktop.Views;
 

@@ -1,7 +1,3 @@
-﻿// <copyright file="BillersControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Api.Controllers;
 using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.Services.Billers;
@@ -96,7 +92,7 @@ public sealed class BillersControllerTests
     public void SaveBiller_WhenRequestIsValid_ReturnsCreated()
     {
         // Arrange
-        var request = new SaveBillerRequestDto { BillerId = DefaultBillerId, Nickname = "Home Water" };
+        var request = new SaveBillerRequest { BillerId = DefaultBillerId, Nickname = "Home Water" };
         var savedBiller = new SavedBillerDto
         {
             Id = DefaultSavedBillerId,

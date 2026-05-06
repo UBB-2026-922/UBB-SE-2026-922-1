@@ -1,10 +1,3 @@
-﻿// <copyright file="Beneficiary.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the Beneficiary entity for Team B's beneficiary management feature.
-// </summary>
-
 using System;
 
 namespace BankingApp.Domain.Entities;

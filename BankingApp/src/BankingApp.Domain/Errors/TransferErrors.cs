@@ -1,10 +1,3 @@
-﻿// <copyright file="TransferErrors.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferErrors class.
-// </summary>
-
 using ErrorOr;
 
 namespace BankingApp.Domain.Errors;

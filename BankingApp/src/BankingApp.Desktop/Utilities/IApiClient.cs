@@ -1,10 +1,3 @@
-﻿// <copyright file="IApiClient.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IApiClient interface.
-// </summary>
-
 using System.Threading;
 using System.Threading.Tasks;
 using ErrorOr;

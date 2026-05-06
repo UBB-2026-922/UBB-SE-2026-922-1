@@ -1,4 +1,3 @@
-// <summary>
 // Defines generated logging delegates for the Desktop project.
 // </summary>
 

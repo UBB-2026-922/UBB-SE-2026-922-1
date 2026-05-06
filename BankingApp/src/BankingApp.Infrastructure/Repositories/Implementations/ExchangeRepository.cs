@@ -1,10 +1,3 @@
-﻿// <copyright file="ExchangeRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ExchangeRepository class.
-// </summary>
-
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;

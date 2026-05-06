@@ -1,8 +1,4 @@
-﻿// <copyright file="ProfileServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Security;
@@ -12,6 +8,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Application.Tests.Services;
+
+using DTOs.Profile;
 
 /// <summary>
 ///     Unit tests for <see cref="ProfileService" />.
@@ -35,7 +33,7 @@ public class ProfileServiceTests
     }
 
     [Fact]
-    public void GetProfile_WhenUserExists_ReturnsProfileInfo()
+    public void GetProfile_WhenUserExists_ReturnsProfileDto()
     {
         // Arrange
         const int userId = 1;
@@ -55,7 +53,7 @@ public class ProfileServiceTests
                 });
 
         // Act
-        ErrorOr<ProfileInfo> result = _service.GetProfile(userId);
+        ErrorOr<ProfileDto> result = _service.GetProfile(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -75,7 +73,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<ProfileInfo> result = _service.GetProfile(NonExistentUserId);
+        ErrorOr<ProfileDto> result = _service.GetProfile(NonExistentUserId);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -86,7 +84,12 @@ public class ProfileServiceTests
     public void UpdatePersonalInfo_WhenUserIdIsNull_ReturnsValidationError()
     {
         // Arrange
-        var request = new UpdateProfileRequest(null, "0712345678", "123 Main St");
+        var request = new UpdateProfileRequest
+        {
+            UserId = null,
+            PhoneNumber = "0712345678",
+            Address = "123 Main St"
+        };
 
         // Act
         ErrorOr<Success> result = _service.UpdatePersonalInfo(request);
@@ -103,7 +106,12 @@ public class ProfileServiceTests
         _userRepository
             .Setup(findsById => findsById.FindById(NonExistentUserId))
             .Returns(Error.NotFound());
-        var request = new UpdateProfileRequest(NonExistentUserId, "0712345678", "123 Main St");
+        var request = new UpdateProfileRequest
+        {
+            UserId = NonExistentUserId,
+            PhoneNumber = "0712345678",
+            Address = "123 Main St"
+        };
 
         // Act
         ErrorOr<Success> result = _service.UpdatePersonalInfo(request);
@@ -121,7 +129,12 @@ public class ProfileServiceTests
         _userRepository
             .Setup(findsById => findsById.FindById(userId))
             .Returns(new User { Id = userId, Email = "ada@test.com", FullName = "Ada" });
-        var request = new UpdateProfileRequest(userId, "not-a-phone", "123 Main St");
+        var request = new UpdateProfileRequest
+        {
+            UserId = userId,
+            PhoneNumber = "not-a-phone",
+            Address = "123 Main St"
+        };
 
         // Act
         ErrorOr<Success> result = _service.UpdatePersonalInfo(request);
@@ -149,8 +162,11 @@ public class ProfileServiceTests
         _userRepository
             .Setup(updatesUser => updatesUser.UpdateUser(It.IsAny<User>()))
             .Returns(Result.Success);
-        var request = new UpdateProfileRequest(userId, validPhone, address)
+        var request = new UpdateProfileRequest
         {
+            UserId = userId,
+            PhoneNumber = validPhone,
+            Address = address,
             FullName = fullName,
             DateOfBirth = dateOfBirth,
             Nationality = nationality,
@@ -425,7 +441,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<List<NotificationPreferenceDataTransferObject>> result =
+        ErrorOr<List<NotificationPreferenceDto>> result =
             _service.GetNotificationPreferences(NonExistentUserId);
 
         // Assert
@@ -450,7 +466,7 @@ public class ProfileServiceTests
                 });
 
         // Act
-        ErrorOr<List<NotificationPreferenceDataTransferObject>> result = _service.GetNotificationPreferences(userId);
+        ErrorOr<List<NotificationPreferenceDto>> result = _service.GetNotificationPreferences(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -467,7 +483,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<List<SessionDataTransferObject>> result = _service.GetActiveSessions(NonExistentUserId);
+        ErrorOr<List<SessionDto>> result = _service.GetActiveSessions(NonExistentUserId);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -491,7 +507,7 @@ public class ProfileServiceTests
                 });
 
         // Act
-        ErrorOr<List<SessionDataTransferObject>> result = _service.GetActiveSessions(userId);
+        ErrorOr<List<SessionDto>> result = _service.GetActiveSessions(userId);
 
         // Assert
         result.IsError.Should().BeFalse();

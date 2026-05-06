@@ -1,10 +1,3 @@
-﻿// <copyright file="RateAlert.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RateAlert entity for Team B's FX rate alert feature.
-// </summary>
-
 using BankingApp.Domain.Errors;
 using ErrorOr;
 

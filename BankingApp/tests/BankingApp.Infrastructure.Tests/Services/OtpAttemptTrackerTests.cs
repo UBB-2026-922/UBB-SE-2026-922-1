@@ -1,7 +1,3 @@
-﻿// <copyright file="OtpAttemptTrackerTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
-// </copyright>
-
 using BankingApp.Infrastructure.Services;
 
 namespace BankingApp.Infrastructure.Tests.Services;

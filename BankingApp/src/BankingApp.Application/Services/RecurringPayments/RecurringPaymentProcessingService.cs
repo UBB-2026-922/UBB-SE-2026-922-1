@@ -1,21 +1,14 @@
-﻿// <copyright file="RecurringPaymentProcessingService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringPaymentProcessingService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.RecurringPayments;
 
 using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Logging;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Logging;
+using Repositories.Interfaces;
+using BillPayments;
+using Utilities;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.RecurringPayments;
 
 /// <summary>
 ///     Processes recurring payments that have reached their next execution date.
@@ -52,7 +45,10 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
         cancellationToken.ThrowIfCancellationRequested();
 
         ErrorOr<List<RecurringPayment>> duePaymentsResult = _recurringPaymentRepository.GetDuePayments(_clock.UtcNow);
-        if (duePaymentsResult.IsError) return duePaymentsResult.FirstError;
+        if (duePaymentsResult.IsError)
+        {
+            return duePaymentsResult.FirstError;
+        }
 
         foreach (RecurringPayment payment in duePaymentsResult.Value.Where(payment =>
                      payment.Status == RecurringPaymentStatus.Active))
@@ -75,7 +71,9 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
 
                 ErrorOr<Success> updateResult = _recurringPaymentRepository.Update(payment);
                 if (updateResult.IsError)
+                {
                     _logger.RecurringPaymentUpdateAfterExecutionFailed(payment.Id, updateResult.FirstError.Description);
+                }
             }
             catch (Exception exception)
             {

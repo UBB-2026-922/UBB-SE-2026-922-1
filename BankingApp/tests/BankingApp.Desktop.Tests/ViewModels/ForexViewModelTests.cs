@@ -1,7 +1,3 @@
-﻿// <copyright file="FXViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
@@ -99,7 +95,7 @@ public class ForexViewModelTests
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
 
-        var response = new ExchangeTransactionResponseDto
+        var response = new ExchangeTransactionResponse
         {
             ExchangeRate = expectedRate,
             Commission = expectedCommission,
@@ -107,7 +103,7 @@ public class ForexViewModelTests
         };
 
         _apiClient
-            .Setup(client => client.GetAsync<ExchangeTransactionResponseDto>(
+            .Setup(client => client.GetAsync<ExchangeTransactionResponse>(
                 It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
@@ -134,7 +130,7 @@ public class ForexViewModelTests
         _viewModel.AmountText = "100";
 
         _apiClient
-            .Setup(client => client.GetAsync<ExchangeTransactionResponseDto>(
+            .Setup(client => client.GetAsync<ExchangeTransactionResponse>(
                 It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure());
 
@@ -178,9 +174,9 @@ public class ForexViewModelTests
         _viewModel.AmountText = "100";
         _apiClient.Setup(client => client.CurrentUserId).Returns(1);
 
-        var response = new ExchangeTransactionResponseDto { Id = transactionId };
+        var response = new ExchangeTransactionResponse { Id = transactionId };
         _apiClient
-            .Setup(client => client.PostAsync<ExchangeTransactionRequestDto, ExchangeTransactionResponseDto>(
+            .Setup(client => client.PostAsync<ExchangeTransactionRequest, ExchangeTransactionResponse>(
                 It.IsAny<string>(), It.IsAny<object?>()))
             .ReturnsAsync(response);
 
@@ -206,7 +202,7 @@ public class ForexViewModelTests
         _apiClient.Setup(client => client.CurrentUserId).Returns(1);
 
         _apiClient
-            .Setup(client => client.PostAsync<ExchangeTransactionRequestDto, ExchangeTransactionResponseDto>(
+            .Setup(client => client.PostAsync<ExchangeTransactionRequest, ExchangeTransactionResponse>(
                 It.IsAny<string>(), It.IsAny<object?>()))
             .ReturnsAsync(Error.Failure());
 

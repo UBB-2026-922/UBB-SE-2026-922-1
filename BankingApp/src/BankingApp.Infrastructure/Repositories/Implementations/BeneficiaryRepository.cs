@@ -1,10 +1,3 @@
-﻿// <copyright file="BeneficiaryRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiaryRepository class.
-// </summary>
-
 using System.Collections.Generic;
 using System.Linq;
 using BankingApp.Application.Repositories.Interfaces;

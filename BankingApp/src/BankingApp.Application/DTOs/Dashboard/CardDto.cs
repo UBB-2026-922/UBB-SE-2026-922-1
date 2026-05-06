@@ -1,28 +1,13 @@
-﻿// <copyright file="CardDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the CardDataTransferObject class.
-// </summary>
+namespace BankingApp.Application.DTOs.Dashboard;
 
 using System.Text.Json.Serialization;
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.DataTransferObjects.Dashboard;
+using Domain.Enums;
 
 /// <summary>
 ///     Data transfer object representing a payment card on the dashboard.
 /// </summary>
-public class CardDataTransferObject
+public class CardDto
 {
-    /// <summary>
-    ///     Gets or sets the unique identifier for the card.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public int Id { get; set; }
-
     /// <summary>
     ///     Gets or sets the masked card number.
     /// </summary>

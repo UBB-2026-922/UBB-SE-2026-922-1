@@ -1,7 +1,3 @@
-﻿// <copyright file="BeneficiariesControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 using BankingApp.Api.Controllers;
 using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Domain.Entities;
@@ -11,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingApp.Api.Tests.Controller;
 
-using Application.DTOs.Beneficiary;
+using Application.DTOs.Beneficiaries;
 
 [Trait("Category", "Unit")]
 public sealed class BeneficiariesControllerTests
@@ -38,7 +34,7 @@ public sealed class BeneficiariesControllerTests
 
         // Assert
         OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        var dtos = ok.Value.Should().BeAssignableTo<List<BeneficiaryDataTransferObject>>().Subject;
+        var dtos = ok.Value.Should().BeAssignableTo<List<BeneficiaryDto>>().Subject;
         dtos.Should().HaveCount(2);
         dtos[0].Id.Should().Be(DefaultBeneficiaryId);
         dtos[0].Name.Should().Be("Alice");
@@ -77,7 +73,7 @@ public sealed class BeneficiariesControllerTests
 
         // Assert
         OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        var dto = ok.Value.Should().BeOfType<BeneficiaryDataTransferObject>().Subject;
+        var dto = ok.Value.Should().BeOfType<BeneficiaryDto>().Subject;
         dto.Id.Should().Be(DefaultBeneficiaryId);
         dto.Name.Should().Be("Alice");
     }
@@ -119,7 +115,7 @@ public sealed class BeneficiariesControllerTests
 
         // Assert
         OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        var dto = ok.Value.Should().BeOfType<BeneficiaryDataTransferObject>().Subject;
+        var dto = ok.Value.Should().BeOfType<BeneficiaryDto>().Subject;
         dto.Id.Should().Be(DefaultBeneficiaryId);
         dto.Name.Should().Be("Alice");
         dto.BankName.Should().Be("BRD");

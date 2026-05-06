@@ -1,17 +1,10 @@
-﻿// <copyright file="ExchangeService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ExchangeService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Exchange;
 
 using BankingApp.Application.DTOs.Exchange;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
-
-namespace BankingApp.Application.Services.Exchange;
 
 /// <summary>
 ///     Implements application-level operations for the FX currency exchange feature.
@@ -55,51 +48,63 @@ public class ExchangeService : IExchangeService
     }
 
     /// <inheritdoc />
-    public ErrorOr<ExchangeTransactionResponseDto> GetRatePreview(
+    public ErrorOr<ExchangeTransactionResponse> GetRatePreview(
         string sourceCurrency,
         string targetCurrency,
         decimal amount)
     {
         if (string.IsNullOrWhiteSpace(sourceCurrency))
+        {
             return Error.Validation(description: "Source currency cannot be empty.");
+        }
 
         if (string.IsNullOrWhiteSpace(targetCurrency))
+        {
             return Error.Validation(description: "Target currency cannot be empty.");
+        }
 
         if (sourceCurrency.Equals(targetCurrency, StringComparison.OrdinalIgnoreCase))
+        {
             return Error.Validation(description: "Source and target currencies must differ.");
+        }
 
-        if (amount <= 0) return Error.Validation(description: "Amount must be greater than zero.");
+        if (amount <= 0)
+        {
+            return Error.Validation(description: "Amount must be greater than zero.");
+        }
 
         ErrorOr<decimal> rateResult = GetRate(sourceCurrency, targetCurrency);
-        if (rateResult.IsError) return rateResult.Errors;
+        if (rateResult.IsError)
+        {
+            return rateResult.Errors;
+        }
 
         decimal rate = rateResult.Value;
         decimal commission = CalculateCommission(amount);
         decimal targetAmount = amount * rate - commission;
 
-        return new ExchangeTransactionResponseDto
+        return new ExchangeTransactionResponse
         {
             SourceCurrency = sourceCurrency,
             TargetCurrency = targetCurrency,
-            SourceAmount = amount,
             TargetAmount = targetAmount,
             ExchangeRate = rate,
             Commission = commission,
-            Status = ExchangeTransactionStatus.Pending,
-            CreatedAt = DateTime.UtcNow
+            Status = ExchangeTransactionStatus.Pending
         };
     }
 
     /// <inheritdoc />
-    public ErrorOr<ExchangeTransactionResponseDto> ExecuteExchange(ExchangeTransactionRequestDto request)
+    public ErrorOr<ExchangeTransactionResponse> ExecuteExchange(ExchangeTransactionRequest request)
     {
         if (!IsRateLockValid(request.UserId))
+        {
             return Error.Validation(description: "No valid rate lock found or the lock window has expired.");
+        }
 
         LockedRate lockedRate = _lockedRates[request.UserId];
         decimal commission = CalculateCommission(request.SourceAmount);
-        decimal targetAmount = request.SourceAmount * lockedRate.Rate - commission;
+        decimal targetAmount = (request.SourceAmount * lockedRate.Rate) - commission;
 
         var exchange = new ExchangeTransaction
         {
@@ -118,7 +123,10 @@ public class ExchangeService : IExchangeService
         };
 
         ErrorOr<ExchangeTransaction> createResult = _exchangeRepository.Create(exchange);
-        if (createResult.IsError) return createResult.Errors;
+        if (createResult.IsError)
+        {
+            return createResult.Errors;
+        }
 
         _lockedRates.Remove(request.UserId);
 
@@ -126,12 +134,15 @@ public class ExchangeService : IExchangeService
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<ExchangeTransactionResponseDto>> GetExchangeHistory(int userId)
+    public ErrorOr<List<ExchangeTransactionResponse>> GetExchangeHistory(int userId)
     {
         ErrorOr<List<ExchangeTransaction>> result = _exchangeRepository.GetByUserId(userId);
-        if (result.IsError) return result.Errors;
+        if (result.IsError)
+        {
+            return result.Errors;
+        }
 
-        return result.Value.Select(MapToResponseDto).ToList();
+        return result.Value.ConvertAll(MapToResponseDto);
     }
 
     /// <summary>Locks in the current rate for a user for 30 seconds.</summary>
@@ -142,7 +153,10 @@ public class ExchangeService : IExchangeService
     public ErrorOr<LockedRate> LockRate(int userId, string sourceCurrency, string targetCurrency)
     {
         ErrorOr<decimal> rateResult = GetRate(sourceCurrency, targetCurrency);
-        if (rateResult.IsError) return rateResult.Errors;
+        if (rateResult.IsError)
+        {
+            return rateResult.Errors;
+        }
 
         var lockedRate = new LockedRate
         {
@@ -161,7 +175,10 @@ public class ExchangeService : IExchangeService
     /// <returns>True if lock exists and is not expired.</returns>
     public bool IsRateLockValid(int userId)
     {
-        if (!_lockedRates.TryGetValue(userId, out LockedRate? lockedRate)) return false;
+        if (!_lockedRates.TryGetValue(userId, out LockedRate? lockedRate))
+        {
+            return false;
+        }
 
         return !lockedRate.IsExpired();
     }
@@ -174,19 +191,17 @@ public class ExchangeService : IExchangeService
         return Math.Max(MinimumCommission, amount * CommissionRate);
     }
 
-    private static ExchangeTransactionResponseDto MapToResponseDto(ExchangeTransaction exchange)
+    private static ExchangeTransactionResponse MapToResponseDto(ExchangeTransaction exchange)
     {
-        return new ExchangeTransactionResponseDto
+        return new ExchangeTransactionResponse
         {
             Id = exchange.Id,
             SourceCurrency = exchange.SourceCurrency,
             TargetCurrency = exchange.TargetCurrency,
-            SourceAmount = exchange.SourceAmount,
             TargetAmount = exchange.TargetAmount,
             ExchangeRate = exchange.ExchangeRate,
             Commission = exchange.Commission,
-            Status = exchange.Status,
-            CreatedAt = exchange.CreatedAt
+            Status = exchange.Status
         };
     }
 
@@ -195,18 +210,26 @@ public class ExchangeService : IExchangeService
         Dictionary<string, decimal> rates = GetLiveRates();
         string key = $"{sourceCurrency}/{targetCurrency}";
 
-        if (rates.TryGetValue(key, out decimal rate)) return rate;
+        if (rates.TryGetValue(key, out decimal rate))
+        {
+            return rate;
+        }
 
         string inverseKey = $"{targetCurrency}/{sourceCurrency}";
         if (rates.TryGetValue(inverseKey, out decimal inverseRate))
+        {
             return Math.Round(1 / inverseRate, RatePrecisionDecimals);
+        }
 
         return Error.NotFound(description: $"Rate not found for pair {sourceCurrency}/{targetCurrency}.");
     }
 
     private Dictionary<string, decimal> GetLiveRates()
     {
-        if (_cachedRates != null && DateTime.UtcNow - _ratesLastFetched < _cacheDuration) return _cachedRates;
+        if (_cachedRates != null && DateTime.UtcNow - _ratesLastFetched < _cacheDuration)
+        {
+            return _cachedRates;
+        }
 
         var rates = new Dictionary<string, decimal>
         {

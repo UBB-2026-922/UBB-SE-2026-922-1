@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Application.DTOs.Auth;
+namespace BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Data transfer object used for reset token verification requests.
 /// </summary>
-public class VerifyTokenDataTransferObject
+public class VerifyResetTokenRequest
 {
     /// <summary>
     ///     Gets or sets the reset token to be verified.

@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Application.DTOs.Billers;
+namespace BankingApp.Application.DTOs.Billers;
 
 /// <summary>
 ///     Request body for saving a biller.
 /// </summary>
-public class SaveBillerRequestDto
+public class SaveBillerRequest
 {
     /// <summary>Gets or sets the identifier of the biller to save.</summary>
     /// <value>Gets or sets the current value.</value>

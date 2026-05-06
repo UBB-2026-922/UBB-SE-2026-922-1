@@ -1,10 +1,3 @@
-﻿// <copyright file="BillPayViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains tests for BillPayViewModel.
-// </summary>
-
 using System.Collections.Generic;
 using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.DTOs.BillPayments;
@@ -204,11 +197,11 @@ public class BillPayViewModelTests
     public void ExecuteNextStep_WhenOnStep2AndValidLowAmount_ShouldSkipTwoFactorAuthenticationAndGoToStep4()
     {
         _apiClient
-            .Setup(apiClient => apiClient.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
-            .ReturnsAsync(new FeeResponseDto { Fee = 0.50m });
+            .Setup(apiClient => apiClient.GetAsync<FeeResponse>(It.Is<string>(s => s.Contains("fee")), default))
+            .ReturnsAsync(new FeeResponse { Fee = 0.50m });
         _apiClient
-            .Setup(apiClient => apiClient.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
-            .ReturnsAsync(new Requires2FaResponseDto { Required = false });
+            .Setup(apiClient => apiClient.GetAsync<RequiresTwoFaResponse>(It.Is<string>(s => s.Contains("requires-2fa")), default))
+            .ReturnsAsync(new RequiresTwoFaResponse { Required = false });
 
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
@@ -231,11 +224,11 @@ public class BillPayViewModelTests
     public void ExecuteNextStep_WhenOnStep2AndHighAmount_ShouldGoToTwoFactorAuthenticationStep3()
     {
         _apiClient
-            .Setup(apiClient => apiClient.GetAsync<FeeResponseDto>(It.Is<string>(s => s.Contains("fee")), default))
-            .ReturnsAsync(new FeeResponseDto { Fee = 1.00m });
+            .Setup(apiClient => apiClient.GetAsync<FeeResponse>(It.Is<string>(s => s.Contains("fee")), default))
+            .ReturnsAsync(new FeeResponse { Fee = 1.00m });
         _apiClient
-            .Setup(apiClient => apiClient.GetAsync<Requires2FaResponseDto>(It.Is<string>(s => s.Contains("requires-2fa")), default))
-            .ReturnsAsync(new Requires2FaResponseDto { Required = true });
+            .Setup(apiClient => apiClient.GetAsync<RequiresTwoFaResponse>(It.Is<string>(s => s.Contains("requires-2fa")), default))
+            .ReturnsAsync(new RequiresTwoFaResponse { Required = true });
 
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
@@ -329,10 +322,10 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenSuccess_ShouldSetReceiptAndGoToStep5()
     {
         _apiClient
-            .Setup(apiClient => apiClient.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+            .Setup(apiClient => apiClient.PostAsync<BillPayRequest, BillPayResponse>(
                 ApiEndpoints.BillPayPay,
-                It.IsAny<BillPayRequestDto>()))
-            .ReturnsAsync(new BillPayResponseDto
+                It.IsAny<BillPayRequest>()))
+            .ReturnsAsync(new BillPayResponse
             {
                 Id = 1,
                 ReceiptNumber = "RCP-20260504-ABC123",
@@ -361,9 +354,9 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenApiFails_ShouldSetErrorMessage()
     {
         _apiClient
-            .Setup(apiClient => apiClient.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+            .Setup(apiClient => apiClient.PostAsync<BillPayRequest, BillPayResponse>(
                 ApiEndpoints.BillPayPay,
-                It.IsAny<BillPayRequestDto>()))
+                It.IsAny<BillPayRequest>()))
             .ReturnsAsync(Error.Failure(description: "Insufficient funds"));
 
         BillPayViewModel vm = CreateViewModel();
@@ -398,10 +391,10 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenWithSaveBiller_ShouldCallSaveEndpoint()
     {
         _apiClient
-            .Setup(apiClient => apiClient.PostAsync<BillPayRequestDto, BillPayResponseDto>(
+            .Setup(apiClient => apiClient.PostAsync<BillPayRequest, BillPayResponse>(
                 ApiEndpoints.BillPayPay,
-                It.IsAny<BillPayRequestDto>()))
-            .ReturnsAsync(new BillPayResponseDto
+                It.IsAny<BillPayRequest>()))
+            .ReturnsAsync(new BillPayResponse
             {
                 Id = 1,
                 ReceiptNumber = "RCP-TEST",
@@ -410,9 +403,9 @@ public class BillPayViewModelTests
                 Status = "Completed"
             });
         _apiClient
-            .Setup(apiClient => apiClient.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
+            .Setup(apiClient => apiClient.PostAsync<SaveBillerRequest, SavedBillerDto>(
                 ApiEndpoints.BillPaySaveBiller,
-                It.IsAny<SaveBillerRequestDto>()))
+                It.IsAny<SaveBillerRequest>()))
             .ReturnsAsync(new SavedBillerDto
             {
                 Id = 99,
@@ -431,9 +424,9 @@ public class BillPayViewModelTests
         await vm.ExecutePayBillAsync();
 
         _apiClient.Verify(
-            apiClient => apiClient.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
+            apiClient => apiClient.PostAsync<SaveBillerRequest, SavedBillerDto>(
                 ApiEndpoints.BillPaySaveBiller,
-                It.IsAny<SaveBillerRequestDto>()),
+                It.IsAny<SaveBillerRequest>()),
             Times.Once);
         vm.SavedBillers.Should().HaveCount(1);
     }

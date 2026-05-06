@@ -1,9 +1,9 @@
 ﻿namespace BankingApp.Application.Services.Dashboard;
 
-using BankingApp.Application.DataTransferObjects.Dashboard;
 using Logging;
 using Repositories.Interfaces;
 using Domain.Entities;
+using DTOs.Dashboard;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
@@ -37,7 +37,7 @@ public class DashboardService : IDashboardService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<DashboardResponse> GetDashboardData(int userId)
+    public ErrorOr<DashboardDto> GetDashboardData(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
@@ -87,9 +87,9 @@ public class DashboardService : IDashboardService
                 .ToList();
         }
 
-        return new DashboardResponse
+        return new DashboardDto
         {
-            CurrentUser = new UserSummaryDataTransferObject
+            CurrentUser = new UserSummaryDto
             {
                 FullName = userResult.Value.FullName,
                 Email = userResult.Value.Email,
@@ -97,11 +97,10 @@ public class DashboardService : IDashboardService
                 Is2FaEnabled = userResult.Value.Is2FaEnabled
             },
             Cards = cardsResult.IsError
-                ? new List<CardDataTransferObject>()
+                ? new List<CardDto>()
                 : cardsResult.Value
-                    .Select(card => new CardDataTransferObject
+                    .Select(card => new CardDto
                     {
-                        Id = card.Id,
                         CardNumber = card.GetMaskedNumber(),
                         CardholderName = card.CardholderName,
                         CardType = card.CardType,
@@ -117,7 +116,7 @@ public class DashboardService : IDashboardService
                     })
                     .ToList(),
             RecentTransactions = allTransactions
-                .Select(transaction => new TransactionDataTransferObject
+                .Select(transaction => new TransactionDto
                 {
                     Id = transaction.Id,
                     Direction = transaction.Direction,

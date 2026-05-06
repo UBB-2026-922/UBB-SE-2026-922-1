@@ -1,10 +1,3 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ServiceCollectionExtensions class.
-// </summary>
-
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.BillPayments;
 using BankingApp.Application.Services.Login;

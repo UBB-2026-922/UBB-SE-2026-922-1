@@ -1,18 +1,11 @@
-﻿// <copyright file="NotificationPreferenceDataTransferObject.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the NotificationPreferenceDataTransferObject class.
-// </summary>
+namespace BankingApp.Application.DTOs.Profile;
 
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.DataTransferObjects.Profile;
+using Domain.Enums;
 
 /// <summary>
 ///     Data transfer object representing a user's notification preference for a specific category.
 /// </summary>
-public class NotificationPreferenceDataTransferObject
+public class NotificationPreferenceDto
 {
     /// <summary>
     ///     Gets or sets the unique identifier of the preference.

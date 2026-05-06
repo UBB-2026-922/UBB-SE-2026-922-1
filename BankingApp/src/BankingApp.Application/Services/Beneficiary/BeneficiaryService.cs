@@ -1,23 +1,16 @@
-﻿// <copyright file="BeneficiaryService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiaryService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Beneficiary;
 
 using System.Text.RegularExpressions;
-using BankingApp.Application.Logging;
-using BankingApp.Application.Repositories.Interfaces;
+using Logging;
+using Repositories.Interfaces;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-using DomainBeneficiary = BankingApp.Domain.Entities.Beneficiary;
-
-namespace BankingApp.Application.Services.Beneficiary;
+using Domain.Entities;
 
 /// <summary>
 ///     Provides business operations for managing beneficiaries.
 /// </summary>
-public class BeneficiaryService : IBeneficiaryService
+public partial class BeneficiaryService : IBeneficiaryService
 {
     private readonly ILogger<BeneficiaryService> _logger;
     private readonly IBeneficiaryRepository _beneficiaryRepository;
@@ -36,29 +29,33 @@ public class BeneficiaryService : IBeneficiaryService
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<DomainBeneficiary>> GetByUserId(int userId)
+    public ErrorOr<List<Beneficiary>> GetByUserId(int userId)
     {
         return _beneficiaryRepository.FindByUserId(userId);
     }
 
     /// <inheritdoc />
-    public ErrorOr<DomainBeneficiary> GetById(int beneficiaryId, int userId)
+    public ErrorOr<Beneficiary> GetById(int beneficiaryId, int userId)
     {
         return _beneficiaryRepository.FindById(beneficiaryId, userId);
     }
 
     /// <inheritdoc />
-    public ErrorOr<DomainBeneficiary> Create(int userId, string name, string iban, string? bankName)
+    public ErrorOr<Beneficiary> Create(int userId, string name, string iban, string? bankName)
     {
         if (string.IsNullOrWhiteSpace(name))
+        {
             return Error.Validation(
                 "Beneficiary.NameRequired",
                 "Beneficiary name cannot be empty.");
+        }
 
         if (!ValidateIban(iban))
+        {
             return Error.Validation(
                 "Beneficiary.InvalidIban",
                 "Invalid IBAN format.");
+        }
 
         string normalizedName = name.Trim();
         string normalizedIban = iban.Trim().ToUpperInvariant();
@@ -72,11 +69,13 @@ public class BeneficiaryService : IBeneficiaryService
         }
 
         if (existsResult.Value)
+        {
             return Error.Conflict(
                 "Beneficiary.DuplicateIban",
                 "A beneficiary with this IBAN already exists for this user.");
+        }
 
-        var beneficiary = new DomainBeneficiary
+        var beneficiary = new Beneficiary
         {
             UserId = userId,
             Name = normalizedName,
@@ -87,7 +86,7 @@ public class BeneficiaryService : IBeneficiaryService
             TransferCount = 0
         };
 
-        ErrorOr<DomainBeneficiary> createResult = _beneficiaryRepository.Create(beneficiary);
+        ErrorOr<Beneficiary> createResult = _beneficiaryRepository.Create(beneficiary);
         if (createResult.IsError)
         {
             _logger.BeneficiaryCreateFailed(userId);
@@ -100,17 +99,21 @@ public class BeneficiaryService : IBeneficiaryService
     }
 
     /// <inheritdoc />
-    public ErrorOr<Success> Update(DomainBeneficiary beneficiary)
+    public ErrorOr<Success> Update(Beneficiary beneficiary)
     {
         if (string.IsNullOrWhiteSpace(beneficiary.Name))
+        {
             return Error.Validation(
                 "Beneficiary.NameRequired",
                 "Beneficiary name cannot be empty.");
+        }
 
         if (!ValidateIban(beneficiary.Iban))
+        {
             return Error.Validation(
                 "Beneficiary.InvalidIban",
                 "Invalid IBAN format.");
+        }
 
         string normalizedName = beneficiary.Name.Trim();
         string normalizedIban = beneficiary.Iban.Trim().ToUpperInvariant();
@@ -118,11 +121,14 @@ public class BeneficiaryService : IBeneficiaryService
             ? null
             : beneficiary.BankName.Trim();
 
-        ErrorOr<DomainBeneficiary> existingBeneficiaryResult =
+        ErrorOr<Beneficiary> existingBeneficiaryResult =
             _beneficiaryRepository.FindById(beneficiary.Id, beneficiary.UserId);
-        if (existingBeneficiaryResult.IsError) return existingBeneficiaryResult.FirstError;
+        if (existingBeneficiaryResult.IsError)
+        {
+            return existingBeneficiaryResult.FirstError;
+        }
 
-        ErrorOr<List<DomainBeneficiary>> userBeneficiariesResult =
+        ErrorOr<List<Beneficiary>> userBeneficiariesResult =
             _beneficiaryRepository.FindByUserId(beneficiary.UserId);
 
         if (userBeneficiariesResult.IsError)
@@ -136,11 +142,13 @@ public class BeneficiaryService : IBeneficiaryService
             string.Equals(existingBeneficiary.Iban, normalizedIban, StringComparison.OrdinalIgnoreCase));
 
         if (duplicateOwnedByAnotherBeneficiary)
+        {
             return Error.Conflict(
                 "Beneficiary.DuplicateIban",
                 "A beneficiary with this IBAN already exists for this user.");
+        }
 
-        DomainBeneficiary existingBeneficiary = existingBeneficiaryResult.Value;
+        Beneficiary existingBeneficiary = existingBeneficiaryResult.Value;
         existingBeneficiary.Name = normalizedName;
         existingBeneficiary.Iban = normalizedIban;
         existingBeneficiary.BankName = normalizedBankName;
@@ -157,12 +165,16 @@ public class BeneficiaryService : IBeneficiaryService
     /// <inheritdoc />
     public bool ValidateIban(string iban)
     {
-        if (string.IsNullOrWhiteSpace(iban)) return false;
+        if (string.IsNullOrWhiteSpace(iban))
+        {
+            return false;
+        }
 
         string normalized = iban.Replace(" ", string.Empty).Trim().ToUpperInvariant();
 
-        if (normalized.Length < 15 || normalized.Length > 34) return false;
-
-        return Regex.IsMatch(normalized, "^[A-Z]{2}[0-9]{2}[A-Z0-9]+$");
+        return normalized.Length is >= 15 and <= 34 && MyRegex().IsMatch(normalized);
     }
+
+    [GeneratedRegex("^[A-Z]{2}[0-9]{2}[A-Z0-9]+$")]
+    private static partial Regex MyRegex();
 }

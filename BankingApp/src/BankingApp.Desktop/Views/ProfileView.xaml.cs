@@ -1,15 +1,8 @@
-﻿// <copyright file="ProfileView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for ProfileView.xaml.
-// </summary>
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Master;
 using BankingApp.Desktop.Utilities;
@@ -144,7 +137,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             Log.Information(
                 "ProfileView load finished. Success={Loaded}, UserId={UserId}, PreferencesCount={PreferencesCount}.",
                 loaded,
-                _viewModel.ProfileInfo.UserId,
+                _viewModel.ProfileDto.UserId,
                 _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
             ShowLoading(false);
             if (!loaded)
@@ -176,8 +169,8 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 exception,
                 "ProfileView UI population failed. Trigger={Trigger}, UserId={UserId}, FullName={FullName}, PreferencesCount={PreferencesCount}.",
                 trigger,
-                _viewModel.ProfileInfo.UserId,
-                _viewModel.ProfileInfo.FullName,
+                _viewModel.ProfileDto.UserId,
+                _viewModel.ProfileDto.FullName,
                 _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
             throw;
         }
@@ -185,7 +178,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private void PopulateUi()
     {
-        ProfileInfo user = _viewModel.ProfileInfo;
+        ProfileDto user = _viewModel.ProfileDto;
         Log.Information(
             "ProfileView populating UI for UserId={UserId}, HasPhone={HasPhone}, Preferred2FaMethod={Preferred2FaMethod}.",
             user.UserId,
@@ -343,7 +336,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         ContentDialogButtonClickDeferral? deferral = arguments.GetDeferral();
         string? newPassword = NewPasswordBox.Password;
         string? confirmPassword = ConfirmPasswordBox.Password;
-        int? userId = _viewModel.ProfileInfo.UserId;
+        int? userId = _viewModel.ProfileDto.UserId;
         if (userId == null)
         {
             NewPasswordErrorInfoBar.Message = "User not loaded.";
@@ -426,7 +419,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     {
         if (_viewModel.IsInitializingView) return;
 
-        if (sender is ToggleSwitch { Tag: NotificationPreferenceDataTransferObject preference } toggle)
+        if (sender is ToggleSwitch { Tag: NotificationPreferenceDto preference } toggle)
         {
             _isUpdatingToggle = true;
             await _viewModel.ToggleNotificationPreference(preference, toggle.IsOn);
@@ -574,7 +567,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
     }
 
-    private void PopulateNotificationPreferences(List<NotificationPreferenceDataTransferObject>? preferences)
+    private void PopulateNotificationPreferences(List<NotificationPreferenceDto>? preferences)
     {
         Log.Information(
             "ProfileView populating notification preferences. Count={Count}.",
@@ -587,7 +580,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             return;
         }
 
-        foreach (NotificationPreferenceDataTransferObject preference in preferences)
+        foreach (NotificationPreferenceDto preference in preferences)
         {
             var row = new Grid
             {
@@ -668,7 +661,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         return true;
     }
 
-    private Border BuildSessionCard(SessionDataTransferObject session)
+    private Border BuildSessionCard(SessionDto session)
     {
         var card = new Border
         {
@@ -786,7 +779,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             return;
         }
 
-        foreach (SessionDataTransferObject session in _viewModel.Sessions.ActiveSessions)
+        foreach (SessionDto session in _viewModel.Sessions.ActiveSessions)
             SessionsListPanel.Children.Add(BuildSessionCard(session));
     }
 }

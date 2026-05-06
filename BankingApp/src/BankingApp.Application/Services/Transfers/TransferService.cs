@@ -1,22 +1,14 @@
-﻿// <copyright file="TransferService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Transfers;
 
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Logging;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Application.Services.Transfers;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Errors;
+using DTOs.Transfer;
+using Logging;
+using Repositories.Interfaces;
+using Security;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.Transfers;
 
 /// <summary>
 ///     Handles transfer creation and history retrieval.
@@ -54,7 +46,10 @@ public class TransferService(
     public ErrorOr<List<TransferAccountSelectionResponse>> GetAvailableAccounts(int userId)
     {
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
-        if (accountsResult.IsError) return accountsResult.FirstError;
+        if (accountsResult.IsError)
+        {
+            return accountsResult.FirstError;
+        }
 
         return accountsResult.Value
             .Where(account => account.Status == AccountStatus.Active)
@@ -82,24 +77,34 @@ public class TransferService(
     }
 
     /// <inheritdoc />
-    public ErrorOr<TransferFxPreviewResponse> GetFxPreview(string sourceCurrency, string targetCurrency, decimal amount)
+    public ErrorOr<TransferForexPreviewResponse> GetFxPreview(string sourceCurrency, string targetCurrency, decimal amount)
     {
         if (string.IsNullOrWhiteSpace(sourceCurrency) || string.IsNullOrWhiteSpace(targetCurrency))
+        {
             return Error.Validation(description: "Both currencies are required.");
+        }
 
-        if (amount <= 0) return Error.Validation(description: "Amount must be greater than zero.");
+        if (amount <= 0)
+        {
+            return Error.Validation(description: "Amount must be greater than zero.");
+        }
 
         if (sourceCurrency.Equals(targetCurrency, StringComparison.OrdinalIgnoreCase))
-            return new TransferFxPreviewResponse
+        {
+            return new TransferForexPreviewResponse
             {
                 ExchangeRate = 1m,
                 ConvertedAmount = amount
             };
+        }
 
         ErrorOr<decimal> rateResult = GetExchangeRate(sourceCurrency, targetCurrency);
-        if (rateResult.IsError) return rateResult.FirstError;
+        if (rateResult.IsError)
+        {
+            return rateResult.FirstError;
+        }
 
-        return new TransferFxPreviewResponse
+        return new TransferForexPreviewResponse
         {
             ExchangeRate = rateResult.Value,
             ConvertedAmount = Math.Round(amount * rateResult.Value, 2)
@@ -119,7 +124,10 @@ public class TransferService(
     public ErrorOr<TransferResponse> CreateTransfer(CreateTransferRequest request, int userId)
     {
         ErrorOr<Success> validationResult = ValidateRequest(request);
-        if (validationResult.IsError) return validationResult.FirstError;
+        if (validationResult.IsError)
+        {
+            return validationResult.FirstError;
+        }
 
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
         if (accountsResult.IsError)
@@ -148,7 +156,10 @@ public class TransferService(
         }
 
         ErrorOr<Success> authResult = CheckTwoFa(request, userId);
-        if (authResult.IsError) return authResult.FirstError;
+        if (authResult.IsError)
+        {
+            return authResult.FirstError;
+        }
 
         return DebitAndPersist(request, userId, account);
     }
@@ -207,11 +218,16 @@ public class TransferService(
         };
 
         string directPair = $"{sourceCurrency.ToUpperInvariant()}/{targetCurrency.ToUpperInvariant()}";
-        if (rates.TryGetValue(directPair, out decimal directRate)) return directRate;
+        if (rates.TryGetValue(directPair, out decimal directRate))
+        {
+            return directRate;
+        }
 
         string inversePair = $"{targetCurrency.ToUpperInvariant()}/{sourceCurrency.ToUpperInvariant()}";
         if (rates.TryGetValue(inversePair, out decimal inverseRate))
+        {
             return Math.Round(1 / inverseRate, ExchangeRatePrecision);
+        }
 
         return Error.NotFound(description: $"Rate not found for pair {sourceCurrency}/{targetCurrency}.");
     }
@@ -223,7 +239,10 @@ public class TransferService(
 
     private ErrorOr<Success> CheckTwoFa(CreateTransferRequest request, int userId)
     {
-        if (!Transfer.RequiresTwoFactorAuthentication(request.Amount)) return Result.Success;
+        if (!Transfer.RequiresTwoFactorAuthentication(request.Amount))
+        {
+            return Result.Success;
+        }
 
         if (string.IsNullOrWhiteSpace(request.TwoFaToken))
         {

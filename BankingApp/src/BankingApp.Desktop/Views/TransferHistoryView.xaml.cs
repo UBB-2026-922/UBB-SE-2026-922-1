@@ -1,10 +1,3 @@
-﻿// <copyright file="TransferHistoryView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferHistoryView code-behind.
-// </summary>
-
 using BankingApp.Desktop.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
