@@ -136,4 +136,120 @@ public class BillPaymentsControllerTests
         var response = Assert.IsType<Requires2FaResponseDto>(okResult.Value);
         Assert.True(response.Required);
     }
+
+    [Fact]
+    public async Task ProcessPayment_WhenValidRequest_ReturnsOkResultWithPaymentDetails()
+    {
+        // Arrange
+        var request = new BillPayRequestDto
+        {
+            SourceAccountId = 1,
+            BillerId = 2,
+            BillerReference = "REF123",
+            Amount = 100m,
+            IsPayInFull = false,
+            TwoFaToken = "123456"
+        };
+
+        var expectedPayment = new BillPayment
+        {
+            Id = 10,
+            ReceiptNumber = "REC-123",
+            Fee = 2.5m,
+            Amount = 100m,
+            Status = PaymentStatus.Completed
+        };
+
+        _mockBillPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ReturnsAsync(expectedPayment);
+
+        // Act
+        var result = await _controller.ProcessPayment(request);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var response = Assert.IsType<BillPayResponseDto>(okResult.Value);
+        Assert.Equal(expectedPayment.Id, response.Id);
+        Assert.Equal(expectedPayment.ReceiptNumber, response.ReceiptNumber);
+        Assert.Equal(expectedPayment.Fee, response.Fee);
+        Assert.Equal(expectedPayment.Amount, response.Amount);
+        Assert.Equal(expectedPayment.Status.ToString(), response.Status);
+    }
+
+    [Fact]
+    public async Task ProcessPayment_WhenServiceThrowsException_ReturnsBadRequest()
+    {
+        // Arrange
+        var request = new BillPayRequestDto();
+        _mockBillPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ThrowsAsync(new Exception("Insufficient funds"));
+
+        // Act
+        var result = await _controller.ProcessPayment(request);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.NotNull(badRequestResult.Value);
+    }
+
+    [Fact]
+    public async Task SaveBiller_WhenValidRequestAndServiceReturnsTrue_ReturnsOkResult()
+    {
+        // Arrange
+        var request = new SaveBillerDto
+        {
+            BillerId = 2,
+            Nickname = "My Biller"
+        };
+        _mockBillPaymentService
+            .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
+            .ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.SaveBiller(request);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.NotNull(okResult.Value);
+    }
+
+    [Fact]
+    public async Task SaveBiller_WhenServiceReturnsFalse_ReturnsBadRequest()
+    {
+        // Arrange
+        var request = new SaveBillerDto
+        {
+            BillerId = 2,
+            Nickname = "My Biller"
+        };
+        _mockBillPaymentService
+            .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _controller.SaveBiller(request);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.NotNull(badRequestResult.Value);
+    }
+
+    [Fact]
+    public async Task SaveBiller_WhenServiceThrowsException_ReturnsBadRequest()
+    {
+        // Arrange
+        var request = new SaveBillerDto();
+        _mockBillPaymentService
+            .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
+            .ThrowsAsync(new Exception("Service error"));
+
+        // Act
+        var result = await _controller.SaveBiller(request);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.NotNull(badRequestResult.Value);
+    }
 }
