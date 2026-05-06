@@ -26,7 +26,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     Drives the recurring payment management screen.
 ///     Uses <see cref="IApiClient" /> for all server communication during recurring-payment management.
 /// </summary>
-public class RecurringPaymentViewModel : INotifyPropertyChanged
+public partial class RecurringPaymentViewModel : INotifyPropertyChanged
 {
     private const int NoBillerSelected = 0;
     private const decimal NoAmount = 0m;
@@ -526,7 +526,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Asynchronous relay command that prevents re-entrant execution.
     /// </summary>
-    private sealed class AsyncRelayCommand : ICommand
+    private sealed partial class AsyncRelayCommand : ICommand
     {
         private readonly Func<object?, Task> _executeAsyncWithParam;
         private readonly Func<Task>? _executeAsyncNoParam;

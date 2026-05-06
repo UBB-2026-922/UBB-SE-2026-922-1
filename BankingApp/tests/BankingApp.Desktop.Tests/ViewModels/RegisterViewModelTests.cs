@@ -7,7 +7,6 @@ using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
@@ -18,26 +17,6 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 public class RegisterViewModelTests
 {
     private readonly Mock<IApiClient> _apiClient = new();
-    private readonly IConfiguration _configuration;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RegisterViewModelTests" /> class.
-    /// </summary>
-    public RegisterViewModelTests()
-    {
-        var configBuilder = new ConfigurationBuilder();
-        configBuilder.AddInMemoryCollection(
-            new Dictionary<string, string?>
-            {
-                { "ApiBaseUrl", "http://localhost" },
-                { "OAuth:Google:Authority", "https://accounts.google.com" },
-                { "OAuth:Google:ClientId", "client-id" },
-                { "OAuth:Google:ClientSecret", "client-secret" },
-                { "OAuth:Google:RedirectUri", "http://localhost:5000/callback" }
-            });
-
-        _configuration = configBuilder.Build();
-    }
 
     /// <summary>
     ///     When any required field is empty, state transitions to <see cref="RegisterState.Error" />.

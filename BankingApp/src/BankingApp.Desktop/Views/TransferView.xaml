@@ -2,7 +2,7 @@
     x:Class="BankingApp.Desktop.Views.TransferView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="using:BankingApp.Desktop.Utilities"
+    xmlns:converters="using:BankingApp.Desktop.Converters"
     xmlns:models="using:BankingApp.Desktop.Models">
 
     <Page.Resources>

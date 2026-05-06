@@ -531,6 +531,8 @@ public partial class TransferViewModel : INotifyPropertyChanged
 
     private void ExecuteCancel()
     {
+        // TODO: implement.
+        throw new NotImplementedException();
     }
 
     /// <summary>

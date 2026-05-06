@@ -74,7 +74,6 @@ If this document and the analyzer or editor configuration conflict, update the c
 28. Test expected failures and edge cases, not only the successful path.
 29. Prefer null-coalescing expressions over null-check ternaries when the code is equivalent, for example `value ?? fallback` instead of a warning-producing `value is null ? fallback : value`.
 30. Keep test data explicit and local to the test unless sharing it removes real duplication without hiding intent.
-31. Do not introduce alternate databases or infrastructure providers in tests unless they are already approved for the project.
 
 ## Branch naming and Commit messages
 

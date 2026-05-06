@@ -22,7 +22,7 @@ namespace BankingApp.Desktop.Utilities;
 /// <summary>
 ///     Provides a thin wrapper around <see cref="HttpClient" /> for the application's API calls.
 /// </summary>
-public sealed class ApiClient : IApiClient, IDisposable
+public sealed partial class ApiClient : IApiClient, IDisposable
 {
     private readonly Error? _configurationError;
     private readonly HttpClient _httpClient;
@@ -85,7 +85,7 @@ public sealed class ApiClient : IApiClient, IDisposable
     /// </returns>
     public ErrorOr<Success> EnsureConfigured()
     {
-        return _configurationError is null ? Result.Success : _configurationError.Value;
+        return _configurationError ?? ErrorOrFactory.From(Result.Success);
     }
 
     /// <summary>

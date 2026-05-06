@@ -26,7 +26,7 @@ namespace BankingApp.Desktop.ViewModels;
 public partial class RateAlertViewModel : INotifyPropertyChanged
 {
     private const decimal MinimumRate = 0m;
-    private static readonly string[] AvailableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
+    private static readonly string[] _availableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
     private readonly IApiClient _apiClient;
     private readonly ILogger<RateAlertViewModel> _logger;
@@ -48,7 +48,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        AvailableCurrencies = new ObservableCollection<string>(AvailableCurrencyCodes);
+        AvailableCurrencies = new ObservableCollection<string>(_availableCurrencyCodes);
     }
 
     /// <inheritdoc/>

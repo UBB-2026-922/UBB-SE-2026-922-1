@@ -7,7 +7,6 @@ using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
@@ -18,25 +17,9 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 public class LoginViewModelTests
 {
     private readonly Mock<IApiClient> _apiClient = new();
-    private readonly IConfiguration _configuration;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="LoginViewModelTests" /> class.
-    /// </summary>
     public LoginViewModelTests()
     {
-        var configBuilder = new ConfigurationBuilder();
-        configBuilder.AddInMemoryCollection(
-            new Dictionary<string, string?>
-            {
-                { "ApiBaseUrl", "http://localhost" },
-                { "OAuth:Google:Authority", "https://accounts.google.com" },
-                { "OAuth:Google:ClientId", "client-id" },
-                { "OAuth:Google:ClientSecret", "client-secret" },
-                { "OAuth:Google:RedirectUri", "http://localhost:5000/callback" }
-            });
-
-        _configuration = configBuilder.Build();
         _apiClient.Setup(ensuresConfigured => ensuresConfigured.EnsureConfigured()).Returns(Result.Success);
         _apiClient.SetupProperty(getsCurrentUserId => getsCurrentUserId.CurrentUserId);
     }
@@ -48,9 +31,6 @@ public class LoginViewModelTests
     public void CanLogin_WhenValid_ReturnsTrue()
     {
         // Arrange
-        _ = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
-
-        // Act & Assert
         LoginViewModel.CanLogin("test@test.com", "password").Should().BeTrue();
     }
 
@@ -61,9 +41,6 @@ public class LoginViewModelTests
     public void CanLogin_WhenInvalid_ReturnsFalse()
     {
         // Arrange
-        _ = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
-
-        // Act & Assert
         LoginViewModel.CanLogin(string.Empty, "password").Should().BeFalse();
         LoginViewModel.CanLogin("test@test.com", string.Empty).Should().BeFalse();
         LoginViewModel.CanLogin(string.Empty, string.Empty).Should().BeFalse();

@@ -368,8 +368,7 @@ public class ProfileViewModelTests
             new PersonalInfoViewModel(_apiClient.Object, NullLogger<PersonalInfoViewModel>.Instance),
             new SecurityViewModel(_apiClient.Object, NullLogger<SecurityViewModel>.Instance),
             new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance),
-            new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance),
-            NullLogger<ProfileViewModel>.Instance);
+            new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance));
 
         // Act
         bool success = await profileVm.LoadProfile();
@@ -390,8 +389,7 @@ public class ProfileViewModelTests
             new PersonalInfoViewModel(_apiClient.Object, NullLogger<PersonalInfoViewModel>.Instance),
             new SecurityViewModel(_apiClient.Object, NullLogger<SecurityViewModel>.Instance),
             new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance),
-            new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance),
-            NullLogger<ProfileViewModel>.Instance);
+            new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance));
 
         // Assert initial state
         profileVm.IsInitializingView.Should().BeFalse();

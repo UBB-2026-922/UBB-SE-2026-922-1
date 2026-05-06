@@ -11,7 +11,6 @@ using BankingApp.Application.DataTransferObjects.Profile;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Domain.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Desktop.ViewModels;
 
@@ -21,7 +20,6 @@ namespace BankingApp.Desktop.ViewModels;
 /// </summary>
 public class ProfileViewModel : IDisposable
 {
-    private readonly ILogger<ProfileViewModel> _logger;
     private bool _disposed;
 
     /// <summary>
@@ -31,19 +29,16 @@ public class ProfileViewModel : IDisposable
     /// <param name="security">The security sub-ViewModel.</param>
     /// <param name="notifications">The notifications sub-ViewModel.</param>
     /// <param name="sessions">The sessions sub-ViewModel.</param>
-    /// <param name="logger">Logger for profile coordination errors.</param>
     public ProfileViewModel(
         PersonalInfoViewModel personalInfo,
         SecurityViewModel security,
         NotificationsViewModel notifications,
-        SessionsViewModel sessions,
-        ILogger<ProfileViewModel> logger)
+        SessionsViewModel sessions)
     {
         PersonalInfo = personalInfo ?? throw new ArgumentNullException(nameof(personalInfo));
         Security = security ?? throw new ArgumentNullException(nameof(security));
         Notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
         Sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<ProfileState>(ProfileState.Idle);
     }
 

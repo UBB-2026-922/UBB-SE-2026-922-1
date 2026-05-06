@@ -28,7 +28,6 @@ public sealed partial class NavView
     private readonly IApiClient _apiClient;
     private readonly List<Button> _navButtons;
     private readonly IAppNavigationService _navigationService;
-    private Button? _activeNavButton;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="NavView" /> class.
@@ -103,7 +102,6 @@ public sealed partial class NavView
         foreach (Button button in _navButtons) button.Style = (Style)Resources["NavItemStyle"];
 
         selected.Style = (Style)Resources["NavItemActiveStyle"];
-        _activeNavButton = selected;
     }
 
     private void NavDashboard_Click(object sender, RoutedEventArgs e)
