@@ -106,4 +106,219 @@ public class ExchangeControllerTests
         var errorResponse = Assert.IsType<ApplicationErrorResponse>(badRequestResult.Value);
         Assert.Equal("Code", errorResponse.ErrorCode);
     }
+
+    [Fact]
+    public async Task Execute_WhenBothAccountIdsAreProvidedAndValid_ReturnsOkWithExchangeDto()
+    {
+        // Arrange
+        var request = new ExchangeTransactionRequestDto
+        {
+            SourceAccountId = 10,
+            TargetAccountId = 20,
+            SourceCurrency = "EUR",
+            TargetCurrency = "USD",
+            SourceAmount = 100m,
+        };
+
+        var userAccounts = new List<Account>
+        {
+            new Account { Id = 10, Currency = "EUR" },
+            new Account { Id = 20, Currency = "USD" },
+        };
+
+        var responseDto = new ExchangeTransactionResponseDto { ExchangeRate = 1.2m };
+
+        _mockBillPaymentRepository
+            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .ReturnsAsync(userAccounts);
+
+        _mockExchangeService
+            .Setup(s => s.ExecuteExchange(request))
+            .Returns(responseDto);
+
+        // Act
+        var result = await _controller.Execute(request);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(okResult.Value);
+        Assert.Equal(1.2m, actualDto.ExchangeRate);
+    }
+
+    [Fact]
+    public async Task Execute_WhenAccountIdsAreZeroAndCurrencyMatchFound_ResolvesAccountsAndReturnsOk()
+    {
+        // Arrange
+        var request = new ExchangeTransactionRequestDto
+        {
+            SourceAccountId = 0,
+            TargetAccountId = 0,
+            SourceCurrency = "EUR",
+            TargetCurrency = "USD",
+            SourceAmount = 100m,
+        };
+
+        var userAccounts = new List<Account>
+        {
+            new Account { Id = 10, Currency = "EUR" },
+            new Account { Id = 20, Currency = "USD" },
+        };
+
+        var responseDto = new ExchangeTransactionResponseDto { ExchangeRate = 1.2m };
+
+        _mockBillPaymentRepository
+            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .ReturnsAsync(userAccounts);
+
+        _mockExchangeService
+            .Setup(s => s.ExecuteExchange(It.Is<ExchangeTransactionRequestDto>(req => req.SourceAccountId == 10 && req.TargetAccountId == 20)))
+            .Returns(responseDto);
+
+        // Act
+        var result = await _controller.Execute(request);
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(okResult.Value);
+        Assert.Equal(1.2m, actualDto.ExchangeRate);
+    }
+
+    [Fact]
+    public async Task Execute_WhenAccountIdsAreZeroAndNoCurrencyMatchFound_ReturnsNotFound()
+    {
+        // Arrange
+        var request = new ExchangeTransactionRequestDto
+        {
+            SourceAccountId = 0,
+            TargetAccountId = 0,
+            SourceCurrency = "GBP",
+            TargetCurrency = "JPY",
+            SourceAmount = 100m,
+        };
+
+        var userAccounts = new List<Account>
+        {
+            new Account { Id = 10, Currency = "EUR" },
+        };
+
+        _mockBillPaymentRepository
+            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .ReturnsAsync(userAccounts);
+
+        // Act
+        var result = await _controller.Execute(request);
+
+        // Assert
+        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+        Assert.NotNull(notFoundResult.Value);
+    }
+
+    [Fact]
+    public async Task Execute_WhenProvidedAccountsDoNotBelongToUser_ReturnsNotFound()
+    {
+        // Arrange
+        var request = new ExchangeTransactionRequestDto
+        {
+            SourceAccountId = 10,
+            TargetAccountId = 20,
+            SourceCurrency = "EUR",
+            TargetCurrency = "USD",
+            SourceAmount = 100m,
+        };
+
+        var userAccounts = new List<Account>
+        {
+            new Account { Id = 10, Currency = "EUR" },
+        };
+
+        _mockBillPaymentRepository
+            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .ReturnsAsync(userAccounts);
+
+        // Act
+        var result = await _controller.Execute(request);
+
+        // Assert
+        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+        Assert.NotNull(notFoundResult.Value);
+    }
+
+    [Fact]
+    public async Task Execute_WhenExecuteExchangeFails_ReturnsMappedError()
+    {
+        // Arrange
+        var request = new ExchangeTransactionRequestDto
+        {
+            SourceAccountId = 10,
+            TargetAccountId = 20,
+            SourceCurrency = "EUR",
+            TargetCurrency = "USD",
+            SourceAmount = 100m,
+        };
+
+        var userAccounts = new List<Account>
+        {
+            new Account { Id = 10, Currency = "EUR" },
+            new Account { Id = 20, Currency = "USD" },
+        };
+
+        var error = Error.Validation("Code", "Description");
+
+        _mockBillPaymentRepository
+            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .ReturnsAsync(userAccounts);
+
+        _mockExchangeService
+            .Setup(s => s.ExecuteExchange(request))
+            .Returns(error);
+
+        // Act
+        var result = await _controller.Execute(request);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        var errorResponse = Assert.IsType<ApplicationErrorResponse>(badRequestResult.Value);
+        Assert.Equal("Code", errorResponse.ErrorCode);
+    }
+
+    [Fact]
+    public void GetHistory_WhenHistoryExistsForUser_ReturnsOkWithList()
+    {
+        // Arrange
+        var historyList = new List<ExchangeTransactionResponseDto>
+        {
+            new ExchangeTransactionResponseDto { Id = 1, SourceCurrency = "EUR", TargetCurrency = "USD" },
+            new ExchangeTransactionResponseDto { Id = 2, SourceCurrency = "GBP", TargetCurrency = "EUR" },
+        };
+
+        _mockExchangeService
+            .Setup(s => s.GetExchangeHistory(1))
+            .Returns(historyList);
+
+        // Act
+        var result = _controller.GetHistory();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var actualList = Assert.IsType<List<ExchangeTransactionResponseDto>>(okResult.Value);
+        Assert.Equal(2, actualList.Count);
+    }
+
+    [Fact]
+    public void GetHistory_WhenServiceFails_ReturnsMappedError()
+    {
+        // Arrange
+        var error = Error.Validation("Code", "Description");
+        _mockExchangeService
+            .Setup(s => s.GetExchangeHistory(1))
+            .Returns(error);
+
+        // Act
+        var result = _controller.GetHistory();
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        var errorResponse = Assert.IsType<ApplicationErrorResponse>(badRequestResult.Value);
+        Assert.Equal("Code", errorResponse.ErrorCode);
+    }
 }
