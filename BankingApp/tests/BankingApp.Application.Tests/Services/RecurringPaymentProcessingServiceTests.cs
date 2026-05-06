@@ -18,9 +18,6 @@ using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Application.Tests.Services;
 
-/// <summary>
-///     Unit tests for <see cref="RecurringPaymentProcessingService" />.
-/// </summary>
 public class RecurringPaymentProcessingServiceTests
 {
     private static readonly DateTime _fixedUtcNow = new(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc);
@@ -31,9 +28,6 @@ public class RecurringPaymentProcessingServiceTests
     private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepository;
     private readonly RecurringPaymentProcessingService _service;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RecurringPaymentProcessingServiceTests" /> class.
-    /// </summary>
     public RecurringPaymentProcessingServiceTests()
     {
         _recurringPaymentRepository = new Mock<IRecurringPaymentRepository>();
@@ -50,10 +44,6 @@ public class RecurringPaymentProcessingServiceTests
             _logger.Object);
     }
 
-    /// <summary>
-    ///     Verifies that <see cref="RecurringPaymentProcessingService.ProcessDuePaymentsAsync" />
-    ///     returns the first error when the repository fails to retrieve due payments.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenRepositoryReturnsDuePaymentsError_ReturnsError()
     {
@@ -71,10 +61,6 @@ public class RecurringPaymentProcessingServiceTests
         result.FirstError.Should().Be(repositoryError);
     }
 
-    /// <summary>
-    ///     Verifies that when there are no due payments the service returns success
-    ///     without calling the bill payment service.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenNoDuePaymentsExist_ReturnsSuccessWithoutProcessing()
     {
@@ -93,10 +79,6 @@ public class RecurringPaymentProcessingServiceTests
             Times.Never);
     }
 
-    /// <summary>
-    ///     Verifies that a non-active (e.g. Paused) payment in the due list is skipped
-    ///     and the bill payment service is never called for it.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenDuePaymentIsNotActive_SkipsPayment()
     {
@@ -116,10 +98,6 @@ public class RecurringPaymentProcessingServiceTests
             Times.Never);
     }
 
-    /// <summary>
-    ///     Verifies that an active due payment without an end date
-    ///     <c>NextExecutionDate</c> advanced by one month and is persisted.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenActivePaymentWithNoEndDate_AdvancesNextExecutionDate()
     {
@@ -147,10 +125,6 @@ public class RecurringPaymentProcessingServiceTests
         _recurringPaymentRepository.Verify(repo => repo.Update(payment), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies that an active payment whose computed next execution date exceeds the
-    ///     end date is cancelled instead of being rescheduled.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenNextExecutionDateExceedsEndDate_CancelsPayment()
     {
@@ -180,10 +154,6 @@ public class RecurringPaymentProcessingServiceTests
         _recurringPaymentRepository.Verify(repo => repo.Update(payment), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies that when the bill payment service throws, the payment is set to
-    ///     <see cref="RecurringPaymentStatus.Paused" /> and the repository update is still called.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenBillPaymentThrows_PausesPaymentAndPersists()
     {
@@ -208,9 +178,6 @@ public class RecurringPaymentProcessingServiceTests
         _recurringPaymentRepository.Verify(repo => repo.Update(payment), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies that the service passes the correct DTO fields to the bill payment service.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenProcessingActivePayment_PassesCorrectDtoToBillPaymentService()
     {
@@ -245,9 +212,6 @@ public class RecurringPaymentProcessingServiceTests
         capturedBillPaymentDto.BillerReference.Should().BeEmpty();
     }
 
-    /// <summary>
-    ///     Verifies that cancellation is honoured before any processing begins.
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenCancellationRequestedBeforeStart_ThrowsOperationCanceledException()
     {
@@ -262,10 +226,6 @@ public class RecurringPaymentProcessingServiceTests
         await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
-    /// <summary>
-    ///     Verifies that the service returns success even when a repository update
-    ///     after a successful payment execution returns an error (non-fatal path).
-    /// </summary>
     [Fact]
     public async Task ProcessDuePaymentsAsync_WhenRepositoryUpdateFailsAfterPayment_ReturnsSuccessAndLogsWarning()
     {
@@ -288,9 +248,6 @@ public class RecurringPaymentProcessingServiceTests
         result.IsError.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     Verifies that <c>ComputeNextRunDate</c> advances the date correctly for every supported frequency.
-    /// </summary>
     [Theory]
     [InlineData(RecurringFrequency.Daily, 1, 0, 0)]
     [InlineData(RecurringFrequency.Weekly, 7, 0, 0)]
