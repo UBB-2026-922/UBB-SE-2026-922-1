@@ -1,16 +1,9 @@
-﻿// <copyright file="Program.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the Program class.
-// </summary>
-
+﻿using System.Globalization;
 using BankingApp.Api.HostedServices;
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DependencyInjection;
-using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;
@@ -65,26 +58,24 @@ try
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Description = "Paste your JWT token here"
+                Description = "Paste your JWT token here",
             });
         options.AddSecurityRequirement(_ =>
             new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecuritySchemeReference("Bearer", null, null),
+                    new OpenApiSecuritySchemeReference(referenceId: "Bearer"),
                     []
-                }
+                },
             });
     });
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddHostedService<FinanceBackgroundService>();
     WebApplication application = builder.Build();
-    bool applyDatabaseMigrations = bool.TryParse(
+    bool applyDatabaseMigrations = !bool.TryParse(
         application.Configuration[applyDatabaseMigrationsConfigurationKey],
-        out bool configuredApplyDatabaseMigrations)
-        ? configuredApplyDatabaseMigrations
-        : true;
+        out bool configuredApplyDatabaseMigrations) || configuredApplyDatabaseMigrations;
     if (applyDatabaseMigrations && !application.Environment.IsEnvironment("Testing"))
     {
         using IServiceScope scope = application.Services.CreateScope();
@@ -121,13 +112,4 @@ finally
 {
     // Flush and close all Serilog sinks before the process exits.
     Log.CloseAndFlush();
-}
-
-/// <summary>
-///     Exposes the auto-generated Program class so integration tests can reference it
-///     via <c>WebApplicationFactory&lt;Program&gt;</c>.
-/// </summary>
-// ReSharper disable once ClassNeverInstantiated.Global
-public partial class Program
-{
 }

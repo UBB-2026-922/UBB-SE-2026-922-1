@@ -1,17 +1,10 @@
-﻿// <copyright file="SessionValidationMiddleware.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SessionValidationMiddleware class.
-// </summary>
+﻿namespace BankingApp.Api.Middleware;
 
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Api.Logging;
+using Application.Repositories.Interfaces;
+using Application.Services.Security;
+using Logging;
 using ErrorOr;
 using System.Globalization;
-
-namespace BankingApp.Api.Middleware;
 
 /// <summary>
 ///     Middleware that validates bearer tokens and active sessions on non-public endpoints.
@@ -48,6 +41,7 @@ public class SessionValidationMiddleware
         ILogger<SessionValidationMiddleware> logger)
     {
         string? path = context.Request.Path.Value?.ToLower(CultureInfo.InvariantCulture);
+
         // Public endpoints, no token needed
         if (IsPublicEndpoint(path))
         {
@@ -56,14 +50,16 @@ public class SessionValidationMiddleware
         }
 
         string? authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+
         // No token provided
-        if (authHeader == null || !authHeader.StartsWith(BearerPrefix, StringComparison.Ordinal))
+        if (authHeader?.StartsWith(BearerPrefix, StringComparison.Ordinal) != true)
         {
             await RejectRequest(context, "No token provided.");
             return;
         }
 
         string token = authHeader[BearerPrefix.Length..];
+
         // Check if JWT valid
         ErrorOr<int> userIdResult = jsonWebTokenService.ExtractUserId(token);
         if (userIdResult.IsError)

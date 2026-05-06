@@ -1,16 +1,9 @@
-﻿// <copyright file="FinanceBackgroundService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the FinanceBackgroundService class.
-// </summary>
+﻿namespace BankingApp.Api.HostedServices;
 
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Application.Services.TeamB;
-using BankingApp.Api.Logging;
+using Application.Services.RecurringPayments;
+using Application.Services.TeamB;
+using Logging;
 using ErrorOr;
-
-namespace BankingApp.Api.HostedServices;
 
 /// <summary>
 ///     Periodically processes due recurring payments and pending rate alerts.
@@ -48,11 +41,15 @@ public class FinanceBackgroundService : BackgroundService
                 ErrorOr<Success> recurringResult =
                     await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
                 if (recurringResult.IsError)
+                {
                     _logger.RecurringPaymentProcessingFailed(recurringResult.FirstError.Description);
+                }
 
                 ErrorOr<int> rateAlertResult = rateAlertService.ProcessAlerts();
                 if (rateAlertResult.IsError)
+                {
                     _logger.RateAlertProcessingFailed(rateAlertResult.FirstError.Description);
+                }
             }
             catch (Exception exception)
             {

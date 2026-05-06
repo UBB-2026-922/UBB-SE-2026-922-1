@@ -1,7 +1,7 @@
+namespace BankingApp.Api.Logging;
+
 using System;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Api.Logging;
 
 internal static partial class ApiLogMessages
 {
