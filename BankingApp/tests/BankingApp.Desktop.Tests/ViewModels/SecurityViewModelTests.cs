@@ -1,4 +1,4 @@
-// <copyright file="SecurityViewModelTests.cs" company="UBB-922">
+﻿// <copyright file="SecurityViewModelTests.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.Enums;
 using BankingApp.Desktop.Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
