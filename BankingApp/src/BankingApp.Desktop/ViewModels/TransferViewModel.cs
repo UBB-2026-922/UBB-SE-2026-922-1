@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -392,7 +393,8 @@ public partial class TransferViewModel : INotifyPropertyChanged
     internal string GenerateTwoFaToken()
     {
         var random = new Random();
-        return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive).ToString();
+        return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive)
+            .ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>

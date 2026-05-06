@@ -48,10 +48,10 @@ public class LoginViewModelTests
     public void CanLogin_WhenValid_ReturnsTrue()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
+        _ = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
 
         // Act & Assert
-        viewModel.CanLogin("test@test.com", "password").Should().BeTrue();
+        LoginViewModel.CanLogin("test@test.com", "password").Should().BeTrue();
     }
 
     /// <summary>
@@ -61,13 +61,13 @@ public class LoginViewModelTests
     public void CanLogin_WhenInvalid_ReturnsFalse()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
+        _ = new LoginViewModel(_apiClient.Object, NullLogger<LoginViewModel>.Instance);
 
         // Act & Assert
-        viewModel.CanLogin(string.Empty, "password").Should().BeFalse();
-        viewModel.CanLogin("test@test.com", string.Empty).Should().BeFalse();
-        viewModel.CanLogin(string.Empty, string.Empty).Should().BeFalse();
-        viewModel.CanLogin(" ", " ").Should().BeFalse();
+        LoginViewModel.CanLogin(string.Empty, "password").Should().BeFalse();
+        LoginViewModel.CanLogin("test@test.com", string.Empty).Should().BeFalse();
+        LoginViewModel.CanLogin(string.Empty, string.Empty).Should().BeFalse();
+        LoginViewModel.CanLogin(" ", " ").Should().BeFalse();
     }
 
     /// <summary>

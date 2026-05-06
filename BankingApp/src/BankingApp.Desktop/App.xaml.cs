@@ -6,6 +6,7 @@
 // </summary>
 
 using System;
+using System.Globalization;
 using System.IO;
 using BankingApp.Desktop.DependencyInjection;
 using BankingApp.Desktop.Master;
@@ -88,11 +89,12 @@ public partial class App
             .MinimumLevel.Debug()
             .Enrich.FromLogContext()
             // Writes to the Visual Studio Output window during development.
-            .WriteTo.Debug()
+            .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
             // Writes to a daily rolling file outside the repository.
             // Log path: %LocalAppData%\BankingApp\Logs\bankingapp-client-YYYYMMDD.log
             .WriteTo.File(
                 Path.Combine(logDirectory, loggingFileFormat),
+                formatProvider: CultureInfo.InvariantCulture,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: RetainedLoggingFileCountLimit)
             .CreateLogger();

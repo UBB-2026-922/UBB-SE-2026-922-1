@@ -251,7 +251,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
         if (!CanResend) return;
 
         ClearError();
-        _secondsRemaining = ResendCooldownSeconds;
+        SecondsRemaining = ResendCooldownSeconds;
         _countdownTimer.Start();
         State.SetValue(TwoFactorState.Idle);
         int? userId = _apiClient.CurrentUserId;
@@ -267,9 +267,9 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
 
     private void OnCountdownTick(object? sender, EventArgs e)
     {
-        if (_secondsRemaining > 0.0d) _secondsRemaining--;
+        if (SecondsRemaining > 0) SecondsRemaining--;
 
-        if (_secondsRemaining <= 0) _countdownTimer.Stop();
+        if (SecondsRemaining <= 0) _countdownTimer.StopTimer();
     }
 
     private void ApplyInvalidOtp()

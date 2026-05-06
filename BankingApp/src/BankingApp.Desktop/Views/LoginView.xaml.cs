@@ -129,7 +129,7 @@ public sealed partial class LoginView : IStateObserver<LoginState>
     {
         string? email = EmailBox.Text;
         string? password = PasswordBox.Password;
-        if (!_viewModel.CanLogin(email, password))
+        if (!LoginViewModel.CanLogin(email, password))
         {
             ShowError("Please enter email and password.");
             return;

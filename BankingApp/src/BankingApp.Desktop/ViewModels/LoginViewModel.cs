@@ -41,7 +41,10 @@ public class LoginViewModel
             _ => LoginState.Idle,
             errors =>
             {
-                _logger.LogCritical("ApiClient is not configured — login is unavailable. Errors: {Errors}", errors);
+                if (_logger.IsEnabled(LogLevel.Critical))
+                    _logger.LogCritical(
+                        "ApiClient is not configured; login is unavailable. Error count: {ErrorCount}",
+                        errors.Count);
                 return LoginState.ServerNotConfigured;
             });
         State = new ObservableState<LoginState>(initialState);
@@ -62,7 +65,7 @@ public class LoginViewModel
     /// <param name="email">The email address entered by the user.</param>
     /// <param name="password">The password entered by the user.</param>
     /// <returns><see langword="true" /> if the inputs are sufficient to attempt login.</returns>
-    public bool CanLogin(string email, string password)
+    public static bool CanLogin(string email, string password)
     {
         return !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password);
     }

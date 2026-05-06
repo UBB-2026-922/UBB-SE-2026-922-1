@@ -159,12 +159,12 @@ public class PasswordRecoveryManagerTests
         manager.IsPasswordValid(password).Should().BeFalse();
     }
 
-    private static IPasswordRecoveryManager BuildManager(FakeSystemClock clock, bool succeedApi)
+    private static TestablePasswordRecoveryManager BuildManager(FakeSystemClock clock, bool succeedApi)
     {
         return BuildManagerWithFakeResponder(clock, new FakeApiResponder { ShouldSucceed = succeedApi });
     }
 
-    private static IPasswordRecoveryManager BuildManagerWithFakeResponder(FakeSystemClock clock, FakeApiResponder fake)
+    private static TestablePasswordRecoveryManager BuildManagerWithFakeResponder(FakeSystemClock clock, FakeApiResponder fake)
     {
         return new TestablePasswordRecoveryManager(fake, clock);
     }

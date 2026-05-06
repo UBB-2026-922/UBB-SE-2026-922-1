@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using BankingApp.Desktop.Master;
 using BankingApp.Desktop.Utilities;
@@ -75,7 +76,7 @@ public sealed partial class NavView
 
         NotificationBadgeText.Text = count > MaximumInlineNotificationBadgeCount
             ? OverflowNotificationBadgeText
-            : count.ToString();
+            : count.ToString(CultureInfo.InvariantCulture);
         NotificationBadge.Visibility = Visibility.Visible;
     }
 

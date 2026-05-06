@@ -82,8 +82,8 @@ public class RecurringPaymentViewModelTests
         // Arrange
         var biller = new BillerDto { Id = 1, Name = "Water Co" };
         var account = new AccountDto { Id = 1, AccountName = "Checking" };
-        var startDate = DateTime.Today;
-        var amount = 100m;
+        DateTime startDate = DateTime.Today;
+        const decimal amount = 100m;
 
         _viewModel.SelectedBiller = biller;
         _viewModel.SelectedAccount = account;

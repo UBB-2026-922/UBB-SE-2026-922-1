@@ -193,7 +193,8 @@ public class DashboardViewModel
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string SelectedCardExpiryDisplay => SelectedCard?.ExpiryDate.ToString("MM/yy") ?? string.Empty;
+    public string SelectedCardExpiryDisplay =>
+        SelectedCard?.ExpiryDate.ToString("MM/yy", CultureInfo.InvariantCulture) ?? string.Empty;
 
     /// <summary>
     ///     Gets the masked card number of the selected card.
@@ -365,7 +366,10 @@ public class DashboardViewModel
         {
             TransactionDirection.Out => "-",
             TransactionDirection.In => "+",
-            _ => throw new ArgumentOutOfRangeException(nameof(transaction.Direction), transaction.Direction, null)
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(transaction),
+                transaction.Direction,
+                "Unsupported transaction direction.")
         };
         return $"{sign}{transaction.Amount.ToString("N2", CultureInfo.InvariantCulture)}";
     }

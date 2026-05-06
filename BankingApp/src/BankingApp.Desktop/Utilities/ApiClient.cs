@@ -12,8 +12,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects;
-using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.DTOs;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
@@ -24,11 +22,12 @@ namespace BankingApp.Desktop.Utilities;
 /// <summary>
 ///     Provides a thin wrapper around <see cref="HttpClient" /> for the application's API calls.
 /// </summary>
-public class ApiClient : IApiClient
+public sealed class ApiClient : IApiClient, IDisposable
 {
     private readonly Error? _configurationError;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ApiClient> _logger;
+    private bool _disposed;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ApiClient" /> class.
@@ -75,11 +74,15 @@ public class ApiClient : IApiClient
     public string? Token { get; private set; }
 
     /// <summary>
-    ///     Returns <see cref="Success" /> when the client is correctly configured,
-    ///     or a <see cref="Error.Failure" /> describing the missing configuration otherwise.
-    ///     Callers should check this before issuing any requests.
+    /// Check whether the configuration has any errors.
     /// </summary>
-    /// <returns>The result of the operation.</returns>
+    /// <remarks>
+    ///     Callers should check this before issuing any requests.
+    /// </remarks>
+    /// <returns>
+    ///     <see cref="Success" /> when the client is correctly configured,
+    ///     or a <see cref="Error.Failure" /> describing the missing configuration otherwise.
+    /// </returns>
     public ErrorOr<Success> EnsureConfigured()
     {
         return _configurationError is null ? Result.Success : _configurationError.Value;
@@ -132,7 +135,7 @@ public class ApiClient : IApiClient
     /// <param name="endpoint">The relative endpoint to call.</param>
     /// <param name="data">The request body to serialize.</param>
     /// <returns>The deserialized response body, or an <see cref="Error" /> if the request fails.</returns>
-    public virtual async Task<ErrorOr<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, object? data)
+    public async Task<ErrorOr<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, object? data)
     {
         try
         {
@@ -162,7 +165,7 @@ public class ApiClient : IApiClient
     /// <param name="endpoint">The relative endpoint to call.</param>
     /// <param name="data">The request body to serialize.</param>
     /// <returns><see cref="Result.Success" /> on a 2xx response, or an <see cref="Error" /> otherwise.</returns>
-    public virtual async Task<ErrorOr<Success>> PostAsync<TRequest>(string endpoint, TRequest data)
+    public async Task<ErrorOr<Success>> PostAsync<TRequest>(string endpoint, TRequest data)
     {
         try
         {
@@ -190,7 +193,7 @@ public class ApiClient : IApiClient
     ///     Used to cancel the in-flight HTTP request. Defaults to <see cref="CancellationToken.None" />.
     /// </param>
     /// <returns>The deserialized response body, or an <see cref="Error" /> if the request fails.</returns>
-    public virtual async Task<ErrorOr<TResponse>> GetAsync<TResponse>(
+    public async Task<ErrorOr<TResponse>> GetAsync<TResponse>(
         string endpoint,
         CancellationToken cancellationToken = default)
     {
@@ -252,7 +255,7 @@ public class ApiClient : IApiClient
     /// <param name="endpoint">The relative endpoint to call.</param>
     /// <param name="data">The request body to serialize.</param>
     /// <returns><see cref="Result.Success" /> on a 2xx response, or an <see cref="Error" /> otherwise.</returns>
-    public virtual async Task<ErrorOr<Success>> PutAsync<TRequest>(string endpoint, TRequest data)
+    public async Task<ErrorOr<Success>> PutAsync<TRequest>(string endpoint, TRequest data)
     {
         try
         {
@@ -296,6 +299,16 @@ public class ApiClient : IApiClient
         }
     }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        _httpClient.Dispose();
+        _disposed = true;
+        GC.SuppressFinalize(this);
+    }
+
     private static async Task<Error> MapErrorAsync(
         HttpResponseMessage response,
         string endpoint,
@@ -310,7 +323,7 @@ public class ApiClient : IApiClient
             if (errorBody is not null && !string.IsNullOrWhiteSpace(errorBody.Error))
             {
                 description = errorBody.Error;
-                errorCode = errorBody.ErrorCode ?? string.Empty;
+                errorCode = errorBody.ErrorCode;
             }
             else
             {

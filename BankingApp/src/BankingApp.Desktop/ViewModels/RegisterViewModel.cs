@@ -97,7 +97,7 @@ public class RegisterViewModel
             });
     }
 
-    private RegisterState? ValidateLocally(string email, string password, string confirmPassword, string fullName)
+    private static RegisterState? ValidateLocally(string email, string password, string confirmPassword, string fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName)
             || string.IsNullOrWhiteSpace(email)
@@ -105,7 +105,7 @@ public class RegisterViewModel
             || string.IsNullOrWhiteSpace(confirmPassword))
             return RegisterState.Error;
 
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains("@", StringComparison.Ordinal))
+        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@', StringComparison.Ordinal))
             return RegisterState.InvalidEmail;
 
         if (!PasswordValidator.IsStrong(password)) return RegisterState.WeakPassword;

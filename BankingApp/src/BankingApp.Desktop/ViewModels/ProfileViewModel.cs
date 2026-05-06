@@ -19,7 +19,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     Coordinates profile-related operations by delegating to specialised sub-ViewModels
 ///     for personal info, security, OAuth, notifications, and sessions.
 /// </summary>
-public class ProfileViewModel
+public class ProfileViewModel : IDisposable
 {
     private readonly ILogger<ProfileViewModel> _logger;
     private bool _disposed;

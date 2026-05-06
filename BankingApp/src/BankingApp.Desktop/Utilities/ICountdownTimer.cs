@@ -24,7 +24,7 @@ public interface ICountdownTimer
 
     /// <summary>
     ///     Starts the countdown. Subsequent <see cref="Tick" /> events begin firing
-    ///     at one-second intervals until <see cref="Stop" /> is called.
+    ///     at one-second intervals until <see cref="StopTimer" /> is called.
     /// </summary>
     void Start();
 
@@ -32,5 +32,5 @@ public interface ICountdownTimer
     ///     Stops the countdown. No further <see cref="Tick" /> events are raised
     ///     until <see cref="Start" /> is called again.
     /// </summary>
-    void Stop();
+    void StopTimer();
 }

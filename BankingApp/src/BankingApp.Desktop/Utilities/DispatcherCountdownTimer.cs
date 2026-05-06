@@ -46,7 +46,7 @@ public sealed class DispatcherCountdownTimer : ICountdownTimer
     }
 
     /// <inheritdoc />
-    public void Stop()
+    public void StopTimer()
     {
         _inner.Stop();
     }

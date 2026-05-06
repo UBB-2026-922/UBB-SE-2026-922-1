@@ -25,7 +25,7 @@ namespace BankingApp.Desktop.Views;
 /// <summary>
 ///     Displays the authenticated user's account summary, card carousel, and recent transactions.
 /// </summary>
-public sealed partial class DashboardView : IStateObserver<DashboardState>
+public sealed partial class DashboardView : IStateObserver<DashboardState>, IDisposable
 {
     private const int ActiveCardDotSize = 18;
     private const int InactiveCardDotSize = 8;
@@ -50,6 +50,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
         DotBlueChannel);
 
     private readonly DashboardViewModel _viewModel;
+    private bool _disposed;
     private bool _isObserverAttached;
     private CancellationTokenSource? _loadCancellationTokenSource;
 
@@ -62,6 +63,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
         InitializeComponent();
         _viewModel = viewModel;
         Loaded += OnPageLoaded;
+        Unloaded += OnPageUnloaded;
     }
 
     /// <inheritdoc />
@@ -76,14 +78,28 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
+        Dispose();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_disposed) return;
+
         CancelPendingLoad();
         DetachObserver();
+        _disposed = true;
     }
 
     private void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         AttachObserver();
         _ = RunUiTaskAsync(LoadDashboardAsync);
+    }
+
+    private void OnPageUnloaded(object sender, RoutedEventArgs e)
+    {
+        Dispose();
     }
 
     /// <summary>
