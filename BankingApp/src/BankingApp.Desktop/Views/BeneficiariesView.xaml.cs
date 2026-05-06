@@ -1,7 +1,4 @@
-﻿// <copyright file="BeneficiariesView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
+﻿// <summary>
 // Contains the BeneficiariesView page code-behind.
 // </summary>
 

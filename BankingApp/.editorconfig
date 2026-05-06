@@ -56,6 +56,12 @@ dotnet_diagnostic.CA1822.severity = warning
 dotnet_diagnostic.CA1848.severity = warning
 dotnet_diagnostic.RCS1036.severity = none
 dotnet_diagnostic.RCS1246.severity = none
+dotnet_diagnostic.SA1633.severity = none
+dotnet_diagnostic.SA1634.severity = none
+dotnet_diagnostic.SA1635.severity = none
+dotnet_diagnostic.SA1636.severity = none
+dotnet_diagnostic.SA1637.severity = none
+dotnet_diagnostic.SA1638.severity = none
 
 [tests/**/*.cs]
 dotnet_diagnostic.IDE1006.severity = none
