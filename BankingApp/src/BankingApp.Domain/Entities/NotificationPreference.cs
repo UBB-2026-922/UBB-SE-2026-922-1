@@ -24,6 +24,11 @@ public class NotificationPreference
     public int UserId { get; set; }
 
     /// <summary>
+    ///     Gets or sets the user this preference belongs to.
+    /// </summary>
+    public User? User { get; set; }
+
+    /// <summary>
     ///     Gets or sets the notification category this preference applies to.
     /// </summary>
     /// <value>

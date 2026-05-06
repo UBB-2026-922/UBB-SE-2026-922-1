@@ -26,14 +26,29 @@ public class Transfer
     public int UserId { get; set; }
 
     /// <summary>
+    /// Gets or sets the user who initiated the transfer.
+    /// </summary>
+    public User? User { get; set; }
+
+    /// <summary>
     /// Gets or sets the identifier of the source account for the transfer.
     /// </summary>
     public int SourceAccountId { get; set; }
 
     /// <summary>
+    /// Gets or sets the source account for the transfer.
+    /// </summary>
+    public Account? SourceAccount { get; set; }
+
+    /// <summary>
     /// Gets or sets the related transaction identifier, if any.
     /// </summary>
     public int? TransactionId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the related ledger transaction, if any.
+    /// </summary>
+    public Transaction? Transaction { get; set; }
 
     /// <summary>
     /// Gets or sets the recipient's name.

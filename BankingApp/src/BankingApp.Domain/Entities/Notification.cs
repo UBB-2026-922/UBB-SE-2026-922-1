@@ -22,6 +22,11 @@ public class Notification
     public int UserId { get; set; }
 
     /// <summary>
+    ///     Gets or sets the user this notification belongs to.
+    /// </summary>
+    public User? User { get; set; }
+
+    /// <summary>
     ///     Gets or sets the title of the notification.
     /// </summary>
     /// <value>

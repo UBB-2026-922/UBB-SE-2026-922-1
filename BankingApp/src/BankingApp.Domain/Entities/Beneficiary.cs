@@ -29,6 +29,11 @@ public class Beneficiary
     public int UserId { get; set; }
 
     /// <summary>
+    ///     Gets or sets the user who owns this beneficiary.
+    /// </summary>
+    public User? User { get; set; }
+
+    /// <summary>
     ///     Gets or sets the name of the beneficiary.
     /// </summary>
     /// <value>

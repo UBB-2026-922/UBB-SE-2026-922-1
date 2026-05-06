@@ -64,15 +64,15 @@ public class RecurringPaymentConfiguration : IEntityTypeConfiguration<RecurringP
         builder.HasIndex(recurringPayment => recurringPayment.SourceAccountId);
         builder.HasIndex(recurringPayment => recurringPayment.UserId);
 
-        builder.HasOne<Biller>()
+        builder.HasOne(recurringPayment => recurringPayment.Biller)
             .WithMany()
             .HasForeignKey(recurringPayment => recurringPayment.BillerId);
 
-        builder.HasOne<Account>()
+        builder.HasOne(recurringPayment => recurringPayment.SourceAccount)
             .WithMany()
             .HasForeignKey(recurringPayment => recurringPayment.SourceAccountId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne<User>().WithMany().HasForeignKey(recurringPayment => recurringPayment.UserId);
+        builder.HasOne(recurringPayment => recurringPayment.User).WithMany().HasForeignKey(recurringPayment => recurringPayment.UserId);
     }
 }

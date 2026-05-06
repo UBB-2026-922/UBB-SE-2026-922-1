@@ -31,13 +31,22 @@ public class ExchangeTransaction
     /// <value>Gets or sets the current value.</value>
     public int UserId { get; set; }
 
+    /// <summary>Gets or sets the user who initiated this exchange.</summary>
+    public User? User { get; set; }
+
     /// <summary>Gets or sets the identifier of the source <see cref="Account" /> debited in the source currency.</summary>
     /// <value>Gets or sets the current value.</value>
     public int SourceAccountId { get; set; }
 
+    /// <summary>Gets or sets the source account debited in the source currency.</summary>
+    public Account? SourceAccount { get; set; }
+
     /// <summary>Gets or sets the identifier of the target <see cref="Account" /> credited in the target currency.</summary>
     /// <value>Gets or sets the current value.</value>
     public int TargetAccountId { get; set; }
+
+    /// <summary>Gets or sets the target account credited in the target currency.</summary>
+    public Account? TargetAccount { get; set; }
 
     /// <summary>
     ///     Gets or sets the identifier of the linked <see cref="Transaction" /> ledger entry,
@@ -45,6 +54,11 @@ public class ExchangeTransaction
     /// </summary>
     /// <value>Gets or sets the current value.</value>
     public int? TransactionId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the linked ledger transaction, or <see langword="null" /> when none exists.
+    /// </summary>
+    public Transaction? Transaction { get; set; }
 
     /// <summary>Gets or sets the ISO 4217 currency code of the source account (e.g., "EUR").</summary>
     /// <value>Gets or sets the current value.</value>

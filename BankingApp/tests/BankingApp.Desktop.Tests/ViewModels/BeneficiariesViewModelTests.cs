@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using BankingApp.Application.DTOs.Beneficiaries;
 using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
+using BankingApp.Desktop.Services.Transfers;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using FluentAssertions;
@@ -15,13 +14,13 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class BeneficiariesViewModelTests
 {
-    private readonly Mock<IApiClient> _apiClient;
+    private readonly Mock<ITransferClientService> _transferClientService;
     private readonly BeneficiariesViewModel _viewModel;
 
     public BeneficiariesViewModelTests()
     {
-        _apiClient = new Mock<IApiClient>(MockBehavior.Strict);
-        _viewModel = new BeneficiariesViewModel(_apiClient.Object, Mock.Of<IAppNavigationService>(),
+        _transferClientService = new Mock<ITransferClientService>(MockBehavior.Strict);
+        _viewModel = new BeneficiariesViewModel(_transferClientService.Object, Mock.Of<IAppNavigationService>(),
             NullLogger<BeneficiariesViewModel>.Instance);
     }
 
@@ -34,9 +33,8 @@ public class BeneficiariesViewModelTests
             new BeneficiaryDto { Id = 2, Name = "Bob", Iban = "DE456", BankName = "Bank B" }
         };
 
-        _apiClient
-            .Setup(gets =>
-                gets.GetAsync<List<BeneficiaryDto>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _transferClientService
+            .Setup(service => service.GetBeneficiariesAsync(default))
             .ReturnsAsync(data);
 
         ErrorOr<Success> result = await _viewModel.LoadBeneficiariesAsync();
@@ -49,9 +47,8 @@ public class BeneficiariesViewModelTests
     [Fact]
     public async Task LoadBeneficiaries_WhenUnauthorized_SetsErrorMessage()
     {
-        _apiClient
-            .Setup(gets =>
-                gets.GetAsync<List<BeneficiaryDto>>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _transferClientService
+            .Setup(service => service.GetBeneficiariesAsync(default))
             .ReturnsAsync(Error.Unauthorized());
 
         ErrorOr<Success> result = await _viewModel.LoadBeneficiariesAsync();

@@ -36,13 +36,22 @@ public class RecurringPayment
     /// <value>Gets or sets the current value.</value>
     public int UserId { get; set; }
 
+    /// <summary>Gets or sets the user who owns this schedule.</summary>
+    public User? User { get; set; }
+
     /// <summary>Gets or sets the identifier of the target <see cref="Biller" />.</summary>
     /// <value>Gets or sets the current value.</value>
     public int BillerId { get; set; }
 
+    /// <summary>Gets or sets the target biller.</summary>
+    public Biller? Biller { get; set; }
+
     /// <summary>Gets or sets the identifier of the source <see cref="Account" /> to be debited.</summary>
     /// <value>Gets or sets the current value.</value>
     public int SourceAccountId { get; set; }
+
+    /// <summary>Gets or sets the source account to be debited.</summary>
+    public Account? SourceAccount { get; set; }
 
     /// <summary>Gets or sets the amount debited on each execution.</summary>
     /// <value>Gets or sets the current value.</value>

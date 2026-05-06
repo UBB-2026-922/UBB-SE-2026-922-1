@@ -22,6 +22,11 @@ public class PasswordResetToken
     public int UserId { get; set; }
 
     /// <summary>
+    ///     Gets or sets the user this token belongs to.
+    /// </summary>
+    public User? User { get; set; }
+
+    /// <summary>
     ///     Gets or sets the hashed value of the reset token.
     /// </summary>
     /// <value>

@@ -24,12 +24,22 @@ public class Transaction
     public int AccountId { get; set; }
 
     /// <summary>
+    ///     Gets or sets the account this transaction belongs to.
+    /// </summary>
+    public Account? Account { get; set; }
+
+    /// <summary>
     ///     Gets or sets the identifier of the card used for this transaction, if any.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
     public int? CardId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the card used for this transaction, if any.
+    /// </summary>
+    public Card? Card { get; set; }
 
     /// <summary>
     ///     Gets or sets the unique reference code for the transaction.
@@ -110,6 +120,11 @@ public class Transaction
     ///     Gets or sets the current value.
     /// </value>
     public int? CategoryId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the category assigned to this transaction, if any.
+    /// </summary>
+    public Category? Category { get; set; }
 
     /// <summary>
     ///     Gets or sets the description of the transaction.

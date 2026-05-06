@@ -22,6 +22,11 @@ public class Session
     public int UserId { get; set; }
 
     /// <summary>
+    ///     Gets or sets the user who owns this session.
+    /// </summary>
+    public User? User { get; set; }
+
+    /// <summary>
     ///     Gets or sets the authentication token for the session.
     /// </summary>
     /// <value>

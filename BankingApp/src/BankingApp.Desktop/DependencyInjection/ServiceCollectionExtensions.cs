@@ -1,6 +1,7 @@
 ﻿namespace BankingApp.Desktop.DependencyInjection;
 
 using Master;
+using Services.Transfers;
 using Utilities;
 using ViewModels;
 using Views;
@@ -36,6 +37,7 @@ public static class ServiceCollectionExtensions
         // Multiple instances would lose the frame reference.
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
+        services.AddTransient<ITransferClientService, TransferClientService>();
         // A fresh timer instance per TwoFactorView so each page visit
         // has its own independent countdown.
         services.AddTransient<ICountdownTimer, DispatcherCountdownTimer>();

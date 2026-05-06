@@ -12,6 +12,9 @@ public class LockedRate
     /// <value>Gets or sets the current value.</value>
     public int UserId { get; set; }
 
+    /// <summary>Gets or sets the user who locked this rate.</summary>
+    public User? User { get; set; }
+
     /// <summary>Gets or sets the currency pair string (e.g., "EUR/USD").</summary>
     /// <value>Gets or sets the current value.</value>
     public string CurrencyPair { get; set; } = string.Empty;

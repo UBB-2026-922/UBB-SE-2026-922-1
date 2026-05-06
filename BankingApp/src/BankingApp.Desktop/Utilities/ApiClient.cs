@@ -1,3 +1,5 @@
+namespace BankingApp.Desktop.Utilities;
+
 using System;
 using System.Net;
 using System.Net.Http;
@@ -5,12 +7,10 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs;
+using Application.DTOs;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Provides a thin wrapper around <see cref="HttpClient" /> for the application's API calls.
@@ -193,12 +193,14 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         try
         {
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint, cancellationToken);
-            if (!response.IsSuccessStatusCode) return await MapErrorAsync(response, endpoint, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return await MapErrorAsync(response, endpoint, cancellationToken);
+            }
 
             TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
-            if (result is null) return Error.Failure(description: $"GET {endpoint} returned an empty response.");
-
-            return result;
+            return result ??
+                   (ErrorOr<TResponse>)Error.Failure(description: $"GET {endpoint} returned an empty response.");
         }
         catch (HttpRequestException exception)
         {
@@ -223,12 +225,14 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         try
         {
             HttpResponseMessage response = await _httpClient.PutAsJsonAsync(endpoint, data);
-            if (!response.IsSuccessStatusCode) return await MapErrorAsync(response, endpoint, CancellationToken.None);
+            if (!response.IsSuccessStatusCode)
+            {
+                return await MapErrorAsync(response, endpoint, CancellationToken.None);
+            }
 
             TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
-            if (result is null) return Error.Failure(description: $"PUT {endpoint} returned an empty response.");
-
-            return result;
+            return result ??
+                   (ErrorOr<TResponse>)Error.Failure(description: $"PUT {endpoint} returned an empty response.");
         }
         catch (HttpRequestException exception)
         {

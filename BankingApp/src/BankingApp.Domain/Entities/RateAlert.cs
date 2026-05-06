@@ -23,6 +23,9 @@ public class RateAlert
     /// <value>Gets or sets the current value.</value>
     public int UserId { get; set; }
 
+    /// <summary>Gets or sets the user who created this alert.</summary>
+    public User? User { get; set; }
+
     /// <summary>Gets or sets the ISO 4217 code of the base currency being monitored (e.g., "EUR").</summary>
     /// <value>Gets or sets the current value.</value>
     public string BaseCurrency { get; set; } = string.Empty;

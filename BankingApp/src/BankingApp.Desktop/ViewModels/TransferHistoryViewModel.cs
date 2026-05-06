@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BankingApp.Application.DTOs.Transfer;
+using BankingApp.Desktop.Services.Transfers;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -22,19 +23,21 @@ public class TransferHistoryViewModel : INotifyPropertyChanged
     private const string DateTimeFormat = "dd MMM yyyy, HH:mm";
     private const string FallbackReference = "—";
 
-    private readonly IApiClient _apiClient;
     private readonly ILogger<TransferHistoryViewModel> _logger;
+    private readonly ITransferClientService _transferClientService;
     private string _errorMessage = string.Empty;
     private bool _isLoading;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferHistoryViewModel" /> class.
     /// </summary>
-    /// <param name="apiClient">The API client used to retrieve transfers.</param>
+    /// <param name="transferClientService">The client service used to retrieve transfers.</param>
     /// <param name="logger">Logger for diagnostics.</param>
-    public TransferHistoryViewModel(IApiClient apiClient, ILogger<TransferHistoryViewModel> logger)
+    public TransferHistoryViewModel(
+        ITransferClientService transferClientService,
+        ILogger<TransferHistoryViewModel> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Transfers = new ObservableCollection<TransferHistoryDisplayItem>();
     }
@@ -118,7 +121,7 @@ public class TransferHistoryViewModel : INotifyPropertyChanged
         try
         {
             ErrorOr<List<TransferResponse>> result =
-                await _apiClient.GetAsync<List<TransferResponse>>(ApiEndpoints.TransferHistory);
+                await _transferClientService.GetTransferHistoryAsync();
 
             if (result.IsError)
             {

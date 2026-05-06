@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BankingApp.Application.DTOs.Beneficiaries;
 using BankingApp.Desktop.Master;
+using BankingApp.Desktop.Services.Transfers;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.Views;
 using ErrorOr;
@@ -16,20 +17,20 @@ namespace BankingApp.Desktop.ViewModels;
 /// </summary>
 public class BeneficiariesViewModel
 {
-    private readonly IApiClient _apiClient;
-    private readonly IAppNavigationService _navigationService;
     private readonly ILogger<BeneficiariesViewModel> _logger;
+    private readonly IAppNavigationService _navigationService;
+    private readonly ITransferClientService _transferClientService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BeneficiariesViewModel"/> class.
     /// </summary>
-    /// <param name="apiClient">The API client used to call backend endpoints.</param>
+    /// <param name="transferClientService">The transfer client service used to call backend endpoints.</param>
     /// <param name="navigationService">The navigation service used for view navigation.</param>
     /// <param name="logger">Logger instance for diagnostics.</param>
-    public BeneficiariesViewModel(IApiClient apiClient, IAppNavigationService navigationService,
+    public BeneficiariesViewModel(ITransferClientService transferClientService, IAppNavigationService navigationService,
         ILogger<BeneficiariesViewModel> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Beneficiaries = new List<BeneficiaryDto>();
@@ -67,7 +68,7 @@ public class BeneficiariesViewModel
         try
         {
             ErrorOr<List<BeneficiaryDto>> result =
-                await _apiClient.GetAsync<List<BeneficiaryDto>>(ApiEndpoints.Beneficiaries);
+                await _transferClientService.GetBeneficiariesAsync();
 
             if (result.IsError)
             {
@@ -94,7 +95,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            ErrorOr<Success> result = await _apiClient.DeleteAsync($"{ApiEndpoints.Beneficiaries}/{id}");
+            ErrorOr<Success> result = await _transferClientService.DeleteBeneficiaryAsync(id);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to delete beneficiary.";
@@ -118,8 +119,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            var request = new { Name = NewName, IBAN = NewIban, BankName = NewBankName };
-            ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Beneficiaries, request);
+            ErrorOr<Success> result = await _transferClientService.AddBeneficiaryAsync(NewName, NewIban, NewBankName);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to save beneficiary.";
