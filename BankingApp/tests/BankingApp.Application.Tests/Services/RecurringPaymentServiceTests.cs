@@ -36,6 +36,7 @@ public class RecurringPaymentServiceTests
     public void Create_WhenAmountIsZero_ShouldReturnValidationError()
     {
         // Arrange
+        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
         var request = new CreateRecurringPaymentRequest
         {
             BillerId = 1,
@@ -58,6 +59,7 @@ public class RecurringPaymentServiceTests
     public void Create_WhenAmountIsNegative_ShouldReturnValidationError()
     {
         // Arrange
+        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
         var request = new CreateRecurringPaymentRequest
         {
             BillerId = 1,
@@ -79,6 +81,7 @@ public class RecurringPaymentServiceTests
     public void Create_WhenEndDateIsBeforeStartDate_ShouldReturnValidationError()
     {
         // Arrange
+        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
         var request = new CreateRecurringPaymentRequest
         {
             BillerId = 1,

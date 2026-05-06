@@ -32,11 +32,6 @@ public class TransferService(
     ILogger<TransferService> logger)
     : ITransferService
 {
-    private const decimal TwoFaAmountThreshold = 1000m;
-    private const int ExpectedCurrencyCodeLength = 3;
-    private const int IbanMinLength = 15;
-    private const int IbanMaxLength = 34;
-    private const int IbanCountryCodeLength = 2;
     private const int ExchangeRatePrecision = 4;
     private const string TransferRelatedEntityType = "Transfer";
     private const string EurUsdPair = "EUR/USD";
@@ -77,11 +72,11 @@ public class TransferService(
     /// <inheritdoc />
     public ErrorOr<TransferIbanValidationResponse> ValidateRecipientIban(string iban)
     {
-        bool isValid = IsValidIban(iban);
+        bool isValid = Transfer.IsValidRecipientIban(iban);
         return new TransferIbanValidationResponse
         {
             IsValid = isValid,
-            BankName = isValid ? InferBankName(iban) : string.Empty
+            BankName = isValid ? Transfer.InferRecipientBankName(iban) : string.Empty
         };
     }
 
@@ -113,7 +108,7 @@ public class TransferService(
     /// <inheritdoc />
     public bool RequiresTwoFactorAuthentication(decimal amount)
     {
-        return amount >= TwoFaAmountThreshold;
+        return Transfer.RequiresTwoFactorAuthentication(amount);
     }
 
     /// <inheritdoc />
@@ -144,7 +139,7 @@ public class TransferService(
             return TransferErrors.AccountNotFound;
         }
 
-        if (account.Status != AccountStatus.Active)
+        if (!account.IsActive())
         {
             _logger.LogWarning(
                 "Transfer failed: account {AccountId} is not active.",
@@ -152,7 +147,7 @@ public class TransferService(
             return TransferErrors.AccountNotActive;
         }
 
-        if (account.Balance < request.Amount)
+        if (!account.HasSufficientFunds(request.Amount))
         {
             _logger.LogWarning(
                 "Transfer failed: insufficient funds on account {AccountId}.",
@@ -181,34 +176,6 @@ public class TransferService(
         return result.Value
             .Select(MapToResponse)
             .ToList();
-    }
-
-    private static bool IsValidIban(string iban)
-    {
-        if (string.IsNullOrWhiteSpace(iban)) return false;
-
-        if (iban.Length < IbanMinLength || iban.Length > IbanMaxLength) return false;
-
-        if (!char.IsLetter(iban[0]) || !char.IsLetter(iban[1])) return false;
-
-        if (!char.IsDigit(iban[2]) || !char.IsDigit(iban[3])) return false;
-
-        return true;
-    }
-
-    private static string InferBankName(string iban)
-    {
-        if (string.IsNullOrWhiteSpace(iban) || iban.Length < IbanCountryCodeLength) return "Unknown Bank";
-
-        return iban[..IbanCountryCodeLength].ToUpperInvariant() switch
-        {
-            "RO" => "Romanian Bank",
-            "DE" => "German Bank",
-            "GB" => "UK Bank",
-            "FR" => "French Bank",
-            "US" => "US Bank",
-            _ => "International Bank"
-        };
     }
 
     private static string GenerateTransactionRef()
@@ -259,22 +226,12 @@ public class TransferService(
 
     private static ErrorOr<Success> ValidateRequest(CreateTransferRequest request)
     {
-        if (!IsValidIban(request.RecipientIban)) return TransferErrors.InvalidIban;
-
-        if (request.Amount <= 0) return TransferErrors.InvalidAmount;
-
-        if (string.IsNullOrWhiteSpace(request.Currency)
-            || request.Currency.Length != ExpectedCurrencyCodeLength)
-        {
-            return TransferErrors.InvalidCurrency;
-        }
-
-        return Result.Success;
+        return Transfer.Validate(request.RecipientIban, request.Amount, request.Currency);
     }
 
     private ErrorOr<Success> CheckTwoFa(CreateTransferRequest request, int userId)
     {
-        if (request.Amount < TwoFaAmountThreshold) return Result.Success;
+        if (!Transfer.RequiresTwoFactorAuthentication(request.Amount)) return Result.Success;
 
         if (string.IsNullOrWhiteSpace(request.TwoFaToken))
         {
@@ -345,7 +302,7 @@ public class TransferService(
             TransactionId = logResult.Value.Id,
             RecipientName = request.RecipientName,
             RecipientIban = request.RecipientIban,
-            RecipientBankName = InferBankName(request.RecipientIban),
+            RecipientBankName = Transfer.InferRecipientBankName(request.RecipientIban),
             Amount = request.Amount,
             Currency = request.Currency,
             Fee = 0m,

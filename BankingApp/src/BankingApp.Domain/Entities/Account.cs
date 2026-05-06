@@ -94,4 +94,14 @@ public class Account
     {
         return Status == AccountStatus.Active;
     }
+
+    /// <summary>
+    ///     Returns true when the current balance can cover the requested amount.
+    /// </summary>
+    /// <param name="amount">The amount to compare against the current balance.</param>
+    /// <returns>The result of the operation.</returns>
+    public bool HasSufficientFunds(decimal amount)
+    {
+        return amount >= 0 && Balance >= amount;
+    }
 }

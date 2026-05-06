@@ -17,8 +17,6 @@ namespace BankingApp.Application.Services.TeamB;
 /// </summary>
 public class RateAlertService : IRateAlertService
 {
-    private const int RatePrecisionDecimals = 2;
-
     private readonly IRateAlertRepository _rateAlertRepository;
     private readonly IExchangeService _exchangeService;
 
@@ -45,29 +43,16 @@ public class RateAlertService : IRateAlertService
     /// <inheritdoc />
     public ErrorOr<RateAlertDto> CreateAlert(RateAlertDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.BaseCurrency))
-            return Error.Validation(description: "Base currency cannot be empty.");
+        ErrorOr<RateAlert> alertResult = RateAlert.Create(
+            dto.UserId,
+            dto.BaseCurrency,
+            dto.TargetCurrency,
+            dto.TargetRate,
+            dto.IsBuyAlert,
+            DateTime.UtcNow);
+        if (alertResult.IsError) return alertResult.Errors;
 
-        if (string.IsNullOrWhiteSpace(dto.TargetCurrency))
-            return Error.Validation(description: "Target currency cannot be empty.");
-
-        if (dto.BaseCurrency.Equals(dto.TargetCurrency, StringComparison.OrdinalIgnoreCase))
-            return Error.Validation(description: "Base and target currencies must differ.");
-
-        if (dto.TargetRate <= 0) return Error.Validation(description: "Target rate must be greater than zero.");
-
-        var alert = new RateAlert
-        {
-            UserId = dto.UserId,
-            BaseCurrency = dto.BaseCurrency,
-            TargetCurrency = dto.TargetCurrency,
-            TargetRate = dto.TargetRate,
-            IsBuyAlert = dto.IsBuyAlert,
-            IsTriggered = false,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        ErrorOr<RateAlert> createResult = _rateAlertRepository.Create(alert);
+        ErrorOr<RateAlert> createResult = _rateAlertRepository.Create(alertResult.Value);
         if (createResult.IsError) return createResult.Errors;
 
         return MapToDto(createResult.Value);
@@ -96,14 +81,7 @@ public class RateAlertService : IRateAlertService
 
             if (previewResult.IsError) continue;
 
-            decimal currentRate = Math.Round(previewResult.Value.ExchangeRate, RatePrecisionDecimals);
-            decimal targetRate = Math.Round(alert.TargetRate, RatePrecisionDecimals);
-
-            bool shouldTrigger = alert.IsBuyAlert
-                ? currentRate <= targetRate
-                : currentRate >= targetRate;
-
-            if (!shouldTrigger) continue;
+            if (!alert.ShouldTrigger(previewResult.Value.ExchangeRate)) continue;
 
             ErrorOr<RateAlert> markResult = _rateAlertRepository.MarkTriggered(alert.Id);
             if (!markResult.IsError) triggeredCount++;

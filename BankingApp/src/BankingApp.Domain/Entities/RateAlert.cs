@@ -5,6 +5,9 @@
 // Contains the RateAlert entity for Team B's FX rate alert feature.
 // </summary>
 
+using BankingApp.Domain.Errors;
+using ErrorOr;
+
 namespace BankingApp.Domain.Entities;
 
 /// <summary>
@@ -17,6 +20,8 @@ namespace BankingApp.Domain.Entities;
 /// </remarks>
 public class RateAlert
 {
+    private const int RatePrecisionDecimals = 2;
+
     /// <summary>Gets or sets the unique identifier for this rate alert.</summary>
     /// <value>Gets or sets the current value.</value>
     public int Id { get; set; }
@@ -54,4 +59,55 @@ public class RateAlert
     /// <summary>Gets or sets the date and time (UTC) when this alert was created.</summary>
     /// <value>Gets or sets the current value.</value>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    ///     Creates a validated rate alert aggregate.
+    /// </summary>
+    /// <param name="userId">The alert owner identifier.</param>
+    /// <param name="baseCurrency">The base currency.</param>
+    /// <param name="targetCurrency">The target currency.</param>
+    /// <param name="targetRate">The target exchange rate.</param>
+    /// <param name="isBuyAlert">Whether the alert triggers on buy conditions.</param>
+    /// <param name="createdAt">The creation timestamp.</param>
+    /// <returns>The result of the operation.</returns>
+    public static ErrorOr<RateAlert> Create(
+        int userId,
+        string baseCurrency,
+        string targetCurrency,
+        decimal targetRate,
+        bool isBuyAlert,
+        DateTime createdAt)
+    {
+        if (string.IsNullOrWhiteSpace(baseCurrency)) return RateAlertErrors.BaseCurrencyRequired;
+        if (string.IsNullOrWhiteSpace(targetCurrency)) return RateAlertErrors.TargetCurrencyRequired;
+        if (baseCurrency.Equals(targetCurrency, StringComparison.OrdinalIgnoreCase))
+            return RateAlertErrors.MatchingCurrencies;
+        if (targetRate <= 0) return RateAlertErrors.InvalidTargetRate;
+
+        return new RateAlert
+        {
+            UserId = userId,
+            BaseCurrency = baseCurrency,
+            TargetCurrency = targetCurrency,
+            TargetRate = targetRate,
+            IsBuyAlert = isBuyAlert,
+            IsTriggered = false,
+            CreatedAt = createdAt
+        };
+    }
+
+    /// <summary>
+    ///     Determines whether the alert should trigger for the provided current rate.
+    /// </summary>
+    /// <param name="currentRate">The current market rate.</param>
+    /// <returns>The result of the operation.</returns>
+    public bool ShouldTrigger(decimal currentRate)
+    {
+        decimal roundedCurrentRate = Math.Round(currentRate, RatePrecisionDecimals);
+        decimal roundedTargetRate = Math.Round(TargetRate, RatePrecisionDecimals);
+
+        return IsBuyAlert
+            ? roundedCurrentRate <= roundedTargetRate
+            : roundedCurrentRate >= roundedTargetRate;
+    }
 }

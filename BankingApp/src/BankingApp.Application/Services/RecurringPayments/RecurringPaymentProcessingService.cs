@@ -70,11 +70,7 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
                     IsPayInFull = payment.IsPayInFull
                 });
 
-                DateTime nextExecutionDate = ComputeNextRunDate(payment.Frequency, payment.NextExecutionDate);
-                if (payment.EndDate.HasValue && nextExecutionDate > payment.EndDate.Value)
-                    payment.Status = RecurringPaymentStatus.Cancelled;
-                else
-                    payment.NextExecutionDate = nextExecutionDate;
+                payment.AdvanceAfterSuccessfulExecution();
 
                 ErrorOr<Success> updateResult = _recurringPaymentRepository.Update(payment);
                 if (updateResult.IsError)
@@ -85,7 +81,7 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
             }
             catch (Exception exception)
             {
-                payment.Status = RecurringPaymentStatus.Paused;
+                payment.MarkExecutionFailed();
                 _recurringPaymentRepository.Update(payment);
                 _logger.LogWarning(
                     exception,
@@ -95,19 +91,5 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
         }
 
         return Result.Success;
-    }
-
-    private static DateTime ComputeNextRunDate(RecurringFrequency frequency, DateTime from)
-    {
-        return frequency switch
-        {
-            RecurringFrequency.Daily => from.AddDays(1),
-            RecurringFrequency.Weekly => from.AddDays(7),
-            RecurringFrequency.BiWeekly => from.AddDays(14),
-            RecurringFrequency.Monthly => from.AddMonths(1),
-            RecurringFrequency.Quarterly => from.AddMonths(3),
-            RecurringFrequency.Yearly => from.AddYears(1),
-            _ => throw new ArgumentOutOfRangeException(nameof(frequency), frequency, null)
-        };
     }
 }

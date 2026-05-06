@@ -67,13 +67,11 @@ If this document and the analyzer or editor configuration conflict, update the c
 21. Add XML documentation to public APIs when the type or member is part of a cross-project contract.
 22. Write comments only when they explain intent, business rules, non-obvious tradeoffs, or external constraints.
 23. In XAML, use clear `x:Name` values for elements referenced from code-behind, keep bindings explicit, and use observable state (`INotifyPropertyChanged` or observable collections) when UI data changes after load.
-24. Name test methods with the `MethodOrScenario_WhenCondition_ExpectedResult` pattern. Underscores in test method names are allowed and preferred for readability.
-25. Structure tests with clear Arrange, Act, and Assert sections when the test has more than one step.
-26. Use focused unit tests for application/domain behavior and integration tests only when process, database, API routing, or dependency wiring must be verified.
-27. Mock dependencies at project boundaries; do not mock the class under test.
-28. Test expected failures and edge cases, not only the successful path.
-29. Prefer null-coalescing expressions over null-check ternaries when the code is equivalent, for example `value ?? fallback` instead of a warning-producing `value is null ? fallback : value`.
-30. Keep test data explicit and local to the test unless sharing it removes real duplication without hiding intent.
+24. Name test methods with the `MethodOrScenario_WhenCondition_ExpectedResult` pattern.
+25. Structure tests with clear Arrange, Act, and Assert sections.
+26. Test expected failures and edge cases, not only the successful path.
+27. Prefer null-coalescing expressions over null-check ternaries when the code is equivalent, for example `value ?? fallback` instead of a warning-producing `value is null ? fallback : value`.
+28. Keep test data explicit and local to the test unless sharing it removes real duplication without hiding intent.
 
 ## Branch naming and Commit messages
 
