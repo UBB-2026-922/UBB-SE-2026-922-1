@@ -3,6 +3,7 @@
 // </copyright>
 
 using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
@@ -84,6 +85,11 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     public Mock<IProfileService> ProfileServiceMock { get; } = MockFactory.CreateProfileService();
 
     /// <summary>
+    ///     Gets the mock beneficiary service.
+    /// </summary>
+    public Mock<IBeneficiaryService> BeneficiaryServiceMock { get; } = MockFactory.CreateBeneficiaryService();
+
+    /// <summary>
     ///     Configures the test server by replacing service-layer dependencies with Moq stubs.
     /// </summary>
     /// <param name="builder">The web host builder.</param>
@@ -110,6 +116,7 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
             ReplaceService<IPasswordRecoveryService>(services, PasswordRecoveryServiceMock.Object);
             ReplaceService<IDashboardService>(services, DashboardServiceMock.Object);
             ReplaceService<IProfileService>(services, ProfileServiceMock.Object);
+            ReplaceService<IBeneficiaryService>(services, BeneficiaryServiceMock.Object);
         });
     }
 
