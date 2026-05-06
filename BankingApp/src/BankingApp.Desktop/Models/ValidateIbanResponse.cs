@@ -10,7 +10,7 @@ namespace BankingApp.Desktop.Models;
 /// <summary>
 ///     Response from the IBAN validation endpoint.
 /// </summary>
-public class ValidateIbanResponse
+public partial class ValidateIbanResponse
 {
     /// <summary>
     ///     Gets or sets a value indicating whether the IBAN is structurally valid.

@@ -10,7 +10,7 @@ namespace BankingApp.Desktop.Models;
 /// <summary>
 ///     Response from the FX preview endpoint showing the converted amount and exchange rate.
 /// </summary>
-public class FxPreviewDto
+public partial class FxPreviewDto
 {
     /// <summary>
     ///     Gets or sets the exchange rate applied for the currency conversion.

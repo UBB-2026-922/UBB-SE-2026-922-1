@@ -16,7 +16,7 @@ namespace BankingApp.Desktop.Utilities;
 ///     <see langword="false" /> (or non-bool) to <see cref="Visibility.Visible" /> -
 ///     the inverse of <see cref="BoolToVisibilityConverter" />.
 /// </summary>
-public class InverseBoolToVisibilityConverter : IValueConverter
+public partial class InverseBoolToVisibilityConverter : IValueConverter
 {
     /// <summary>
     ///     Converts a boolean value to the inverse <see cref="Visibility" />.

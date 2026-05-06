@@ -19,7 +19,7 @@ namespace BankingApp.Desktop.ViewModels;
 /// <summary>
 ///     Handles loading and updating notification preferences for the current user.
 /// </summary>
-public class NotificationsViewModel
+public partial class NotificationsViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly ILogger<NotificationsViewModel> _logger;

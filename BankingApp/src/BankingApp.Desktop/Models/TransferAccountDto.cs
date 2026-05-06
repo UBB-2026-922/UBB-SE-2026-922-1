@@ -10,7 +10,7 @@ namespace BankingApp.Desktop.Models;
 /// <summary>
 ///     Represents a bank account available for transfers, as returned by the API.
 /// </summary>
-public class TransferAccountDto
+public partial class TransferAccountDto
 {
     /// <summary>
     ///     Gets or sets the account identifier.

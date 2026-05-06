@@ -21,7 +21,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     Handles security-related profile operations such as password changes
 ///     and 2FA management.
 /// </summary>
-public class SecurityViewModel
+public partial class SecurityViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly ILogger<SecurityViewModel> _logger;

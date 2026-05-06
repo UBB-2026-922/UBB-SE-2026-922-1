@@ -16,7 +16,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     Coordinates the forgot-password flow by delegating all business logic to
 ///     <see cref="IPasswordRecoveryManager" /> and exposing observable state to the View.
 /// </summary>
-public class ForgotPasswordViewModel
+public partial class ForgotPasswordViewModel
 {
     private readonly IPasswordRecoveryManager _recoveryManager;
 

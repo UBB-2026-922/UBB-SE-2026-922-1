@@ -21,7 +21,7 @@ namespace BankingApp.Desktop.Master;
 ///     the Frame.Content property directly rather than calling <see cref="Frame.Navigate(Type)" />,
 ///     because the latter instantiates pages via reflection and bypasses the container.
 /// </remarks>
-public class AppNavigationService : IAppNavigationService
+public partial class AppNavigationService : IAppNavigationService
 {
     private readonly IServiceProvider _serviceProvider;
     private Frame? _contentFrame;

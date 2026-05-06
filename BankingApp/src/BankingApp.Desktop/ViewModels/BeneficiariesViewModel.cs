@@ -21,7 +21,7 @@ namespace BankingApp.Desktop.ViewModels;
 ///     View model for the beneficiaries page in the desktop application.
 ///     Handles loading, adding and deleting beneficiaries and navigation interactions.
 /// </summary>
-public class BeneficiariesViewModel
+public partial class BeneficiariesViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly IAppNavigationService _navigationService;

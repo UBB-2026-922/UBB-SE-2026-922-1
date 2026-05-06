@@ -19,7 +19,7 @@ namespace BankingApp.Desktop.ViewModels;
 /// <summary>
 ///     Coordinates credential-based login requests for the login view.
 /// </summary>
-public class LoginViewModel
+public partial class LoginViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly ILogger<LoginViewModel> _logger;

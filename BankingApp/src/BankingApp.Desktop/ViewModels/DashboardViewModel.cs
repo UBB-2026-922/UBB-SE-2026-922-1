@@ -23,7 +23,7 @@ namespace BankingApp.Desktop.ViewModels;
 /// <summary>
 ///     Loads and exposes the data required by the dashboard view.
 /// </summary>
-public class DashboardViewModel
+public partial class DashboardViewModel
 {
     private const string CardAtStartErrorCode = "dashboard.card_at_start";
     private const string CardAtStartErrorDescription = "Already at the first card.";

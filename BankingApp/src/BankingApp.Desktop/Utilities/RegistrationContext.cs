@@ -8,7 +8,7 @@
 namespace BankingApp.Desktop.Utilities;
 
 /// <inheritdoc />
-public class RegistrationContext : IRegistrationContext
+public partial class RegistrationContext : IRegistrationContext
 {
     /// <inheritdoc />
     /// <value>

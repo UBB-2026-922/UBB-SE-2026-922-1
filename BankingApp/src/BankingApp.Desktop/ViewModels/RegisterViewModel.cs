@@ -19,7 +19,7 @@ namespace BankingApp.Desktop.ViewModels;
 /// <summary>
 ///     Coordinates registration requests for the register view.
 /// </summary>
-public class RegisterViewModel
+public partial class RegisterViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly ILogger<RegisterViewModel> _logger;

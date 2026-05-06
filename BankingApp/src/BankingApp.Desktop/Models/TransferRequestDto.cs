@@ -10,7 +10,7 @@ namespace BankingApp.Desktop.Models;
 /// <summary>
 ///     Request body sent to the transfer execution endpoint.
 /// </summary>
-public class TransferRequestDto
+public partial class TransferRequestDto
 {
     /// <summary>
     ///     Gets or sets the source account identifier.

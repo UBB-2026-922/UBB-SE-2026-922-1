@@ -18,7 +18,7 @@ namespace BankingApp.Desktop.ViewModels;
 /// <summary>
 ///     Handles loading and updating the user's personal profile information.
 /// </summary>
-public class PersonalInfoViewModel
+public partial class PersonalInfoViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly ILogger<PersonalInfoViewModel> _logger;

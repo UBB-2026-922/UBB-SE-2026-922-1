@@ -17,7 +17,7 @@ namespace BankingApp.Desktop.Utilities;
 ///     makes it safe for ViewModels to update observable properties from the handler
 ///     without extra marshalling.
 /// </summary>
-public sealed class DispatcherCountdownTimer : ICountdownTimer
+public sealed partial class DispatcherCountdownTimer : ICountdownTimer
 {
     private const int TimerIntervalSeconds = 1;
     private readonly DispatcherTimer _inner;

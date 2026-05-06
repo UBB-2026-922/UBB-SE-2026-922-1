@@ -10,7 +10,7 @@ namespace BankingApp.Desktop.ViewModels;
 /// <summary>
 ///     Represents a formatted transaction row for dashboard display.
 /// </summary>
-public class DashboardTransactionItem
+public partial class DashboardTransactionItem
 {
     /// <summary>
     ///     Gets or sets the merchant or fallback display name.

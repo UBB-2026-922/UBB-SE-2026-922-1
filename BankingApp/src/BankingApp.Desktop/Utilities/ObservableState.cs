@@ -15,7 +15,7 @@ namespace BankingApp.Desktop.Utilities;
 /// </summary>
 /// <typeparam name="T">The type of the observable state value.</typeparam>
 /// <param name="value">The initial state value.</param>
-public class ObservableState<T>(T value)
+public partial class ObservableState<T>(T value)
 {
     private readonly List<IStateObserver<T>> _observers =
     [

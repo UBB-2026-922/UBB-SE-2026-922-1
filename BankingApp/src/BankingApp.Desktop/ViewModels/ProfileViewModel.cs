@@ -15,10 +15,10 @@ using BankingApp.Domain.Enums;
 namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
-///     Coordinates profile-related operations by delegating to specialised sub-ViewModels
-///     for personal info, security, OAuth, notifications, and sessions.
+///     Coordinates profile-related operations by delegating to specialized sub-ViewModels
+///     for personal info, security, notifications, and sessions.
 /// </summary>
-public class ProfileViewModel : IDisposable
+public partial class ProfileViewModel : IDisposable
 {
     private bool _disposed;
 
@@ -106,7 +106,7 @@ public class ProfileViewModel : IDisposable
     ///     Gets or sets the current value.
     /// </value>
     public bool IsPhoneTwoFactorActive =>
-        ProfileInfo.Is2FaEnabled && ProfileInfo.Preferred2FaMethod == TwoFactorMethod.Phone;
+        ProfileInfo is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Phone };
 
     /// <summary>
     ///     Gets a value indicating whether email-based 2FA is active.
@@ -115,7 +115,7 @@ public class ProfileViewModel : IDisposable
     ///     Gets or sets the current value.
     /// </value>
     public bool IsEmailTwoFactorActive =>
-        ProfileInfo.Is2FaEnabled && ProfileInfo.Preferred2FaMethod == TwoFactorMethod.Email;
+        ProfileInfo is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Email };
 
     /// <summary>
     ///     Loads the current user's profile, OAuth links, and notification preferences.

@@ -19,7 +19,7 @@ namespace BankingApp.Desktop.ViewModels;
 /// <summary>
 ///     Handles active session management for the current user.
 /// </summary>
-public class SessionsViewModel
+public partial class SessionsViewModel
 {
     private readonly IApiClient _apiClient;
     private readonly ILogger<SessionsViewModel> _logger;

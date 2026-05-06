@@ -18,7 +18,7 @@ namespace BankingApp.Desktop.Utilities;
 ///     Implements <see cref="IPasswordRecoveryManager" /> by delegating network calls
 ///     to <see cref="IApiClient" /> and managing resend-throttling via <see cref="ISystemClock" />.
 /// </summary>
-public class PasswordRecoveryManager : IPasswordRecoveryManager
+public partial class PasswordRecoveryManager : IPasswordRecoveryManager
 {
     private const int ResendCooldownSeconds = 60;
     private const int NoSecondsRemaining = 0;
