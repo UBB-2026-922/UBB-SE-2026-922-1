@@ -1,4 +1,4 @@
-// <copyright file="ExchangeControllerTests.cs" company="UBB-922">
+﻿// <copyright file="ExchangeControllerTests.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
@@ -60,8 +60,8 @@ public class ExchangeControllerTests
         var result = _controller.GetPreview("EUR", "USD", 100m);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(okResult.Value);
+        var actionResult = Assert.IsType<OkObjectResult>(result);
+        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -78,8 +78,8 @@ public class ExchangeControllerTests
         var result = _controller.GetPreview("EUR", "USD", 100m);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        var errorResponse = Assert.IsType<ApplicationErrorResponse>(badRequestResult.Value);
+        var actionResult = Assert.IsType<BadRequestObjectResult>(result);
+        var errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
         Assert.Equal("Code", errorResponse.ErrorCode);
     }
 
@@ -102,8 +102,8 @@ public class ExchangeControllerTests
         var result = _controller.GetPreview("EUR", "USD", 100m);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        var errorResponse = Assert.IsType<ApplicationErrorResponse>(badRequestResult.Value);
+        var actionResult = Assert.IsType<BadRequestObjectResult>(result);
+        var errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
         Assert.Equal("Code", errorResponse.ErrorCode);
     }
 
@@ -140,8 +140,8 @@ public class ExchangeControllerTests
         var result = await _controller.Execute(request);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(okResult.Value);
+        var actionResult = Assert.IsType<OkObjectResult>(result);
+        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -178,8 +178,8 @@ public class ExchangeControllerTests
         var result = await _controller.Execute(request);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(okResult.Value);
+        var actionResult = Assert.IsType<OkObjectResult>(result);
+        var actualDto = Assert.IsType<ExchangeTransactionResponseDto>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -209,8 +209,8 @@ public class ExchangeControllerTests
         var result = await _controller.Execute(request);
 
         // Assert
-        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
-        Assert.NotNull(notFoundResult.Value);
+        var actionResult = Assert.IsType<NotFoundObjectResult>(result);
+        Assert.NotNull(actionResult.Value);
     }
 
     [Fact]
@@ -239,8 +239,8 @@ public class ExchangeControllerTests
         var result = await _controller.Execute(request);
 
         // Assert
-        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
-        Assert.NotNull(notFoundResult.Value);
+        var actionResult = Assert.IsType<NotFoundObjectResult>(result);
+        Assert.NotNull(actionResult.Value);
     }
 
     [Fact]
@@ -276,8 +276,8 @@ public class ExchangeControllerTests
         var result = await _controller.Execute(request);
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        var errorResponse = Assert.IsType<ApplicationErrorResponse>(badRequestResult.Value);
+        var actionResult = Assert.IsType<BadRequestObjectResult>(result);
+        var errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
         Assert.Equal("Code", errorResponse.ErrorCode);
     }
 
@@ -299,8 +299,8 @@ public class ExchangeControllerTests
         var result = _controller.GetHistory();
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        var actualList = Assert.IsType<List<ExchangeTransactionResponseDto>>(okResult.Value);
+        var actionResult = Assert.IsType<OkObjectResult>(result);
+        var actualList = Assert.IsType<List<ExchangeTransactionResponseDto>>(actionResult.Value);
         Assert.Equal(2, actualList.Count);
     }
 
@@ -317,8 +317,8 @@ public class ExchangeControllerTests
         var result = _controller.GetHistory();
 
         // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        var errorResponse = Assert.IsType<ApplicationErrorResponse>(badRequestResult.Value);
+        var actionResult = Assert.IsType<BadRequestObjectResult>(result);
+        var errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
         Assert.Equal("Code", errorResponse.ErrorCode);
     }
 }
