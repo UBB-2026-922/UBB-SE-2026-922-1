@@ -23,63 +23,63 @@ public class RecurringPaymentConfiguration : IEntityTypeConfiguration<RecurringP
     {
         entity.ToTable("RecurringPayment");
 
-        entity.HasKey(r => r.Id);
+        entity.HasKey(recurringPayment => recurringPayment.Id);
 
-        entity.Property(r => r.UserId).IsRequired();
-        entity.Property(r => r.BillerId).IsRequired();
-        entity.Property(r => r.SourceAccountId).IsRequired();
+        entity.Property(recurringPayment => recurringPayment.UserId).IsRequired();
+        entity.Property(recurringPayment => recurringPayment.BillerId).IsRequired();
+        entity.Property(recurringPayment => recurringPayment.SourceAccountId).IsRequired();
 
-        entity.Property(r => r.Amount)
+        entity.Property(recurringPayment => recurringPayment.Amount)
             .IsRequired()
             .HasColumnType("decimal(18,2)");
 
-        entity.ToTable(t => t.HasCheckConstraint(
+        entity.ToTable(tableBuilder => tableBuilder.HasCheckConstraint(
             "CK_RecurringPayment_Amount",
             "Amount > 0"));
 
-        entity.Property(r => r.IsPayInFull)
+        entity.Property(recurringPayment => recurringPayment.IsPayInFull)
             .IsRequired()
             .HasDefaultValue(false);
 
-        entity.Property(r => r.Frequency)
+        entity.Property(recurringPayment => recurringPayment.Frequency)
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(20);
 
-        entity.ToTable(t => t.HasCheckConstraint(
+        entity.ToTable(tableBuilder => tableBuilder.HasCheckConstraint(
             "CK_RecurringPayment_Frequency",
             "Frequency IN ('Daily', 'Weekly', 'BiWeekly', 'Monthly', 'Quarterly', 'Yearly')"));
 
-        entity.Property(r => r.StartDate).IsRequired();
-        entity.Property(r => r.EndDate).IsRequired(false);
-        entity.Property(r => r.NextExecutionDate).IsRequired();
+        entity.Property(recurringPayment => recurringPayment.StartDate).IsRequired();
+        entity.Property(recurringPayment => recurringPayment.EndDate).IsRequired(false);
+        entity.Property(recurringPayment => recurringPayment.NextExecutionDate).IsRequired();
 
-        entity.Property(r => r.Status)
+        entity.Property(recurringPayment => recurringPayment.Status)
             .IsRequired()
             .HasConversion<string>()
             .HasMaxLength(20)
             .HasDefaultValue(RecurringPaymentStatus.Active);
 
-        entity.ToTable(t => t.HasCheckConstraint(
+        entity.ToTable(tableBuilder => tableBuilder.HasCheckConstraint(
             "CK_RecurringPayment_Status",
             "Status IN ('Active', 'Paused', 'Cancelled')"));
 
-        entity.Property(r => r.CreatedAt)
+        entity.Property(recurringPayment => recurringPayment.CreatedAt)
             .HasDefaultValueSql("GETUTCDATE()");
 
-        entity.HasIndex(r => r.BillerId);
-        entity.HasIndex(r => r.SourceAccountId);
-        entity.HasIndex(r => r.UserId);
+        entity.HasIndex(recurringPayment => recurringPayment.BillerId);
+        entity.HasIndex(recurringPayment => recurringPayment.SourceAccountId);
+        entity.HasIndex(recurringPayment => recurringPayment.UserId);
 
         entity.HasOne<Biller>()
             .WithMany()
-            .HasForeignKey(r => r.BillerId);
+            .HasForeignKey(recurringPayment => recurringPayment.BillerId);
 
         entity.HasOne<Account>()
             .WithMany()
-            .HasForeignKey(r => r.SourceAccountId)
+            .HasForeignKey(recurringPayment => recurringPayment.SourceAccountId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        entity.HasOne<User>().WithMany().HasForeignKey(r => r.UserId);
+        entity.HasOne<User>().WithMany().HasForeignKey(recurringPayment => recurringPayment.UserId);
     }
 }

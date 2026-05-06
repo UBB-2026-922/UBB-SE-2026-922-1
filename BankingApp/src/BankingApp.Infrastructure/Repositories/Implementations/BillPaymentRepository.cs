@@ -40,7 +40,7 @@ public class BillPaymentRepository : IBillPaymentRepository
     /// <inheritdoc/>
     public async Task<Biller?> GetBillerByIdAsync(int billerId)
     {
-        return await _context.Billers.FirstOrDefaultAsync(b => b.Id == billerId);
+        return await _context.Billers.FirstOrDefaultAsync(biller => biller.Id == billerId);
     }
 
     /// <inheritdoc/>
@@ -79,7 +79,7 @@ public class BillPaymentRepository : IBillPaymentRepository
     /// <inheritdoc/>
     public async Task<Account?> GetAccountByIdAsync(int accountId)
     {
-        return await _context.Accounts.FirstOrDefaultAsync(a => a.Id == accountId);
+        return await _context.Accounts.FirstOrDefaultAsync(account => account.Id == accountId);
     }
 
     /// <inheritdoc/>

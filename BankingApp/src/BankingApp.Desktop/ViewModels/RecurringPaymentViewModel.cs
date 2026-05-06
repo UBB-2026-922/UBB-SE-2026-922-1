@@ -497,7 +497,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
 
     private void UpdatePaymentInCollection(int paymentId, RecurringPaymentStatus newStatus)
     {
-        var existingPayment = Payments.FirstOrDefault(p => p.Id == paymentId);
+        var existingPayment = Payments.FirstOrDefault(payment => payment.Id == paymentId);
         if (existingPayment != null)
         {
             var index = Payments.IndexOf(existingPayment);

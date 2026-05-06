@@ -76,7 +76,7 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
             foreach (NotificationPreference preference in preferences)
             {
                 NotificationPreference? existing = _databaseContext.NotificationPreferences
-                    .FirstOrDefault(p => p.UserId == userId && p.Category == preference.Category);
+                    .FirstOrDefault(existingPreference => existingPreference.UserId == userId && existingPreference.Category == preference.Category);
                 if (existing is not null)
                 {
                     existing.PushEnabled = preference.PushEnabled;

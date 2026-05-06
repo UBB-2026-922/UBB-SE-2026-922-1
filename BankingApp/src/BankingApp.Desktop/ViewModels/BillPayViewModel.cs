@@ -563,9 +563,9 @@ public partial class BillPayViewModel : INotifyPropertyChanged
 
             if (ShouldSaveBiller)
             {
-                var alreadySaved = SavedBillers.Any(s =>
-                    s.BillerId == SelectedBiller.Id &&
-                    string.Equals(s.DefaultReference, BillerReference, StringComparison.OrdinalIgnoreCase));
+                var alreadySaved = SavedBillers.Any(savedBiller =>
+                    savedBiller.BillerId == SelectedBiller.Id &&
+                    string.Equals(savedBiller.DefaultReference, BillerReference, StringComparison.OrdinalIgnoreCase));
 
                 if (!alreadySaved)
                 {
@@ -643,7 +643,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
             return;
         }
 
-        var matchingSaved = SavedBillers.FirstOrDefault(s => s.BillerId == SelectedBiller.Id);
+        var matchingSaved = SavedBillers.FirstOrDefault(savedBiller => savedBiller.BillerId == SelectedBiller.Id);
 
         if (matchingSaved != null &&
             string.IsNullOrWhiteSpace(BillerReference) &&

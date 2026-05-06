@@ -107,7 +107,7 @@ public class BeneficiariesViewModel
                 return false;
             }
 
-            Beneficiaries.RemoveAll(b => b.Id == id);
+            Beneficiaries.RemoveAll(beneficiary => beneficiary.Id == id);
             return true;
         }
         catch (Exception ex)

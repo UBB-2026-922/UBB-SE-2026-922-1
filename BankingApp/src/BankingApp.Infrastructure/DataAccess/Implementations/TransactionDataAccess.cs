@@ -61,8 +61,8 @@ public class TransactionDataAccess : ITransactionDataAccess
     public ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit)
     {
         List<Transaction> transactions = _databaseContext.Transactions
-            .Where(t => t.AccountId == accountId)
-            .OrderByDescending(t => t.CreatedAt)
+            .Where(transaction => transaction.AccountId == accountId)
+            .OrderByDescending(transaction => transaction.CreatedAt)
             .Take(limit)
             .ToList();
         return transactions;
