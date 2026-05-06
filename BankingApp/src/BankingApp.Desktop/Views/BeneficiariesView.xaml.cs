@@ -5,8 +5,6 @@
 // Contains the BeneficiariesView page code-behind.
 // </summary>
 
-using System;
-using System.Threading.Tasks;
 using BankingApp.Application.DTOs.Beneficiaries;
 using BankingApp.Desktop.ViewModels;
 using Microsoft.UI.Xaml;
@@ -17,7 +15,7 @@ namespace BankingApp.Desktop.Views;
 /// <summary>
 ///     Page that displays beneficiaries and basic CRUD interactions for the desktop app.
 /// </summary>
-public sealed partial class BeneficiariesView : Page
+public sealed partial class BeneficiariesView
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="BeneficiariesView"/> class.
@@ -35,35 +33,44 @@ public sealed partial class BeneficiariesView : Page
     /// </summary>
     public BeneficiariesViewModel ViewModel { get; }
 
-    private async void OnPageLoaded(object sender, RoutedEventArgs e)
+    private async void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
     {
         await ViewModel.LoadBeneficiariesAsync();
     }
 
-    private void ShowAddForm_Click(object sender, RoutedEventArgs e)
+    private void ShowAddForm_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         ViewModel.IsAddFormVisible = true;
     }
 
-    private void CancelAdd_Click(object sender, RoutedEventArgs e)
+    private void CancelAdd_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         ViewModel.IsAddFormVisible = false;
     }
 
-    private async void Save_Click(object sender, RoutedEventArgs e)
+    private async void Save_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await ViewModel.AddBeneficiaryAsync();
     }
 
-    private async void Delete_Click(object sender, RoutedEventArgs e)
+    private async void Delete_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        if (sender is FrameworkElement { DataContext: BeneficiaryDataTransferObject dto })
-            await ViewModel.DeleteBeneficiaryAsync(dto.Id);
+        BeneficiaryDataTransferObject? beneficiary = TryGetBeneficiaryFromSender(sender);
+        if (beneficiary is null) return;
+
+        await ViewModel.DeleteBeneficiaryAsync(beneficiary.Id);
     }
 
-    private void Use_Click(object sender, RoutedEventArgs e)
+    private void Use_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        if (sender is FrameworkElement fe && fe.DataContext is BeneficiaryDataTransferObject dto)
-            ViewModel.UseForTransfer(dto);
+        BeneficiaryDataTransferObject? beneficiary = TryGetBeneficiaryFromSender(sender);
+        if (beneficiary is null) return;
+
+        ViewModel.UseForTransfer(beneficiary);
+    }
+
+    private static BeneficiaryDataTransferObject? TryGetBeneficiaryFromSender(object sender)
+    {
+        return sender is Button { Tag: BeneficiaryDataTransferObject beneficiary } ? beneficiary : null;
     }
 }

@@ -36,8 +36,8 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <Button Content="Use" Click="Use_Click" />
-                            <Button Content="Delete" Click="Delete_Click" />
+                            <Button Content="Use" Click="Use_Click" Tag="{x:Bind}" />
+                            <Button Content="Delete" Click="Delete_Click" Tag="{x:Bind}" />
                         </StackPanel>
                     </Grid>
                 </DataTemplate>
