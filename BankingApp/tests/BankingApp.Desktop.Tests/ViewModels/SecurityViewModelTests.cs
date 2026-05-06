@@ -103,4 +103,102 @@ public class SecurityViewModelTests
         Assert.Equal(UserMessages.Security.UnexpectedError, result.ErrorMessage);
         Assert.Equal(ProfileState.Error, _viewModel.State.Value);
     }
+
+    [Fact]
+    public async Task SetTwoFactorEnabled_WhenTrue_CallsEnableTwoFactorAndReturnsTrue()
+    {
+        // Arrange
+        _mockApiClient
+            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        var result = await _viewModel.SetTwoFactorEnabled(true);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+    }
+
+    [Fact]
+    public async Task SetTwoFactorEnabled_WhenFalse_CallsDisableTwoFactorAndReturnsTrue()
+    {
+        // Arrange
+        _mockApiClient
+            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        var result = await _viewModel.SetTwoFactorEnabled(false);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+    }
+
+    [Fact]
+    public async Task EnableTwoFactor_WhenApiSucceeds_UpdatesStateAndReturnsTrue()
+    {
+        // Arrange
+        _mockApiClient
+            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        var result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+    }
+
+    [Fact]
+    public async Task DisableTwoFactor_WhenApiSucceeds_UpdatesStateAndReturnsTrue()
+    {
+        // Arrange
+        _mockApiClient
+            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        var result = await _viewModel.DisableTwoFactor();
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+    }
+
+    [Fact]
+    public async Task EnableTwoFactor_WhenApiFails_UpdatesStateToErrorAndReturnsFalse()
+    {
+        // Arrange
+        var error = Error.Failure("server_error", "Description");
+        _mockApiClient
+            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+            .ReturnsAsync(error);
+
+        // Act
+        var result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
+
+        // Assert
+        Assert.False(result);
+        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+    }
+
+    [Fact]
+    public async Task DisableTwoFactor_WhenApiFails_UpdatesStateToErrorAndReturnsFalse()
+    {
+        // Arrange
+        var error = Error.Failure("server_error", "Description");
+        _mockApiClient
+            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+            .ReturnsAsync(error);
+
+        // Act
+        var result = await _viewModel.DisableTwoFactor();
+
+        // Assert
+        Assert.False(result);
+        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+    }
 }
