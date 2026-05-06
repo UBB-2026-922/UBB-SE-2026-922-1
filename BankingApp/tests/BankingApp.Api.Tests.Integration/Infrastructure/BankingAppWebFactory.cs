@@ -10,8 +10,13 @@ using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Security;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace BankingApp.Api.Tests.Integration.Infrastructure;
 
@@ -84,30 +89,39 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     /// <param name="builder">The web host builder.</param>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseSetting(WebHostDefaults.ApplicationKey, typeof(Program).Assembly.GetName().Name);
         builder.UseEnvironment("Testing");
-
-        builder.ConfigureServices(services =>
+        builder.UseDefaultServiceProvider(options =>
         {
+            options.ValidateScopes = false;
+            options.ValidateOnBuild = false;
+        });
+
+        builder.ConfigureTestServices(services =>
+        {
+            // Ensure controllers from the API assembly are discovered
+            services.AddControllers().AddApplicationPart(typeof(Program).Assembly);
+
             // Remove real infrastructure registrations and replace with substitutes.
-            ReplaceService(services, JwtServiceMock.Object);
-            ReplaceService(services, AuthRepositoryMock.Object);
-            ReplaceService(services, LoginServiceMock.Object);
-            ReplaceService(services, RegistrationServiceMock.Object);
-            ReplaceService(services, PasswordRecoveryServiceMock.Object);
-            ReplaceService(services, DashboardServiceMock.Object);
-            ReplaceService(services, ProfileServiceMock.Object);
+            ReplaceService<IJsonWebTokenService>(services, JwtServiceMock.Object);
+            ReplaceService<IAuthRepository>(services, AuthRepositoryMock.Object);
+            ReplaceService<ILoginService>(services, LoginServiceMock.Object);
+            ReplaceService<IRegistrationService>(services, RegistrationServiceMock.Object);
+            ReplaceService<IPasswordRecoveryService>(services, PasswordRecoveryServiceMock.Object);
+            ReplaceService<IDashboardService>(services, DashboardServiceMock.Object);
+            ReplaceService<IProfileService>(services, ProfileServiceMock.Object);
         });
     }
 
     private static void ReplaceService<TService>(IServiceCollection services, TService implementation)
         where TService : class
     {
-        ServiceDescriptor? existing = services.FirstOrDefault(descriptor => descriptor.ServiceType == typeof(TService));
-        if (existing != null)
+        var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
+        foreach (var descriptor in descriptors)
         {
-            services.Remove(existing);
+            services.Remove(descriptor);
         }
 
-        services.AddScoped(_ => implementation);
+        services.AddSingleton(_ => implementation);
     }
 }
