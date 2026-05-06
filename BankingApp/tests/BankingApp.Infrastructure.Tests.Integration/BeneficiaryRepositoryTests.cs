@@ -209,26 +209,31 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
     public void Update_WhenBeneficiaryExists_PersistsChanges()
     {
         // Arrange
-        using AppDatabaseContext databaseContext = CreateDatabaseContext();
-        User beneficiaryOwner = SeedUser(databaseContext);
+        using AppDatabaseContext seedContext = CreateDatabaseContext();
+        User beneficiaryOwner = SeedUser(seedContext);
         Beneficiary existingBeneficiary = SeedBeneficiary(
-            databaseContext,
+            seedContext,
             beneficiaryOwner.Id,
             "Noah Recipient",
             "RO49AAAA1B31007593840005");
-        BeneficiaryRepository beneficiaryRepository = new(databaseContext);
+        int existingBeneficiaryId = existingBeneficiary.Id;
+        DateTime existingCreatedAt = existingBeneficiary.CreatedAt;
+        string existingIban = existingBeneficiary.Iban;
+
+        using AppDatabaseContext updateContext = CreateDatabaseContext();
+        BeneficiaryRepository beneficiaryRepository = new(updateContext);
         DateTime updatedTransferDate = DateTime.UtcNow.AddDays(UpdatedLastTransferDaysOffset);
         var beneficiaryToUpdate = new Beneficiary
         {
-            Id = existingBeneficiary.Id,
-            UserId = existingBeneficiary.UserId,
+            Id = existingBeneficiaryId,
+            UserId = beneficiaryOwner.Id,
             Name = "Noah Updated",
-            Iban = existingBeneficiary.Iban,
+            Iban = existingIban,
             BankName = "Updated Bank",
             LastTransferDate = updatedTransferDate,
             TotalAmountSent = UpdatedTotalAmountSent,
             TransferCount = UpdatedTransferCount,
-            CreatedAt = existingBeneficiary.CreatedAt,
+            CreatedAt = existingCreatedAt,
         };
 
         // Act
@@ -239,7 +244,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
 
         using AppDatabaseContext verificationContext = CreateDatabaseContext();
         Beneficiary? updatedBeneficiary = verificationContext.Beneficiaries
-            .FirstOrDefault(beneficiary => beneficiary.Id == existingBeneficiary.Id);
+            .FirstOrDefault(beneficiary => beneficiary.Id == existingBeneficiaryId);
         updatedBeneficiary.Should().NotBeNull();
         updatedBeneficiary!.Name.Should().Be("Noah Updated");
         updatedBeneficiary.BankName.Should().Be("Updated Bank");
