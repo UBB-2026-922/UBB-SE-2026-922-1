@@ -41,7 +41,7 @@ public class RecurringPaymentProcessingServiceTests
         _clock = new Mock<ISystemClock>();
         _logger = new Mock<ILogger<RecurringPaymentProcessingService>>();
 
-        _clock.Setup(c => c.UtcNow).Returns(_fixedUtcNow);
+        _clock.Setup(clock => clock.UtcNow).Returns(_fixedUtcNow);
 
         _service = new RecurringPaymentProcessingService(
             _recurringPaymentRepository.Object,
@@ -60,7 +60,7 @@ public class RecurringPaymentProcessingServiceTests
         // Arrange
         Error repositoryError = Error.Failure("repo.error", "DB failure");
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(repositoryError);
 
         // Act
@@ -80,7 +80,7 @@ public class RecurringPaymentProcessingServiceTests
     {
         // Arrange
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment>());
 
         // Act
@@ -89,7 +89,7 @@ public class RecurringPaymentProcessingServiceTests
         // Assert
         result.IsError.Should().BeFalse();
         _billPaymentService.Verify(
-            s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()),
+            billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()),
             Times.Never);
     }
 
@@ -103,7 +103,7 @@ public class RecurringPaymentProcessingServiceTests
         // Arrange
         RecurringPayment pausedPayment = CreatePayment(status: RecurringPaymentStatus.Paused);
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment> { pausedPayment });
 
         // Act
@@ -112,12 +112,12 @@ public class RecurringPaymentProcessingServiceTests
         // Assert
         result.IsError.Should().BeFalse();
         _billPaymentService.Verify(
-            s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()),
+            billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()),
             Times.Never);
     }
 
     /// <summary>
-    ///     Verifies that an active due payment without an end date has its
+    ///     Verifies that an active due payment without an end date
     ///     <c>NextExecutionDate</c> advanced by one month and is persisted.
     /// </summary>
     [Fact]
@@ -129,13 +129,13 @@ public class RecurringPaymentProcessingServiceTests
             nextExecutionDate: _fixedUtcNow.AddDays(-1));
 
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment> { payment });
         _billPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Setup(billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ReturnsAsync(new BillPayment());
         _recurringPaymentRepository
-            .Setup(r => r.Update(payment))
+            .Setup(repo => repo.Update(payment))
             .Returns(Result.Success);
 
         // Act
@@ -144,7 +144,7 @@ public class RecurringPaymentProcessingServiceTests
         // Assert
         payment.NextExecutionDate.Should().Be(_fixedUtcNow.AddDays(-1).AddMonths(1));
         payment.Status.Should().Be(RecurringPaymentStatus.Active);
-        _recurringPaymentRepository.Verify(r => r.Update(payment), Times.Once);
+        _recurringPaymentRepository.Verify(repo => repo.Update(payment), Times.Once);
     }
 
     /// <summary>
@@ -163,13 +163,13 @@ public class RecurringPaymentProcessingServiceTests
             endDate: nextExecution.AddDays(5));  // end date before next computed run (nextExecution + 1 month)
 
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment> { payment });
         _billPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Setup(billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ReturnsAsync(new BillPayment());
         _recurringPaymentRepository
-            .Setup(r => r.Update(payment))
+            .Setup(repo => repo.Update(payment))
             .Returns(Result.Success);
 
         // Act
@@ -177,7 +177,7 @@ public class RecurringPaymentProcessingServiceTests
 
         // Assert
         payment.Status.Should().Be(RecurringPaymentStatus.Cancelled);
-        _recurringPaymentRepository.Verify(r => r.Update(payment), Times.Once);
+        _recurringPaymentRepository.Verify(repo => repo.Update(payment), Times.Once);
     }
 
     /// <summary>
@@ -190,13 +190,13 @@ public class RecurringPaymentProcessingServiceTests
         // Arrange
         RecurringPayment payment = CreatePayment();
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment> { payment });
         _billPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Setup(billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ThrowsAsync(new InvalidOperationException("Insufficient funds"));
         _recurringPaymentRepository
-            .Setup(r => r.Update(payment))
+            .Setup(repo => repo.Update(payment))
             .Returns(Result.Success);
 
         // Act
@@ -205,7 +205,7 @@ public class RecurringPaymentProcessingServiceTests
         // Assert
         result.IsError.Should().BeFalse();
         payment.Status.Should().Be(RecurringPaymentStatus.Paused);
-        _recurringPaymentRepository.Verify(r => r.Update(payment), Times.Once);
+        _recurringPaymentRepository.Verify(repo => repo.Update(payment), Times.Once);
     }
 
     /// <summary>
@@ -217,32 +217,32 @@ public class RecurringPaymentProcessingServiceTests
         // Arrange
         RecurringPayment payment = CreatePayment(userId: 7, sourceAccountId: 3, billerId: 42, amount: 150m, isPayInFull: true);
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment> { payment });
         _billPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Setup(billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ReturnsAsync(new BillPayment());
         _recurringPaymentRepository
-            .Setup(r => r.Update(payment))
+            .Setup(repo => repo.Update(payment))
             .Returns(Result.Success);
 
-        BillPaymentDto? capturedDto = null;
+        BillPaymentDto? capturedBillPaymentDto = null;
         _billPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
-            .Callback<BillPaymentDto>(dto => capturedDto = dto)
+            .Setup(billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Callback<BillPaymentDto>(billPaymentDto => capturedBillPaymentDto = billPaymentDto)
             .ReturnsAsync(new BillPayment());
 
         // Act
         await _service.ProcessDuePaymentsAsync();
 
         // Assert
-        capturedDto.Should().NotBeNull();
-        capturedDto!.UserId.Should().Be(7);
-        capturedDto.SourceAccountId.Should().Be(3);
-        capturedDto.BillerId.Should().Be(42);
-        capturedDto.Amount.Should().Be(150m);
-        capturedDto.IsPayInFull.Should().BeTrue();
-        capturedDto.BillerReference.Should().BeEmpty();
+        capturedBillPaymentDto.Should().NotBeNull();
+        capturedBillPaymentDto!.UserId.Should().Be(7);
+        capturedBillPaymentDto.SourceAccountId.Should().Be(3);
+        capturedBillPaymentDto.BillerId.Should().Be(42);
+        capturedBillPaymentDto.Amount.Should().Be(150m);
+        capturedBillPaymentDto.IsPayInFull.Should().BeTrue();
+        capturedBillPaymentDto.BillerReference.Should().BeEmpty();
     }
 
     /// <summary>
@@ -272,13 +272,13 @@ public class RecurringPaymentProcessingServiceTests
         // Arrange
         RecurringPayment payment = CreatePayment();
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment> { payment });
         _billPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Setup(billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ReturnsAsync(new BillPayment());
         _recurringPaymentRepository
-            .Setup(r => r.Update(payment))
+            .Setup(repo => repo.Update(payment))
             .Returns(Error.Failure("update.failed", "DB write failed"));
 
         // Act
@@ -310,13 +310,13 @@ public class RecurringPaymentProcessingServiceTests
 
         RecurringPayment payment = CreatePayment(frequency: frequency, nextExecutionDate: baseDate);
         _recurringPaymentRepository
-            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(new List<RecurringPayment> { payment });
         _billPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Setup(billPaymentService => billPaymentService.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ReturnsAsync(new BillPayment());
         _recurringPaymentRepository
-            .Setup(r => r.Update(payment))
+            .Setup(repo => repo.Update(payment))
             .Returns(Result.Success);
 
         // Act
