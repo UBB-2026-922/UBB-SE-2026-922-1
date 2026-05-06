@@ -3,6 +3,7 @@
 // </copyright>
 
 using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
@@ -66,5 +67,12 @@ public static class MockFactory
     public static Mock<IProfileService> CreateProfileService()
     {
         return new Mock<IProfileService>();
+    }
+
+    /// <summary>Creates a loose mock for <see cref="IBeneficiaryService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IBeneficiaryService" />.</returns>
+    public static Mock<IBeneficiaryService> CreateBeneficiaryService()
+    {
+        return new Mock<IBeneficiaryService>();
     }
 }
