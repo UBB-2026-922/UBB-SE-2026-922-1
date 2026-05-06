@@ -1,5 +1,5 @@
-﻿// <copyright file="NotificationPreferenceDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="NotificationPreferenceDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the NotificationPreferenceDataAccess class.
@@ -7,6 +7,7 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
+using BankingApp.Domain.Extensions;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
 using ErrorOr;
 
@@ -40,7 +41,7 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
             NotificationPreference notification = new()
             {
             UserId = userId,
-            Category = Enum.Parse<NotificationType>(category),
+            Category = NotificationTypeExtensions.FromString(category),
             PushEnabled = false,
             EmailEnabled = false,
             SmsEnabled = false,
@@ -75,7 +76,7 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
             foreach (NotificationPreference preference in preferences)
             {
                 NotificationPreference? existing = _databaseContext.NotificationPreferences
-                    .FirstOrDefault(p => p.UserId == userId && p.Category == preference.Category);
+                    .FirstOrDefault(existingPreference => existingPreference.UserId == userId && existingPreference.Category == preference.Category);
                 if (existing is not null)
                 {
                     existing.PushEnabled = preference.PushEnabled;

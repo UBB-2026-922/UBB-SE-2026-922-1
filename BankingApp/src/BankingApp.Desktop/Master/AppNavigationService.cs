@@ -1,5 +1,5 @@
-﻿// <copyright file="AppNavigationService.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="AppNavigationService.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the AppNavigationService class.

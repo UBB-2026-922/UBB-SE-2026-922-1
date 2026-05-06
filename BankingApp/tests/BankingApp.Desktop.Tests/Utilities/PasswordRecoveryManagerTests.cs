@@ -1,5 +1,5 @@
-﻿// <copyright file="PasswordRecoveryManagerTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="PasswordRecoveryManagerTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Desktop.Enums;
@@ -174,7 +174,7 @@ public class PasswordRecoveryManagerTests
     }
 
     /// <summary>
-    ///     Controllable system clock stub — advances on demand so time-dependent logic can be tested deterministically.
+    ///     Controllable system clock stub - advances on demand so time-dependent logic can be tested deterministically.
     /// </summary>
     private sealed class FakeSystemClock : ISystemClock
     {

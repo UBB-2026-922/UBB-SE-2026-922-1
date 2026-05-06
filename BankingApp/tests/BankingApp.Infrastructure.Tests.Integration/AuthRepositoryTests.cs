@@ -1,4 +1,4 @@
-﻿// Copyright (c) BankingApp. All rights reserved.
+﻿// Copyright (c) UBB-922. All rights reserved.
 // Licensed under the MIT license.
 
 using BankingApp.Domain.Entities;
@@ -7,7 +7,6 @@ using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.Repositories.Implementations;
 using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 using Bogus;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.Tests.Integration;
@@ -73,7 +72,7 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         // Assert
         result.IsError.Should().BeFalse(result.IsError ? result.FirstError.Description : string.Empty);
         User user = userDataAccess.FindByEmail(newUser.Email).Value;
-        int count = databaseContext.NotificationPreferences.Count(p => p.UserId == user.Id);
+        int count = databaseContext.NotificationPreferences.Count(preference => preference.UserId == user.Id);
         count.Should().BeGreaterThan(0, "Expected at least one notification preference to be created.");
     }
 

@@ -1,5 +1,5 @@
-﻿// <copyright file="CardPageIndicatorViewModel.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="CardPageIndicatorViewModel.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the CardPageIndicatorViewModel class.

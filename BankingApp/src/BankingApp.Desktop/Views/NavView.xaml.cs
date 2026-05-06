@@ -1,5 +1,5 @@
-﻿// <copyright file="NavView.xaml.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="NavView.xaml.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains code for NavView.xaml.
@@ -40,9 +40,10 @@ public sealed partial class NavView
         Current = this;
         _navButtons =
         [
-            NavDashboard, NavTransfers, NavBillPayments, NavCards,
-            NavTransferHistory, NavCurrencyExchange, NavSavings,
-            NavInvestments, NavStatistics, NavSupport, NavProfile
+            NavDashboard, NavTransfers, NavBillPayments, NavRecurringPayments, NavCards,
+            NavTransferHistory, NavCurrencyExchange, NavRateAlerts, NavSavings,
+            NavInvestments, NavStatistics, NavSupport, NavProfile,
+            NavBeneficiaries
         ];
         _apiClient = apiClient;
         _navigationService = navigationService;
@@ -119,15 +120,29 @@ public sealed partial class NavView
         _navigationService.NavigateToContent<ProfileView>();
     }
 
-    // All other nav items show a coming soon alert
-    private async void NavTransfers_Click(object sender, RoutedEventArgs e)
+    private void NavBeneficiaries_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Transfers");
+        SetActiveNav(NavBeneficiaries);
+        _navigationService.NavigateToContent<BeneficiariesView>();
     }
 
-    private async void NavBillPayments_Click(object sender, RoutedEventArgs e)
+    // All other nav items show a coming soon alert
+    private void NavTransfers_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Bill Payments");
+        SetActiveNav(NavTransfers);
+        _navigationService.NavigateToContent<TransferView>();
+    }
+
+    private void NavBillPayments_Click(object sender, RoutedEventArgs e)
+    {
+        SetActiveNav(NavBillPayments);
+        _navigationService.NavigateToContent<BillPayView>();
+    }
+
+    private void NavRecurringPayments_Click(object sender, RoutedEventArgs e)
+    {
+        SetActiveNav(NavRecurringPayments);
+        _navigationService.NavigateToContent<RecurringPaymentView>();
     }
 
     private async void NavCards_Click(object sender, RoutedEventArgs e)
@@ -135,14 +150,22 @@ public sealed partial class NavView
         await ShowComingSoonAsync("Cards");
     }
 
-    private async void NavTransferHistory_Click(object sender, RoutedEventArgs e)
+    private void NavTransferHistory_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Transfer History");
+        SetActiveNav(NavTransferHistory);
+        _navigationService.NavigateToContent<TransferHistoryView>();
     }
 
-    private async void NavCurrencyExchange_Click(object sender, RoutedEventArgs e)
+    private void NavCurrencyExchange_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Currency Exchange");
+        SetActiveNav(NavCurrencyExchange);
+        _navigationService.NavigateToContent<ForexPage>();
+    }
+
+    private void NavRateAlerts_Click(object sender, RoutedEventArgs e)
+    {
+        SetActiveNav(NavRateAlerts);
+        _navigationService.NavigateToContent<RateAlertsPage>();
     }
 
     private async void NavSavings_Click(object sender, RoutedEventArgs e)

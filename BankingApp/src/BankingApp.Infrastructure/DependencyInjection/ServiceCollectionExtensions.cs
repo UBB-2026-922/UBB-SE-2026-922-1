@@ -1,14 +1,16 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ServiceCollectionExtensions.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the ServiceCollectionExtensions class.
 // </summary>
 
 using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Application.Services.BillPayments;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
+using BankingApp.Application.Utilities;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DataAccess.Implementations;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
@@ -17,6 +19,7 @@ using BankingApp.Infrastructure.Services;
 using BankingApp.Infrastructure.Services.Notifications;
 using BankingApp.Infrastructure.Services.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -49,7 +52,9 @@ public static class ServiceCollectionExtensions
         string otpSecret = configuration["Otp:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
 
-        services.AddDbContext<AppDatabaseContext>(options => options.UseSqlServer(connectionString));
+        services.AddDbContext<AppDatabaseContext>(options =>
+            options.UseSqlServer(connectionString)
+                   .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
         services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
@@ -65,10 +70,26 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthRepository, AuthRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
-
+        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
+        services.AddScoped<
+            BankingApp.Application.Services.BillPayments.IBillPaymentService,
+            BankingApp.Application.Services.BillPayments.BillPaymentService>();
+        services.AddScoped<IBillerDataAccess, BillerDataAccess>();
+        services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
+        services.AddScoped<IBillerRepository, BillerRepository>();
+        services.AddScoped<ITransferDataAccess, TransferDataAccess>();
+        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
+        services.AddSingleton<ISystemClock, SystemClock>();
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
+
+        // These registrations wire the interfaces defined in the Application layer to the
+        // repository implementations in the Infrastructure layer.
+        services.AddScoped<ITransferRepository, TransferRepository>();
+        services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
+        services.AddScoped<IExchangeRepository, ExchangeRepository>();
+        services.AddScoped<IRateAlertRepository, RateAlertRepository>();
+
         return services;
     }
-
 }

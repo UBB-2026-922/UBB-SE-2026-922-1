@@ -1,5 +1,5 @@
-﻿// <copyright file="ServiceCollectionExtensionsTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ServiceCollectionExtensionsTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Infrastructure.DependencyInjection;

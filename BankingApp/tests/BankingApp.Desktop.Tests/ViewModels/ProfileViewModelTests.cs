@@ -1,5 +1,5 @@
-﻿// <copyright file="ProfileViewModelTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ProfileViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Application.DataTransferObjects.Profile;
@@ -292,7 +292,7 @@ public class ProfileViewModelTests
         const int preferenceId = 1;
         var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
         var notificationPreference = new NotificationPreferenceDataTransferObject
-            { Id = preferenceId, EmailEnabled = false };
+        { Id = preferenceId, EmailEnabled = false };
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _apiClient
@@ -320,7 +320,7 @@ public class ProfileViewModelTests
         const int preferenceId = 1;
         var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
         var notificationPreference = new NotificationPreferenceDataTransferObject
-            { Id = preferenceId, EmailEnabled = true };
+        { Id = preferenceId, EmailEnabled = true };
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _apiClient

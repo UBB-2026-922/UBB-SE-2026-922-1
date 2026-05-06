@@ -1,5 +1,5 @@
-﻿// <copyright file="DashboardRepositoryTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DashboardRepositoryTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Domain.Entities;
@@ -202,6 +202,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             {
                 AccountId = accountId,
                 TransactionRef = $"REF-{index}-{Guid.NewGuid():N}",
+                Type = "Transfer",
                 RelatedEntityType = "Transfer",
                 Direction = TransactionDirection.In,
                 Amount = 100.00m,
@@ -240,6 +241,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             new AccountDataAccess(databaseContext),
             new CardDataAccess(databaseContext),
             new TransactionDataAccess(databaseContext),
-            new NotificationDataAccess(databaseContext));
+            new NotificationDataAccess(databaseContext),
+            new TransferDataAccess(databaseContext));
     }
 }

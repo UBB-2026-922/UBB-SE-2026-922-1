@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <Page
     x:Class="BankingApp.Desktop.Views.NavView"
@@ -165,6 +165,16 @@
                         </StackPanel>
                     </Button>
 
+                    <Button x:Name="NavRecurringPayments"
+                            Style="{StaticResource NavItemStyle}"
+                            Click="NavRecurringPayments_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE823;" FontSize="14" Foreground="#AAA" />
+                            <TextBlock Text="Recurring Payments" Foreground="#AAA" FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
                     <Button x:Name="NavCards"
                             Style="{StaticResource NavItemStyle}"
                             Click="NavCards_Click">
@@ -191,6 +201,16 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE8B1;" FontSize="14" Foreground="#AAA" />
                             <TextBlock Text="Currency Exchange" Foreground="#AAA" FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="NavRateAlerts"
+                            Style="{StaticResource NavItemStyle}"
+                            Click="NavRateAlerts_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xEA8F;" FontSize="14" Foreground="#AAA" />
+                            <TextBlock Text="Rate Alerts" Foreground="#AAA" FontSize="13"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -241,6 +261,16 @@
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <FontIcon Glyph="&#xE77B;" FontSize="14" Foreground="#AAA" />
                             <TextBlock Text="Profile" Foreground="#AAA" FontSize="13"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="NavBeneficiaries"
+                            Style="{StaticResource NavItemStyle}"
+                            Click="NavBeneficiaries_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <FontIcon Glyph="&#xE8D4;" FontSize="14" Foreground="#AAA" />
+                            <TextBlock Text="Beneficiaries" Foreground="#AAA" FontSize="13"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>

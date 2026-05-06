@@ -1,5 +1,5 @@
-﻿// <copyright file="IAccountDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="IAccountDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the IAccountDataAccess interface.
@@ -24,4 +24,10 @@ public interface IAccountDataAccess
     /// <param name="id">The account identifier.</param>
     /// <returns>The matching <see cref="Account" />, or <see cref="Error.NotFound" /> if not found.</returns>
     ErrorOr<Account> FindById(int id);
+    /// <summary>Debits the specified amount from the account balance.</summary>
+    /// <param name="accountId">The account identifier.</param>
+    /// <param name="amount">The amount to debit.</param>
+    /// <returns><see cref="Result.Success" /> on success, or a failure error.</returns>
+    ErrorOr<Success> DebitAccount(int accountId, decimal amount);
+
 }

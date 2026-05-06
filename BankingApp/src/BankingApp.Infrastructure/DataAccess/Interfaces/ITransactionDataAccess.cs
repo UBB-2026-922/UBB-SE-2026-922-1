@@ -1,5 +1,5 @@
-﻿// <copyright file="ITransactionDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ITransactionDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the ITransactionDataAccess interface.
@@ -23,4 +23,9 @@ public interface ITransactionDataAccess
     /// <param name="limit">The maximum number of transactions to return.</param>
     /// <returns>A list of recent transactions ordered by creation date descending, or an error if the operation failed.</returns>
     ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit);
+
+    /// <summary>Adds a new transaction to the data store.</summary>
+    /// <param name="transaction">The transaction to add.</param>
+    /// <returns>The added transaction with any generated fields populated, or an error if the operation failed.</returns>
+    ErrorOr<Transaction> Add(Transaction transaction);
 }

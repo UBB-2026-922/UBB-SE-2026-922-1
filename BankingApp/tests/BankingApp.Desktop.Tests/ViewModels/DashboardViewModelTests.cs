@@ -1,5 +1,5 @@
-﻿// <copyright file="DashboardViewModelTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DashboardViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using System.Globalization;
@@ -93,12 +93,12 @@ public class DashboardViewModelTests
         // Act
         ErrorOr<Success> result = await _viewModel.LoadDashboard();
 
-        // Assert — result and state
+        // Assert - result and state
         result.IsError.Should().BeFalse();
         _viewModel.State.Value.Should().Be(DashboardState.Success);
         _viewModel.ErrorMessage.Should().BeEmpty();
 
-        // Assert — current user
+        // Assert - current user
         _viewModel.CurrentUser.Should().BeEquivalentTo(
             new UserSummaryDataTransferObject
             {
@@ -106,7 +106,7 @@ public class DashboardViewModelTests
                 Email = email,
             });
 
-        // Assert — selected card display properties
+        // Assert - selected card display properties
         _viewModel.CardDots.Should().ContainSingle();
         _viewModel.SelectedCardBrandDisplay.Should().Be(cardBrand);
         _viewModel.SelectedCardHolderDisplay.Should().Be(fullName.ToUpperInvariant());
@@ -114,7 +114,7 @@ public class DashboardViewModelTests
             .Be($"**** **** **** {cardNumber[^CardNumberVisibleSuffixLength..]}");
         _viewModel.SelectedCardExpiryDisplay.Should().Be(cardExpiry.ToString("MM/yy"));
 
-        // Assert — transaction item
+        // Assert - transaction item
         var expectedAmountDisplay = $"-{transactionAmount.ToString("N2", CultureInfo.InvariantCulture)}";
         _viewModel.RecentTransactionItems.Should().ContainSingle()
             .Which.Should().BeEquivalentTo(
@@ -125,7 +125,7 @@ public class DashboardViewModelTests
                     Currency = currency,
                 });
 
-        // Assert — notification count
+        // Assert - notification count
         _viewModel.UnreadNotificationCount.Should().Be(unreadCount);
     }
 
@@ -450,7 +450,7 @@ public class DashboardViewModelTests
     [Fact]
     public void GetSelectedCardDetails_WhenNoCardIsSelected_ReturnsEmptyString()
     {
-        // Arrange — viewModel starts with no cards loaded
+        // Arrange - viewModel starts with no cards loaded
 
         // Act
         string details = _viewModel.GetSelectedCardDetails();

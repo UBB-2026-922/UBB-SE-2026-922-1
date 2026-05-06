@@ -1,5 +1,5 @@
-﻿// <copyright file="DomainEnumMapper.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DomainEnumMapper.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the DomainEnumMapper class.
@@ -10,12 +10,14 @@ using ApplicationCardType = BankingApp.Application.Enums.CardType;
 using ApplicationNotificationType = BankingApp.Application.Enums.NotificationType;
 using ApplicationTransactionDirection = BankingApp.Application.Enums.TransactionDirection;
 using ApplicationTransactionStatus = BankingApp.Application.Enums.TransactionStatus;
+using ApplicationTransferStatus = BankingApp.Application.Enums.TransferStatus;
 using ApplicationTwoFactorMethod = BankingApp.Application.Enums.TwoFactorMethod;
 using DomainCardStatus = BankingApp.Domain.Enums.CardStatus;
 using DomainCardType = BankingApp.Domain.Enums.CardType;
 using DomainNotificationType = BankingApp.Domain.Enums.NotificationType;
 using DomainTransactionDirection = BankingApp.Domain.Enums.TransactionDirection;
 using DomainTransactionStatus = BankingApp.Domain.Enums.TransactionStatus;
+using DomainTransferStatus = BankingApp.Domain.Enums.TransferStatus;
 using DomainTwoFactorMethod = BankingApp.Domain.Enums.TwoFactorMethod;
 
 namespace BankingApp.Application.Mapping;
@@ -135,6 +137,23 @@ internal static class DomainEnumMapper
     }
 
     /// <summary>
+    ///     Converts a domain transfer status to its application contract equivalent.
+    /// </summary>
+    /// <param name="value">The domain transfer status.</param>
+    /// <returns>The application-facing transfer status.</returns>
+    public static ApplicationTransferStatus ToApplication(DomainTransferStatus value)
+    {
+        return value switch
+        {
+            DomainTransferStatus.Pending => ApplicationTransferStatus.Pending,
+            DomainTransferStatus.Completed => ApplicationTransferStatus.Completed,
+            DomainTransferStatus.Failed => ApplicationTransferStatus.Failed,
+            DomainTransferStatus.Cancelled => ApplicationTransferStatus.Cancelled,
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+        };
+    }
+
+    /// <summary>
     ///     Converts an application two-factor method to its domain equivalent.
     /// </summary>
     /// <param name="value">The application-facing two-factor method.</param>
@@ -165,6 +184,23 @@ internal static class DomainEnumMapper
             ApplicationNotificationType.LowBalance => DomainNotificationType.LowBalance,
             ApplicationNotificationType.DuePayment => DomainNotificationType.DuePayment,
             ApplicationNotificationType.SuspiciousActivity => DomainNotificationType.SuspiciousActivity,
+            _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+        };
+    }
+
+    /// <summary>
+    ///     Converts an application transaction status to its domain equivalent.
+    /// </summary>
+    /// <param name="value">The application-facing transaction status.</param>
+    /// <returns>The domain transaction status.</returns>
+    public static DomainTransactionStatus ToDomain(ApplicationTransactionStatus value)
+    {
+        return value switch
+        {
+            ApplicationTransactionStatus.Pending => DomainTransactionStatus.Pending,
+            ApplicationTransactionStatus.Completed => DomainTransactionStatus.Completed,
+            ApplicationTransactionStatus.Failed => DomainTransactionStatus.Failed,
+            ApplicationTransactionStatus.Cancelled => DomainTransactionStatus.Cancelled,
             _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
         };
     }

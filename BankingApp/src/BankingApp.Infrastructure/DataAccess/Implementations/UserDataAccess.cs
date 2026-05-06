@@ -1,5 +1,5 @@
-﻿// <copyright file="UserDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="UserDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the UserDataAccess class.
@@ -7,7 +7,6 @@
 
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
-using Dapper;
 using ErrorOr;
 
 namespace BankingApp.Infrastructure.DataAccess.Implementations;
@@ -17,14 +16,6 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// </summary>
 public class UserDataAccess : IUserDataAccess
 {
-    private const string SelectAllColumns = """
-                                            SELECT Id, Email, PasswordHash, FullName, PhoneNumber, DateOfBirth,
-                                                   [Address], Nationality, PreferredLanguage,
-                                                   Is2FAEnabled AS Is2FAEnabled, Preferred2FaMethod,
-                                                   IsLocked, LockoutEnd, FailedLoginAttempts, CreatedAt, UpdatedAt
-                                            FROM [User]
-                                            """;
-
     private readonly AppDatabaseContext _databaseContext;
 
     /// <summary>
@@ -42,7 +33,7 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<User> FindByEmail(string email)
     {
-        User? user = _databaseContext.Users.FirstOrDefault(u => u.Email == email);
+        User? user = _databaseContext.Users.FirstOrDefault(user => user.Email == email);
         if (user is null)
         {
             return Error.NotFound(description: "User not found.");
@@ -56,7 +47,7 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<User> FindById(int id)
     {
-        User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == id);
+        User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == id);
         if (user is null)
         {
             return Error.NotFound(description: "User not found.");
@@ -107,7 +98,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");
@@ -130,7 +121,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");
@@ -153,7 +144,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");
@@ -177,7 +168,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");

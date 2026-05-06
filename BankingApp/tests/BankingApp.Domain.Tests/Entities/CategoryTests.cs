@@ -1,5 +1,5 @@
-﻿// <copyright file="CategoryTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="CategoryTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using BankingApp.Domain.Entities;
@@ -11,13 +11,10 @@ namespace BankingApp.Domain.Tests.Entities;
 /// </summary>
 public class CategoryTests
 {
-    /// <summary>
-    ///     Verifies the default values assigned to a new category.
-    /// </summary>
     private const int DefaultCategoryId = 0;
 
     /// <summary>
-    ///     Verifies the Constructor_WhenCreated_SetsExpectedDefaults scenario.
+    ///     Verifies that a newly constructed <see cref="Category" /> has the expected default values.
     /// </summary>
     [Fact]
     public void Constructor_WhenCreated_SetsExpectedDefaults()

@@ -1,5 +1,5 @@
-﻿// <copyright file="SessionDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="SessionDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the SessionDataAccess class.
@@ -71,7 +71,7 @@ public class SessionDataAccess : ISessionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Session> FindByToken(string token)
     {
-        Session? session = _databaseContext.Sessions.FirstOrDefault(s => s.Token == token && !s.IsRevoked && s.ExpiresAt > DateTime.UtcNow);
+        Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Token == token && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow);
         if (session is null)
                     {
             return Error.NotFound(description: "Session not found.");
@@ -85,7 +85,7 @@ public class SessionDataAccess : ISessionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Session>> FindByUserId(int userId)
     {
-        List<Session> sessions = _databaseContext.Sessions.Where(s => s.UserId == userId && !s.IsRevoked && s.ExpiresAt > DateTime.UtcNow).ToList();
+        List<Session> sessions = _databaseContext.Sessions.Where(session => session.UserId == userId && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow).ToList();
         return sessions;
     }
 
@@ -96,7 +96,7 @@ public class SessionDataAccess : ISessionDataAccess
     {
         try
         {
-            Session? session = _databaseContext.Sessions.FirstOrDefault(s => s.Id == sessionId && !s.IsRevoked);
+            Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Id == sessionId && !session.IsRevoked);
             if (session is null)
             {
                 return Error.NotFound(description: "Session not found.");
@@ -120,7 +120,7 @@ public class SessionDataAccess : ISessionDataAccess
     {
         try
         {
-        Session? session = _databaseContext.Sessions.FirstOrDefault(s => s.Id == sessionId && s.UserId == userId && !s.IsRevoked);
+        Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Id == sessionId && session.UserId == userId && !session.IsRevoked);
         if (session is null)
         {
             return Error.NotFound(description: "Session not found.");
@@ -143,7 +143,7 @@ public class SessionDataAccess : ISessionDataAccess
     {
         try
         {
-            Session[] sessions = _databaseContext.Sessions.Where(s => s.UserId == userId && !s.IsRevoked).ToArray();
+            Session[] sessions = _databaseContext.Sessions.Where(session => session.UserId == userId && !session.IsRevoked).ToArray();
             foreach (Session session in sessions)
             {
                 session.IsRevoked = true;

@@ -1,5 +1,5 @@
-﻿// <copyright file="DashboardResponse.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DashboardResponse.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the DashboardResponse class.
@@ -27,7 +27,7 @@ public class DashboardResponse
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public List<CardDataTransferObject> Cards { get; set; } = [];
+    public List<CardDataTransferObject> Cards { get; set; } = new();
 
     /// <summary>
     ///     Gets or sets the list of recent transactions.
@@ -45,4 +45,12 @@ public class DashboardResponse
     ///     Gets or sets the current value.
     /// </value>
     public int UnreadNotificationCount { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the list of pending transfers for the user.
+    /// </summary>
+    /// <value>
+    ///     A list of transactions representing pending transfers.
+    /// </value>
+    public List<TransactionDataTransferObject> PendingTransfers { get; set; } = new();
 }

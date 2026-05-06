@@ -1,5 +1,5 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="ServiceCollectionExtensions.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the ServiceCollectionExtensions class.
@@ -58,7 +58,14 @@ public static class ServiceCollectionExtensions
         services.AddTransient<OAuthViewModel>();
         services.AddTransient<NotificationsViewModel>();
         services.AddTransient<SessionsViewModel>();
+        services.AddTransient<BeneficiariesViewModel>();
         services.AddTransient<ProfileViewModel>();
+        services.AddTransient<ForexViewModel>();
+        services.AddTransient<RateAlertViewModel>();
+        services.AddTransient<TransferViewModel>();
+        services.AddTransient<TransferHistoryViewModel>();
+        services.AddTransient<BillPayViewModel>();
+        services.AddTransient<RecurringPaymentViewModel>();
         // Views are registered as transient so the navigation service can resolve them
         // through the container. Each navigation gets a fresh page instance with all
         // constructor dependencies (ViewModels, NavigationService) injected automatically.
@@ -68,7 +75,14 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ForgotPasswordView>();
         services.AddTransient<NavView>();
         services.AddTransient<DashboardView>();
+        services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();
+        services.AddTransient<ForexPage>();
+        services.AddTransient<RateAlertsPage>();
+        services.AddTransient<BillPayView>();
+        services.AddTransient<RecurringPaymentView>();
+        services.AddTransient<TransferView>();
+        services.AddTransient<TransferHistoryView>();
         return services;
     }
 }

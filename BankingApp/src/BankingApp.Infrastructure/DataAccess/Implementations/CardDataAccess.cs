@@ -1,5 +1,5 @@
-﻿// <copyright file="CardDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="CardDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the CardDataAccess class.
@@ -34,7 +34,7 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Card> FindById(int id)
     {
-        Card? card = _databaseContext.Cards.FirstOrDefault(c => c.Id == id);
+        Card? card = _databaseContext.Cards.FirstOrDefault(card => card.Id == id);
         if (card == null)
         {
             return Error.NotFound(description: "Card not found.");
@@ -48,7 +48,7 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Card>> FindByUserId(int userId)
     {
-        List<Card> cards = _databaseContext.Cards.Where(c => c.UserId == userId).ToList();
+        List<Card> cards = _databaseContext.Cards.Where(card => card.UserId == userId).ToList();
         return cards;
     }
 }

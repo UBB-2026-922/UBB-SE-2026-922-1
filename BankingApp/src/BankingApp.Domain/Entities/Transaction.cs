@@ -1,5 +1,5 @@
-﻿// <copyright file="Transaction.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="Transaction.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the Transaction class.
@@ -45,6 +45,14 @@ public class Transaction
     ///     Gets or sets the current value.
     /// </value>
     public string TransactionRef { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Gets or sets the transaction type.
+    /// </summary>
+    /// <value>
+    ///     Gets or sets the current value.
+    /// </value>
+    public string Type { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the direction of the transaction as a <see cref="TransactionDirection" />.

@@ -1,5 +1,5 @@
-﻿// <copyright file="DashboardRepository.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DashboardRepository.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the DashboardRepository class.
@@ -21,6 +21,7 @@ public class DashboardRepository : IDashboardRepository
     private readonly ICardDataAccess _cardDataAccess;
     private readonly INotificationDataAccess _notificationDataAccess;
     private readonly ITransactionDataAccess _transactionDataAccess;
+    private readonly ITransferDataAccess _transferDataAccess;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DashboardRepository" /> class.
@@ -29,16 +30,20 @@ public class DashboardRepository : IDashboardRepository
     /// <param name="cardDataAccess">The card data access component.</param>
     /// <param name="transactionDataAccess">The transaction data access component.</param>
     /// <param name="notificationDataAccess">The notification data access component.</param>
+    /// <param name="transferDataAccess">The transfer data access component.</param>
     public DashboardRepository(
         IAccountDataAccess accountDataAccess,
         ICardDataAccess cardDataAccess,
         ITransactionDataAccess transactionDataAccess,
-        INotificationDataAccess notificationDataAccess)
+        INotificationDataAccess notificationDataAccess,
+        ITransferDataAccess transferDataAccess)
     {
         _accountDataAccess = accountDataAccess;
         _cardDataAccess = cardDataAccess;
         _transactionDataAccess = transactionDataAccess;
         _notificationDataAccess = notificationDataAccess;
+        _transferDataAccess = transferDataAccess;
+
     }
 
     /// <inheritdoc />
@@ -74,5 +79,38 @@ public class DashboardRepository : IDashboardRepository
     public ErrorOr<int> GetUnreadNotificationCount(int userId)
     {
         return _notificationDataAccess.CountUnreadByUserId(userId);
+    }
+
+    /// <inheritdoc />
+    /// <param name="transfer">The transfer value.</param>
+    /// <returns>The result of the operation.</returns>
+    public ErrorOr<Transfer> AddTransfer(Transfer transfer)
+    {
+        return _transferDataAccess.Add(transfer);
+    }
+
+    /// <inheritdoc />
+    /// <param name="userId">The userId value.</param>
+    /// <returns>The result of the operation.</returns>
+    public ErrorOr<List<Transfer>> GetTransfersByUserId(int userId)
+    {
+        return _transferDataAccess.FindByUserId(userId);
+    }
+
+    /// <inheritdoc />
+    /// <param name="accountId">The accountId value.</param>
+    /// <param name="amount">The amount value.</param>
+    /// <returns>The result of the operation.</returns>
+    public ErrorOr<Success> DebitAccount(int accountId, decimal amount)
+    {
+        return _accountDataAccess.DebitAccount(accountId, amount);
+    }
+
+    /// <inheritdoc />
+    /// <param name="transaction">The transaction value.</param>
+    /// <returns>The result of the operation.</returns>
+    public ErrorOr<Transaction> AddTransaction(Transaction transaction)
+    {
+        return _transactionDataAccess.Add(transaction);
     }
 }

@@ -1,11 +1,11 @@
-﻿// <copyright file="DatabaseFixture.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="DatabaseFixture.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
-using System.Data.Common;
 using BankingApp.Infrastructure.DataAccess;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Respawn;
 using Testcontainers.MsSql;
 
@@ -17,13 +17,14 @@ namespace BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 ///     shares one MsSqlContainer for the lifetime of that class.
 ///     Call <see cref="ResetAsync" /> before each test to wipe all data cleanly.
 /// </summary>
-// ReSharper disable once ClassNeverInstantiated.Global — xUnit instantiates fixtures via reflection.
+// ReSharper disable once ClassNeverInstantiated.Global - xUnit instantiates fixtures via reflection.
 public sealed class DatabaseFixture : IAsyncLifetime
 {
-    private readonly MsSqlContainer _databaseContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-latest")
+    private readonly MsSqlContainer _databaseContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
         .Build();
 
-    private DbConnection? _connection;
+    private string _connectionString = string.Empty;
+    private SqlConnection? _connection;
     private Respawner? _respawner;
 
     /// <inheritdoc />
@@ -31,10 +32,12 @@ public sealed class DatabaseFixture : IAsyncLifetime
     {
         await _databaseContainer.StartAsync();
 
-        _connection = new SqlConnection(_databaseContainer.GetConnectionString());
-        await _connection.OpenAsync();
+        _connectionString = _databaseContainer.GetConnectionString();
+        await using AppDatabaseContext databaseContext = CreateDatabaseContext();
+        await databaseContext.Database.MigrateAsync();
 
-        await ApplySchemaAsync();
+        _connection = new SqlConnection(_connectionString);
+        await _connection.OpenAsync();
 
         const string schemaName = "dbo";
 
@@ -66,7 +69,8 @@ public sealed class DatabaseFixture : IAsyncLifetime
     public AppDatabaseContext CreateDatabaseContext()
     {
         DbContextOptions<AppDatabaseContext> options = new DbContextOptionsBuilder<AppDatabaseContext>()
-            .UseSqlServer(_databaseContainer.GetConnectionString())
+            .UseSqlServer(_connectionString)
+            .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
             .Options;
         return new AppDatabaseContext(options);
     }
@@ -81,73 +85,6 @@ public sealed class DatabaseFixture : IAsyncLifetime
         if (_respawner != null && _connection != null)
         {
             await _respawner.ResetAsync(_connection);
-        }
-    }
-
-    private static string FindSchemaDirectory()
-    {
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current is not null)
-        {
-            string candidate = Path.Combine(current.FullName, "scripts", "db", "schema");
-            if (Directory.Exists(candidate))
-            {
-                return candidate;
-            }
-
-            current = current.Parent;
-        }
-
-        throw new DirectoryNotFoundException("Could not locate scripts/db/schema from the test output directory.");
-    }
-
-    private static IEnumerable<string> SplitSqlBatches(string databaseCommandText)
-    {
-        var batches = new List<string>();
-        var currentBatch = new List<string>();
-
-        using var reader = new StringReader(databaseCommandText);
-        while (reader.ReadLine() is { } line)
-        {
-            if (string.Equals(line.Trim(), "GO", StringComparison.OrdinalIgnoreCase))
-            {
-                AddCurrentBatch(batches, currentBatch);
-                currentBatch.Clear();
-                continue;
-            }
-
-            currentBatch.Add(line);
-        }
-
-        AddCurrentBatch(batches, currentBatch);
-        return batches;
-    }
-
-    private static void AddCurrentBatch(List<string> batches, List<string> currentBatch)
-    {
-        string batch = string.Join(Environment.NewLine, currentBatch).Trim();
-        if (!string.IsNullOrWhiteSpace(batch))
-        {
-            batches.Add(batch);
-        }
-    }
-
-    private async Task ApplySchemaAsync()
-    {
-        string schemaDirectory = FindSchemaDirectory();
-        string[] schemaFiles = Directory.GetFiles(schemaDirectory, "*.sql")
-            .Where(path => !Path.GetFileName(path).Equals("00_Database.sql", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        foreach (string schemaFile in schemaFiles)
-        {
-            foreach (string statement in SplitSqlBatches(await File.ReadAllTextAsync(schemaFile)))
-            {
-                await using DbCommand databaseCommand = _connection!.CreateCommand();
-                databaseCommand.CommandText = statement;
-                await databaseCommand.ExecuteNonQueryAsync();
-            }
         }
     }
 }

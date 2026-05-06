@@ -1,0 +1,139 @@
+﻿// <copyright file="SessionsViewModelTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+
+using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Desktop.Enums;
+using BankingApp.Desktop.Utilities;
+using BankingApp.Desktop.ViewModels;
+using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+public class SessionsViewModelTests
+{
+    private readonly Mock<IApiClient> _apiClient = new(MockBehavior.Strict);
+    [Fact]
+    public async Task LoadSessionsAsync_WhenApiReturnsSessions_PopulatesCollectionAndResetsState()
+    {
+        // Arrange
+        const int userId = 7;
+        var sessions = new List<SessionDataTransferObject>
+        {
+            new() { Id = 1, DeviceInfo = "Desktop" },
+            new() { Id = 2, DeviceInfo = "Phone" },
+        };
+
+        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+
+        _apiClient
+            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sessions);
+
+        // Act
+        bool success = await viewModel.LoadSessionsAsync(userId);
+
+        // Assert
+        success.Should().BeTrue();
+        viewModel.State.Value.Should().Be(ProfileState.Idle);
+        viewModel.ActiveSessions.Should().BeSameAs(sessions);
+    }
+
+    [Fact]
+    public async Task LoadSessionsAsync_WhenApiReturnsError_ClearsCollectionAndSetsErrorState()
+    {
+        // Arrange
+        const int userId = 7;
+        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+
+        _apiClient
+            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Error.Failure(description: "server error"));
+
+        // Act
+        bool success = await viewModel.LoadSessionsAsync(userId);
+
+        // Assert
+        success.Should().BeFalse();
+        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.ActiveSessions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task LoadSessionsAsync_WhenApiThrows_ClearsCollectionAndSetsErrorState()
+    {
+        // Arrange
+        const int userId = 7;
+        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+
+        _apiClient
+            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("boom"));
+
+        // Act
+        bool success = await viewModel.LoadSessionsAsync(userId);
+
+        // Assert
+        success.Should().BeFalse();
+        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.ActiveSessions.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RevokeSessionAsync_WhenApiSucceeds_ReturnsTrueAndResetsState()
+    {
+        // Arrange
+        const int sessionId = 42;
+        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+
+        _apiClient
+            .Setup(deletesAsync => deletesAsync.DeleteAsync($"{ApiEndpoints.Sessions}/{sessionId}"))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        bool success = await viewModel.RevokeSessionAsync(sessionId);
+
+        // Assert
+        success.Should().BeTrue();
+        viewModel.State.Value.Should().Be(ProfileState.Idle);
+    }
+
+    [Fact]
+    public async Task RevokeSessionAsync_WhenApiReturnsError_SetsErrorState()
+    {
+        // Arrange
+        const int sessionId = 42;
+        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+
+        _apiClient
+            .Setup(deletesAsync => deletesAsync.DeleteAsync($"{ApiEndpoints.Sessions}/{sessionId}"))
+            .ReturnsAsync(Error.Failure(description: "revoke failed"));
+
+        // Act
+        bool success = await viewModel.RevokeSessionAsync(sessionId);
+
+        // Assert
+        success.Should().BeFalse();
+        viewModel.State.Value.Should().Be(ProfileState.Error);
+    }
+
+    [Fact]
+    public async Task RevokeSessionAsync_WhenApiThrows_SetsErrorState()
+    {
+        // Arrange
+        const int sessionId = 42;
+        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+
+        _apiClient
+            .Setup(deletesAsync => deletesAsync.DeleteAsync($"{ApiEndpoints.Sessions}/{sessionId}"))
+            .ThrowsAsync(new InvalidOperationException("boom"));
+
+        // Act
+        bool success = await viewModel.RevokeSessionAsync(sessionId);
+
+        // Assert
+        success.Should().BeFalse();
+        viewModel.State.Value.Should().Be(ProfileState.Error);
+    }
+}

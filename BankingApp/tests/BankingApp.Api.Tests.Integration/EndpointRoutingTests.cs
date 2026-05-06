@@ -1,5 +1,5 @@
-﻿// <copyright file="EndpointRoutingTests.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="EndpointRoutingTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
 using System.Net;
@@ -42,11 +42,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
             .Returns(true);
     }
 
-    /// <summary>
-    ///     Auth endpoints are public; the middleware must let requests through without a bearer token.
-    /// </summary>
-    /// <param name="method">HTTP method.</param>
-    /// <param name="path">Relative request path.</param>
     [Theory]
     [InlineData("POST", "/api/auth/login")]
     [InlineData("POST", "/api/auth/register")]
@@ -57,25 +52,25 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("POST", "/api/auth/resend-otp")]
     [InlineData("POST", "/api/auth/oauth-login")]
     [InlineData("POST", "/api/auth/verify-reset-token")]
-    public async Task PublicAuthEndpoint_WithoutToken_DoesNotReturn401(string method, string path)
+    public async Task SendAsync_WhenAuthEndpointIsPublicAndTokenIsMissing_ShouldNotReturnUnauthorized(
+        string method,
+        string path)
     {
+        // Arrange
         var request = new HttpRequestMessage(new HttpMethod(method), path)
         {
             Content = JsonContent.Create(new { }),
         };
 
+        // Act
         HttpResponseMessage response = await _client.SendAsync(request);
 
+        // Assert
         // The endpoint is reachable (middleware did not reject). We accept any
         // status other than 401, because the empty body may cause a 400 or 500.
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    ///     Protected endpoints must be rejected by the session middleware when no token is provided.
-    /// </summary>
-    /// <param name="method">HTTP method.</param>
-    /// <param name="path">Relative request path.</param>
     [Theory]
     [InlineData("GET", "/api/dashboard")]
     [InlineData("GET", "/api/profile")]
@@ -89,21 +84,20 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("PUT", "/api/profile/2fa/disable")]
     [InlineData("GET", "/api/profile/sessions")]
     [InlineData("DELETE", "/api/profile/sessions/1")]
-    public async Task ProtectedEndpoint_WithoutToken_Returns401(string method, string path)
+    public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsMissing_ShouldReturnUnauthorized(
+        string method,
+        string path)
     {
+        // Arrange
         var request = new HttpRequestMessage(new HttpMethod(method), path);
 
+        // Act
         HttpResponseMessage response = await _client.SendAsync(request);
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    ///     When a valid bearer token is provided the middleware should pass the request
-    ///     through to the controller, so the response must not be 401.
-    /// </summary>
-    /// <param name="method">HTTP method.</param>
-    /// <param name="path">Relative request path.</param>
     [Theory]
     [InlineData("GET", "/api/dashboard")]
     [InlineData("GET", "/api/profile")]
@@ -117,8 +111,11 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("PUT", "/api/profile/2fa/disable")]
     [InlineData("GET", "/api/profile/sessions")]
     [InlineData("DELETE", "/api/profile/sessions/1")]
-    public async Task ProtectedEndpoint_WithValidToken_DoesNotReturn401(string method, string path)
+    public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsValid_ShouldNotReturnUnauthorized(
+        string method,
+        string path)
     {
+        // Arrange
         var request = new HttpRequestMessage(new HttpMethod(method), path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
@@ -128,35 +125,37 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
             request.Content = JsonContent.Create(new { });
         }
 
+        // Act
         HttpResponseMessage response = await _client.SendAsync(request);
 
+        // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    ///     A malformed or expired token should be rejected with 401.
-    /// </summary>
     [Fact]
-    public async Task ProtectedEndpoint_WithInvalidToken_Returns401()
+    public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsInvalid_ShouldReturnUnauthorized()
     {
+        // Arrange
+        const string invalidToken = "bad-token";
+
         _factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId("bad-token"))
+            .Setup(extractsUserId => extractsUserId.ExtractUserId(invalidToken))
             .Returns(Error.Unauthorized("Token.Invalid", "Token is invalid."));
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/dashboard");
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "bad-token");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", invalidToken);
 
+        // Act
         HttpResponseMessage response = await _client.SendAsync(request);
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    ///     A valid JWT whose session no longer exists in the database should be rejected.
-    /// </summary>
     [Fact]
-    public async Task ProtectedEndpoint_WithExpiredSession_Returns401()
+    public async Task SendAsync_WhenProtectedEndpointIsRequestedAndSessionIsExpired_ShouldReturnUnauthorized()
     {
+        // Arrange
         const string orphanToken = "orphan-token";
 
         _factory.JwtServiceMock
@@ -170,36 +169,37 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/dashboard");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", orphanToken);
 
+        // Act
         HttpResponseMessage response = await _client.SendAsync(request);
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    ///     A request to a non-existent route without a token is intercepted by the
-    ///     session middleware before routing, so it returns 401 rather than 404.
-    ///     This verifies the middleware applies to all non-public paths.
-    /// </summary>
     [Fact]
-    public async Task NonExistentRoute_WithoutToken_Returns401()
+    public async Task GetAsync_WhenRouteDoesNotExistAndTokenIsMissing_ShouldReturnUnauthorized()
     {
-        HttpResponseMessage response = await _client.GetAsync("/api/does-not-exist");
+        // Arrange
+        const string nonExistentProtectedRoute = "/api/does-not-exist";
 
+        // Act
+        HttpResponseMessage response = await _client.GetAsync(nonExistentProtectedRoute);
+
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
-    /// <summary>
-    ///     A request to a non-existent route with a valid token passes the middleware
-    ///     but finds no matching endpoint, resulting in 404.
-    /// </summary>
     [Fact]
-    public async Task NonExistentRoute_WithValidToken_Returns404()
+    public async Task SendAsync_WhenRouteDoesNotExistAndTokenIsValid_ShouldReturnNotFound()
     {
+        // Arrange
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/does-not-exist");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
+        // Act
         HttpResponseMessage response = await _client.SendAsync(request);
 
+        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 }

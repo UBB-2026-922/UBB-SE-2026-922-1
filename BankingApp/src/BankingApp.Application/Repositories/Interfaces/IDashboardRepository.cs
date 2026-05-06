@@ -1,5 +1,5 @@
-﻿// <copyright file="IDashboardRepository.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="IDashboardRepository.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the IDashboardRepository interface.
@@ -38,4 +38,37 @@ public interface IDashboardRepository
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
     ErrorOr<int> GetUnreadNotificationCount(int userId);
+
+    /// <summary>
+    /// Adds a new transfer request for the specified user and source account.
+    /// </summary>
+    /// <param name="transfer">The transfer to add. Required fields include <see cref="Transfer.UserId"/>, <see cref="Transfer.SourceAccountId"/>, and <see cref="Transfer.Amount"/>.</param>
+    /// <returns>
+    /// The added <see cref="Transfer"/> on success, or an <see cref="ErrorOr{T}"/> containing errors if the operation fails.
+    /// </returns>
+    ErrorOr<Transfer> AddTransfer(Transfer transfer);
+
+    /// <summary>
+    /// Gets all transfers created by the specified user.
+    /// </summary>
+    /// <param name="userId">The user identifier whose transfers will be returned.</param>
+    /// <returns>A list of <see cref="Transfer"/> instances or errors.</returns>
+    ErrorOr<List<Transfer>> GetTransfersByUserId(int userId);
+
+    /// <summary>
+    /// Debits the specified account by the given amount.
+    /// </summary>
+    /// <param name="accountId">The account identifier to debit.</param>
+    /// <param name="amount">The amount to debit from the account.</param>
+    /// <returns>
+    /// A <see cref="Success"/> result on success wrapped in <see cref="ErrorOr{T}"/>, or errors on failure.
+    /// </returns>
+    ErrorOr<Success> DebitAccount(int accountId, decimal amount);
+
+    /// <summary>
+    /// Adds a transaction record.
+    /// </summary>
+    /// <param name="transaction">The transaction to add.</param>
+    /// <returns>The added <see cref="Transaction"/> or errors if the operation fails.</returns>
+    ErrorOr<Transaction> AddTransaction(Transaction transaction);
 }

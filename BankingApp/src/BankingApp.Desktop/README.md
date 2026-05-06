@@ -12,15 +12,8 @@ See [../BankingApp.Api/README.md](../BankingApp.Api/README.md) for API setup.
 
 ## Local OAuth Configuration
 
-`scripts/client/setup-dev-config.py` writes `src/BankingApp.Desktop/appsettings.Local.json` with your Google OAuth credentials.
-
-```bash
-python scripts/client/setup-dev-config.py \
-    --client-id 123456.apps.googleusercontent.com \
-    --client-secret GOCSPX-abc123
-```
-
-The generated file is gitignored and can be overwritten safely by rerunning the script.
+Create `src/BankingApp.Desktop/appsettings.Local.json` with your Google OAuth credentials.
+The file is gitignored and can be edited safely for local development.
 
 ## Configuration
 
@@ -47,3 +40,5 @@ Key settings:
 Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select `x64`, and run it.
 
 For Rider, create a compound run configuration with `BankingApp.Api` and `BankingApp.Desktop`.
+
+The desktop shell includes a Beneficiaries page in the left navigation, wired to the API-backed view model for loading and managing saved beneficiaries.

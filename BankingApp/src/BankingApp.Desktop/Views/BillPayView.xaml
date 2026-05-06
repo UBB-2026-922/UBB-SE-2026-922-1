@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="BankingApp.Desktop.Views.BillPayView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dto="using:BankingApp.Application.DTOs.BillPayment"
+    xmlns:converters="using:BankingApp.Desktop.Converters"
+    Background="#0F0F1A">
+
+    <Page.Resources>
+        <converters:StepToVisibilityConverter x:Key="StepToVisibility" />
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel Spacing="20" Padding="32" MaxWidth="700" HorizontalAlignment="Left">
+
+            <!-- STEP 1 - Select Biller -->
+            <Border
+                Padding="24"
+                CornerRadius="12"
+                Background="#16213E"
+                BorderBrush="#2A3A5C"
+                BorderThickness="1"
+                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=1}">
+                <StackPanel Spacing="14">
+
+                    <TextBlock Text="Select Biller"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               Foreground="White" />
+
+                    <AutoSuggestBox x:Name="SearchBox"
+                                    PlaceholderText="Search billers..."
+                                    Text="{Binding SearchQuery, Mode=TwoWay}"
+                                    TextChanged="SearchBox_TextChanged" />
+
+                    <ComboBox x:Name="CategoryCombo"
+                              Header="Category"
+                              SelectedValuePath="Content"
+                              SelectedValue="{Binding SelectedCategory, Mode=TwoWay}"
+                              SelectionChanged="CategoryCombo_SelectionChanged">
+                        <ComboBoxItem Content="Utilities" />
+                        <ComboBoxItem Content="Internet" />
+                        <ComboBoxItem Content="Mobile" />
+                        <ComboBoxItem Content="Insurance" />
+                        <ComboBoxItem Content="Taxes" />
+                        <ComboBoxItem Content="Government" />
+                        <ComboBoxItem Content="Rent" />
+                        <ComboBoxItem Content="Subscriptions" />
+                        <ComboBoxItem Content="Telecom" />
+                    </ComboBox>
+
+                    <StackPanel Visibility="{Binding SavedBillersVisibility}" Spacing="8">
+                        <TextBlock Text="Saved billers"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="#4ECDC4" />
+
+                        <ListView x:Name="SavedBillersList"
+                                  ItemsSource="{Binding SavedBillers}"
+                                  IsItemClickEnabled="True"
+                                  ItemClick="SavedBillersList_ItemClick"
+                                  SelectionMode="None"
+                                  MaxHeight="180">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="dto:SavedBillerDto">
+                                    <StackPanel Padding="6">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="White" />
+                                        <TextBlock Text="{Binding DisplayCategory}"
+                                                   FontSize="12"
+                                                   Foreground="#777" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+
+                    <TextBlock Text="All billers"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="#4ECDC4" />
+
+                    <ListView x:Name="BillersList"
+                              ItemsSource="{Binding Billers}"
+                              SelectedItem="{Binding SelectedBiller, Mode=TwoWay}"
+                              IsItemClickEnabled="True"
+                              ItemClick="BillersList_ItemClick"
+                              SelectionMode="Single"
+                              MaxHeight="320">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="dto:BillerDto">
+                                <StackPanel Padding="6">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="SemiBold"
+                                               Foreground="White" />
+                                    <TextBlock Text="{Binding Category}"
+                                               FontSize="12"
+                                               Foreground="#777" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="#FF6B6B"
+                               TextWrapping="Wrap"
+                               Visibility="{Binding ErrorMessageVisibility}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Cancel"
+                                Command="{Binding CancelCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- STEP 2 - Payment Details -->
+            <Border
+                Padding="24"
+                CornerRadius="12"
+                Background="#16213E"
+                BorderBrush="#2A3A5C"
+                BorderThickness="1"
+                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=2}">
+                <StackPanel Spacing="14">
+
+                    <TextBlock Text="Enter Bill Details"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               Foreground="White" />
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Selected biller"
+                                   FontSize="13"
+                                   Foreground="#777" />
+                        <TextBlock Text="{Binding SelectedBillerName}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="#4ECDC4" />
+                    </StackPanel>
+
+                    <TextBox Header="Biller reference"
+                             Text="{Binding BillerReference, Mode=TwoWay}" />
+
+                    <NumberBox x:Name="AmountBox"
+                               Value="{x:Bind ViewModel.AmountAsDouble, Mode=TwoWay}"
+                               Header="Amount"
+                               Minimum="0"
+                               SmallChange="1"
+                               SpinButtonPlacementMode="Compact"
+                               ValueChanged="AmountBox_ValueChanged" />
+
+                    <ComboBox Header="Source account"
+                              ItemsSource="{Binding Accounts}"
+                              SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="dto:AccountDto">
+                                <StackPanel Padding="4">
+                                    <TextBlock Text="{Binding AccountName}"
+                                               FontWeight="SemiBold"
+                                               Foreground="White" />
+                                    <TextBlock Text="{Binding Iban}"
+                                               FontSize="13"
+                                               Foreground="#AAA" />
+                                    <TextBlock FontSize="12" Foreground="#777">
+                                        <Run Text="{Binding Currency}" />
+                                        <Run Text=" | Balance: " />
+                                        <Run Text="{Binding Balance}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <ToggleSwitch Header="Save this biller for future payments"
+                                  IsOn="{Binding ShouldSaveBiller, Mode=TwoWay}" />
+
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="#FF6B6B"
+                               TextWrapping="Wrap"
+                               Visibility="{Binding ErrorMessageVisibility}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Next"
+                                Command="{Binding NextStepCommand}" />
+                        <Button Content="Cancel"
+                                Command="{Binding CancelCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- STEP 3 - 2FA Confirmation -->
+            <Border
+                Padding="24"
+                CornerRadius="12"
+                Background="#16213E"
+                BorderBrush="#2A3A5C"
+                BorderThickness="1"
+                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=3}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Step 3 - 2FA Confirmation"
+                               FontSize="16" FontWeight="SemiBold"
+                               Foreground="White"
+                               HorizontalAlignment="Center"/>
+                    <CheckBox Content="I confirm this transaction"
+                              IsChecked="{Binding Is2FaConfirmed, Mode=TwoWay}"
+                              HorizontalAlignment="Center"
+                              Foreground="White" />
+                    <Button Content="Next"
+                            Command="{Binding NextStepCommand}"
+                            IsEnabled="{Binding Is2FaConfirmed, Mode=OneWay}"
+                            HorizontalAlignment="Center" Width="150"/>
+                </StackPanel>
+            </Border>
+
+            <!-- STEP 4 - Review and Confirm -->
+            <Border
+                Padding="24"
+                CornerRadius="12"
+                Background="#16213E"
+                BorderBrush="#2A3A5C"
+                BorderThickness="1"
+                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=4}">
+                <StackPanel Spacing="12">
+
+                    <TextBlock Text="Review Bill Payment"
+                               FontSize="22"
+                               FontWeight="SemiBold"
+                               Foreground="White" />
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Biller" FontWeight="SemiBold" Foreground="#4ECDC4" />
+                        <TextBlock Text="{Binding SelectedBillerName}" Foreground="White" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Reference" FontWeight="SemiBold" Foreground="#4ECDC4" />
+                        <TextBlock Text="{Binding BillerReference}" Foreground="White" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Amount" FontWeight="SemiBold" Foreground="#4ECDC4" />
+                        <TextBlock Text="{Binding ReviewAmountText}" Foreground="White" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Fee" FontWeight="SemiBold" Foreground="#4ECDC4" />
+                        <TextBlock Text="{Binding ReviewFeeText}" Foreground="White" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Total" FontWeight="SemiBold" Foreground="#4ECDC4" />
+                        <TextBlock Text="{Binding TotalText}" Foreground="White" />
+                    </StackPanel>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Source account" FontWeight="SemiBold" Foreground="#4ECDC4" />
+                        <TextBlock Text="{Binding SelectedAccount.AccountName}" Foreground="White" />
+                        <TextBlock Text="{Binding SelectedAccount.Iban}" Foreground="#AAA" />
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               Foreground="#FF6B6B"
+                               TextWrapping="Wrap"
+                               Visibility="{Binding ErrorMessageVisibility}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Back"
+                                Command="{Binding BackCommand}" />
+                        <Button Content="Confirm"
+                                Command="{Binding PayBillCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- STEP 5 - Payment Result -->
+            <Border
+                Padding="24"
+                CornerRadius="12"
+                Background="#16213E"
+                BorderBrush="#2A3A5C"
+                BorderThickness="1"
+                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=5}">
+                <StackPanel Spacing="16">
+
+                    <TextBlock Text="Payment Successful"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               Foreground="#4ECDC4" />
+
+                    <TextBlock Text="Your receipt number"
+                               FontSize="14"
+                               Foreground="#777" />
+
+                    <TextBlock Text="{Binding ReceiptNumber}"
+                               FontSize="28"
+                               FontWeight="Bold"
+                               Foreground="White"
+                               TextWrapping="Wrap" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="Pay Another Bill"
+                                Command="{Binding PayAnotherBillCommand}" />
+                        <Button Content="Done"
+                                Command="{Binding CancelCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

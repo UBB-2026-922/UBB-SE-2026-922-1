@@ -1,5 +1,5 @@
-﻿// <copyright file="PasswordResetTokenDataAccess.cs" company="CtrlC CtrlV">
-// Copyright (c) CtrlC CtrlV. All rights reserved.
+﻿// <copyright file="PasswordResetTokenDataAccess.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 // <summary>
 // Contains the PasswordResetTokenDataAccess class.
@@ -59,7 +59,7 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<PasswordResetToken> FindByToken(string tokenHash)
     {
-        PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(t => t.TokenHash == tokenHash);
+        PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(resetToken => resetToken.TokenHash == tokenHash);
         if (token == null)
         {
             return Error.NotFound(description: "Password reset token not found.");
@@ -75,7 +75,7 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     {
         try
         {
-            PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(t => t.Id == tokenId);
+            PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(resetToken => resetToken.Id == tokenId);
             if (token == null)
             {
                 return Error.NotFound(description: "Password reset token not found.");
@@ -97,7 +97,7 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     {
         try
         {
-            List<PasswordResetToken> expiredTokens = _databaseContext.PasswordResetTokens.Where(t => t.ExpiresAt < DateTime.UtcNow || t.UsedAt != null).ToList();
+            List<PasswordResetToken> expiredTokens = _databaseContext.PasswordResetTokens.Where(resetToken => resetToken.ExpiresAt < DateTime.UtcNow || resetToken.UsedAt != null).ToList();
             _databaseContext.PasswordResetTokens.RemoveRange(expiredTokens);
             _databaseContext.SaveChanges();
             return Result.Success;

@@ -10,7 +10,7 @@ env:
   TEST_FLAGS: --configuration Release --no-restore --logger trx --results-directory TestResults
 
 jobs:
-  api-layer-tests:
+  backend-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,8 +71,18 @@ jobs:
           name: test-results-api
           path: '**/TestResults/*.trx'
 
-  desktop-client-tests:
+  desktop-frontend-tests:
     runs-on: windows-latest
+    env:
+      DESKTOP_TEST_PROJECT: BankingApp/tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj
+      DESKTOP_TEST_MSBUILD_PROPS: >
+        /p:RuntimeIdentifier=win-x64
+        /p:PlatformTarget=x64
+        /p:WindowsPackageType=None
+        /p:WindowsAppSDKSelfContained=true
+        /p:WindowsAppSdkUndockedRegFreeWinRTInitialize=false
+        /p:PublishReadyToRun=false
+        /p:PublishTrimmed=false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,6 +92,9 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
       - name: Cache NuGet
         uses: actions/cache@v4
         with:
@@ -90,14 +103,31 @@ jobs:
           restore-keys: ${{ runner.os }}-nuget-
 
       - name: Restore desktop tests
-        run: dotnet restore BankingApp/tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj
+        shell: pwsh
+        run: |
+          $msbuildProps = $env:DESKTOP_TEST_MSBUILD_PROPS -split '\s+'
+          dotnet restore $env:DESKTOP_TEST_PROJECT @msbuildProps
+
+      - name: Build desktop tests
+        shell: pwsh
+        run: |
+          $msbuildProps = $env:DESKTOP_TEST_MSBUILD_PROPS -split '\s+'
+          dotnet build $env:DESKTOP_TEST_PROJECT --no-restore --configuration Debug @msbuildProps
 
       - name: Run desktop tests
-        run: dotnet test BankingApp/tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj ${{ env.TEST_FLAGS }}
+        shell: pwsh
+        timeout-minutes: 10
+        run: |
+          $msbuildProps = $env:DESKTOP_TEST_MSBUILD_PROPS -split '\s+'
+          New-Item -ItemType Directory -Force -Path TestResults
+          dotnet test $env:DESKTOP_TEST_PROJECT --no-build --configuration Debug @msbuildProps --logger "trx;LogFileName=desktop-tests.trx" --results-directory TestResults --logger "console;verbosity=detailed" --blame-hang --blame-hang-timeout 2m --blame-hang-dump-type none
+          Get-ChildItem -Path TestResults -Recurse
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-desktop
-          path: '**/TestResults/*.trx'
+          path: |
+            '**/TestResults/*.trx'
+            '**/TestResults/**/Sequence_*.xml'

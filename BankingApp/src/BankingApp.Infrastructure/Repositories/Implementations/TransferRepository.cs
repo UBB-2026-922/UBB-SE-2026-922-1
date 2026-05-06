@@ -1,0 +1,105 @@
+﻿// <copyright file="TransferRepository.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+// <summary>
+// Contains the TransferRepository class.
+// </summary>
+
+using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
+using BankingApp.Infrastructure.DataAccess;
+using ErrorOr;
+using Microsoft.EntityFrameworkCore;
+
+namespace BankingApp.Infrastructure.Repositories.Implementations;
+
+/// <summary>
+///     EF Core implementation of <see cref="ITransferRepository" />.
+/// </summary>
+public class TransferRepository : ITransferRepository
+{
+    private readonly AppDatabaseContext _context;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="TransferRepository" /> class.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    public TransferRepository(AppDatabaseContext context)
+    {
+        _context = context;
+    }
+
+    /// <inheritdoc />
+    public ErrorOr<Transfer> GetById(int id)
+    {
+        try
+        {
+            Transfer? transfer = _context.Transfers.FirstOrDefault(t => t.Id == id);
+            if (transfer is null)
+            {
+                return Error.NotFound("Transfer.NotFound", $"Transfer with id {id} was not found.");
+            }
+
+            return transfer;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure("Transfer.GetById.Failed", ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
+    public ErrorOr<List<Transfer>> GetByUserId(int userId)
+    {
+        try
+        {
+            List<Transfer> transfers = _context.Transfers
+                .Where(t => t.UserId == userId)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToList();
+
+            return transfers;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure("Transfer.GetByUserId.Failed", ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
+    public ErrorOr<Transfer> Create(Transfer transfer)
+    {
+        try
+        {
+            _context.Transfers.Add(transfer);
+            _context.SaveChanges();
+            return transfer;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure("Transfer.Create.Failed", ex.Message);
+        }
+    }
+
+    /// <inheritdoc />
+    public ErrorOr<Transfer> UpdateStatus(int transferId, TransferStatus status)
+    {
+        try
+        {
+            Transfer? transfer = _context.Transfers.FirstOrDefault(t => t.Id == transferId);
+            if (transfer is null)
+            {
+                return Error.NotFound("Transfer.NotFound", $"Transfer with id {transferId} was not found.");
+            }
+
+            transfer.Status = status;
+            _context.SaveChanges();
+            return transfer;
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure("Transfer.UpdateStatus.Failed", ex.Message);
+        }
+    }
+}
