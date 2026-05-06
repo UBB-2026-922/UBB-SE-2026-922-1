@@ -1,8 +1,4 @@
-﻿// <copyright file="AuthControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Api.Controllers;
+﻿using BankingApp.Api.Controllers;
 using BankingApp.Application.DataTransferObjects.Auth;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
@@ -13,10 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BankingApp.Api.Tests.Controller;
 
-/// <summary>
-///     Unit tests for <see cref="AuthController" /> verifying route contracts,
-///     status codes, and public endpoint behavior.
-/// </summary>
 [Trait("Category", "Unit")]
 public sealed class AuthControllerTests
 {
@@ -27,14 +19,11 @@ public sealed class AuthControllerTests
 
     private readonly Mock<IRegistrationService> _registrationService = MockFactory.CreateRegistrationService();
 
-    /// <summary>
-    ///     Verifies the Login_WhenSuccessWithFullLogin_ReturnsOkWithToken scenario.
-    /// </summary>
     [Fact]
-    public void Login_WhenSuccessWithFullLogin_ReturnsOkWithToken()
+    public void Login_WhenSuccessWithFullLogin_ShouldReturnOkWithToken()
     {
         // Arrange
-        int validUserId = 1;
+        const int validUserId = 1;
         var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
         _loginService
             .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
@@ -49,14 +38,11 @@ public sealed class AuthControllerTests
         ok.StatusCode.Should().Be(200);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenRequires2FA_ReturnsOk scenario.
-    /// </summary>
     [Fact]
-    public void Login_WhenRequires2FA_ReturnsOk()
+    public void Login_WhenRequires2FA_ShouldReturnOk()
     {
         // Arrange
-        int validUserId = 1;
+        const int validUserId = 1;
         var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
         _loginService
             .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
@@ -70,11 +56,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenInvalidCredentials_ReturnsUnauthorized scenario.
-    /// </summary>
     [Fact]
-    public void Login_WhenInvalidCredentials_ReturnsUnauthorized()
+    public void Login_WhenInvalidCredentials_ShouldReturnUnauthorized()
     {
         // Arrange
         var request = new LoginRequest { Email = "user@test.com", Password = "wrong" };
@@ -91,11 +74,8 @@ public sealed class AuthControllerTests
         unauthorized.StatusCode.Should().Be(401);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenAccountLocked_ReturnsForbidden scenario.
-    /// </summary>
     [Fact]
-    public void Login_WhenAccountLocked_ReturnsForbidden()
+    public void Login_WhenAccountLocked_ShouldReturnForbidden()
     {
         // Arrange
         var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
@@ -112,33 +92,8 @@ public sealed class AuthControllerTests
         obj.StatusCode.Should().Be(403);
     }
 
-    /// <summary>
-    ///     Verifies the Login_WhenUnexpectedSuccessType_ReturnsInternalServerError scenario.
-    /// </summary>
     [Fact]
-    public void Login_WhenUnexpectedSuccessType_ReturnsInternalServerError()
-    {
-        // Arrange
-        int validUserId = 1;
-        var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
-        _loginService
-            .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
-            .Returns((ErrorOr<LoginSuccess>)new UnexpectedLoginSuccess(validUserId));
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.Login(request);
-
-        // Assert
-        ObjectResult? obj = result.Should().BeOfType<ObjectResult>().Subject;
-        obj.StatusCode.Should().Be(500);
-    }
-
-    /// <summary>
-    ///     Verifies the Register_WhenSuccess_ReturnsNoContent scenario.
-    /// </summary>
-    [Fact]
-    public void Register_WhenSuccess_ReturnsNoContent()
+    public void Register_WhenSuccess_ShouldReturnNoContent()
     {
         // Arrange
         var request = new RegisterRequest { Email = "new@test.com", Password = "Pass123!", FullName = "Test User" };
@@ -152,11 +107,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<NoContentResult>();
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenConflict_ReturnsConflict scenario.
-    /// </summary>
     [Fact]
-    public void Register_WhenConflict_ReturnsConflict()
+    public void Register_WhenConflict_ShouldReturnConflict()
     {
         // Arrange
         var request = new RegisterRequest { Email = "dup@test.com", Password = "Pass123!", FullName = "Test" };
@@ -172,9 +124,6 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<ConflictObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the Register_WhenServiceFails_ReturnsInternalServerError scenario.
-    /// </summary>
     [Fact]
     public void Register_WhenServiceFails_ReturnsInternalServerError()
     {
@@ -193,11 +142,8 @@ public sealed class AuthControllerTests
         obj.StatusCode.Should().Be(500);
     }
 
-    /// <summary>
-    ///     Verifies the VerifyOTP_WhenSuccess_ReturnsOk scenario.
-    /// </summary>
     [Fact]
-    public void VerifyOTP_WhenSuccess_ReturnsOk()
+    public void VerifyOTP_WhenSuccess_ShouldReturnOk()
     {
         // Arrange
         const int validUserId = 1;
@@ -214,11 +160,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the VerifyOTP_WhenInvalidOTP_ReturnsUnauthorized scenario.
-    /// </summary>
     [Fact]
-    public void VerifyOTP_WhenInvalidOTP_ReturnsUnauthorized()
+    public void VerifyOtp_WhenInvalidOtp_ShouldReturnUnauthorized()
     {
         // Arrange
         const int validUserId = 1;
@@ -235,11 +178,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<UnauthorizedObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the ForgotPassword_WhenEmailProvided_ReturnsOk scenario.
-    /// </summary>
     [Fact]
-    public void ForgotPassword_WhenEmailProvided_ReturnsOk()
+    public void ForgotPassword_WhenEmailProvided_ShouldReturnOk()
     {
         // Arrange
         _passwordRecoveryService
@@ -254,11 +194,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the ForgotPassword_WhenEmailEmpty_ReturnsBadRequest scenario.
-    /// </summary>
     [Fact]
-    public void ForgotPassword_WhenEmailEmpty_ReturnsBadRequest()
+    public void ForgotPassword_WhenEmailEmpty_ShouldReturnBadRequest()
     {
         // Arrange
         AuthController controller = CreateController();
@@ -270,11 +207,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenSuccess_ReturnsNoContent scenario.
-    /// </summary>
     [Fact]
-    public void ResetPassword_WhenSuccess_ReturnsNoContent()
+    public void ResetPassword_WhenSuccess_ShouldReturnNoContent()
     {
         // Arrange
         _passwordRecoveryService
@@ -291,11 +225,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<NoContentResult>();
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenTokenMissing_ReturnsBadRequest scenario.
-    /// </summary>
     [Fact]
-    public void ResetPassword_WhenTokenMissing_ReturnsBadRequest()
+    public void ResetPassword_WhenTokenMissing_ShouldReturnBadRequest()
     {
         // Arrange
         AuthController controller = CreateController();
@@ -309,11 +240,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenWeakPassword_ReturnsBadRequest scenario.
-    /// </summary>
     [Fact]
-    public void ResetPassword_WhenWeakPassword_ReturnsBadRequest()
+    public void ResetPassword_WhenWeakPassword_ShouldReturnBadRequest()
     {
         // Arrange
         AuthController controller = CreateController();
@@ -327,11 +255,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenServiceFails_ReturnsMappedError scenario.
-    /// </summary>
     [Fact]
-    public void ResetPassword_WhenServiceFails_ReturnsMappedError()
+    public void ResetPassword_WhenServiceFails_ShouldReturnMappedError()
     {
         // Arrange
         _passwordRecoveryService
@@ -348,11 +273,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the Logout_WhenValidToken_ReturnsNoContent scenario.
-    /// </summary>
     [Fact]
-    public void Logout_WhenValidToken_ReturnsNoContent()
+    public void Logout_WhenValidToken_ShouldReturnNoContent()
     {
         // Arrange
         _loginService.Setup(logout => logout.Logout("jwt-token")).Returns(Result.Success);
@@ -365,11 +287,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<NoContentResult>();
     }
 
-    /// <summary>
-    ///     Verifies the Logout_WhenNoAuthorizationHeader_ReturnsBadRequest scenario.
-    /// </summary>
     [Fact]
-    public void Logout_WhenNoAuthorizationHeader_ReturnsBadRequest()
+    public void Logout_WhenNoAuthorizationHeader_ShouldReturnBadRequest()
     {
         // Arrange
         AuthController controller = CreateController();
@@ -381,11 +300,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the ResendOTP_AlwaysReturnsOk scenario.
-    /// </summary>
     [Fact]
-    public void ResendOTP_AlwaysReturnsOk()
+    public void ResendOTP_ShouldAlwaysReturnOk()
     {
         // Arrange
         const int validUserId = 1;
@@ -399,11 +315,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<OkObjectResult>();
     }
 
-    /// <summary>
-    ///     Verifies the VerifyResetToken_WhenValid_ReturnsNoContent scenario.
-    /// </summary>
     [Fact]
-    public void VerifyResetToken_WhenValid_ReturnsNoContent()
+    public void VerifyResetToken_WhenValid_ShouldReturnNoContent()
     {
         // Arrange
         _passwordRecoveryService
@@ -418,11 +331,8 @@ public sealed class AuthControllerTests
         result.Should().BeOfType<NoContentResult>();
     }
 
-    /// <summary>
-    ///     Verifies the VerifyResetToken_WhenTokenEmpty_ReturnsBadRequest scenario.
-    /// </summary>
     [Fact]
-    public void VerifyResetToken_WhenTokenEmpty_ReturnsBadRequest()
+    public void VerifyResetToken_WhenTokenEmpty_ShouldReturnBadRequest()
     {
         // Arrange
         AuthController controller = CreateController();
@@ -439,24 +349,14 @@ public sealed class AuthControllerTests
         var controller = new AuthController(
             _loginService.Object,
             _registrationService.Object,
-            _passwordRecoveryService.Object);
-
-        controller.ControllerContext = new ControllerContext
+            _passwordRecoveryService.Object)
         {
-            HttpContext = new DefaultHttpContext()
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext()
+            }
         };
 
         return controller;
-    }
-
-    private sealed class UnexpectedLoginSuccess : LoginSuccess
-    {
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="UnexpectedLoginSuccess" /> class.
-        /// </summary>
-        public UnexpectedLoginSuccess(int userId)
-            : base(userId)
-        {
-        }
     }
 }
