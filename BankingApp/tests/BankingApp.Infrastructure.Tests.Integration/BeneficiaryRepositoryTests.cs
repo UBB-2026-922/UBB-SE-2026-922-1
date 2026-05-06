@@ -289,22 +289,6 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         result.FirstError.Code.Should().Be("Beneficiary.NotFound");
     }
 
-    private AppDatabaseContext CreateDatabaseContext()
-    {
-        return _fixture.CreateDatabaseContext();
-    }
-
-    private User SeedUser(AppDatabaseContext databaseContext)
-    {
-        var userDataAccess = new UserDataAccess(databaseContext);
-        User user = _userFaker.Generate();
-        userDataAccess.Create(user).IsError.Should().BeFalse();
-
-        ErrorOr<User> findResult = userDataAccess.FindByEmail(user.Email);
-        findResult.IsError.Should().BeFalse(findResult.IsError ? findResult.FirstError.Description : string.Empty);
-        return findResult.Value;
-    }
-
     private static Beneficiary SeedBeneficiary(
         AppDatabaseContext databaseContext,
         int userId,
@@ -326,5 +310,21 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         databaseContext.Beneficiaries.Add(beneficiary);
         databaseContext.SaveChanges();
         return beneficiary;
+    }
+
+    private AppDatabaseContext CreateDatabaseContext()
+    {
+        return _fixture.CreateDatabaseContext();
+    }
+
+    private User SeedUser(AppDatabaseContext databaseContext)
+    {
+        var userDataAccess = new UserDataAccess(databaseContext);
+        User user = _userFaker.Generate();
+        userDataAccess.Create(user).IsError.Should().BeFalse();
+
+        ErrorOr<User> findResult = userDataAccess.FindByEmail(user.Email);
+        findResult.IsError.Should().BeFalse(findResult.IsError ? findResult.FirstError.Description : string.Empty);
+        return findResult.Value;
     }
 }
