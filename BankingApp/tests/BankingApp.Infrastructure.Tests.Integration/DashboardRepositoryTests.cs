@@ -13,10 +13,6 @@ using ErrorOr;
 
 namespace BankingApp.Infrastructure.Tests.Integration;
 
-/// <summary>
-///     Integration tests for <see cref="DashboardRepository" /> verifying that
-///     aggregate and collection queries return correct, database-backed results.
-/// </summary>
 [Trait("Category", "Integration")]
 [Collection("Integration")]
 public sealed class DashboardRepositoryTests : IAsyncLifetime

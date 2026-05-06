@@ -1,8 +1,4 @@
-﻿// <copyright file="RecurringPaymentServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Application.DTOs.RecurringPayments;
+﻿using BankingApp.Application.DTOs.RecurringPayments;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.RecurringPayments;
 using BankingApp.Application.Utilities;
@@ -383,14 +379,14 @@ public class RecurringPaymentServiceTests
     }
 
     [Fact]
-    public void Resume_WhenPaymentNotFound_ShouldReturnNotFoundError()
+    public void ResumeRecurringPayment_WhenPaymentNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
         _recurringPaymentRepository.Setup(repository => repository.GetById(888))
             .Returns(Error.NotFound(description: "Recurring payment not found."));
 
         // Act
-        ErrorOr<Success> result = _service.Resume(1, 888);
+        ErrorOr<Success> result = _service.ResumeRecurringPayment(1, 888);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -398,7 +394,7 @@ public class RecurringPaymentServiceTests
     }
 
     [Fact]
-    public void Resume_WhenPaymentIsPaused_ShouldSetStatusToActiveAndReturnSuccess()
+    public void ResumeRecurringPayment_WhenPaymentIsPaused_ShouldSetStatusToActiveAndReturnSuccess()
     {
         // Arrange
         var payment = new RecurringPayment { Id = 6, UserId = 42, Status = RecurringPaymentStatus.Paused };
@@ -410,7 +406,7 @@ public class RecurringPaymentServiceTests
             .Returns(Result.Success);
 
         // Act
-        ErrorOr<Success> result = _service.Resume(42, 6);
+        ErrorOr<Success> result = _service.ResumeRecurringPayment(42, 6);
 
         // Assert
         result.IsError.Should().BeFalse();

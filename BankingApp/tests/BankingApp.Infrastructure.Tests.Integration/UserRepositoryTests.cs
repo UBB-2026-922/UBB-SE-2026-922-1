@@ -1,10 +1,6 @@
-﻿// Copyright (c) UBB-922. All rights reserved.
-// Licensed under the MIT license.
-
-using BankingApp.Domain.Entities;
+﻿using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.Repositories.Implementations;
 using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 using Bogus;
 using ErrorOr;
@@ -12,33 +8,22 @@ using ErrorOr;
 namespace BankingApp.Infrastructure.Tests.Integration;
 
 /// <summary>
-///     Integration tests for <see cref="UserRepository" /> that verify data is correctly
-///     persisted to and retrieved from the database.
+///     Initializes a new instance of the <see cref="UserRepositoryTests" /> class.
 /// </summary>
 [Trait("Category", "Integration")]
 [Collection("Integration")]
-public sealed class UserRepositoryTests : IAsyncLifetime
+public sealed class UserRepositoryTests(DatabaseFixture fixture) : IAsyncLifetime
 {
     private const int NonExistentUserId = 99999;
     private const int ExpectedFailedAttemptCount = 2;
     private const int LockoutDurationMinutes = 30;
 
-    private readonly DatabaseFixture _fixture;
-    private readonly Faker<User> _userFaker;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="UserRepositoryTests" /> class.
-    /// </summary>
-    public UserRepositoryTests(DatabaseFixture fixture)
-    {
-        _fixture = fixture;
-
-        _userFaker = new Faker<User>()
+    private readonly DatabaseFixture _fixture = fixture;
+    private readonly Faker<User> _userFaker = new Faker<User>()
             .RuleFor(user => user.Email, faker => faker.Internet.Email())
             .RuleFor(user => user.PasswordHash, faker => faker.Internet.Password())
             .RuleFor(user => user.FullName, faker => faker.Person.FullName)
             .RuleFor(user => user.PreferredLanguage, _ => "en");
-    }
 
     /// <summary>
     ///     Initializes the test fixture.
@@ -56,9 +41,6 @@ public sealed class UserRepositoryTests : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
-    /// <summary>
-    ///     Verifies the FindByEmail_AfterCreatingUser_ReturnsUserWithMatchingFields scenario.
-    /// </summary>
     [Fact]
     public void FindByEmail_AfterCreatingUser_ReturnsUserWithMatchingFields()
     {
@@ -78,9 +60,6 @@ public sealed class UserRepositoryTests : IAsyncLifetime
         result.Value.PasswordHash.Should().Be(user.PasswordHash);
     }
 
-    /// <summary>
-    ///     Verifies the FindById_WhenUserExists_ReturnsUser scenario.
-    /// </summary>
     [Fact]
     public void FindById_WhenUserExists_ReturnsUser()
     {
@@ -101,9 +80,6 @@ public sealed class UserRepositoryTests : IAsyncLifetime
         result.Value.Email.Should().Be(user.Email);
     }
 
-    /// <summary>
-    ///     Verifies the FindById_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
     public void FindById_WhenUserDoesNotExist_ReturnsNotFoundError()
     {
@@ -118,9 +94,6 @@ public sealed class UserRepositoryTests : IAsyncLifetime
         result.IsError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies the Update_WhenFieldsAreChanged_PersistsChanges scenario.
-    /// </summary>
     [Fact]
     public void Update_WhenFieldsAreChanged_PersistsChanges()
     {
@@ -147,9 +120,6 @@ public sealed class UserRepositoryTests : IAsyncLifetime
         refreshed.Value.PhoneNumber.Should().Be("+40700000000");
     }
 
-    /// <summary>
-    ///     Verifies the IncrementFailedAttempts_WhenCalledTwice_CounterIncreasesBy2 scenario.
-    /// </summary>
     [Fact]
     public void IncrementFailedAttempts_WhenCalledTwice_CounterIncreasesBy2()
     {
@@ -171,9 +141,6 @@ public sealed class UserRepositoryTests : IAsyncLifetime
         updated.Value.FailedLoginAttempts.Should().Be(ExpectedFailedAttemptCount);
     }
 
-    /// <summary>
-    ///     Verifies the LockAccount_WhenUserExists_SetsIsLockedTrue scenario.
-    /// </summary>
     [Fact]
     public void LockAccount_WhenUserExists_SetsIsLockedTrue()
     {
