@@ -14,31 +14,22 @@ using ErrorOr;
 
 namespace BankingApp.Infrastructure.Tests.Integration;
 
-/// <summary>
-///     Integration tests for <see cref="RecurringPaymentRepository" /> against a real database.
-/// </summary>
 [Collection("Integration")]
 public class RecurringPaymentRepositoryTests : IAsyncLifetime
 {
     private readonly DatabaseFixture _fixture;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RecurringPaymentRepositoryTests" /> class.
-    /// </summary>
-    /// <param name="fixture">The shared database fixture.</param>
     public RecurringPaymentRepositoryTests(DatabaseFixture fixture)
     {
         _fixture = fixture;
     }
 
-    /// <inheritdoc />
     public async Task InitializeAsync() => await _fixture.ResetAsync();
 
-    /// <inheritdoc />
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
-    public void Create_WhenPaymentIsValid_ReturnsPersistedPaymentWithId()
+    public void Create_WhenPaymentIsValid_ShouldReturnPersistedPaymentWithId()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -57,7 +48,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Create_WhenIsPayInFullIsTrue_PersistsFlag()
+    public void Create_WhenIsPayInFullIsTrue_ShouldPersistFlag()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -71,7 +62,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Create_WhenEndDateIsProvided_PersistsEndDate()
+    public void Create_WhenEndDateIsProvided_ShouldPersistEndDate()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -87,7 +78,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetById_WhenPaymentExists_ReturnsCorrectPayment()
+    public void GetById_WhenPaymentExists_ShouldReturnCorrectPayment()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -102,7 +93,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetById_WhenPaymentDoesNotExist_ReturnsError()
+    public void GetById_WhenPaymentDoesNotExist_ShouldReturnError()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -113,7 +104,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetByUserId_WhenUserHasPayments_ReturnsAllUserPayments()
+    public void GetByUserId_WhenUserHasPayments_ShouldReturnAllUserPayments()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -129,7 +120,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetByUserId_WhenOtherUsersHavePayments_ReturnsOnlyRequestedUsersPayments()
+    public void GetByUserId_WhenOtherUsersHavePayments_ShouldReturnOnlyRequestedUsersPayments()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -145,7 +136,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetByUserId_WhenUserHasNoPayments_ReturnsEmptyList()
+    public void GetByUserId_WhenUserHasNoPayments_ShouldReturnEmptyList()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -158,7 +149,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetDuePayments_WhenPaymentIsOverdue_ReturnsPayment()
+    public void GetDuePayments_WhenPaymentIsOverdue_ShouldReturnPayment()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -172,7 +163,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetDuePayments_WhenPaymentIsScheduledInFuture_DoesNotReturnPayment()
+    public void GetDuePayments_WhenPaymentIsScheduledInFuture_ShouldNotReturnPayment()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -187,7 +178,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void GetDuePayments_WhenPaymentIsPaused_DoesNotReturnPayment()
+    public void GetDuePayments_WhenPaymentIsPaused_ShouldNotReturnPayment()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -207,7 +198,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Update_WhenPaymentExists_PersistsChanges()
+    public void Update_WhenPaymentExists_ShouldPersistChanges()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -225,7 +216,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Update_WhenStatusChangedToCancelled_ReflectsOnSubsequentRead()
+    public void Update_WhenStatusChangedToCancelled_ShouldReflectOnSubsequentRead()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
@@ -242,7 +233,7 @@ public class RecurringPaymentRepositoryTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Update_WhenCancelledPaymentWasDue_IsExcludedFromDuePayments()
+    public void Update_WhenCancelledPaymentWasDue_ShouldBeExcludedFromDuePayments()
     {
         using AppDatabaseContext context = _fixture.CreateDatabaseContext();
         var repository = new RecurringPaymentRepository(context);
