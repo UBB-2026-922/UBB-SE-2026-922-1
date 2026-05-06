@@ -51,4 +51,56 @@ public class SecurityViewModelTests
         Assert.False(result.Success);
         Assert.Equal(UserMessages.Security.PasswordMismatch, result.ErrorMessage);
     }
+
+    [Fact]
+    public async Task ChangePassword_WhenDataIsValid_ReturnsSuccessAndUpdatesState()
+    {
+        // Arrange
+        _mockApiClient
+            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenApiReturnsIncorrectPasswordError_UpdatesStateAndReturnsSpecificMessage()
+    {
+        // Arrange
+        var error = Error.Validation("incorrect_password", "Description");
+        _mockApiClient
+            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+            .ReturnsAsync(error);
+
+        // Act
+        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal(UserMessages.Security.IncorrectPassword, result.ErrorMessage);
+        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenApiReturnsGenericError_UpdatesStateAndReturnsGenericMessage()
+    {
+        // Arrange
+        var error = Error.Failure("server_error", "Description");
+        _mockApiClient
+            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+            .ReturnsAsync(error);
+
+        // Act
+        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Equal(UserMessages.Security.UnexpectedError, result.ErrorMessage);
+        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+    }
 }
