@@ -5,12 +5,14 @@
 // Contains the RateAlertService class.
 // </summary>
 
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.Exchange;
+using BankingApp.Application.DTOs.RateAlerts;
 using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Application.Services.Exchange;
 using BankingApp.Domain.Entities;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.TeamB;
+namespace BankingApp.Application.Services.RateAlerts;
 
 /// <summary>
 ///     Implements application-level operations for managing FX rate alerts.

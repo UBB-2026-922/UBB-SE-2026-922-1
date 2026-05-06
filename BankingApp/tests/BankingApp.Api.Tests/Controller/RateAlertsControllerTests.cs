@@ -3,8 +3,8 @@
 // </copyright>
 
 using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.TeamB;
-using BankingApp.Application.Services.TeamB;
+using BankingApp.Application.DTOs.RateAlerts;
+using BankingApp.Application.Services.RateAlerts;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

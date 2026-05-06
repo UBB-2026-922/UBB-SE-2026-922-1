@@ -2,9 +2,9 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.TeamB;
+using BankingApp.Application.Services.Exchange;
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using ErrorOr;

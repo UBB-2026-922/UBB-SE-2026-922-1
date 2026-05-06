@@ -5,10 +5,10 @@
 // Contains the IRateAlertService interface.
 // </summary>
 
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.RateAlerts;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.TeamB;
+namespace BankingApp.Application.Services.RateAlerts;
 
 /// <summary>
 ///     Defines application-level operations for managing FX rate alerts.

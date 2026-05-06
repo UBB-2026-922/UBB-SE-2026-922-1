@@ -1,8 +1,8 @@
-using System;
-using BankingApp.Domain.Enums;
-using Microsoft.Extensions.Logging;
-
 namespace BankingApp.Application.Logging;
+
+using System;
+using Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 internal static partial class ApplicationLogMessages
 {

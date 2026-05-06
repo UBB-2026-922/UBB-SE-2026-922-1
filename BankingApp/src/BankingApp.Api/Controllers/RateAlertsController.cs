@@ -1,8 +1,7 @@
 ﻿namespace BankingApp.Api.Controllers;
 
-// TODO: remove the TeamB namespace
-using Application.DTOs.TeamB;
-using Application.Services.TeamB;
+using Application.DTOs.RateAlerts;
+using Application.Services.RateAlerts;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

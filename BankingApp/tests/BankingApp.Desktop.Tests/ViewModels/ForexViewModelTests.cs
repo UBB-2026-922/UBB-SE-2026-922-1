@@ -2,7 +2,7 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;

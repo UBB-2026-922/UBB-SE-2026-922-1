@@ -5,7 +5,7 @@
 // Contains the ExchangeTransactionRequestDto class.
 // </summary>
 
-namespace BankingApp.Application.DTOs.TeamB;
+namespace BankingApp.Application.DTOs.Exchange;
 
 /// <summary>
 ///     Carries the input data required to execute a currency exchange.

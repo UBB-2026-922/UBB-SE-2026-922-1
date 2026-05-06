@@ -5,11 +5,11 @@
 // Contains the IExchangeService interface.
 // </summary>
 
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Domain.Entities;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.TeamB;
+namespace BankingApp.Application.Services.Exchange;
 
 /// <summary>
 ///     Defines application-level operations for the FX currency exchange feature.

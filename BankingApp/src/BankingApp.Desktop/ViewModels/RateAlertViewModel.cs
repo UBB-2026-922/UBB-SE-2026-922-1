@@ -12,7 +12,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.RateAlerts;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;

@@ -1,8 +1,8 @@
 ﻿namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.TeamB;
+using Application.DTOs.Exchange;
 using Application.Repositories.Interfaces;
-using Application.Services.TeamB;
+using Application.Services.Exchange;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;

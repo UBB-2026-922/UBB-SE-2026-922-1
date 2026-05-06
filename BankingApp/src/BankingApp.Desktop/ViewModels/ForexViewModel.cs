@@ -10,7 +10,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;

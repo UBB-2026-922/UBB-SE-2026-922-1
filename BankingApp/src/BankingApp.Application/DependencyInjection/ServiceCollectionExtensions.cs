@@ -1,26 +1,17 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ServiceCollectionExtensions class.
-// </summary>
+﻿namespace BankingApp.Application.DependencyInjection;
 
-using BankingApp.Application.Services.Beneficiary;
-using BankingApp.Application.Services.Billers;
-using BankingApp.Application.Services.Dashboard;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Profile;
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Application.Services.Registration;
-using BankingApp.Application.Services.Transfers;
+using Services.Beneficiary;
+using Services.Billers;
+using Services.Dashboard;
+using Services.Exchange;
+using Services.Login;
+using Services.PasswordRecovery;
+using Services.Profile;
+using Services.RateAlerts;
+using Services.RecurringPayments;
+using Services.Registration;
+using Services.Transfers;
 using Microsoft.Extensions.DependencyInjection;
-using ExchangeServiceContract = BankingApp.Application.Services.TeamB.IExchangeService;
-using ExchangeServiceImplementation = BankingApp.Application.Services.TeamB.ExchangeService;
-using RateAlertServiceContract = BankingApp.Application.Services.TeamB.IRateAlertService;
-using RateAlertServiceImplementation = BankingApp.Application.Services.TeamB.RateAlertService;
-
-namespace BankingApp.Application.DependencyInjection;
 
 /// <summary>
 ///     Provides extension methods for registering application-layer services with the dependency injection container.
@@ -44,8 +35,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBeneficiaryService, BeneficiaryService>();
         services.AddScoped<IRecurringPaymentService, RecurringPaymentService>();
         services.AddScoped<IRecurringPaymentProcessingService, RecurringPaymentProcessingService>();
-        services.AddScoped<ExchangeServiceContract, ExchangeServiceImplementation>();
-        services.AddScoped<RateAlertServiceContract, RateAlertServiceImplementation>();
+        services.AddScoped<IExchangeService, ExchangeService>();
+        services.AddScoped<IRateAlertService, RateAlertService>();
         return services;
     }
 }

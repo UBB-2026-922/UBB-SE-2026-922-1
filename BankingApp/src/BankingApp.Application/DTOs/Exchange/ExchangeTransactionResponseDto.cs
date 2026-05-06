@@ -7,7 +7,7 @@
 
 using BankingApp.Domain.Enums;
 
-namespace BankingApp.Application.DTOs.TeamB;
+namespace BankingApp.Application.DTOs.Exchange;
 
 /// <summary>
 ///     Carries the result data of a currency exchange operation or rate preview.

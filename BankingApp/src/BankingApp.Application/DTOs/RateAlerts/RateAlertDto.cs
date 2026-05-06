@@ -5,7 +5,7 @@
 // Contains the RateAlertDto class.
 // </summary>
 
-namespace BankingApp.Application.DTOs.TeamB;
+namespace BankingApp.Application.DTOs.RateAlerts;
 
 /// <summary>
 ///     Carries rate alert configuration data between the application and presentation layers.

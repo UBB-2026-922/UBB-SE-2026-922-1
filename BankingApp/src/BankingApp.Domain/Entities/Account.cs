@@ -1,11 +1,4 @@
-﻿// <copyright file="Account.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the Account class.
-// </summary>
-
-using BankingApp.Domain.Enums;
+﻿using BankingApp.Domain.Enums;
 
 namespace BankingApp.Domain.Entities;
 

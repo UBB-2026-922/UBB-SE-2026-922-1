@@ -1,7 +1,7 @@
 ﻿namespace BankingApp.Api.HostedServices;
 
 using Application.Services.RecurringPayments;
-using Application.Services.TeamB;
+using Application.Services.RateAlerts;
 using Logging;
 using ErrorOr;
 

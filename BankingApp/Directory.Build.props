@@ -4,7 +4,7 @@
         <AnalysisLevel>latest-recommended</AnalysisLevel>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0007;IDE0008;IDE0062;CA1822;CA1848</WarningsNotAsErrors>
+        <WarningsNotAsErrors>$(WarningsNotAsErrors);CA1822;CA1848;IDE0057</WarningsNotAsErrors>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="all"/>

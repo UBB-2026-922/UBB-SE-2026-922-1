@@ -5,13 +5,13 @@
 // Contains the ExchangeService class.
 // </summary>
 
-using BankingApp.Application.DTOs.TeamB;
+using BankingApp.Application.DTOs.Exchange;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.TeamB;
+namespace BankingApp.Application.Services.Exchange;
 
 /// <summary>
 ///     Implements application-level operations for the FX currency exchange feature.
