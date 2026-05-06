@@ -151,7 +151,7 @@ public class TransferService(
             return TransferErrors.AccountNotFound;
         }
 
-        Account? account = accountsResult.Value.FirstOrDefault(a => a.Id == request.SourceAccountId);
+        Account? account = accountsResult.Value.FirstOrDefault(account => account.Id == request.SourceAccountId);
         if (account is null)
         {
             _logger.LogWarning(

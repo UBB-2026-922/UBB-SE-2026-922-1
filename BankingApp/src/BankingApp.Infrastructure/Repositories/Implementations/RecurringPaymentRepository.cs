@@ -47,7 +47,7 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
     /// <inheritdoc />
     public ErrorOr<RecurringPayment> GetById(int id)
     {
-        RecurringPayment? payment = _context.RecurringPayments.FirstOrDefault(r => r.Id == id);
+        RecurringPayment? payment = _context.RecurringPayments.FirstOrDefault(recurringPayment => recurringPayment.Id == id);
         if (payment is null)
         {
             return Error.NotFound(description: "Recurring payment not found.");
@@ -62,7 +62,7 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
         try
         {
             return _context.RecurringPayments
-                .Where(r => r.UserId == userId)
+                .Where(recurringPayment => recurringPayment.UserId == userId)
                 .ToList();
         }
         catch (Exception ex)
@@ -77,7 +77,7 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
         try
         {
             return _context.RecurringPayments
-                .Where(r => r.Status == Domain.Enums.RecurringPaymentStatus.Active && r.NextExecutionDate <= asOf)
+                .Where(recurringPayment => recurringPayment.Status == Domain.Enums.RecurringPaymentStatus.Active && recurringPayment.NextExecutionDate <= asOf)
                 .ToList();
         }
         catch (Exception ex)

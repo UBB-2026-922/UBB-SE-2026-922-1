@@ -33,7 +33,7 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<User> FindByEmail(string email)
     {
-        User? user = _databaseContext.Users.FirstOrDefault(u => u.Email == email);
+        User? user = _databaseContext.Users.FirstOrDefault(user => user.Email == email);
         if (user is null)
         {
             return Error.NotFound(description: "User not found.");
@@ -47,7 +47,7 @@ public class UserDataAccess : IUserDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<User> FindById(int id)
     {
-        User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == id);
+        User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == id);
         if (user is null)
         {
             return Error.NotFound(description: "User not found.");
@@ -98,7 +98,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");
@@ -121,7 +121,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");
@@ -144,7 +144,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");
@@ -168,7 +168,7 @@ public class UserDataAccess : IUserDataAccess
     {
         try
         {
-            User? user = _databaseContext.Users.FirstOrDefault(u => u.Id == userId);
+            User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == userId);
             if (user is null)
             {
                 return Error.NotFound(description: "User not found.");

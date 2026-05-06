@@ -51,7 +51,7 @@ public class TransferDataAccess : ITransferDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Transfer> FindById(int transferId)
     {
-        Transfer? transfer = _databaseContext.Transfers.FirstOrDefault(t => t.Id == transferId);
+        Transfer? transfer = _databaseContext.Transfers.FirstOrDefault(transfer => transfer.Id == transferId);
         if (transfer is null)
         {
             return Error.NotFound(description: "Transfer not found.");
@@ -66,8 +66,8 @@ public class TransferDataAccess : ITransferDataAccess
     public ErrorOr<List<Transfer>> FindByUserId(int userId)
     {
         List<Transfer> transfers = _databaseContext.Transfers
-            .Where(t => t.UserId == userId)
-            .OrderByDescending(t => t.CreatedAt)
+            .Where(transfer => transfer.UserId == userId)
+            .OrderByDescending(transfer => transfer.CreatedAt)
             .ToList();
         return transfers;
     }
@@ -80,7 +80,7 @@ public class TransferDataAccess : ITransferDataAccess
     {
         try
         {
-            Transfer? transfer = _databaseContext.Transfers.FirstOrDefault(t => t.Id == transferId);
+            Transfer? transfer = _databaseContext.Transfers.FirstOrDefault(transfer => transfer.Id == transferId);
             if (transfer is null)
             {
                 return Error.NotFound(description: "Transfer not found.");

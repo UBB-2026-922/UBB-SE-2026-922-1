@@ -35,7 +35,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Account> FindById(int id)
     {
-        Account? account = _databaseContext.Accounts.FirstOrDefault(a => a.Id == id);
+        Account? account = _databaseContext.Accounts.FirstOrDefault(account => account.Id == id);
         if(account == null)
         {
             return Error.NotFound(description: "Account not found.");
@@ -49,7 +49,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Account>> FindByUserId(int userId)
     {
-        List<Account> accounts = _databaseContext.Accounts.Where(a => a.UserId == userId).ToList();
+        List<Account> accounts = _databaseContext.Accounts.Where(account => account.UserId == userId).ToList();
         return accounts;
     }
 

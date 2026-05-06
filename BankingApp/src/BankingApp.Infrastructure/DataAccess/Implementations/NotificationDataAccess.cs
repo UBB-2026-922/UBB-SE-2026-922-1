@@ -34,7 +34,7 @@ public class NotificationDataAccess : INotificationDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<int> CountUnreadByUserId(int userId)
     {
-        List<Notification> notifications = _databaseContext.Notifications.Where(n => n.UserId == userId && !n.IsRead).ToList();
+        List<Notification> notifications = _databaseContext.Notifications.Where(notification => notification.UserId == userId && !notification.IsRead).ToList();
         return notifications.Count;
     }
 
@@ -43,7 +43,7 @@ public class NotificationDataAccess : INotificationDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Notification>> FindByUserId(int userId)
     {
-        List<Notification> notifications = _databaseContext.Notifications.Where(n => n.UserId == userId).OrderByDescending(n => n.CreatedAt).ToList();
+        List<Notification> notifications = _databaseContext.Notifications.Where(notification => notification.UserId == userId).OrderByDescending(notification => notification.CreatedAt).ToList();
         return notifications;
     }
 }

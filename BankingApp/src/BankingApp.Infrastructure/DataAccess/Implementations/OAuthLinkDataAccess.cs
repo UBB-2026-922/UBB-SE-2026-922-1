@@ -64,7 +64,7 @@ public class OAuthLinkDataAccess : IOAuthLinkDataAccess
     {
         try
         {
-            OAuthLink? link = _databaseContext.OAuthLinks.FirstOrDefault(l => l.Id == id);
+            OAuthLink? link = _databaseContext.OAuthLinks.FirstOrDefault(oauthLink => oauthLink.Id == id);
             if (link is null)
             {
                 return Error.NotFound(description: "OAuth link not found.");
@@ -86,8 +86,8 @@ public class OAuthLinkDataAccess : IOAuthLinkDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<OAuthLink> FindByProvider(string provider, string providerUserId)
     {
-        OAuthLink? link = _databaseContext.OAuthLinks.FirstOrDefault(l =>
-            l.Provider == provider && l.ProviderUserId == providerUserId);
+        OAuthLink? link = _databaseContext.OAuthLinks.FirstOrDefault(oauthLink =>
+            oauthLink.Provider == provider && oauthLink.ProviderUserId == providerUserId);
         if (link == null)
         {
             return Error.NotFound(description: "OAuth link not found.");
@@ -101,7 +101,7 @@ public class OAuthLinkDataAccess : IOAuthLinkDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<OAuthLink>> FindByUserId(int userId)
     {
-        List<OAuthLink> links = _databaseContext.OAuthLinks.Where(l => l.UserId == userId).ToList();
+        List<OAuthLink> links = _databaseContext.OAuthLinks.Where(oauthLink => oauthLink.UserId == userId).ToList();
         return links;
     }
 }
