@@ -7,6 +7,7 @@
 
 using BankingApp.Application.Services.RecurringPayments;
 using BankingApp.Application.Services.TeamB;
+using BankingApp.Api.Logging;
 using ErrorOr;
 
 namespace BankingApp.Api.HostedServices;
@@ -47,16 +48,15 @@ public class FinanceBackgroundService : BackgroundService
                 ErrorOr<Success> recurringResult =
                     await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
                 if (recurringResult.IsError)
-                    _logger.LogWarning("Recurring payment processing failed: {Error}",
-                        recurringResult.FirstError.Description);
+                    _logger.RecurringPaymentProcessingFailed(recurringResult.FirstError.Description);
 
                 ErrorOr<int> rateAlertResult = rateAlertService.ProcessAlerts();
                 if (rateAlertResult.IsError)
-                    _logger.LogWarning("Rate-alert processing failed: {Error}", rateAlertResult.FirstError.Description);
+                    _logger.RateAlertProcessingFailed(rateAlertResult.FirstError.Description);
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Background finance processing failed.");
+                _logger.BackgroundFinanceProcessingFailed(exception);
             }
 
             await Task.Delay(_pollInterval, stoppingToken);

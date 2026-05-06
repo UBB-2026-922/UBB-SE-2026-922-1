@@ -1,16 +1,8 @@
-﻿// <copyright file="ApiControllerBase.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for ApiControllerBase.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects;
-using BankingApp.Application.DTOs;
+using Application.DTOs;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Base class for all API controllers, providing shared helpers for authenticated requests
@@ -67,8 +59,9 @@ public abstract class ApiControllerBase : ControllerBase
         var body = new ApplicationErrorResponse
         {
             Error = error.Description,
-            ErrorCode = error.Code
+            ErrorCode = error.Code,
         };
+
         return error.Type switch
         {
             ErrorType.Unauthorized => Unauthorized(body),

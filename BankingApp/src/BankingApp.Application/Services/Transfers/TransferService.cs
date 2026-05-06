@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DTOs.Transfer;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using BankingApp.Application.Services.Transfers;
@@ -123,35 +124,26 @@ public class TransferService(
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
         if (accountsResult.IsError)
         {
-            _logger.LogWarning(
-                "Transfer failed: could not retrieve accounts for user {UserId}.",
-                userId);
+            _logger.TransferAccountsLookupFailed(userId);
             return TransferErrors.AccountNotFound;
         }
 
         Account? account = accountsResult.Value.FirstOrDefault(account => account.Id == request.SourceAccountId);
         if (account is null)
         {
-            _logger.LogWarning(
-                "Transfer failed: account {AccountId} not found for user {UserId}.",
-                request.SourceAccountId,
-                userId);
+            _logger.TransferAccountNotFound(request.SourceAccountId, userId);
             return TransferErrors.AccountNotFound;
         }
 
         if (!account.IsActive())
         {
-            _logger.LogWarning(
-                "Transfer failed: account {AccountId} is not active.",
-                request.SourceAccountId);
+            _logger.TransferAccountNotActive(request.SourceAccountId);
             return TransferErrors.AccountNotActive;
         }
 
         if (!account.HasSufficientFunds(request.Amount))
         {
-            _logger.LogWarning(
-                "Transfer failed: insufficient funds on account {AccountId}.",
-                request.SourceAccountId);
+            _logger.TransferInsufficientFunds(request.SourceAccountId);
             return TransferErrors.InsufficientFunds;
         }
 
@@ -169,7 +161,7 @@ public class TransferService(
         ErrorOr<List<Transfer>> result = _dashboardRepository.GetTransfersByUserId(userId);
         if (result.IsError)
         {
-            _logger.LogError("Failed to retrieve transfer history for user {UserId}.", userId);
+            _logger.TransferHistoryFetchFailed(userId);
             return result.FirstError;
         }
 
@@ -235,19 +227,14 @@ public class TransferService(
 
         if (string.IsNullOrWhiteSpace(request.TwoFaToken))
         {
-            _logger.LogWarning(
-                "Transfer rejected: 2FA token missing for amount {Amount}, user {UserId}.",
-                request.Amount,
-                userId);
+            _logger.TransferTwoFactorMissing(request.Amount, userId);
             return TransferErrors.TwoFaRequired;
         }
 
         ErrorOr<bool> verifyResult = _otpService.VerifyTotp(userId, request.TwoFaToken);
         if (verifyResult.IsError || !verifyResult.Value)
         {
-            _logger.LogWarning(
-                "Transfer rejected: invalid 2FA token for user {UserId}.",
-                userId);
+            _logger.TransferTwoFactorInvalid(userId);
             return TransferErrors.InvalidTwoFaToken;
         }
 
@@ -262,9 +249,7 @@ public class TransferService(
         ErrorOr<Success> debitResult = _dashboardRepository.DebitAccount(account.Id, request.Amount);
         if (debitResult.IsError)
         {
-            _logger.LogError(
-                "Transfer failed: could not debit account {AccountId}.",
-                account.Id);
+            _logger.TransferDebitFailed(account.Id);
             return TransferErrors.DebitFailed;
         }
 
@@ -289,9 +274,7 @@ public class TransferService(
         ErrorOr<Transaction> logResult = _dashboardRepository.AddTransaction(transaction);
         if (logResult.IsError)
         {
-            _logger.LogError(
-                "Transfer failed: could not log transaction for account {AccountId}.",
-                account.Id);
+            _logger.TransferTransactionLogFailed(account.Id);
             return TransferErrors.TransactionLogFailed;
         }
 
@@ -314,9 +297,7 @@ public class TransferService(
         ErrorOr<Transfer> persistResult = _dashboardRepository.AddTransfer(transfer);
         if (persistResult.IsError)
         {
-            _logger.LogError(
-                "Transfer failed: could not persist transfer record for user {UserId}.",
-                userId);
+            _logger.TransferPersistenceFailed(userId);
             return TransferErrors.PersistenceFailed;
         }
 

@@ -7,6 +7,7 @@
 
 using System.Security.Cryptography;
 using System.Text;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
@@ -56,7 +57,7 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         ErrorOr<User> userResult = _authRepository.FindUserByEmail(email);
         if (userResult.IsError)
         {
-            _logger.LogInformation("Password reset requested: no account found.");
+            _logger.PasswordResetNoAccountFound();
             return userResult.FirstError;
         }
 
@@ -74,12 +75,11 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         };
         if (_authRepository.SavePasswordResetToken(resetToken).IsError)
         {
-            _logger.LogError("Failed to save password reset token for user {UserId}.", user.Id);
+            _logger.PasswordResetSaveTokenFailed(user.Id);
             return PasswordResetErrors.SaveTokenFailed;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Password reset email sent for user {UserId}.", user.Id);
+        _logger.PasswordResetEmailSent(user.Id);
         _emailService.SendPasswordResetLink(user.Email, rawToken);
         return Result.Success;
     }
@@ -96,7 +96,7 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
         if (tokenResult.IsError)
         {
-            _logger.LogWarning("Password reset failed: token not found.");
+            _logger.PasswordResetTokenNotFound();
             return PasswordResetErrors.TokenInvalid;
         }
 
@@ -104,44 +104,36 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         ErrorOr<Success> validationResult = ValidateResetToken(resetToken);
         if (validationResult.IsError)
         {
-            _logger.LogWarning(
-                "Password reset failed for user {UserId}: {Code}.",
-                resetToken.UserId,
-                validationResult.FirstError.Code);
+            _logger.PasswordResetValidationFailed(resetToken.UserId, validationResult.FirstError.Code);
             return validationResult.FirstError;
         }
 
         ErrorOr<string> hashResult = _hashService.GetHash(newPassword);
         if (hashResult.IsError)
         {
-            _logger.LogError("Hash generation failed during password reset for user {UserId}.", resetToken.UserId);
+            _logger.PasswordResetHashGenerationFailed(resetToken.UserId);
             return hashResult.FirstError;
         }
 
         if (_authRepository.UpdatePassword(resetToken.UserId, hashResult.Value).IsError)
         {
-            _logger.LogError("Password update failed for user {UserId}.", resetToken.UserId);
+            _logger.PasswordUpdateFailed(resetToken.UserId);
             return PasswordResetErrors.TokenInvalid;
         }
 
         if (_authRepository.MarkPasswordResetTokenAsUsed(resetToken.Id).IsError)
         {
-            _logger.LogError(
-                "Failed to mark password reset token as used for user {UserId}. Token may be replayable.",
-                resetToken.UserId);
+            _logger.PasswordResetMarkUsedFailed(resetToken.UserId);
             return PasswordResetErrors.ResetFailedTokenNotInvalidated;
         }
 
         if (_authRepository.InvalidateAllSessions(resetToken.UserId).IsError)
         {
-            _logger.LogError(
-                "Failed to invalidate sessions for user {UserId} after password reset. Active sessions may remain valid.",
-                resetToken.UserId);
+            _logger.PasswordResetInvalidateSessionsFailed(resetToken.UserId);
             return PasswordResetErrors.ResetFailedSessionsNotInvalidated;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Password reset successfully for user {UserId}.", resetToken.UserId);
+        _logger.PasswordResetSucceeded(resetToken.UserId);
         return Result.Success;
     }
 

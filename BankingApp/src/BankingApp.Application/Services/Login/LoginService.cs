@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DataTransferObjects.Auth;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
@@ -74,7 +75,7 @@ public class LoginService : ILoginService
         ErrorOr<User> userResult = _authRepository.FindUserByEmail(request.Email);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Login failed: user not found for email.");
+            _logger.LoginUserNotFoundForEmail();
             return AuthErrors.InvalidCredentials;
         }
 
@@ -84,7 +85,7 @@ public class LoginService : ILoginService
 
         if (user.PasswordHash is null)
         {
-            _logger.LogWarning("Login with password rejected for OAuth-only account {UserId}.", user.Id);
+            _logger.LoginOAuthOnlyPasswordRejected(user.Id);
             // Use the same response as any other bad password to avoid exposing account auth methods.
             return AuthErrors.InvalidCredentials;
         }
@@ -92,10 +93,7 @@ public class LoginService : ILoginService
         ErrorOr<bool> verifyResult = _hashService.Verify(request.Password, user.PasswordHash);
         if (verifyResult.IsError)
         {
-            _logger.LogError(
-                "Password hash verification threw for user {UserId}: {Error}",
-                user.Id,
-                verifyResult.FirstError.Description);
+            _logger.PasswordHashVerificationFailed(user.Id, verifyResult.FirstError.Description);
             return verifyResult.FirstError;
         }
 
@@ -113,7 +111,7 @@ public class LoginService : ILoginService
         ErrorOr<User> userResult = _authRepository.FindUserById(request.UserId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("OTP verification failed: user {UserId} not found.", request.UserId);
+            _logger.OtpVerificationUserNotFound(request.UserId);
             return AuthErrors.UserNotFound;
         }
 
@@ -121,24 +119,18 @@ public class LoginService : ILoginService
         ErrorOr<bool> verifyResult = VerifyOtpForPreferredMethod(user, request.OtpCode);
         if (verifyResult.IsError)
         {
-            _logger.LogError(
-                "OTP verification threw for user {UserId}: {Error}",
-                user.Id,
-                verifyResult.FirstError.Description);
+            _logger.OtpVerificationFailed(user.Id, verifyResult.FirstError.Description);
             return verifyResult.FirstError;
         }
 
         if (!verifyResult.Value)
         {
-            _logger.LogWarning("OTP verification failed for user {UserId}: invalid or expired code.", user.Id);
+            _logger.OtpVerificationInvalidOrExpired(user.Id);
             if (_otpAttemptTracker.RecordFailure(user.Id) < MaxFailedOtpAttempts) return AuthErrors.InvalidOtp;
 
             _otpService.InvalidateOtp(user.Id);
             _otpAttemptTracker.Reset(user.Id);
-            _logger.LogWarning(
-                "OTP challenge invalidated for user {UserId} after {MaxAttempts} failed attempts.",
-                user.Id,
-                MaxFailedOtpAttempts);
+            _logger.OtpChallengeInvalidated(user.Id, MaxFailedOtpAttempts);
             return AuthErrors.OtpAttemptsExceeded;
         }
 
@@ -156,7 +148,7 @@ public class LoginService : ILoginService
         ErrorOr<User> userResult = _authRepository.FindUserById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("OTP resend failed: user {UserId} not found.", userId);
+            _logger.OtpResendUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -164,10 +156,7 @@ public class LoginService : ILoginService
         ErrorOr<string> otpResult = GenerateOtpForMethod(user);
         if (otpResult.IsError)
         {
-            _logger.LogError(
-                "OTP generation failed during resend for user {UserId}: {Error}",
-                user.Id,
-                otpResult.FirstError.Description);
+            _logger.OtpGenerationDuringResendFailed(user.Id, otpResult.FirstError.Description);
             return otpResult.FirstError;
         }
 
@@ -187,13 +176,12 @@ public class LoginService : ILoginService
         ErrorOr<Session> sessionResult = _authRepository.FindSessionByToken(token);
         if (sessionResult.IsError)
         {
-            _logger.LogWarning("Logout failed: session not found.");
+            _logger.LogoutSessionNotFound();
             return sessionResult.FirstError;
         }
 
         _ = _authRepository.UpdateSessionToken(sessionResult.Value.Id);
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("User {UserId} logged out.", sessionResult.Value.UserId);
+        _logger.UserLoggedOut(sessionResult.Value.UserId);
         return Result.Success;
     }
 
@@ -203,10 +191,7 @@ public class LoginService : ILoginService
 
         if (user.IsCurrentlyLocked())
         {
-            _logger.LogWarning(
-                "Login blocked: account {UserId} is locked until {LockoutEnd}.",
-                user.Id,
-                user.LockoutEnd);
+            _logger.LoginBlockedLockedAccount(user.Id, user.LockoutEnd);
             return AuthErrors.AccountLocked;
         }
 
@@ -218,27 +203,16 @@ public class LoginService : ILoginService
     {
         _ = _authRepository.IncrementFailedAttempts(user.Id);
         int failedAttemptsAfterCurrentFailure = user.FailedLoginAttempts + FailedLoginAttemptIncrement;
-        _logger.LogWarning(
-            "Failed login attempt for user {UserId}. Attempt {Attempt}/{Max}.",
-            user.Id,
-            failedAttemptsAfterCurrentFailure,
-            MaxFailedAttempts);
+        _logger.FailedLoginAttempt(user.Id, failedAttemptsAfterCurrentFailure, MaxFailedAttempts);
         if (failedAttemptsAfterCurrentFailure < MaxFailedAttempts) return AuthErrors.InvalidCredentials;
 
         if (_authRepository.LockAccount(user.Id, DateTime.UtcNow.AddMinutes(LockoutMinutes)).IsError)
         {
-            _logger.LogError(
-                "Failed to lock account {UserId} after {Max} failed attempts.",
-                user.Id,
-                MaxFailedAttempts);
+            _logger.FailedToLockAccount(user.Id, MaxFailedAttempts);
             return AuthErrors.TooManyFailedAttempts;
         }
 
-        _logger.LogWarning(
-            "Account {UserId} locked for {Minutes} minutes after {Max} failed attempts.",
-            user.Id,
-            LockoutMinutes,
-            MaxFailedAttempts);
+        _logger.AccountLockedTooManyAttempts(user.Id, LockoutMinutes, MaxFailedAttempts);
         _emailService.SendLockNotification(user.Email);
         return AuthErrors.AccountLockedTooManyAttempts;
     }
@@ -248,18 +222,14 @@ public class LoginService : ILoginService
         ErrorOr<string> otpResult = GenerateOtpForMethod(user);
         if (otpResult.IsError)
         {
-            _logger.LogError(
-                "OTP generation failed for user {UserId}: {Error}",
-                user.Id,
-                otpResult.FirstError.Description);
+            _logger.OtpGenerationFailed(user.Id, otpResult.FirstError.Description);
             return otpResult.FirstError;
         }
 
         if (user.Preferred2FaMethod == TwoFactorMethod.Email) _emailService.SendOtpCode(user.Email, otpResult.Value);
 
         _otpAttemptTracker.Reset(user.Id);
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("2FA required for user {UserId} via {Method}.", user.Id, user.Preferred2FaMethod);
+        _logger.TwoFactorRequired(user.Id, user.Preferred2FaMethod);
         return new RequiresTwoFactor(user.Id);
     }
 
@@ -283,10 +253,7 @@ public class LoginService : ILoginService
         ErrorOr<string> tokenResult = _jsonWebTokenService.GenerateToken(user.Id);
         if (tokenResult.IsError)
         {
-            _logger.LogError(
-                "Token generation failed for user {UserId}: {Error}",
-                user.Id,
-                tokenResult.FirstError.Description);
+            _logger.TokenGenerationFailed(user.Id, tokenResult.FirstError.Description);
             return tokenResult.FirstError;
         }
 
@@ -294,12 +261,11 @@ public class LoginService : ILoginService
         if (_authRepository.CreateSession(user.Id, token, metadata?.DeviceInfo, metadata?.Browser, metadata?.IpAddress)
             .IsError)
         {
-            _logger.LogError("Session creation failed for user {UserId}.", user.Id);
+            _logger.SessionCreationFailed(user.Id);
             return UserErrors.SessionCreationFailed;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("User {UserId} logged in successfully.", user.Id);
+        _logger.UserLoggedIn(user.Id);
         _emailService.SendLoginAlert(user.Email);
         return new FullLogin(user.Id, token);
     }

@@ -104,9 +104,20 @@ public class Transfer
     /// <returns>The result of the operation.</returns>
     public static ErrorOr<Success> Validate(string recipientIban, decimal amount, string currency)
     {
-        if (!IsValidRecipientIban(recipientIban)) return TransferErrors.InvalidIban;
-        if (amount <= 0) return TransferErrors.InvalidAmount;
-        if (!IsValidCurrency(currency)) return TransferErrors.InvalidCurrency;
+        if (!IsValidRecipientIban(recipientIban))
+        {
+            return TransferErrors.InvalidIban;
+        }
+
+        if (amount <= 0)
+        {
+            return TransferErrors.InvalidAmount;
+        }
+
+        if (!IsValidCurrency(currency))
+        {
+            return TransferErrors.InvalidCurrency;
+        }
 
         return Result.Success;
     }
@@ -128,10 +139,25 @@ public class Transfer
     /// <returns>The result of the operation.</returns>
     public static bool IsValidRecipientIban(string iban)
     {
-        if (string.IsNullOrWhiteSpace(iban)) return false;
-        if (iban.Length is < IbanMinLength or > IbanMaxLength) return false;
-        if (!char.IsLetter(iban[0]) || !char.IsLetter(iban[1])) return false;
-        if (!char.IsDigit(iban[2]) || !char.IsDigit(iban[3])) return false;
+        if (string.IsNullOrWhiteSpace(iban))
+        {
+            return false;
+        }
+
+        if (iban.Length is < IbanMinLength or > IbanMaxLength)
+        {
+            return false;
+        }
+
+        if (!char.IsLetter(iban[0]) || !char.IsLetter(iban[1]))
+        {
+            return false;
+        }
+
+        if (!char.IsDigit(iban[2]) || !char.IsDigit(iban[3]))
+        {
+            return false;
+        }
 
         return true;
     }
@@ -143,7 +169,10 @@ public class Transfer
     /// <returns>The inferred bank name.</returns>
     public static string InferRecipientBankName(string iban)
     {
-        if (string.IsNullOrWhiteSpace(iban) || iban.Length < IbanCountryCodeLength) return "Unknown Bank";
+        if (string.IsNullOrWhiteSpace(iban) || iban.Length < IbanCountryCodeLength)
+        {
+            return "Unknown Bank";
+        }
 
         return iban[..IbanCountryCodeLength].ToUpperInvariant() switch
         {

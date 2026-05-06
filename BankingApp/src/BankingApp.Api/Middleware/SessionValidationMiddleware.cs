@@ -7,6 +7,7 @@
 
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
+using BankingApp.Api.Logging;
 using ErrorOr;
 using System.Globalization;
 
@@ -67,10 +68,7 @@ public class SessionValidationMiddleware
         ErrorOr<int> userIdResult = jsonWebTokenService.ExtractUserId(token);
         if (userIdResult.IsError)
         {
-            logger.LogWarning(
-                "Token validation failed [{Code}]: {Description}",
-                userIdResult.FirstError.Code,
-                userIdResult.FirstError.Description);
+            logger.TokenValidationFailed(userIdResult.FirstError.Code, userIdResult.FirstError.Description);
             await RejectRequest(context, "Invalid or expired token.");
             return;
         }
@@ -79,10 +77,7 @@ public class SessionValidationMiddleware
         ErrorOr<bool> sessionResult = authRepository.IsSessionActive(token);
         if (sessionResult.IsError)
         {
-            logger.LogWarning(
-                "Session lookup failed [{Code}]: {Description}",
-                sessionResult.FirstError.Code,
-                sessionResult.FirstError.Description);
+            logger.SessionLookupFailed(sessionResult.FirstError.Code, sessionResult.FirstError.Description);
             await RejectRequest(context, "Invalid or expired token.");
             return;
         }

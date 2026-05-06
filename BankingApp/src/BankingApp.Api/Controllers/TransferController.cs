@@ -1,16 +1,9 @@
-﻿// <copyright file="TransferController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Services.Transfers;
+using Application.DTOs.Transfer;
+using Application.Services.Transfers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for handling transfer-related operations.
@@ -63,7 +56,7 @@ public class TransferController : ApiControllerBase
             _transferService.CreateTransfer(request, userId),
             transfer => Ok(new TransferExecutionResponse
             {
-                TransactionRef = transfer.TransactionRef ?? string.Empty
+                TransactionRef = transfer.TransactionRef ?? string.Empty,
             }));
     }
 
@@ -79,8 +72,7 @@ public class TransferController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(
-            _transferService.GetHistory(userId),
-            history => Ok(history));
+            _transferService.GetHistory(userId), Ok);
     }
 
     /// <summary>
@@ -93,7 +85,7 @@ public class TransferController : ApiControllerBase
         int userId = GetAuthenticatedUserId();
         return ToActionResult(
             _transferService.GetAvailableAccounts(userId),
-            accounts => Ok(accounts));
+            Ok);
     }
 
     /// <summary>
@@ -106,7 +98,7 @@ public class TransferController : ApiControllerBase
     {
         return ToActionResult(
             _transferService.ValidateRecipientIban(request.Iban),
-            response => Ok(response));
+            Ok);
     }
 
     /// <summary>
@@ -120,7 +112,6 @@ public class TransferController : ApiControllerBase
     public IActionResult GetFxPreview([FromQuery] string from, [FromQuery] string to, [FromQuery] decimal amount)
     {
         return ToActionResult(
-            _transferService.GetFxPreview(from, to, amount),
-            preview => Ok(preview));
+            _transferService.GetFxPreview(from, to, amount), Ok);
     }
 }

@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DataTransferObjects.Profile;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using BankingApp.Application.Utilities;
@@ -48,7 +49,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Profile fetch failed: user {UserId} not found.", userId);
+            _logger.ProfileFetchUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -66,7 +67,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Profile update failed: user {UserId} not found.", userId);
+            _logger.ProfileUpdateUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -100,7 +101,7 @@ public class ProfileService : IProfileService
 
         if (_userRepository.UpdateUser(user).IsError)
         {
-            _logger.LogError("Profile update failed for user {UserId}.", userId);
+            _logger.ProfileUpdateFailed(userId);
             return UserErrors.UpdateFailed;
         }
 
@@ -115,7 +116,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(request.UserId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Password change failed: user {UserId} not found.", request.UserId);
+            _logger.PasswordChangeUserNotFound(request.UserId);
             return userResult.FirstError;
         }
 
@@ -124,7 +125,7 @@ public class ProfileService : IProfileService
 
         if (user.PasswordHash is null)
         {
-            _logger.LogWarning("Password change rejected for OAuth-only account {UserId}.", user.Id);
+            _logger.PasswordChangeOAuthOnlyRejected(user.Id);
             // Use the generic password failure so password checks do not reveal whether a local password exists.
             return ProfileErrors.IncorrectPassword;
         }
@@ -132,31 +133,30 @@ public class ProfileService : IProfileService
         ErrorOr<bool> verifyResult = _hashService.Verify(request.CurrentPassword, user.PasswordHash);
         if (verifyResult.IsError)
         {
-            _logger.LogError("Hash verification threw during password change for user {UserId}.", user.Id);
+            _logger.PasswordChangeHashVerificationFailed(user.Id);
             return verifyResult.FirstError;
         }
 
         if (!verifyResult.Value)
         {
-            _logger.LogWarning("Password change failed for user {UserId}: incorrect current password.", user.Id);
+            _logger.PasswordChangeIncorrectCurrentPassword(user.Id);
             return ProfileErrors.IncorrectPassword;
         }
 
         ErrorOr<string> newHashResult = _hashService.GetHash(request.NewPassword);
         if (newHashResult.IsError)
         {
-            _logger.LogError("Hash generation failed during password change for user {UserId}.", user.Id);
+            _logger.PasswordChangeHashGenerationFailed(user.Id);
             return newHashResult.FirstError;
         }
 
         if (_userRepository.UpdatePassword(user.Id, newHashResult.Value).IsError)
         {
-            _logger.LogError("Password update failed for user {UserId}.", user.Id);
+            _logger.PasswordUpdateFailed(user.Id);
             return UserErrors.PasswordUpdateFailed;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Password changed successfully for user {UserId}.", user.Id);
+        _logger.PasswordChangedSuccessfully(user.Id);
         return Result.Success;
     }
 
@@ -169,7 +169,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Enable 2FA failed: user {UserId} not found.", userId);
+            _logger.EnableTwoFactorUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -177,12 +177,11 @@ public class ProfileService : IProfileService
         user.Enable2Fa(method);
         if (_userRepository.UpdateUser(user).IsError)
         {
-            _logger.LogError("Failed to enable 2FA for user {UserId}.", userId);
+            _logger.EnableTwoFactorFailed(userId);
             return UserErrors.Enable2FaFailed;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("2FA enabled for user {UserId} via {Method}.", userId, method);
+        _logger.EnableTwoFactorSucceeded(userId, method);
         return Result.Success;
     }
 
@@ -194,7 +193,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Disable 2FA failed: user {UserId} not found.", userId);
+            _logger.DisableTwoFactorUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -202,12 +201,11 @@ public class ProfileService : IProfileService
         user.Disable2Fa();
         if (_userRepository.UpdateUser(user).IsError)
         {
-            _logger.LogError("Failed to disable 2FA for user {UserId}.", userId);
+            _logger.DisableTwoFactorFailed(userId);
             return UserErrors.Disable2FaFailed;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("2FA disabled for user {UserId}.", userId);
+        _logger.DisableTwoFactorSucceeded(userId);
         return Result.Success;
     }
 
@@ -219,17 +217,14 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Notification preferences fetch failed: user {UserId} not found.", userId);
+            _logger.NotificationPreferencesFetchUserNotFound(userId);
             return userResult.FirstError;
         }
 
         ErrorOr<List<NotificationPreference>> preferencesResult = _userRepository.GetNotificationPreferences(userId);
         if (preferencesResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch notification preferences for user {UserId}: {Error}",
-                userId,
-                preferencesResult.FirstError.Description);
+            _logger.NotificationPreferencesFetchFailed(userId, preferencesResult.FirstError.Description);
             return preferencesResult.FirstError;
         }
 
@@ -258,7 +253,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Notification preferences update failed: user {UserId} not found.", userId);
+            _logger.NotificationPreferencesUpdateUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -276,7 +271,7 @@ public class ProfileService : IProfileService
             .ToList();
         if (_userRepository.UpdateNotificationPreferences(userId, entities).IsError)
         {
-            _logger.LogError("Failed to update notification preferences for user {UserId}.", userId);
+            _logger.NotificationPreferencesUpdateFailed(userId);
             return UserErrors.NotificationPreferencesUpdateFailed;
         }
 
@@ -292,13 +287,13 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Password verification failed: user {UserId} not found.", userId);
+            _logger.PasswordVerificationUserNotFound(userId);
             return userResult.FirstError;
         }
 
         if (userResult.Value.PasswordHash is null)
         {
-            _logger.LogWarning("Password verification rejected for OAuth-only account {UserId}.", userId);
+            _logger.PasswordVerificationOAuthOnlyRejected(userId);
             // Return the same outcome as any other non-matching password for added security.
             return false;
         }
@@ -314,17 +309,14 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Get sessions failed: user {UserId} not found.", userId);
+            _logger.GetSessionsUserNotFound(userId);
             return userResult.FirstError;
         }
 
         ErrorOr<List<Session>> sessionsResult = _userRepository.GetActiveSessions(userId);
         if (sessionsResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch sessions for user {UserId}: {Error}",
-                userId,
-                sessionsResult.FirstError.Description);
+            _logger.GetSessionsFailed(userId, sessionsResult.FirstError.Description);
             return sessionsResult.FirstError;
         }
 
@@ -351,19 +343,18 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Revoke session failed: user {UserId} not found.", userId);
+            _logger.RevokeSessionUserNotFound(userId);
             return userResult.FirstError;
         }
 
         ErrorOr<Success> result = _userRepository.RevokeSession(userId, sessionId);
         if (result.IsError)
         {
-            _logger.LogError("Failed to revoke session {SessionId} for user {UserId}.", sessionId, userId);
+            _logger.RevokeSessionFailed(sessionId, userId);
             return result.FirstError;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("Session {SessionId} revoked for user {UserId}.", sessionId, userId);
+        _logger.SessionRevoked(sessionId, userId);
         return Result.Success;
     }
 }

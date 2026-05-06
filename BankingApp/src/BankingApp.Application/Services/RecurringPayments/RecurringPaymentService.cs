@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DTOs.RecurringPayments;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Utilities;
 using BankingApp.Domain.Entities;
@@ -56,8 +57,7 @@ public class RecurringPaymentService : IRecurringPaymentService
         ErrorOr<RecurringPayment> createResult = _repository.Create(paymentResult.Value);
         if (createResult.IsError)
         {
-            _logger.LogError("Failed to create recurring payment for user {UserId}: {Error}", userId,
-                createResult.FirstError.Description);
+            _logger.RecurringPaymentCreateFailed(userId, createResult.FirstError.Description);
             return createResult.FirstError;
         }
 

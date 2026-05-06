@@ -1,17 +1,11 @@
-﻿// <copyright file="DashboardService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Dashboard;
 
 using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
+using Logging;
+using Repositories.Interfaces;
+using Domain.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.Dashboard;
 
 /// <summary>
 ///     Provides aggregated dashboard data for users.
@@ -48,33 +42,28 @@ public class DashboardService : IDashboardService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Dashboard fetch failed: user {UserId} not found.", userId);
+            _logger.DashboardUserNotFound(userId);
             return userResult.FirstError;
         }
 
         ErrorOr<List<Card>> cardsResult = _dashboardRepository.GetCardsByUser(userId);
         ErrorOr<int> notifCountResult = _dashboardRepository.GetUnreadNotificationCount(userId);
         if (cardsResult.IsError)
-            _logger.LogError(
-                "Failed to fetch cards for user {UserId}: {Error}",
-                userId,
-                cardsResult.FirstError.Description);
+        {
+            _logger.DashboardFetchCardsFailed(userId, cardsResult.FirstError.Description);
+        }
 
         if (notifCountResult.IsError)
-            _logger.LogError(
-                "Failed to fetch notification count for user {UserId}: {Error}",
-                userId,
-                notifCountResult.FirstError.Description);
+        {
+            _logger.DashboardFetchNotificationCountFailed(userId, notifCountResult.FirstError.Description);
+        }
 
         var allTransactions = new List<Transaction>();
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
         var accountsById = new Dictionary<int, Account>();
         if (accountsResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch accounts for user {UserId}: {Error}",
-                userId,
-                accountsResult.FirstError.Description);
+            _logger.DashboardFetchAccountsFailed(userId, accountsResult.FirstError.Description);
         }
         else
         {
@@ -85,10 +74,7 @@ public class DashboardService : IDashboardService
                     _dashboardRepository.GetRecentTransactions(account.Id, DefaultRecentTransactionLimit);
                 if (transactionsResult.IsError)
                 {
-                    _logger.LogError(
-                        "Failed to fetch transactions for account {AccountId}: {Error}",
-                        account.Id,
-                        transactionsResult.FirstError.Description);
+                    _logger.DashboardFetchTransactionsFailed(account.Id, transactionsResult.FirstError.Description);
                     continue;
                 }
 
@@ -144,7 +130,7 @@ public class DashboardService : IDashboardService
                     CreatedAt = transaction.CreatedAt
                 })
                 .ToList(),
-            UnreadNotificationCount = notifCountResult.IsError ? default : notifCountResult.Value
+            UnreadNotificationCount = notifCountResult.IsError ? 0 : notifCountResult.Value
         };
     }
 }

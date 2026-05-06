@@ -1,16 +1,9 @@
-﻿// <copyright file="ProfileController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Services.Profile;
+using Application.DataTransferObjects.Profile;
+using Application.Services.Profile;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for handling user profile-related operations.
@@ -43,7 +36,7 @@ public class ProfileController : ApiControllerBase
     public IActionResult GetProfile()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetProfile(userId), info => Ok(info));
+        return ToActionResult(_profileService.GetProfile(userId), Ok);
     }
 
     /// <summary>
@@ -84,14 +77,14 @@ public class ProfileController : ApiControllerBase
     ///     Retrieves the notification preferences of the currently authenticated user.
     /// </summary>
     /// <returns>
-    ///     200 OK with a list of <see cref="NotificationPreferenceDataTransferObject" /> on success (may be empty),
+    ///     200 OK with a list of <see cref="NotificationPreferenceDataTransferObject" /> on success (it may be empty),
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet("notifications/preferences")]
     public IActionResult GetNotificationPreferences()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetNotificationPreferences(userId), preferences => Ok(preferences));
+        return ToActionResult(_profileService.GetNotificationPreferences(userId), Ok);
     }
 
     /// <summary>
@@ -168,7 +161,7 @@ public class ProfileController : ApiControllerBase
     public IActionResult GetSessions()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetActiveSessions(userId), sessions => Ok(sessions));
+        return ToActionResult(_profileService.GetActiveSessions(userId), Ok);
     }
 
     /// <summary>

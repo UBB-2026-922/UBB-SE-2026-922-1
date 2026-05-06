@@ -176,7 +176,10 @@ public class Card
     /// <returns>The masked card number.</returns>
     public string GetMaskedNumber()
     {
-        if (string.IsNullOrWhiteSpace(CardNumber) || CardNumber.Length < VisibleSuffixLength) return FullyMasked;
+        if (string.IsNullOrWhiteSpace(CardNumber) || CardNumber.Length < VisibleSuffixLength)
+        {
+            return FullyMasked;
+        }
 
         return $"{MaskedPrefix} {CardNumber[^VisibleSuffixLength..]}";
     }

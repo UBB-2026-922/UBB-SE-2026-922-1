@@ -1,15 +1,8 @@
-﻿// <copyright file="DashboardController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Services.Dashboard;
+using Application.DataTransferObjects.Dashboard;
+using Application.Services.Dashboard;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for handling dashboard-related operations.
@@ -43,6 +36,6 @@ public class DashboardController : ApiControllerBase
     public IActionResult GetDashboard()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_dashboardService.GetDashboardData(userId), data => Ok(data));
+        return ToActionResult(_dashboardService.GetDashboardData(userId), Ok);
     }
 }

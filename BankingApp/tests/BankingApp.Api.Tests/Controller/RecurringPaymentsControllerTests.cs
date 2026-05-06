@@ -164,16 +164,18 @@ public sealed class RecurringPaymentsControllerTests
     {
         // Arrange
         _recurringPaymentService
-            .Setup(service => service.Resume(DefaultUserId, DefaultPaymentId))
+            .Setup(service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId))
             .Returns(Result.Success);
         RecurringPaymentsController controller = CreateController();
 
         // Act
-        IActionResult result = controller.Resume(DefaultPaymentId);
+        IActionResult result = controller.ResumePayment(DefaultPaymentId);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _recurringPaymentService.Verify(service => service.Resume(DefaultUserId, DefaultPaymentId), Times.Once);
+        _recurringPaymentService.Verify(
+            service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId),
+            Times.Once);
     }
 
     [Fact]
@@ -181,12 +183,12 @@ public sealed class RecurringPaymentsControllerTests
     {
         // Arrange
         _recurringPaymentService
-            .Setup(service => service.Resume(DefaultUserId, DefaultPaymentId))
+            .Setup(service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId))
             .Returns(Error.NotFound("not_found", "Schedule not found."));
         RecurringPaymentsController controller = CreateController();
 
         // Act
-        IActionResult result = controller.Resume(DefaultPaymentId);
+        IActionResult result = controller.ResumePayment(DefaultPaymentId);
 
         // Assert
         result.Should().BeOfType<NotFoundObjectResult>();
@@ -197,12 +199,12 @@ public sealed class RecurringPaymentsControllerTests
     {
         // Arrange
         _recurringPaymentService
-            .Setup(service => service.Resume(DefaultUserId, DefaultPaymentId))
+            .Setup(service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId))
             .Returns(Error.Forbidden("forbidden", "You do not own this schedule."));
         RecurringPaymentsController controller = CreateController();
 
         // Act
-        IActionResult result = controller.Resume(DefaultPaymentId);
+        IActionResult result = controller.ResumePayment(DefaultPaymentId);
 
         // Assert
         ObjectResult errorResult = result.Should().BeOfType<ObjectResult>().Subject;

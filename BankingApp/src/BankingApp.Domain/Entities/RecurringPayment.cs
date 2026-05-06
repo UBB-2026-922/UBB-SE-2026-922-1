@@ -113,8 +113,15 @@ public class RecurringPayment
         DateTime? endDate,
         DateTime createdAt)
     {
-        if (amount <= 0) return RecurringPaymentErrors.InvalidAmount;
-        if (endDate.HasValue && endDate.Value <= startDate) return RecurringPaymentErrors.InvalidEndDate;
+        if (amount <= 0)
+        {
+            return RecurringPaymentErrors.InvalidAmount;
+        }
+
+        if (endDate.HasValue && endDate.Value <= startDate)
+        {
+            return RecurringPaymentErrors.InvalidEndDate;
+        }
 
         return new RecurringPayment
         {
@@ -139,7 +146,10 @@ public class RecurringPayment
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Pause(int userId)
     {
-        if (UserId != userId) return RecurringPaymentErrors.Forbidden;
+        if (UserId != userId)
+        {
+            return RecurringPaymentErrors.Forbidden;
+        }
 
         Status = RecurringPaymentStatus.Paused;
         return Result.Success;
@@ -152,8 +162,15 @@ public class RecurringPayment
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Resume(int userId)
     {
-        if (UserId != userId) return RecurringPaymentErrors.Forbidden;
-        if (Status != RecurringPaymentStatus.Paused) return RecurringPaymentErrors.ResumeConflict;
+        if (UserId != userId)
+        {
+            return RecurringPaymentErrors.Forbidden;
+        }
+
+        if (Status != RecurringPaymentStatus.Paused)
+        {
+            return RecurringPaymentErrors.ResumeConflict;
+        }
 
         Status = RecurringPaymentStatus.Active;
         return Result.Success;
@@ -166,7 +183,10 @@ public class RecurringPayment
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Cancel(int userId)
     {
-        if (UserId != userId) return RecurringPaymentErrors.Forbidden;
+        if (UserId != userId)
+        {
+            return RecurringPaymentErrors.Forbidden;
+        }
 
         Status = RecurringPaymentStatus.Cancelled;
         return Result.Success;

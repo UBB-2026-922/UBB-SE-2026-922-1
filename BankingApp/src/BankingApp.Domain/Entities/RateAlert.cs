@@ -78,11 +78,25 @@ public class RateAlert
         bool isBuyAlert,
         DateTime createdAt)
     {
-        if (string.IsNullOrWhiteSpace(baseCurrency)) return RateAlertErrors.BaseCurrencyRequired;
-        if (string.IsNullOrWhiteSpace(targetCurrency)) return RateAlertErrors.TargetCurrencyRequired;
+        if (string.IsNullOrWhiteSpace(baseCurrency))
+        {
+            return RateAlertErrors.BaseCurrencyRequired;
+        }
+
+        if (string.IsNullOrWhiteSpace(targetCurrency))
+        {
+            return RateAlertErrors.TargetCurrencyRequired;
+        }
+
         if (baseCurrency.Equals(targetCurrency, StringComparison.OrdinalIgnoreCase))
+        {
             return RateAlertErrors.MatchingCurrencies;
-        if (targetRate <= 0) return RateAlertErrors.InvalidTargetRate;
+        }
+
+        if (targetRate <= 0)
+        {
+            return RateAlertErrors.InvalidTargetRate;
+        }
 
         return new RateAlert
         {

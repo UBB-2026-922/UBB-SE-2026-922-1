@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DataTransferObjects.Auth;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using BankingApp.Application.Utilities;
@@ -53,15 +54,13 @@ public class RegistrationService : IRegistrationService
         ErrorOr<User> existingUserResult = _authRepository.FindUserByEmail(request.Email);
         if (!existingUserResult.IsError)
         {
-            _logger.LogInformation("Registration rejected: email already registered.");
+            _logger.RegistrationRejectedEmailAlreadyRegistered();
             return AuthErrors.EmailAlreadyRegistered;
         }
 
         if (existingUserResult.FirstError.Type != ErrorType.NotFound)
         {
-            _logger.LogError(
-                "Database error while checking existing user: {Error}",
-                existingUserResult.FirstError.Description);
+            _logger.RegistrationExistingUserCheckFailed(existingUserResult.FirstError.Description);
             return UserErrors.DatabaseError;
         }
 
@@ -71,11 +70,11 @@ public class RegistrationService : IRegistrationService
         ErrorOr<Success> createResult = _authRepository.CreateUser(newUserResult.Value);
         if (createResult.IsError)
         {
-            _logger.LogError("User creation failed during registration: {Error}", createResult.FirstError.Description);
+            _logger.UserCreationFailedDuringRegistration(createResult.FirstError.Description);
             return UserErrors.UserCreationFailed;
         }
 
-        _logger.LogInformation("User registered successfully.");
+        _logger.UserRegisteredSuccessfully();
         return Result.Success;
     }
 
@@ -95,7 +94,7 @@ public class RegistrationService : IRegistrationService
         ErrorOr<string> hashResult = _hashService.GetHash(request.Password);
         if (hashResult.IsError)
         {
-            _logger.LogError("Hash generation failed during registration.");
+            _logger.RegistrationHashGenerationFailed();
             return hashResult.FirstError;
         }
 

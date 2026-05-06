@@ -1,21 +1,13 @@
-﻿// <copyright file="AuthController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AuthController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects;
-using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Application.DTOs;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Registration;
-using BankingApp.Application.Utilities;
+using Application.DataTransferObjects.Auth;
+using Application.DTOs;
+using Application.Services.Login;
+using Application.Services.PasswordRecovery;
+using Application.Services.Registration;
+using Application.Utilities;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for handling all authentication-related operations,
@@ -85,7 +77,7 @@ public class AuthController : ApiControllerBase
     }
 
     /// <summary>
-    ///     Verifies a OTP as part of the 2FA flow.
+    ///     Verifies an OTP as part of the 2FA flow.
     ///     Should be called after a successful login when <see cref="LoginSuccessResponse.Requires2Fa" /> is
     ///     <see langword="true" />.
     /// </summary>
@@ -115,7 +107,9 @@ public class AuthController : ApiControllerBase
     public IActionResult ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email))
+        {
             return BadRequest(new ApplicationErrorResponse { Error = "Email is required." });
+        }
 
         // Always return a generic response regardless of whether the email exists.
         _ = _passwordRecoveryService.RequestPasswordReset(request.Email);
@@ -135,16 +129,20 @@ public class AuthController : ApiControllerBase
     public IActionResult ResetPassword([FromBody] ResetPasswordRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+        {
             return BadRequest(new ApplicationErrorResponse { Error = "Token and new password are required." });
+        }
 
         if (!ValidationUtilities.IsStrongPassword(request.NewPassword))
+        {
             return BadRequest(
                 new ApplicationErrorResponse
                 {
                     Error =
                         "Password must be at least 8 characters with uppercase, lowercase, a digit, and a special character.",
-                    ErrorCode = "weak_password"
+                    ErrorCode = "weak_password",
                 });
+        }
 
         return ToActionResult(_passwordRecoveryService.ResetPassword(request.Token, request.NewPassword));
     }
@@ -162,7 +160,9 @@ public class AuthController : ApiControllerBase
     {
         if (string.IsNullOrWhiteSpace(authorization) ||
             !authorization.StartsWith(BearerPrefix, StringComparison.Ordinal))
+        {
             return BadRequest(new ApplicationErrorResponse { Error = "No token provided." });
+        }
 
         string token = authorization.Substring(BearerPrefix.Length);
         return ToActionResult(_loginService.Logout(token));
@@ -195,7 +195,9 @@ public class AuthController : ApiControllerBase
     public IActionResult VerifyResetToken([FromBody] VerifyTokenDataTransferObject request)
     {
         if (string.IsNullOrWhiteSpace(request.Token))
+        {
             return BadRequest(new ApplicationErrorResponse { Error = "Token is required." });
+        }
 
         return ToActionResult(_passwordRecoveryService.VerifyResetToken(request.Token));
     }
@@ -208,29 +210,45 @@ public class AuthController : ApiControllerBase
     private static string? GetClientIpAddress(HttpContext context)
     {
         string forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
-        if (!string.IsNullOrWhiteSpace(forwardedFor)) return forwardedFor.Split(',').First().Trim();
-
-        return context.Connection.RemoteIpAddress?.ToString();
+        return !string.IsNullOrWhiteSpace(forwardedFor) ? forwardedFor.Split(',').First().Trim() : context.Connection.RemoteIpAddress?.ToString();
     }
 
     private static string? GetBrowserName(string? userAgent)
     {
-        if (string.IsNullOrWhiteSpace(userAgent)) return null;
+        if (string.IsNullOrWhiteSpace(userAgent))
+        {
+            return null;
+        }
 
-        if (userAgent.Contains("Edg/", StringComparison.OrdinalIgnoreCase)) return "Microsoft Edge";
+        if (userAgent.Contains("Edg/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Microsoft Edge";
+        }
 
-        if (userAgent.Contains("Chrome/", StringComparison.OrdinalIgnoreCase)) return "Chrome";
+        if (userAgent.Contains("Chrome/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Chrome";
+        }
 
-        if (userAgent.Contains("Firefox/", StringComparison.OrdinalIgnoreCase)) return "Firefox";
+        if (userAgent.Contains("Firefox/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Firefox";
+        }
 
-        if (userAgent.Contains("Safari/", StringComparison.OrdinalIgnoreCase)) return "Safari";
+        if (userAgent.Contains("Safari/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Safari";
+        }
 
         return "Unknown Browser";
     }
 
     private static string? TrimToMaxLength(string? value, int maxLength)
     {
-        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
 
         return value.Length <= maxLength ? value : value[..maxLength];
     }
@@ -249,12 +267,12 @@ public class AuthController : ApiControllerBase
 
     private SessionMetadata GetSessionMetadata()
     {
-        string? userAgent = TrimToMaxLength(Request.Headers["User-Agent"].ToString(), DeviceInfoMaxLength);
+        string? userAgent = TrimToMaxLength(Request.Headers.UserAgent.ToString(), DeviceInfoMaxLength);
         return new SessionMetadata
         {
             DeviceInfo = userAgent,
             Browser = TrimToMaxLength(GetBrowserName(userAgent), BrowserMaxLength),
-            IpAddress = TrimToMaxLength(GetClientIpAddress(HttpContext), IpAddressMaxLength)
+            IpAddress = TrimToMaxLength(GetClientIpAddress(HttpContext), IpAddressMaxLength),
         };
     }
 }

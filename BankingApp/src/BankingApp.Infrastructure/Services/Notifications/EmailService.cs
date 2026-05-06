@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Globalization;
 using BankingApp.Application.Services.Notifications;
+using BankingApp.Infrastructure.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -89,11 +90,7 @@ public class EmailService : IEmailService
         }
         catch (Exception exception)
         {
-            _logger.LogError(
-                exception,
-                "Failed to send email to {ToEmail} with subject '{Subject}'.",
-                toEmail,
-                subject);
+            _logger.EmailSendFailed(exception, toEmail, subject);
         }
     }
 }

@@ -1,22 +1,15 @@
-﻿// <copyright file="BillPaymentsController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentsController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.BillPayment;
-using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Domain.Entities;
+using Application.DTOs.BillPayment;
+using Application.DTOs.BillPayments;
+using Application.Services.BillPayments;
+using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 /// Controller for managing and processing bill payments.
@@ -115,7 +108,7 @@ public class BillPaymentsController : ApiControllerBase
                 BillerReference = request.BillerReference,
                 Amount = request.Amount,
                 IsPayInFull = request.IsPayInFull,
-                TwoFaToken = request.TwoFaToken
+                TwoFaToken = request.TwoFaToken,
             });
 
             return Ok(new BillPayResponseDto
@@ -124,7 +117,7 @@ public class BillPaymentsController : ApiControllerBase
                 ReceiptNumber = payment.ReceiptNumber,
                 Fee = payment.Fee,
                 Amount = payment.Amount,
-                Status = payment.Status.ToString()
+                Status = payment.Status.ToString(),
             });
         }
         catch (Exception ex)
@@ -149,7 +142,10 @@ public class BillPaymentsController : ApiControllerBase
                 request.BillerId,
                 request.Nickname);
 
-            if (success) return Ok(new { message = "Biller saved successfully." });
+            if (success)
+            {
+                return Ok(new { message = "Biller saved successfully." });
+            }
 
             return BadRequest(new { error = "Failed to save the biller." });
         }
@@ -168,7 +164,7 @@ public class BillPaymentsController : ApiControllerBase
             Currency = account.Currency,
             Balance = account.Balance,
             AccountName = account.AccountName ?? string.Empty,
-            Status = account.Status.ToString()
+            Status = account.Status.ToString(),
         };
     }
 }

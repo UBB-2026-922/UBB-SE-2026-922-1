@@ -6,6 +6,7 @@
 // </summary>
 
 using System.Text.RegularExpressions;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -66,9 +67,7 @@ public class BeneficiaryService : IBeneficiaryService
         ErrorOr<bool> existsResult = _beneficiaryRepository.ExistsByUserIdAndIban(userId, normalizedIban);
         if (existsResult.IsError)
         {
-            _logger.LogError(
-                "Failed to check beneficiary duplicate for user {UserId}.",
-                userId);
+            _logger.BeneficiaryDuplicateCheckFailed(userId);
             return existsResult.FirstError;
         }
 
@@ -91,19 +90,11 @@ public class BeneficiaryService : IBeneficiaryService
         ErrorOr<DomainBeneficiary> createResult = _beneficiaryRepository.Create(beneficiary);
         if (createResult.IsError)
         {
-            _logger.LogError(
-                "Failed to create beneficiary for user {UserId}.",
-                userId);
+            _logger.BeneficiaryCreateFailed(userId);
             return createResult.FirstError;
         }
 
-        if (_logger.IsEnabled(LogLevel.Information))
-        {
-            _logger.LogInformation(
-                "Beneficiary {BeneficiaryId} created for user {UserId}.",
-                createResult.Value.Id,
-                userId);
-        }
+        _logger.BeneficiaryCreated(createResult.Value.Id, userId);
 
         return createResult.Value;
     }
@@ -136,9 +127,7 @@ public class BeneficiaryService : IBeneficiaryService
 
         if (userBeneficiariesResult.IsError)
         {
-            _logger.LogError(
-                "Failed to load beneficiaries for user {UserId} during update.",
-                beneficiary.UserId);
+            _logger.BeneficiariesLoadForUpdateFailed(beneficiary.UserId);
             return userBeneficiariesResult.FirstError;
         }
 

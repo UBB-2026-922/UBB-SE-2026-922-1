@@ -1,16 +1,9 @@
-﻿// <copyright file="BeneficiariesController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiariesController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects.Beneficiary;
-using BankingApp.Application.Services.Beneficiary;
-using BankingApp.Domain.Entities;
+using Application.DataTransferObjects.Beneficiary;
+using Application.Services.Beneficiary;
+using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for managing beneficiaries for the authenticated user.
@@ -99,7 +92,7 @@ public class BeneficiariesController : ApiControllerBase
             UserId = userId,
             Name = request.Name,
             Iban = request.Iban,
-            BankName = request.BankName
+            BankName = request.BankName,
         };
 
         return ToActionResult(_beneficiaryService.Update(beneficiary));
@@ -130,7 +123,7 @@ public class BeneficiariesController : ApiControllerBase
             LastTransferDate = beneficiary.LastTransferDate,
             TotalAmountSent = beneficiary.TotalAmountSent,
             TransferCount = beneficiary.TransferCount,
-            CreatedAt = beneficiary.CreatedAt
+            CreatedAt = beneficiary.CreatedAt,
         };
     }
 }

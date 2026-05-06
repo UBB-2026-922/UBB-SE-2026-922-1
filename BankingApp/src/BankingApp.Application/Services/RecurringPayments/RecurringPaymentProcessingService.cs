@@ -6,6 +6,7 @@
 // </summary>
 
 using BankingApp.Application.DTOs.BillPayments;
+using BankingApp.Application.Logging;
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.BillPayments;
 using BankingApp.Application.Utilities;
@@ -74,19 +75,13 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
 
                 ErrorOr<Success> updateResult = _recurringPaymentRepository.Update(payment);
                 if (updateResult.IsError)
-                    _logger.LogWarning(
-                        "Failed to update recurring payment {RecurringPaymentId} after execution: {Error}",
-                        payment.Id,
-                        updateResult.FirstError.Description);
+                    _logger.RecurringPaymentUpdateAfterExecutionFailed(payment.Id, updateResult.FirstError.Description);
             }
             catch (Exception exception)
             {
                 payment.MarkExecutionFailed();
                 _recurringPaymentRepository.Update(payment);
-                _logger.LogWarning(
-                    exception,
-                    "Recurring payment {RecurringPaymentId} failed during background execution.",
-                    payment.Id);
+                _logger.RecurringPaymentBackgroundExecutionFailed(exception, payment.Id);
             }
         }
 
