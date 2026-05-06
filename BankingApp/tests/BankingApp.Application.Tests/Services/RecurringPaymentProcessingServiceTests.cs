@@ -1,0 +1,354 @@
+﻿// <copyright file="RecurringPaymentProcessingServiceTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using BankingApp.Application.DTOs.BillPayments;
+using BankingApp.Application.Repositories.Interfaces;
+using BankingApp.Application.Services.BillPayments;
+using BankingApp.Application.Services.RecurringPayments;
+using BankingApp.Application.Utilities;
+using BankingApp.Domain.Entities;
+using BankingApp.Domain.Enums;
+using ErrorOr;
+using Microsoft.Extensions.Logging;
+
+namespace BankingApp.Application.Tests.Services;
+
+/// <summary>
+///     Unit tests for <see cref="RecurringPaymentProcessingService" />.
+/// </summary>
+public class RecurringPaymentProcessingServiceTests
+{
+    private static readonly DateTime _fixedUtcNow = new(2025, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+
+    private readonly Mock<IBillPaymentService> _billPaymentService;
+    private readonly Mock<ISystemClock> _clock;
+    private readonly Mock<ILogger<RecurringPaymentProcessingService>> _logger;
+    private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepository;
+    private readonly RecurringPaymentProcessingService _service;
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="RecurringPaymentProcessingServiceTests" /> class.
+    /// </summary>
+    public RecurringPaymentProcessingServiceTests()
+    {
+        _recurringPaymentRepository = new Mock<IRecurringPaymentRepository>();
+        _billPaymentService = new Mock<IBillPaymentService>();
+        _clock = new Mock<ISystemClock>();
+        _logger = new Mock<ILogger<RecurringPaymentProcessingService>>();
+
+        _clock.Setup(c => c.UtcNow).Returns(_fixedUtcNow);
+
+        _service = new RecurringPaymentProcessingService(
+            _recurringPaymentRepository.Object,
+            _billPaymentService.Object,
+            _clock.Object,
+            _logger.Object);
+    }
+
+    /// <summary>
+    ///     Verifies that <see cref="RecurringPaymentProcessingService.ProcessDuePaymentsAsync" />
+    ///     returns the first error when the repository fails to retrieve due payments.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenRepositoryReturnsDuePaymentsError_ReturnsError()
+    {
+        // Arrange
+        Error repositoryError = Error.Failure("repo.error", "DB failure");
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(repositoryError);
+
+        // Act
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(repositoryError);
+    }
+
+    /// <summary>
+    ///     Verifies that when there are no due payments the service returns success
+    ///     without calling the bill payment service.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenNoDuePaymentsExist_ReturnsSuccessWithoutProcessing()
+    {
+        // Arrange
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment>());
+
+        // Act
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        _billPaymentService.Verify(
+            s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    ///     Verifies that a non-active (e.g. Paused) payment in the due list is skipped
+    ///     and the bill payment service is never called for it.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenDuePaymentIsNotActive_SkipsPayment()
+    {
+        // Arrange
+        RecurringPayment pausedPayment = CreatePayment(status: RecurringPaymentStatus.Paused);
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment> { pausedPayment });
+
+        // Act
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        _billPaymentService.Verify(
+            s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    ///     Verifies that an active due payment without an end date has its
+    ///     <c>NextExecutionDate</c> advanced by one month and is persisted.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenActivePaymentWithNoEndDate_AdvancesNextExecutionDate()
+    {
+        // Arrange
+        RecurringPayment payment = CreatePayment(
+            frequency: RecurringFrequency.Monthly,
+            nextExecutionDate: _fixedUtcNow.AddDays(-1));
+
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment> { payment });
+        _billPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ReturnsAsync(new BillPayment());
+        _recurringPaymentRepository
+            .Setup(r => r.Update(payment))
+            .Returns(Result.Success);
+
+        // Act
+        await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        payment.NextExecutionDate.Should().Be(_fixedUtcNow.AddDays(-1).AddMonths(1));
+        payment.Status.Should().Be(RecurringPaymentStatus.Active);
+        _recurringPaymentRepository.Verify(r => r.Update(payment), Times.Once);
+    }
+
+    /// <summary>
+    ///     Verifies that an active payment whose computed next execution date exceeds the
+    ///     end date is cancelled instead of being rescheduled.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenNextExecutionDateExceedsEndDate_CancelsPayment()
+    {
+        // Arrange
+        DateTime nextExecution = _fixedUtcNow.AddDays(-1);
+        DateTime endDate = _fixedUtcNow; // computed next (nextExecution + 1 day) == endDate, just within; use a past end date
+        RecurringPayment payment = CreatePayment(
+            frequency: RecurringFrequency.Monthly,
+            nextExecutionDate: nextExecution,
+            endDate: nextExecution.AddDays(5));  // end date before next computed run (nextExecution + 1 month)
+
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment> { payment });
+        _billPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ReturnsAsync(new BillPayment());
+        _recurringPaymentRepository
+            .Setup(r => r.Update(payment))
+            .Returns(Result.Success);
+
+        // Act
+        await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        payment.Status.Should().Be(RecurringPaymentStatus.Cancelled);
+        _recurringPaymentRepository.Verify(r => r.Update(payment), Times.Once);
+    }
+
+    /// <summary>
+    ///     Verifies that when the bill payment service throws, the payment is set to
+    ///     <see cref="RecurringPaymentStatus.Paused" /> and the repository update is still called.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenBillPaymentThrows_PausesPaymentAndPersists()
+    {
+        // Arrange
+        RecurringPayment payment = CreatePayment();
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment> { payment });
+        _billPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ThrowsAsync(new InvalidOperationException("Insufficient funds"));
+        _recurringPaymentRepository
+            .Setup(r => r.Update(payment))
+            .Returns(Result.Success);
+
+        // Act
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        payment.Status.Should().Be(RecurringPaymentStatus.Paused);
+        _recurringPaymentRepository.Verify(r => r.Update(payment), Times.Once);
+    }
+
+    /// <summary>
+    ///     Verifies that the service passes the correct DTO fields to the bill payment service.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenProcessingActivePayment_PassesCorrectDtoToBillPaymentService()
+    {
+        // Arrange
+        RecurringPayment payment = CreatePayment(userId: 7, sourceAccountId: 3, billerId: 42, amount: 150m, isPayInFull: true);
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment> { payment });
+        _billPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ReturnsAsync(new BillPayment());
+        _recurringPaymentRepository
+            .Setup(r => r.Update(payment))
+            .Returns(Result.Success);
+
+        BillPaymentDto? capturedDto = null;
+        _billPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Callback<BillPaymentDto>(dto => capturedDto = dto)
+            .ReturnsAsync(new BillPayment());
+
+        // Act
+        await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        capturedDto.Should().NotBeNull();
+        capturedDto!.UserId.Should().Be(7);
+        capturedDto.SourceAccountId.Should().Be(3);
+        capturedDto.BillerId.Should().Be(42);
+        capturedDto.Amount.Should().Be(150m);
+        capturedDto.IsPayInFull.Should().BeTrue();
+        capturedDto.BillerReference.Should().BeEmpty();
+    }
+
+    /// <summary>
+    ///     Verifies that cancellation is honoured before any processing begins.
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenCancellationRequestedBeforeStart_ThrowsOperationCanceledException()
+    {
+        // Arrange
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act
+        Func<Task> act = () => _service.ProcessDuePaymentsAsync(cts.Token);
+
+        // Assert
+        await act.Should().ThrowAsync<OperationCanceledException>();
+    }
+
+    /// <summary>
+    ///     Verifies that the service returns success even when a repository update
+    ///     after a successful payment execution returns an error (non-fatal path).
+    /// </summary>
+    [Fact]
+    public async Task ProcessDuePaymentsAsync_WhenRepositoryUpdateFailsAfterPayment_ReturnsSuccessAndLogsWarning()
+    {
+        // Arrange
+        RecurringPayment payment = CreatePayment();
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment> { payment });
+        _billPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ReturnsAsync(new BillPayment());
+        _recurringPaymentRepository
+            .Setup(r => r.Update(payment))
+            .Returns(Error.Failure("update.failed", "DB write failed"));
+
+        // Act
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        result.IsError.Should().BeFalse();
+    }
+
+    /// <summary>
+    ///     Verifies that <c>ComputeNextRunDate</c> advances the date correctly for every supported frequency.
+    /// </summary>
+    [Theory]
+    [InlineData(RecurringFrequency.Daily, 1, 0, 0)]
+    [InlineData(RecurringFrequency.Weekly, 7, 0, 0)]
+    [InlineData(RecurringFrequency.BiWeekly, 14, 0, 0)]
+    [InlineData(RecurringFrequency.Monthly, 0, 1, 0)]
+    [InlineData(RecurringFrequency.Quarterly, 0, 3, 0)]
+    [InlineData(RecurringFrequency.Yearly, 0, 0, 1)]
+    public async Task ProcessDuePaymentsAsync_WhenFrequencyIsSet_AdvancesNextExecutionDateCorrectly(
+        RecurringFrequency frequency,
+        int expectedDays,
+        int expectedMonths,
+        int expectedYears)
+    {
+        // Arrange
+        DateTime baseDate = new(2025, 1, 15, 0, 0, 0, DateTimeKind.Utc);
+        DateTime expectedNext = baseDate.AddDays(expectedDays).AddMonths(expectedMonths).AddYears(expectedYears);
+
+        RecurringPayment payment = CreatePayment(frequency: frequency, nextExecutionDate: baseDate);
+        _recurringPaymentRepository
+            .Setup(r => r.GetDuePayments(_fixedUtcNow))
+            .Returns(new List<RecurringPayment> { payment });
+        _billPaymentService
+            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ReturnsAsync(new BillPayment());
+        _recurringPaymentRepository
+            .Setup(r => r.Update(payment))
+            .Returns(Result.Success);
+
+        // Act
+        await _service.ProcessDuePaymentsAsync();
+
+        // Assert
+        payment.NextExecutionDate.Should().Be(expectedNext);
+    }
+
+    private static RecurringPayment CreatePayment(
+        int userId = 1,
+        int sourceAccountId = 10,
+        int billerId = 5,
+        decimal amount = 100m,
+        bool isPayInFull = false,
+        RecurringFrequency frequency = RecurringFrequency.Monthly,
+        DateTime? nextExecutionDate = null,
+        DateTime? endDate = null,
+        RecurringPaymentStatus status = RecurringPaymentStatus.Active) =>
+        new()
+        {
+            Id = 1,
+            UserId = userId,
+            SourceAccountId = sourceAccountId,
+            BillerId = billerId,
+            Amount = amount,
+            IsPayInFull = isPayInFull,
+            Frequency = frequency,
+            NextExecutionDate = nextExecutionDate ?? _fixedUtcNow.AddDays(-1),
+            EndDate = endDate,
+            Status = status,
+            StartDate = _fixedUtcNow.AddMonths(-1),
+            CreatedAt = _fixedUtcNow.AddMonths(-1),
+        };
+}
