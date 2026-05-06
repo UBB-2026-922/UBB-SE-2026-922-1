@@ -9,6 +9,8 @@ using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Security;
+using BankingApp.Application.Services.TeamB;
+using IBeneficiaryService = BankingApp.Application.Services.Beneficiary.IBeneficiaryService;
 
 namespace BankingApp.Api.Tests.Integration.Infrastructure;
 
@@ -67,4 +69,28 @@ public static class MockFactory
     {
         return new Mock<IProfileService>();
     }
+<<<<<<< Updated upstream
+=======
+
+    /// <summary>Creates a loose mock for <see cref="IBeneficiaryService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IBeneficiaryService" />.</returns>
+    public static Mock<IBeneficiaryService> CreateBeneficiaryService()
+    {
+        return new Mock<IBeneficiaryService>();
+    }
+
+    /// <summary>Creates a loose mock for <see cref="IExchangeService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IExchangeService" />.</returns>
+    public static Mock<IExchangeService> CreateExchangeService()
+    {
+        return new Mock<IExchangeService>();
+    }
+
+    /// <summary>Creates a loose mock for <see cref="IBillPaymentRepository" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IBillPaymentRepository" />.</returns>
+    public static Mock<IBillPaymentRepository> CreateBillPaymentRepository()
+    {
+        return new Mock<IBillPaymentRepository>();
+    }
+>>>>>>> Stashed changes
 }

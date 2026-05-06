@@ -9,12 +9,14 @@ using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Security;
+using BankingApp.Application.Services.TeamB;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using IBeneficiaryService = BankingApp.Application.Services.Beneficiary.IBeneficiaryService;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -84,6 +86,24 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     public Mock<IProfileService> ProfileServiceMock { get; } = MockFactory.CreateProfileService();
 
     /// <summary>
+<<<<<<< Updated upstream
+=======
+    ///     Gets the mock beneficiary service.
+    /// </summary>
+    public Mock<IBeneficiaryService> BeneficiaryServiceMock { get; } = MockFactory.CreateBeneficiaryService();
+
+    /// <summary>
+    ///     Gets the mock exchange service.
+    /// </summary>
+    public Mock<IExchangeService> ExchangeServiceMock { get; } = MockFactory.CreateExchangeService();
+
+    /// <summary>
+    ///     Gets the mock bill payment repository.
+    /// </summary>
+    public Mock<IBillPaymentRepository> BillPaymentRepositoryMock { get; } = MockFactory.CreateBillPaymentRepository();
+
+    /// <summary>
+>>>>>>> Stashed changes
     ///     Configures the test server by replacing service-layer dependencies with Moq stubs.
     /// </summary>
     /// <param name="builder">The web host builder.</param>
@@ -102,6 +122,12 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
             // Ensure controllers from the API assembly are discovered
             services.AddControllers().AddApplicationPart(typeof(Program).Assembly);
 
+            // Add a test authentication scheme so [Authorize] endpoints pass
+            services.AddAuthentication("Test")
+                .AddScheme<Microsoft.AspNetCore.Authentication.AuthenticationSchemeOptions, TestAuthHandler>(
+                    "Test", _ => { });
+            services.AddAuthorization();
+
             // Remove real infrastructure registrations and replace with substitutes.
             ReplaceService<IJsonWebTokenService>(services, JwtServiceMock.Object);
             ReplaceService<IAuthRepository>(services, AuthRepositoryMock.Object);
@@ -110,6 +136,12 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
             ReplaceService<IPasswordRecoveryService>(services, PasswordRecoveryServiceMock.Object);
             ReplaceService<IDashboardService>(services, DashboardServiceMock.Object);
             ReplaceService<IProfileService>(services, ProfileServiceMock.Object);
+<<<<<<< Updated upstream
+=======
+            ReplaceService<IBeneficiaryService>(services, BeneficiaryServiceMock.Object);
+            ReplaceService<IExchangeService>(services, ExchangeServiceMock.Object);
+            ReplaceService<IBillPaymentRepository>(services, BillPaymentRepositoryMock.Object);
+>>>>>>> Stashed changes
         });
     }
 
