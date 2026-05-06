@@ -1,0 +1,346 @@
+﻿// <copyright file="BeneficiariesControllerTests.cs" company="UBB-922">
+// Copyright (c) UBB-922. All rights reserved.
+// </copyright>
+
+using BankingApp.Api.Controllers;
+using BankingApp.Application.DataTransferObjects.Beneficiary;
+using BankingApp.Application.Services.Beneficiary;
+using BankingApp.Domain.Entities;
+using ErrorOr;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace BankingApp.Api.Tests.Controller;
+
+/// <summary>
+///     Unit tests for <see cref="BeneficiariesController" />.
+/// </summary>
+[Trait("Category", "Unit")]
+public sealed class BeneficiariesControllerTests
+{
+    private const int DefaultUserId = 1;
+    private const int DefaultBeneficiaryId = 42;
+
+    private readonly Mock<IBeneficiaryService> _beneficiaryService = new(MockBehavior.Strict);
+
+    /// <summary>
+    ///     Verifies that all beneficiaries for the authenticated user are returned as 200 OK.
+    /// </summary>
+    [Fact]
+    public void GetBeneficiaries_WhenServiceReturnsList_ReturnsOkWithMappedDtos()
+    {
+        // Arrange
+        var beneficiaries = new List<Beneficiary>
+        {
+            BuildBeneficiary(DefaultBeneficiaryId, "Alice", "RO49AAAA1B31007593840000"),
+            BuildBeneficiary(DefaultBeneficiaryId + 1, "Bob", "RO49AAAA1B31007593840001"),
+        };
+        _beneficiaryService.Setup(service => service.GetByUserId(DefaultUserId)).Returns(beneficiaries);
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.GetBeneficiaries();
+
+        // Assert
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var dtos = ok.Value.Should().BeAssignableTo<List<BeneficiaryDataTransferObject>>().Subject;
+        dtos.Should().HaveCount(2);
+        dtos[0].Id.Should().Be(DefaultBeneficiaryId);
+        dtos[0].Name.Should().Be("Alice");
+        _beneficiaryService.Verify(service => service.GetByUserId(DefaultUserId), Times.Once);
+    }
+
+    /// <summary>
+    ///     Verifies that a service error from GetByUserId is surfaced as the mapped HTTP error.
+    /// </summary>
+    [Fact]
+    public void GetBeneficiaries_WhenServiceReturnsError_ReturnsErrorResponse()
+    {
+        // Arrange
+        _beneficiaryService
+            .Setup(service => service.GetByUserId(DefaultUserId))
+            .Returns(Error.Failure(description: "storage error"));
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.GetBeneficiaries();
+
+        // Assert
+        result.Should().BeOfType<ObjectResult>()
+            .Which.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+    }
+
+    /// <summary>
+    ///     Verifies that a single beneficiary is returned as 200 OK when found.
+    /// </summary>
+    [Fact]
+    public void GetBeneficiaryById_WhenBeneficiaryExists_ReturnsOkWithDto()
+    {
+        // Arrange
+        var beneficiary = BuildBeneficiary(DefaultBeneficiaryId, "Alice", "RO49AAAA1B31007593840000");
+        _beneficiaryService
+            .Setup(service => service.GetById(DefaultBeneficiaryId, DefaultUserId))
+            .Returns(beneficiary);
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.GetBeneficiaryById(DefaultBeneficiaryId);
+
+        // Assert
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = ok.Value.Should().BeOfType<BeneficiaryDataTransferObject>().Subject;
+        dto.Id.Should().Be(DefaultBeneficiaryId);
+        dto.Name.Should().Be("Alice");
+    }
+
+    /// <summary>
+    ///     Verifies that a NotFound error from the service is mapped to 404.
+    /// </summary>
+    [Fact]
+    public void GetBeneficiaryById_WhenBeneficiaryNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        _beneficiaryService
+            .Setup(service => service.GetById(DefaultBeneficiaryId, DefaultUserId))
+            .Returns(Error.NotFound(description: "Beneficiary not found"));
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.GetBeneficiaryById(DefaultBeneficiaryId);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    /// <summary>
+    ///     Verifies that a valid create request returns 200 OK with the mapped DTO.
+    /// </summary>
+    [Fact]
+    public void CreateBeneficiary_WhenRequestIsValid_ReturnsOkWithCreatedDto()
+    {
+        // Arrange
+        var request = new CreateBeneficiaryRequest
+        {
+            Name = "Alice",
+            Iban = "RO49AAAA1B31007593840000",
+            BankName = "BRD",
+        };
+        var created = BuildBeneficiary(DefaultBeneficiaryId, request.Name, request.Iban, request.BankName);
+        _beneficiaryService
+            .Setup(service => service.Create(DefaultUserId, request.Name, request.Iban, request.BankName))
+            .Returns(created);
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.CreateBeneficiary(request);
+
+        // Assert
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = ok.Value.Should().BeOfType<BeneficiaryDataTransferObject>().Subject;
+        dto.Id.Should().Be(DefaultBeneficiaryId);
+        dto.Name.Should().Be("Alice");
+        dto.BankName.Should().Be("BRD");
+    }
+
+    /// <summary>
+    ///     Verifies that a validation error from Create is mapped to 400 Bad Request.
+    /// </summary>
+    [Fact]
+    public void CreateBeneficiary_WhenServiceReturnsValidationError_ReturnsBadRequest()
+    {
+        // Arrange
+        var request = new CreateBeneficiaryRequest { Name = string.Empty, Iban = "INVALID" };
+        _beneficiaryService
+            .Setup(service => service.Create(DefaultUserId, request.Name, request.Iban, request.BankName))
+            .Returns(Error.Validation(description: "Invalid IBAN"));
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.CreateBeneficiary(request);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    /// <summary>
+    ///     Verifies that a conflict error (duplicate IBAN) from Create is mapped to 409 Conflict.
+    /// </summary>
+    [Fact]
+    public void CreateBeneficiary_WhenIbanAlreadyExists_ReturnsConflict()
+    {
+        // Arrange
+        var request = new CreateBeneficiaryRequest
+        {
+            Name = "Alice",
+            Iban = "RO49AAAA1B31007593840000",
+        };
+        _beneficiaryService
+            .Setup(service => service.Create(DefaultUserId, request.Name, request.Iban, request.BankName))
+            .Returns(Error.Conflict(description: "IBAN already saved"));
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.CreateBeneficiary(request);
+
+        // Assert
+        result.Should().BeOfType<ConflictObjectResult>();
+    }
+
+    /// <summary>
+    ///     Verifies that a successful update returns 204 No Content.
+    /// </summary>
+    [Fact]
+    public void UpdateBeneficiary_WhenUpdateSucceeds_ReturnsNoContent()
+    {
+        // Arrange
+        var request = new UpdateBeneficiaryRequest
+        {
+            Name = "Alice Updated",
+            Iban = "RO49AAAA1B31007593840000",
+            BankName = "ING",
+        };
+        _beneficiaryService
+            .Setup(service => service.Update(It.Is<Beneficiary>(beneficiary =>
+                beneficiary.Id == DefaultBeneficiaryId &&
+                beneficiary.UserId == DefaultUserId &&
+                beneficiary.Name == request.Name &&
+                beneficiary.Iban == request.Iban &&
+                beneficiary.BankName == request.BankName)))
+            .Returns(Result.Success);
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.UpdateBeneficiary(DefaultBeneficiaryId, request);
+
+        // Assert
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    /// <summary>
+    ///     Verifies that a NotFound error from Update is mapped to 404.
+    /// </summary>
+    [Fact]
+    public void UpdateBeneficiary_WhenBeneficiaryNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        var request = new UpdateBeneficiaryRequest { Name = "Ghost", Iban = "RO49AAAA1B31007593840099" };
+        _beneficiaryService
+            .Setup(service => service.Update(It.IsAny<Beneficiary>()))
+            .Returns(Error.NotFound(description: "Beneficiary not found"));
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.UpdateBeneficiary(DefaultBeneficiaryId, request);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    /// <summary>
+    ///     Verifies that the route id is used as the beneficiary identifier, not any id on the request body.
+    /// </summary>
+    [Fact]
+    public void UpdateBeneficiary_WhenCalled_UsesRouteIdNotRequestBodyId()
+    {
+        // Arrange
+        const int routeId = 99;
+        var request = new UpdateBeneficiaryRequest { Id = 1, Name = "Alice", Iban = "RO49AAAA1B31007593840000" };
+        _beneficiaryService
+            .Setup(service => service.Update(It.Is<Beneficiary>(beneficiary => beneficiary.Id == routeId)))
+            .Returns(Result.Success);
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.UpdateBeneficiary(routeId, request);
+
+        // Assert
+        result.Should().BeOfType<NoContentResult>();
+        _beneficiaryService.Verify(service => service.Update(It.Is<Beneficiary>(beneficiary => beneficiary.Id == routeId)), Times.Once);
+    }
+
+    /// <summary>
+    ///     Verifies that a successful deletion returns 204 No Content.
+    /// </summary>
+    [Fact]
+    public void DeleteBeneficiary_WhenBeneficiaryExists_ReturnsNoContent()
+    {
+        // Arrange
+        _beneficiaryService
+            .Setup(service => service.Delete(DefaultBeneficiaryId, DefaultUserId))
+            .Returns(Result.Success);
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.DeleteBeneficiary(DefaultBeneficiaryId);
+
+        // Assert
+        result.Should().BeOfType<NoContentResult>();
+        _beneficiaryService.Verify(service => service.Delete(DefaultBeneficiaryId, DefaultUserId), Times.Once);
+    }
+
+    /// <summary>
+    ///     Verifies that a NotFound error from Delete is mapped to 404.
+    /// </summary>
+    [Fact]
+    public void DeleteBeneficiary_WhenBeneficiaryNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        _beneficiaryService
+            .Setup(service => service.Delete(DefaultBeneficiaryId, DefaultUserId))
+            .Returns(Error.NotFound(description: "Beneficiary not found"));
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        IActionResult result = controller.DeleteBeneficiary(DefaultBeneficiaryId);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    /// <summary>
+    ///     Verifies that the authenticated user id is forwarded to the delete service call.
+    /// </summary>
+    [Fact]
+    public void DeleteBeneficiary_WhenCalled_ForwardsAuthenticatedUserIdToService()
+    {
+        // Arrange
+        _beneficiaryService
+            .Setup(service => service.Delete(DefaultBeneficiaryId, DefaultUserId))
+            .Returns(Result.Success);
+        BeneficiariesController controller = CreateController();
+
+        // Act
+        controller.DeleteBeneficiary(DefaultBeneficiaryId);
+
+        // Assert
+        _beneficiaryService.Verify(service => service.Delete(DefaultBeneficiaryId, DefaultUserId), Times.Once);
+    }
+
+    private static Beneficiary BuildBeneficiary(
+        int id,
+        string name,
+        string iban,
+        string? bankName = null)
+    {
+        return new Beneficiary
+        {
+            Id = id,
+            UserId = DefaultUserId,
+            Name = name,
+            Iban = iban,
+            BankName = bankName,
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
+
+    private BeneficiariesController CreateController()
+    {
+        var controller = new BeneficiariesController(_beneficiaryService.Object);
+        var httpContext = new DefaultHttpContext
+        {
+            Items = { ["UserId"] = DefaultUserId },
+        };
+        controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+        return controller;
+    }
+}
