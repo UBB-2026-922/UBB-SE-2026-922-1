@@ -36,4 +36,71 @@ public class BillPaymentsControllerTests
             HttpContext = httpContext
         };
     }
+
+    [Fact]
+    public async Task GetBillers_WhenCalled_ReturnsOkResultWithBillers()
+    {
+        // Arrange
+        var expectedBillers = new List<Biller>
+        {
+            new Biller { Id = 1, Name = "Biller1" },
+            new Biller { Id = 2, Name = "Biller2" }
+        };
+        _mockBillPaymentService.Setup(s => s.GetAllBillersAsync()).ReturnsAsync(expectedBillers);
+
+        // Act
+        var result = await _controller.GetBillers();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var actualBillers = Assert.IsAssignableFrom<IEnumerable<Biller>>(okResult.Value);
+        Assert.Equal(expectedBillers, actualBillers);
+    }
+
+    [Fact]
+    public async Task GetBillers_WhenServiceThrowsException_ReturnsBadRequest()
+    {
+        // Arrange
+        _mockBillPaymentService.Setup(s => s.GetAllBillersAsync()).ThrowsAsync(new Exception("Service error"));
+
+        // Act
+        var result = await _controller.GetBillers();
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.NotNull(badRequestResult.Value);
+    }
+
+    [Fact]
+    public async Task GetAccounts_WhenValidUser_ReturnsOkResultWithMappedAccounts()
+    {
+        // Arrange
+        var accounts = new List<Account>
+        {
+            new Account { Id = 1, Iban = "RO123", Currency = "RON", Balance = 100, AccountName = "Test", Status = AccountStatus.Active }
+        };
+        _mockBillPaymentService.Setup(s => s.GetAccountsForUserAsync(1)).ReturnsAsync(accounts);
+
+        // Act
+        var result = await _controller.GetAccounts();
+
+        // Assert
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var actualAccounts = Assert.IsAssignableFrom<IEnumerable<AccountDto>>(okResult.Value);
+        Assert.Single(actualAccounts);
+    }
+
+    [Fact]
+    public async Task GetAccounts_WhenServiceThrowsException_ReturnsBadRequest()
+    {
+        // Arrange
+        _mockBillPaymentService.Setup(s => s.GetAccountsForUserAsync(1)).ThrowsAsync(new Exception("Service error"));
+
+        // Act
+        var result = await _controller.GetAccounts();
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.NotNull(badRequestResult.Value);
+    }
 }
