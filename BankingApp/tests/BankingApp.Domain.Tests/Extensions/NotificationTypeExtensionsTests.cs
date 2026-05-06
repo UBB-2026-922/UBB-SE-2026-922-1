@@ -12,9 +12,6 @@ namespace BankingApp.Domain.Tests.Extensions;
 /// </summary>
 public class NotificationTypeExtensionsTests
 {
-    /// <summary>
-    ///     Verifies the ToDisplayName_WhenTypeHasCustomDisplayName_ReturnsCustomDisplayName scenario.
-    /// </summary>
     [Theory]
     [InlineData(NotificationType.InboundTransfer, "Inbound Transfer")]
     [InlineData(NotificationType.OutboundTransfer, "Outbound Transfer")]
@@ -32,9 +29,6 @@ public class NotificationTypeExtensionsTests
         displayName.Should().Be(expectedDisplayName);
     }
 
-    /// <summary>
-    ///     Verifies the ToDisplayName_WhenTypeUsesDefaultName_ReturnsEnumName scenario.
-    /// </summary>
     [Fact]
     public void ToDisplayName_WhenTypeUsesDefaultName_ReturnsEnumName()
     {
@@ -48,9 +42,6 @@ public class NotificationTypeExtensionsTests
         displayName.Should().Be("Payment");
     }
 
-    /// <summary>
-    ///     Verifies the FromString_WhenDisplayNameIsKnown_ReturnsMatchingEnum scenario.
-    /// </summary>
     [Theory]
     [InlineData("Payment", NotificationType.Payment)]
     [InlineData("Inbound Transfer", NotificationType.InboundTransfer)]
@@ -69,9 +60,6 @@ public class NotificationTypeExtensionsTests
         notificationType.Should().Be(expectedNotificationType);
     }
 
-    /// <summary>
-    ///     Verifies the FromString_WhenDisplayNameIsUnknown_ThrowsArgumentException scenario.
-    /// </summary>
     [Fact]
     public void FromString_WhenDisplayNameIsUnknown_ThrowsArgumentException()
     {
