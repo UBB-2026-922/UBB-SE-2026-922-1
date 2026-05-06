@@ -69,6 +69,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         // The endpoint is reachable (middleware did not reject). We accept any
         // status other than 401, because the empty body may cause a 400 or 500.
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
     }
 
     [Theory]
@@ -130,6 +131,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
 
         // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
+        response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
     }
 
     [Fact]
