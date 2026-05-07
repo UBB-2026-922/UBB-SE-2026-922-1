@@ -1,4 +1,5 @@
 using BankingApp.Application.DTOs.Exchange;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
@@ -6,28 +7,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-/// <summary>
-///     Tests for the <see cref="ForexViewModel"/>.
-/// </summary>
 public class ForexViewModelTests
 {
-    private readonly Mock<IApiClient> _apiClient;
+    private readonly Mock<IForexClientService> _forexClientService;
     private readonly ForexViewModel _viewModel;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="ForexViewModelTests"/> class.
-    ///     Creates a fresh mock and view model for each test.
-    /// </summary>
     public ForexViewModelTests()
     {
-        _apiClient = new Mock<IApiClient>(MockBehavior.Loose);
-        _viewModel = new ForexViewModel(_apiClient.Object, NullLogger<ForexViewModel>.Instance);
+        _forexClientService = new Mock<IForexClientService>(MockBehavior.Loose);
+        _viewModel = new ForexViewModel(_forexClientService.Object, NullLogger<ForexViewModel>.Instance);
     }
 
-    /// <summary>
-    ///     LoadPreviewAsync should set an error when source currency is empty.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task LoadPreviewAsync_WhenSourceCurrencyIsEmpty_SetsError()
     {
@@ -42,10 +32,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.CurrencyRequired);
     }
 
-    /// <summary>
-    ///     LoadPreviewAsync should set an error when target currency is empty.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task LoadPreviewAsync_WhenTargetCurrencyIsEmpty_SetsError()
     {
@@ -60,10 +46,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.CurrencyRequired);
     }
 
-    /// <summary>
-    ///     LoadPreviewAsync should set an error when amount is zero.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task LoadPreviewAsync_WhenAmountIsZero_SetsError()
     {
@@ -79,10 +61,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.AmountRequired);
     }
 
-    /// <summary>
-    ///     LoadPreviewAsync should populate rate data when the API succeeds.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task LoadPreviewAsync_WhenApiSucceeds_PopulatesRateData()
     {
@@ -99,12 +77,12 @@ public class ForexViewModelTests
         {
             ExchangeRate = expectedRate,
             Commission = expectedCommission,
-            TargetAmount = expectedTargetAmount
+            TargetAmount = expectedTargetAmount,
         };
 
-        _apiClient
-            .Setup(client => client.GetAsync<ExchangeTransactionResponse>(
-                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _forexClientService
+            .Setup(s => s.GetPreviewAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
             .ReturnsAsync(response);
 
         // Act
@@ -117,10 +95,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
-    /// <summary>
-    ///     LoadPreviewAsync should set error message when the API returns an error.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task LoadPreviewAsync_WhenApiFails_SetsErrorMessage()
     {
@@ -129,9 +103,9 @@ public class ForexViewModelTests
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
 
-        _apiClient
-            .Setup(client => client.GetAsync<ExchangeTransactionResponse>(
-                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _forexClientService
+            .Setup(s => s.GetPreviewAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -141,10 +115,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.PreviewFailed);
     }
 
-    /// <summary>
-    ///     ExecuteExchangeAsync should set error when amount is zero.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task ExecuteExchangeAsync_WhenAmountIsZero_SetsError()
     {
@@ -160,10 +130,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.AmountRequired);
     }
 
-    /// <summary>
-    ///     ExecuteExchangeAsync should set transaction reference on success.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task ExecuteExchangeAsync_WhenApiSucceeds_SetsTransactionReference()
     {
@@ -172,12 +138,11 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _apiClient.Setup(client => client.CurrentUserId).Returns(1);
+        _forexClientService.Setup(s => s.CurrentUserId).Returns(1);
 
         var response = new ExchangeTransactionResponse { Id = transactionId };
-        _apiClient
-            .Setup(client => client.PostAsync<ExchangeTransactionRequest, ExchangeTransactionResponse>(
-                It.IsAny<string>(), It.IsAny<object?>()))
+        _forexClientService
+            .Setup(s => s.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
             .ReturnsAsync(response);
 
         // Act
@@ -188,10 +153,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
-    /// <summary>
-    ///     ExecuteExchangeAsync should set error message when the API returns an error.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task ExecuteExchangeAsync_WhenApiFails_SetsErrorMessage()
     {
@@ -199,11 +160,10 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _apiClient.Setup(client => client.CurrentUserId).Returns(1);
+        _forexClientService.Setup(s => s.CurrentUserId).Returns(1);
 
-        _apiClient
-            .Setup(client => client.PostAsync<ExchangeTransactionRequest, ExchangeTransactionResponse>(
-                It.IsAny<string>(), It.IsAny<object?>()))
+        _forexClientService
+            .Setup(s => s.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -213,9 +173,6 @@ public class ForexViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.Exchange.ExecuteFailed);
     }
 
-    /// <summary>
-    ///     Reset should clear all state and return to step 1.
-    /// </summary>
     [Fact]
     public void Reset_ClearsAllState()
     {

@@ -1,32 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.DTOs.Profile;
-
 public class SecurityViewModelTests
 {
-    private readonly Mock<IApiClient> _mockApiClient;
-    private readonly Mock<ILogger<SecurityViewModel>> _mockLogger;
+    private readonly Mock<IProfileClientService> _profileClientService;
     private readonly SecurityViewModel _viewModel;
 
     public SecurityViewModelTests()
     {
-        _mockApiClient = new Mock<IApiClient>();
-        _mockLogger = new Mock<ILogger<SecurityViewModel>>();
-        _viewModel = new SecurityViewModel(_mockApiClient.Object, _mockLogger.Object);
+        _profileClientService = new Mock<IProfileClientService>();
+        _viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
     }
 
     [Fact]
@@ -55,8 +47,8 @@ public class SecurityViewModelTests
     public async Task ChangePassword_WhenDataIsValid_ReturnsSuccessAndUpdatesState()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+        _profileClientService
+            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -72,8 +64,8 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Validation("incorrect_password", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+        _profileClientService
+            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(error);
 
         // Act
@@ -90,8 +82,8 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Failure("server_error", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+        _profileClientService
+            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(error);
 
         // Act
@@ -107,8 +99,8 @@ public class SecurityViewModelTests
     public async Task SetTwoFactorEnabled_WhenTrue_CallsEnableTwoFactorAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<EnableTwoFaRequest>()))
+        _profileClientService
+            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -123,8 +115,8 @@ public class SecurityViewModelTests
     public async Task SetTwoFactorEnabled_WhenFalse_CallsDisableTwoFactorAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+        _profileClientService
+            .Setup(s => s.Disable2FaAsync())
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -139,8 +131,8 @@ public class SecurityViewModelTests
     public async Task EnableTwoFactor_WhenApiSucceeds_UpdatesStateAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<EnableTwoFaRequest>()))
+        _profileClientService
+            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -155,8 +147,8 @@ public class SecurityViewModelTests
     public async Task DisableTwoFactor_WhenApiSucceeds_UpdatesStateAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+        _profileClientService
+            .Setup(s => s.Disable2FaAsync())
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -172,8 +164,8 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Failure("server_error", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<EnableTwoFaRequest>()))
+        _profileClientService
+            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(error);
 
         // Act
@@ -189,8 +181,8 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Failure("server_error", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+        _profileClientService
+            .Setup(s => s.Disable2FaAsync())
             .ReturnsAsync(error);
 
         // Act

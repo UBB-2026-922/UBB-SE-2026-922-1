@@ -1,5 +1,7 @@
 using System.Globalization;
+using BankingApp.Application.DTOs.Dashboard;
 using BankingApp.Desktop.Enums;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
@@ -8,19 +10,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.DTOs.Dashboard;
-
 public class DashboardViewModelTests
 {
     private const int CardNumberVisibleSuffixLength = 4;
 
-    private readonly Mock<IApiClient> _apiClient;
+    private readonly Mock<IDashboardClientService> _dashboardClientService;
     private readonly DashboardViewModel _viewModel;
 
     public DashboardViewModelTests()
     {
-        _apiClient = new Mock<IApiClient>(MockBehavior.Strict);
-        _viewModel = new DashboardViewModel(_apiClient.Object, NullLogger<DashboardViewModel>.Instance);
+        _dashboardClientService = new Mock<IDashboardClientService>(MockBehavior.Strict);
+        _viewModel = new DashboardViewModel(_dashboardClientService.Object, NullLogger<DashboardViewModel>.Instance);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class DashboardViewModelTests
             CurrentUser = new UserSummaryDto
             {
                 FullName = fullName,
-                Email = email
+                Email = email,
             },
             Cards =
             [
@@ -56,8 +56,8 @@ public class DashboardViewModelTests
                     ExpiryDate = cardExpiry,
                     Status = CardStatus.Active,
                     IsContactlessEnabled = true,
-                    IsOnlineEnabled = true
-                }
+                    IsOnlineEnabled = true,
+                },
             ],
             RecentTransactions =
             [
@@ -66,14 +66,13 @@ public class DashboardViewModelTests
                     MerchantName = merchantName,
                     Direction = TransactionDirection.Out,
                     Amount = transactionAmount,
-                    Currency = currency
-                }
+                    Currency = currency,
+                },
             ],
-            UnreadNotificationCount = unreadCount
+            UnreadNotificationCount = unreadCount,
         };
-        _apiClient
-            .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _dashboardClientService
+            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         // Act
@@ -89,7 +88,7 @@ public class DashboardViewModelTests
             new UserSummaryDto
             {
                 FullName = fullName,
-                Email = email
+                Email = email,
             });
 
         // Assert - selected card display properties
@@ -108,7 +107,7 @@ public class DashboardViewModelTests
                 {
                     MerchantDisplayName = merchantName,
                     AmountDisplay = expectedAmountDisplay,
-                    Currency = currency
+                    Currency = currency,
                 });
 
         // Assert - notification count
@@ -119,9 +118,8 @@ public class DashboardViewModelTests
     public async Task LoadDashboard_WhenCurrentUserIsMissing_SetsErrorState()
     {
         // Arrange
-        _apiClient
-            .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _dashboardClientService
+            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DashboardDto());
 
         // Act
@@ -137,9 +135,8 @@ public class DashboardViewModelTests
     public async Task LoadDashboard_WhenUnauthorized_SetsSessionExpiredMessage()
     {
         // Arrange
-        _apiClient
-            .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _dashboardClientService
+            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Unauthorized());
 
         // Act
@@ -155,9 +152,8 @@ public class DashboardViewModelTests
     public async Task LoadDashboard_WhenNotFound_ShouldSetNotFoundMessage()
     {
         // Arrange
-        _apiClient
-            .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _dashboardClientService
+            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.NotFound());
 
         // Act
@@ -173,9 +169,8 @@ public class DashboardViewModelTests
     public async Task LoadDashboard_WhenApiFailureOccurs_ShouldSetLoadFailedMessage()
     {
         // Arrange
-        _apiClient
-            .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _dashboardClientService
+            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -358,12 +353,8 @@ public class DashboardViewModelTests
     [Fact]
     public void GetSelectedCardDetails_WhenNoCardIsSelected_ReturnsEmptyString()
     {
-        // Arrange - viewModel starts with no cards loaded
-
-        // Act
         string details = _viewModel.GetSelectedCardDetails();
 
-        // Assert
         details.Should().BeEmpty();
     }
 
@@ -420,19 +411,18 @@ public class DashboardViewModelTests
                 CardBrand = cardBrand,
                 CardType = cardType,
                 CardholderName = cardholderName,
-                CardNumber = cardNumber
+                CardNumber = cardNumber,
             })
             .ToList();
 
         var response = new DashboardDto
         {
             CurrentUser = new UserSummaryDto { FullName = "Test User" },
-            Cards = cards
+            Cards = cards,
         };
 
-        _apiClient
-            .Setup(getsAsync =>
-                getsAsync.GetAsync<DashboardDto>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+        _dashboardClientService
+            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         await _viewModel.LoadDashboard(TestContext.Current.CancellationToken);

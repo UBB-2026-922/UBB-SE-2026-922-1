@@ -1,6 +1,6 @@
 using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
@@ -10,7 +10,7 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class NotificationsViewModelTests
 {
-    private readonly Mock<IApiClient> _apiClient = new(MockBehavior.Strict);
+    private readonly Mock<IProfileClientService> _profileClientService = new(MockBehavior.Strict);
 
     [Fact]
     public async Task ToggleNotificationPreference_WhenApiSucceeds_UpdatesPreferenceAndSetsSuccessState()
@@ -23,13 +23,11 @@ public class NotificationsViewModelTests
             EmailEnabled = false,
         };
 
-        var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
+        var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
         viewModel.NotificationPreferences.Add(preference);
 
-        _apiClient
-            .Setup(putsAsync => putsAsync.PutAsync(
-                ApiEndpoints.NotificationPreferences,
-                viewModel.NotificationPreferences))
+        _profileClientService
+            .Setup(s => s.UpdateNotificationPreferencesAsync(viewModel.NotificationPreferences))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -52,13 +50,11 @@ public class NotificationsViewModelTests
             EmailEnabled = true,
         };
 
-        var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
+        var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
         viewModel.NotificationPreferences.Add(preference);
 
-        _apiClient
-            .Setup(putsAsync => putsAsync.PutAsync(
-                ApiEndpoints.NotificationPreferences,
-                viewModel.NotificationPreferences))
+        _profileClientService
+            .Setup(s => s.UpdateNotificationPreferencesAsync(viewModel.NotificationPreferences))
             .ReturnsAsync(Error.Failure(description: "save failed"));
 
         // Act
@@ -80,12 +76,10 @@ public class NotificationsViewModelTests
             new() { Id = 2, Category = NotificationType.LowBalance, EmailEnabled = false },
         };
 
-        var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
+        var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
 
-        _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<NotificationPreferenceDto>>(
-                ApiEndpoints.NotificationPreferences,
-                It.IsAny<CancellationToken>()))
+        _profileClientService
+            .Setup(s => s.GetNotificationPreferencesAsync())
             .ReturnsAsync(preferences);
 
         // Act
@@ -108,13 +102,11 @@ public class NotificationsViewModelTests
             EmailEnabled = true,
         };
 
-        var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
+        var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
         viewModel.NotificationPreferences.Add(existingPreference);
 
-        _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<NotificationPreferenceDto>>(
-                ApiEndpoints.NotificationPreferences,
-                It.IsAny<CancellationToken>()))
+        _profileClientService
+            .Setup(s => s.GetNotificationPreferencesAsync())
             .ReturnsAsync(Error.Failure(description: "server down"));
 
         // Act
@@ -135,10 +127,10 @@ public class NotificationsViewModelTests
             new() { Id = 1, Category = NotificationType.Payment, EmailEnabled = false },
         };
 
-        var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
+        var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
 
-        _apiClient
-            .Setup(putsAsync => putsAsync.PutAsync(ApiEndpoints.NotificationPreferences, updatedPreferences))
+        _profileClientService
+            .Setup(s => s.UpdateNotificationPreferencesAsync(updatedPreferences))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -165,11 +157,11 @@ public class NotificationsViewModelTests
             new() { Id = 2, Category = NotificationType.LowBalance, EmailEnabled = false },
         };
 
-        var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
+        var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
         viewModel.NotificationPreferences.Add(existingPreference);
 
-        _apiClient
-            .Setup(putsAsync => putsAsync.PutAsync(ApiEndpoints.NotificationPreferences, updatedPreferences))
+        _profileClientService
+            .Setup(s => s.UpdateNotificationPreferencesAsync(updatedPreferences))
             .ReturnsAsync(Error.Failure(description: "save failed"));
 
         // Act

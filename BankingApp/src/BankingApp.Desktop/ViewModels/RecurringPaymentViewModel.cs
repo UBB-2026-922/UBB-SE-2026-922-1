@@ -6,9 +6,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.DTOs.BillPayments;
+using BankingApp.Application.DTOs.Billers;
 using BankingApp.Application.DTOs.RecurringPayments;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
@@ -16,16 +17,12 @@ using Microsoft.UI.Xaml;
 
 namespace BankingApp.Desktop.ViewModels;
 
-/// <summary>
-///     Drives the recurring payment management screen.
-///     Uses <see cref="IApiClient" /> for all server communication during recurring-payment management.
-/// </summary>
 public partial class RecurringPaymentViewModel : INotifyPropertyChanged
 {
     private const int NoBillerSelected = 0;
     private const decimal NoAmount = 0m;
 
-    private readonly IApiClient _apiClient;
+    private readonly IBillPaymentClientService _billPaymentClientService;
 
     private ObservableCollection<RecurringPaymentResponse> _payments;
     private RecurringPaymentResponse? _selectedPayment;
@@ -44,13 +41,9 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
 
     private ObservableCollection<RecurringFrequency> _frequencies;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RecurringPaymentViewModel" /> class.
-    /// </summary>
-    /// <param name="apiClient">The API client used for all recurring payment-related server calls.</param>
-    public RecurringPaymentViewModel(IApiClient apiClient)
+    public RecurringPaymentViewModel(IBillPaymentClientService billPaymentClientService)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _billPaymentClientService = billPaymentClientService ?? throw new ArgumentNullException(nameof(billPaymentClientService));
 
         _payments = [];
         _accounts = [];
@@ -59,7 +52,7 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         [
             RecurringFrequency.Weekly,
             RecurringFrequency.Monthly,
-            RecurringFrequency.Quarterly
+            RecurringFrequency.Quarterly,
         ];
 
         _selectedPayment = null;
@@ -77,99 +70,50 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         CancelCommand = new AsyncRelayCommand(ExecuteCancelAsync);
     }
 
-    /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    /// <summary>
-    ///     Gets or sets the observable collection of recurring payments.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public ObservableCollection<RecurringPaymentResponse> Payments
     {
         get => _payments;
         set => SetProperty(ref _payments, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the currently selected recurring payment.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public RecurringPaymentResponse? SelectedPayment
     {
         get => _selectedPayment;
         set => SetProperty(ref _selectedPayment, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the identifier of the selected biller.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public int SelectedBillerId
     {
         get => _selectedBillerId;
         set => SetProperty(ref _selectedBillerId, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the payment amount.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public decimal Amount
     {
         get => _amount;
         set => SetProperty(ref _amount, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the payment frequency.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public RecurringFrequency Frequency
     {
         get => _frequency;
         set => SetProperty(ref _frequency, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the start date for the recurring payment.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public DateTime StartDate
     {
         get => _startDate;
         set => SetProperty(ref _startDate, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the optional end date for the recurring payment.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public DateTime? EndDate
     {
         get => _endDate;
         set => SetProperty(ref _endDate, value);
     }
 
-    /// <summary>
-    ///     Gets or sets an error message indicating a problem with the current operation.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public string ErrorMessage
     {
         get => _errorMessage;
@@ -183,62 +127,29 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    ///     Gets a value indicating whether there is a current error message.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
-    /// <summary>
-    ///     Gets the visibility of the error message.
-    /// </summary>
     public Visibility ErrorMessageVisibility =>
         HasError ? Visibility.Visible : Visibility.Collapsed;
 
-    /// <summary>
-    ///     Gets or sets the observable collection of transfer accounts available as a source.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public ObservableCollection<AccountDto> Accounts
     {
         get => _accounts;
         set => SetProperty(ref _accounts, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the selected source account for the payment.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public AccountDto? SelectedAccount
     {
         get => _selectedAccount;
         set => SetProperty(ref _selectedAccount, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the observable collection of billers available.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public ObservableCollection<BillerDto> Billers
     {
         get => _billers;
         set => SetProperty(ref _billers, value);
     }
 
-    /// <summary>
-    ///     Gets or sets the selected biller for the payment.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public BillerDto? SelectedBiller
     {
         get => _selectedBiller;
@@ -248,50 +159,35 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    ///     Gets or sets the available frequencies for a recurring payment.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public ObservableCollection<RecurringFrequency> Frequencies
     {
         get => _frequencies;
         set => SetProperty(ref _frequencies, value);
     }
 
-    /// <summary>Gets the command that initiates creation of a new recurring payment.</summary>
     public ICommand CreateCommand { get; }
 
-    /// <summary>Gets the command to pause the selected recurring payment.</summary>
     public ICommand PauseCommand { get; }
 
-    /// <summary>Gets the command to resume the selected recurring payment.</summary>
     public ICommand ResumeCommand { get; }
 
-    /// <summary>Gets the command to cancel the selected recurring payment.</summary>
     public ICommand CancelCommand { get; }
 
-    /// <summary>
-    ///     Loads the user's recurring payments, accounts, and the biller directory from the API.
-    /// </summary>
     public async Task LoadAsync()
     {
         try
         {
             ErrorMessage = string.Empty;
 
-            ErrorOr<List<AccountDto>> accountsResult =
-                await _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
+            ErrorOr<List<AccountDto>> accountsResult = await _billPaymentClientService.GetAccountsAsync();
             if (!accountsResult.IsError) Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
 
             ErrorOr<List<RecurringPaymentResponse>> paymentsResult =
-                await _apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments);
+                await _billPaymentClientService.GetRecurringPaymentsAsync();
             if (!paymentsResult.IsError)
                 Payments = new ObservableCollection<RecurringPaymentResponse>(paymentsResult.Value);
 
-            ErrorOr<List<BillerDto>> billersResult =
-                await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers);
+            ErrorOr<List<BillerDto>> billersResult = await _billPaymentClientService.GetBillersAsync();
             if (!billersResult.IsError) Billers = new ObservableCollection<BillerDto>(billersResult.Value);
         }
         catch (Exception loadException)
@@ -300,29 +196,19 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>Public facade that delegates to ExecuteCreateAsync.</summary>
     public Task CreateAsync() => ExecuteCreateAsync();
 
-    /// <summary>Public facade that delegates to ExecutePauseAsync.</summary>
     public Task PauseAsync(RecurringPaymentResponse? payment) => ExecutePauseAsync(payment);
 
-    /// <summary>Public facade that delegates to ExecuteResumeAsync.</summary>
     public Task ResumeAsync(RecurringPaymentResponse? payment) => ExecuteResumeAsync(payment);
 
-    /// <summary>Public facade that delegates to ExecuteCancelAsync.</summary>
     public Task CancelAsync(RecurringPaymentResponse? payment) => ExecuteCancelAsync(payment);
 
-    /// <summary>
-    ///     Raises the <see cref="PropertyChanged" /> event for the specified property.
-    /// </summary>
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    /// <summary>
-    ///     Validates form inputs, creates the recurring payment via the API, and adds the result to the Payments collection.
-    /// </summary>
     private async Task ExecuteCreateAsync()
     {
         try
@@ -365,9 +251,7 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
             };
 
             ErrorOr<RecurringPaymentResponse> result =
-                await _apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
-                    ApiEndpoints.RecurringPayments,
-                    request);
+                await _billPaymentClientService.CreateRecurringPaymentAsync(request);
 
             if (result.IsError)
             {
@@ -384,9 +268,6 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    ///     Pauses the recurring payment supplied as parameter via the API.
-    /// </summary>
     private async Task ExecutePauseAsync(object? parameter)
     {
         try
@@ -399,9 +280,7 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
                 return;
             }
 
-            ErrorOr<Success> result = await _apiClient.PutAsync<object>(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}/pause",
-                new { });
+            ErrorOr<Success> result = await _billPaymentClientService.PauseRecurringPaymentAsync(payment.Id);
 
             if (result.IsError)
             {
@@ -417,9 +296,6 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    ///     Resumes the recurring payment supplied as parameter via the API.
-    /// </summary>
     private async Task ExecuteResumeAsync(object? parameter)
     {
         try
@@ -432,9 +308,7 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
                 return;
             }
 
-            ErrorOr<Success> result = await _apiClient.PutAsync<object>(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}/resume",
-                new { });
+            ErrorOr<Success> result = await _billPaymentClientService.ResumeRecurringPaymentAsync(payment.Id);
 
             if (result.IsError)
             {
@@ -450,9 +324,6 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    ///     Cancels the recurring payment supplied as parameter via the API.
-    /// </summary>
     private async Task ExecuteCancelAsync(object? parameter)
     {
         try
@@ -465,8 +336,7 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
                 return;
             }
 
-            ErrorOr<Success> result = await _apiClient.DeleteAsync(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}");
+            ErrorOr<Success> result = await _billPaymentClientService.CancelRecurringPaymentAsync(payment.Id);
 
             if (result.IsError)
             {
@@ -491,7 +361,6 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         Payments[index] = existingPayment;
     }
 
-    /// <summary>Resets all create-form fields to their initial values.</summary>
     private void ClearForm()
     {
         SelectedPayment = null;
@@ -505,9 +374,6 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         ErrorMessage = string.Empty;
     }
 
-    /// <summary>
-    ///     Sets a field value and raises <see cref="PropertyChanged" /> when the value changes.
-    /// </summary>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (Equals(field, value)) return false;
@@ -517,9 +383,6 @@ public partial class RecurringPaymentViewModel : INotifyPropertyChanged
         return true;
     }
 
-    /// <summary>
-    ///     Asynchronous relay command that prevents re-entrant execution.
-    /// </summary>
     private sealed partial class AsyncRelayCommand : ICommand
     {
         private readonly Func<object?, Task> _executeAsyncWithParam;

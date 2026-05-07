@@ -3,55 +3,30 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BankingApp.Application.DTOs.Profile;
 using BankingApp.Desktop.Enums;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Desktop.ViewModels;
 
-/// <summary>
-///     Handles loading and updating notification preferences for the current user.
-/// </summary>
 public partial class NotificationsViewModel
 {
-    private readonly IApiClient _apiClient;
+    private readonly IProfileClientService _profileClientService;
     private readonly ILogger<NotificationsViewModel> _logger;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="NotificationsViewModel" /> class.
-    /// </summary>
-    /// <param name="apiClient">The API client used for notification operations.</param>
-    /// <param name="logger">Logger for notification operation errors.</param>
-    public NotificationsViewModel(IApiClient apiClient, ILogger<NotificationsViewModel> logger)
+    public NotificationsViewModel(IProfileClientService profileClientService, ILogger<NotificationsViewModel> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<ProfileState>(ProfileState.Idle);
         NotificationPreferences = new List<NotificationPreferenceDto>();
     }
 
-    /// <summary>
-    ///     Gets the current notifications workflow state.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public ObservableState<ProfileState> State { get; }
 
-    /// <summary>
-    ///     Gets the notification preferences for the current user.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public List<NotificationPreferenceDto> NotificationPreferences { get; private set; }
 
-    /// <summary>
-    ///     Toggles one notification preference and saves the updated list.
-    /// </summary>
-    /// <param name="preference">The preference to update.</param>
-    /// <param name="enabled">Whether email notifications should be enabled.</param>
-    /// <returns><see langword="true" /> if the update was saved; otherwise, <see langword="false" />.</returns>
     public async Task<bool> ToggleNotificationPreference(
         NotificationPreferenceDto preference,
         bool enabled)
@@ -64,15 +39,10 @@ public partial class NotificationsViewModel
         return success;
     }
 
-    /// <summary>
-    ///     Loads notification preferences for the current user from the server.
-    /// </summary>
-    /// <returns><see langword="true" /> if loaded successfully; otherwise, <see langword="false" />.</returns>
     public async Task<bool> LoadNotificationPreferences()
     {
         ErrorOr<List<NotificationPreferenceDto>> preferencesResult =
-            await _apiClient.GetAsync<List<NotificationPreferenceDto>>(
-                ApiEndpoints.NotificationPreferences);
+            await _profileClientService.GetNotificationPreferencesAsync();
         if (preferencesResult.IsError)
         {
             _logger.LoadNotificationPreferencesFailed(preferencesResult.Errors);
@@ -83,17 +53,12 @@ public partial class NotificationsViewModel
         return true;
     }
 
-    /// <summary>
-    ///     Updates notification preferences for the current user.
-    /// </summary>
-    /// <param name="preferences">The preferences to persist.</param>
-    /// <returns><see langword="true" /> if the preferences were updated; otherwise, <see langword="false" />.</returns>
     public async Task<bool> UpdateNotificationPreferences(List<NotificationPreferenceDto> preferences)
     {
         if (preferences.Count == default) return false;
 
         State.SetValue(ProfileState.Loading);
-        ErrorOr<Success> result = await _apiClient.PutAsync(ApiEndpoints.NotificationPreferences, preferences);
+        ErrorOr<Success> result = await _profileClientService.UpdateNotificationPreferencesAsync(preferences);
         return result.Match(
             _ =>
             {
