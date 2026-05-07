@@ -12,7 +12,6 @@ using Application.DTOs.Auth;
 using Application.Services.Login;
 using ErrorOr;
 using FluentAssertions;
-using Moq;
 
 public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
@@ -59,7 +58,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Email = "test@example.com", Password = "Password1!" };
         _factory.LoginServiceMock
-            .Setup(s => s.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
+            .Setup(loginService => loginService.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
             .Returns(new RequiresTwoFactor(1));
 
         // Act
@@ -94,7 +93,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Email = "new@example.com", Password = "Password1!", FirstName = "Test", LastName = "User" };
         _factory.RegistrationServiceMock
-            .Setup(s => s.Register(It.IsAny<RegisterRequest>()))
+            .Setup(registrationService => registrationService.Register(It.IsAny<RegisterRequest>()))
             .Returns(Result.Success);
 
         // Act
@@ -110,7 +109,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Email = "existing@example.com", Password = "Password1!", FirstName = "Test", LastName = "User" };
         _factory.RegistrationServiceMock
-            .Setup(s => s.Register(It.IsAny<RegisterRequest>()))
+            .Setup(registrationService => registrationService.Register(It.IsAny<RegisterRequest>()))
             .Returns(Error.Conflict("email_taken", "Email is already registered."));
 
         // Act
@@ -145,7 +144,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { UserId = 1, OtpCode = "wrong" };
         _factory.LoginServiceMock
-            .Setup(s => s.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata>()))
+            .Setup(loginService => loginService.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata>()))
             .Returns(Error.Unauthorized("invalid_otp", "Invalid or expired code."));
 
         // Act
@@ -161,7 +160,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Email = "test@example.com" };
         _factory.PasswordRecoveryServiceMock
-            .Setup(s => s.RequestPasswordReset(request.Email))
+            .Setup(passwordRecoveryService => passwordRecoveryService.RequestPasswordReset(request.Email))
             .Returns(Result.Success);
 
         // Act
@@ -189,7 +188,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Token = "valid-token", NewPassword = "NewStrongPassword1!" };
         _factory.PasswordRecoveryServiceMock
-            .Setup(s => s.ResetPassword(request.Token, request.NewPassword))
+            .Setup(passwordRecoveryService => passwordRecoveryService.ResetPassword(request.Token, request.NewPassword))
             .Returns(Result.Success);
 
         // Act
@@ -217,7 +216,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         // Arrange
         _factory.LoginServiceMock
-            .Setup(s => s.Logout("valid-token"))
+            .Setup(loginService => loginService.Logout("valid-token"))
             .Returns(Result.Success);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
@@ -249,7 +248,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Token = "valid-token" };
         _factory.PasswordRecoveryServiceMock
-            .Setup(s => s.VerifyResetToken(request.Token))
+            .Setup(passwordRecoveryService => passwordRecoveryService.VerifyResetToken(request.Token))
             .Returns(Result.Success);
 
         // Act
@@ -265,7 +264,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Token = "invalid-token" };
         _factory.PasswordRecoveryServiceMock
-            .Setup(s => s.VerifyResetToken(request.Token))
+            .Setup(passwordRecoveryService => passwordRecoveryService.VerifyResetToken(request.Token))
             .Returns(Error.Validation("invalid_token", "Token is invalid or expired."));
 
         // Act

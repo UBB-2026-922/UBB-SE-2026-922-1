@@ -182,10 +182,10 @@ public class BillPayViewModelTests
     public void ExecuteNextStep_WhenOnStep2AndHighAmount_ShouldGoToTwoFactorAuthenticationStep3()
     {
         _billPaymentClientService
-            .Setup(s => s.GetFeeAsync(It.IsAny<decimal>()))
+            .Setup(billPaymentClientService => billPaymentClientService.GetFeeAsync(It.IsAny<decimal>()))
             .ReturnsAsync(new FeeResponse { Fee = 1.00m });
         _billPaymentClientService
-            .Setup(s => s.GetRequires2FaAsync(It.IsAny<decimal>()))
+            .Setup(billPaymentClientService => billPaymentClientService.GetRequires2FaAsync(It.IsAny<decimal>()))
             .ReturnsAsync(new RequiresTwoFaResponse { Required = true });
 
         BillPayViewModel vm = CreateViewModel();
@@ -289,7 +289,7 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenApiFails_ShouldSetErrorMessage()
     {
         _billPaymentClientService
-            .Setup(s => s.PayBillAsync(It.IsAny<BillPayRequest>()))
+            .Setup(billPaymentClientService => billPaymentClientService.PayBillAsync(It.IsAny<BillPayRequest>()))
             .ReturnsAsync(Error.Failure(description: "Insufficient funds"));
 
         BillPayViewModel vm = CreateViewModel();
@@ -318,7 +318,7 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenWithSaveBiller_ShouldCallSaveEndpoint()
     {
         _billPaymentClientService
-            .Setup(s => s.PayBillAsync(It.IsAny<BillPayRequest>()))
+            .Setup(billPaymentClientService => billPaymentClientService.PayBillAsync(It.IsAny<BillPayRequest>()))
             .ReturnsAsync(new BillPayResponse
             {
                 Id = 1,
@@ -328,7 +328,7 @@ public class BillPayViewModelTests
                 Status = "Completed",
             });
         _billPaymentClientService
-            .Setup(s => s.SaveBillerAsync(It.IsAny<SaveBillerRequest>()))
+            .Setup(billPaymentClientService => billPaymentClientService.SaveBillerAsync(It.IsAny<SaveBillerRequest>()))
             .ReturnsAsync(new SavedBillerDto
             {
                 Id = 99,
@@ -514,13 +514,13 @@ public class BillPayViewModelTests
     private void SetupSuccessfulLoad()
     {
         _billPaymentClientService
-            .Setup(s => s.GetBillersAsync(null, null))
+            .Setup(billPaymentClientService => billPaymentClientService.GetBillersAsync(null, null))
             .ReturnsAsync(CreateMockBillers());
         _billPaymentClientService
-            .Setup(s => s.GetSavedBillersAsync())
+            .Setup(billPaymentClientService => billPaymentClientService.GetSavedBillersAsync())
             .ReturnsAsync(CreateMockSavedBillers());
         _billPaymentClientService
-            .Setup(s => s.GetAccountsAsync())
+            .Setup(billPaymentClientService => billPaymentClientService.GetAccountsAsync())
             .ReturnsAsync(CreateMockAccounts());
     }
 }

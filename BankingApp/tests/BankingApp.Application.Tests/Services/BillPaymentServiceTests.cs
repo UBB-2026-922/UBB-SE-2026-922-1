@@ -80,10 +80,10 @@ public class BillPaymentServiceTests
 
     private void SetupMocks(BillPaymentDto request)
     {
-        _repositoryMock.Setup(r => r.GetBillerByIdAsync(request.BillerId))
+        _repositoryMock.Setup(repository => repository.GetBillerByIdAsync(request.BillerId))
             .ReturnsAsync(new Biller { Id = request.BillerId, Name = "Test Biller" });
 
-        _repositoryMock.Setup(r => r.GetAccountByIdAsync(request.SourceAccountId))
+        _repositoryMock.Setup(repository => repository.GetAccountByIdAsync(request.SourceAccountId))
             .ReturnsAsync(new Account
             {
                 Id = request.SourceAccountId,

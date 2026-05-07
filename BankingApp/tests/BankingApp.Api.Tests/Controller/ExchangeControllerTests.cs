@@ -66,7 +66,7 @@ public class ExchangeControllerTests
         // Arrange
         var error = Error.Validation("Code", "Description");
         _mockExchangeService
-            .Setup(s => s.GetRatePreview("EUR", "USD", 100m))
+            .Setup(exchangeService => exchangeService.GetRatePreview("EUR", "USD", 100m))
             .Returns(error);
 
         // Act
@@ -197,7 +197,7 @@ public class ExchangeControllerTests
         };
 
         _mockBillPaymentRepository
-            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .Setup(billPaymentRepository => billPaymentRepository.GetAccountsByUserIdAsync(1))
             .ReturnsAsync(userAccounts);
 
         // Act
@@ -227,7 +227,7 @@ public class ExchangeControllerTests
         };
 
         _mockBillPaymentRepository
-            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .Setup(billPaymentRepository => billPaymentRepository.GetAccountsByUserIdAsync(1))
             .ReturnsAsync(userAccounts);
 
         // Act

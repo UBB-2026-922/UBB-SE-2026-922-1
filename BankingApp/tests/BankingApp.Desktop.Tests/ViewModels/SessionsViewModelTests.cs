@@ -65,7 +65,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetSessionsAsync())
+            .Setup(profileClientService => profileClientService.GetSessionsAsync())
             .ThrowsAsync(new InvalidOperationException("boom"));
 
         // Act
@@ -85,7 +85,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.RevokeSessionAsync(sessionId))
+            .Setup(profileClientService => profileClientService.RevokeSessionAsync(sessionId))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -104,7 +104,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.RevokeSessionAsync(sessionId))
+            .Setup(profileClientService => profileClientService.RevokeSessionAsync(sessionId))
             .ReturnsAsync(Error.Failure(description: "revoke failed"));
 
         // Act

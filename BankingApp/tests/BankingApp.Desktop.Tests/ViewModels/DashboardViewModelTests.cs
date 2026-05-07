@@ -72,7 +72,7 @@ public class DashboardViewModelTests
             UnreadNotificationCount = unreadCount,
         };
         _dashboardClientService
-            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
+            .Setup(dashboardClientService => dashboardClientService.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         // Act
@@ -153,7 +153,7 @@ public class DashboardViewModelTests
     {
         // Arrange
         _dashboardClientService
-            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
+            .Setup(dashboardClientService => dashboardClientService.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.NotFound());
 
         // Act
@@ -170,7 +170,7 @@ public class DashboardViewModelTests
     {
         // Arrange
         _dashboardClientService
-            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
+            .Setup(dashboardClientService => dashboardClientService.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -422,7 +422,7 @@ public class DashboardViewModelTests
         };
 
         _dashboardClientService
-            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
+            .Setup(dashboardClientService => dashboardClientService.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         await _viewModel.LoadDashboard(TestContext.Current.CancellationToken);

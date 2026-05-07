@@ -64,7 +64,7 @@ public class RegisterViewModelTests
             NullLogger<RegisterViewModel>.Instance);
 
         _authClientService
-            .Setup(s => s.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -83,7 +83,7 @@ public class RegisterViewModelTests
             NullLogger<RegisterViewModel>.Instance);
 
         _authClientService
-            .Setup(s => s.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(Error.Conflict("Conflict", "Conflict"));
 
         // Act

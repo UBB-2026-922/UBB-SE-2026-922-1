@@ -44,7 +44,7 @@ public class TwoFactorViewModelTests
             _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _authClientService.Setup(s => s.CurrentUserId).Returns((int?)null);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns((int?)null);
 
         // Act
         viewModel.OtpCode = "123456";
@@ -63,13 +63,13 @@ public class TwoFactorViewModelTests
             _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _authClientService.Setup(s => s.CurrentUserId).Returns(1);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
 
         var successResponse = new LoginSuccessResponse { Token = "token", UserId = 1 };
         _authClientService
-            .Setup(s => s.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()))
             .ReturnsAsync(successResponse);
-        _authClientService.Setup(s => s.SetToken(It.IsAny<string>()));
+        _authClientService.Setup(authClientService => authClientService.SetToken(It.IsAny<string>()));
 
         // Act
         viewModel.OtpCode = "123456";
@@ -88,10 +88,10 @@ public class TwoFactorViewModelTests
             _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _authClientService.Setup(s => s.CurrentUserId).Returns(1);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
 
         _authClientService
-            .Setup(s => s.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()))
             .ReturnsAsync(Error.Validation("invalid_otp"));
 
         // Act
@@ -111,9 +111,9 @@ public class TwoFactorViewModelTests
             _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _authClientService.Setup(s => s.CurrentUserId).Returns(1);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
         _authClientService
-            .Setup(s => s.ResendOtpAsync(It.IsAny<int>()))
+            .Setup(authClientService => authClientService.ResendOtpAsync(It.IsAny<int>()))
             .ReturnsAsync(new object());
 
         await viewModel.ResendOtp();
@@ -135,9 +135,9 @@ public class TwoFactorViewModelTests
             _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _authClientService.Setup(s => s.CurrentUserId).Returns(1);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
         _authClientService
-            .Setup(s => s.ResendOtpAsync(It.IsAny<int>()))
+            .Setup(authClientService => authClientService.ResendOtpAsync(It.IsAny<int>()))
             .ReturnsAsync(new object());
 
         // Act

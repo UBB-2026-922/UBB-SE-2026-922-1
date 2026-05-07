@@ -143,7 +143,7 @@ public class ProfileViewModelTests
         var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -169,7 +169,7 @@ public class ProfileViewModelTests
         var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(Error.Validation("incorrect_password", "Wrong password"));
 
         // Act
@@ -189,7 +189,7 @@ public class ProfileViewModelTests
         var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -207,7 +207,7 @@ public class ProfileViewModelTests
         var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.Disable2FaAsync())
+            .Setup(profileClientService => profileClientService.Disable2FaAsync())
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -225,7 +225,7 @@ public class ProfileViewModelTests
         var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Error.Failure(description: "server error"));
 
         // Act
@@ -247,7 +247,7 @@ public class ProfileViewModelTests
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _profileClientService
-            .Setup(s => s.UpdateNotificationPreferencesAsync(It.IsAny<List<NotificationPreferenceDto>>()))
+            .Setup(profileClientService => profileClientService.UpdateNotificationPreferencesAsync(It.IsAny<List<NotificationPreferenceDto>>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -270,7 +270,7 @@ public class ProfileViewModelTests
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _profileClientService
-            .Setup(s => s.UpdateNotificationPreferencesAsync(It.IsAny<List<NotificationPreferenceDto>>()))
+            .Setup(profileClientService => profileClientService.UpdateNotificationPreferencesAsync(It.IsAny<List<NotificationPreferenceDto>>()))
             .ReturnsAsync(Error.Failure(description: "server error"));
 
         // Act
@@ -300,7 +300,7 @@ public class ProfileViewModelTests
     {
         // Arrange
         _profileClientService
-            .Setup(s => s.GetProfileAsync())
+            .Setup(profileClientService => profileClientService.GetProfileAsync())
             .ReturnsAsync(Error.Failure(description: "fail"));
 
         var profileVm = new ProfileViewModel(

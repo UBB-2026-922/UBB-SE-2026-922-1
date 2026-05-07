@@ -85,7 +85,7 @@ public class RecurringPaymentViewModelTests
             StartDate = startDate,
         };
 
-        _billPaymentClientService.Setup(s => s.CreateRecurringPaymentAsync(
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CreateRecurringPaymentAsync(
                 It.Is<CreateRecurringPaymentRequest>(dto =>
                     dto.BillerId == biller.Id &&
                     dto.SourceAccountId == account.Id &&
@@ -112,7 +112,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _billPaymentClientService.Setup(s => s.PauseRecurringPaymentAsync(payment.Id))
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.PauseRecurringPaymentAsync(payment.Id))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -130,7 +130,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Paused };
         _viewModel.Payments.Add(payment);
 
-        _billPaymentClientService.Setup(s => s.ResumeRecurringPaymentAsync(payment.Id))
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.ResumeRecurringPaymentAsync(payment.Id))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -148,7 +148,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _billPaymentClientService.Setup(s => s.CancelRecurringPaymentAsync(payment.Id))
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CancelRecurringPaymentAsync(payment.Id))
             .ReturnsAsync(Result.Success);
 
         // Act

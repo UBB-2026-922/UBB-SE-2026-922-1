@@ -11,8 +11,6 @@ using Infrastructure;
 using Application.DTOs.Profile;
 using ErrorOr;
 using FluentAssertions;
-using Moq;
-using Xunit;
 
 public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
@@ -34,11 +32,11 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
 
         // Ensure the token validation and session are bypassed
         _factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId(ValidToken))
+            .Setup(jwtService => jwtService.ExtractUserId(ValidToken))
             .Returns(ValidUserId);
 
         _factory.AuthRepositoryMock
-            .Setup(auth => auth.IsSessionActive(ValidToken))
+            .Setup(authRepository => authRepository.IsSessionActive(ValidToken))
             .Returns(true);
     }
 
@@ -56,7 +54,7 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
         };
 
         _factory.ProfileServiceMock
-            .Setup(s => s.GetProfile(ValidUserId))
+            .Setup(profileService => profileService.GetProfile(ValidUserId))
             .Returns(expectedProfile);
 
         // Act
@@ -85,7 +83,8 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Content = JsonContent.Create(requestData);
 
         _factory.ProfileServiceMock
-            .Setup(s => s.UpdatePersonalInfo(It.Is<UpdateProfileRequest>(r => r.UserId == ValidUserId)))
+            .Setup(profileService => profileService.UpdatePersonalInfo(
+                It.Is<UpdateProfileRequest>(updateProfileRequest => updateProfileRequest.UserId == ValidUserId)))
             .Returns(Result.Success);
 
         // Act
@@ -110,7 +109,7 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Content = JsonContent.Create(requestData);
 
         _factory.ProfileServiceMock
-            .Setup(s => s.ChangePassword(It.IsAny<ChangePasswordRequest>()))
+            .Setup(profileService => profileService.ChangePassword(It.IsAny<ChangePasswordRequest>()))
             .Returns(Error.Validation("Password.Mismatch", "Old password does not match."));
 
         // Act

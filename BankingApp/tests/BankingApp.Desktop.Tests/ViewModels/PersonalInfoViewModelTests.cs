@@ -51,7 +51,7 @@ public class PersonalInfoViewModelTests
         var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetProfileAsync())
+            .Setup(profileClientService => profileClientService.GetProfileAsync())
             .ReturnsAsync(Error.Failure(description: "server down"));
 
         // Act
@@ -141,7 +141,7 @@ public class PersonalInfoViewModelTests
             };
 
         _profileClientService
-            .Setup(s => s.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
+            .Setup(profileClientService => profileClientService.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
             .Callback<UpdateProfileRequest>(request => sentRequest = request)
             .ReturnsAsync(Result.Success);
 
@@ -176,7 +176,7 @@ public class PersonalInfoViewModelTests
             };
 
         _profileClientService
-            .Setup(s => s.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
+            .Setup(profileClientService => profileClientService.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
             .ReturnsAsync(Error.Failure(description: "update failed"));
 
         // Act
@@ -217,7 +217,7 @@ public class PersonalInfoViewModelTests
             };
 
         _profileClientService
-            .Setup(s => s.VerifyPasswordAsync("correct-password"))
+            .Setup(profileClientService => profileClientService.VerifyPasswordAsync("correct-password"))
             .ReturnsAsync(true);
 
         // Act
@@ -265,7 +265,7 @@ public class PersonalInfoViewModelTests
             };
 
         _profileClientService
-            .Setup(s => s.VerifyPasswordAsync("password"))
+            .Setup(profileClientService => profileClientService.VerifyPasswordAsync("password"))
             .ReturnsAsync(Error.Failure(description: "verification failed"));
 
         // Act

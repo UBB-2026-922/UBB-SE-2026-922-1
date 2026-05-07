@@ -54,7 +54,7 @@ public class NotificationsViewModelTests
         viewModel.NotificationPreferences.Add(preference);
 
         _profileClientService
-            .Setup(s => s.UpdateNotificationPreferencesAsync(viewModel.NotificationPreferences))
+            .Setup(profileClientService => profileClientService.UpdateNotificationPreferencesAsync(viewModel.NotificationPreferences))
             .ReturnsAsync(Error.Failure(description: "save failed"));
 
         // Act
@@ -106,7 +106,7 @@ public class NotificationsViewModelTests
         viewModel.NotificationPreferences.Add(existingPreference);
 
         _profileClientService
-            .Setup(s => s.GetNotificationPreferencesAsync())
+            .Setup(profileClientService => profileClientService.GetNotificationPreferencesAsync())
             .ReturnsAsync(Error.Failure(description: "server down"));
 
         // Act
@@ -161,7 +161,7 @@ public class NotificationsViewModelTests
         viewModel.NotificationPreferences.Add(existingPreference);
 
         _profileClientService
-            .Setup(s => s.UpdateNotificationPreferencesAsync(updatedPreferences))
+            .Setup(profileClientService => profileClientService.UpdateNotificationPreferencesAsync(updatedPreferences))
             .ReturnsAsync(Error.Failure(description: "save failed"));
 
         // Act

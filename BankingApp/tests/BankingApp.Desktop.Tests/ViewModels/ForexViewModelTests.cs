@@ -104,7 +104,7 @@ public class ForexViewModelTests
         _viewModel.AmountText = "100";
 
         _forexClientService
-            .Setup(s => s.GetPreviewAsync(
+            .Setup(forexClientService => forexClientService.GetPreviewAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
             .ReturnsAsync(Error.Failure());
 
@@ -142,7 +142,7 @@ public class ForexViewModelTests
 
         var response = new ExchangeTransactionResponse { Id = transactionId };
         _forexClientService
-            .Setup(s => s.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
+            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
             .ReturnsAsync(response);
 
         // Act
@@ -160,10 +160,10 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _forexClientService.Setup(s => s.CurrentUserId).Returns(1);
+        _forexClientService.Setup(forexClientService => forexClientService.CurrentUserId).Returns(1);
 
         _forexClientService
-            .Setup(s => s.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
+            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
             .ReturnsAsync(Error.Failure());
 
         // Act

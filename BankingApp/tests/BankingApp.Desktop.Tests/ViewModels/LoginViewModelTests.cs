@@ -13,8 +13,8 @@ public class LoginViewModelTests
 
     public LoginViewModelTests()
     {
-        _authClientService.Setup(s => s.EnsureConfigured()).Returns(Result.Success);
-        _authClientService.SetupProperty(s => s.CurrentUserId);
+        _authClientService.Setup(authClientService => authClientService.EnsureConfigured()).Returns(Result.Success);
+        _authClientService.SetupProperty(authClientService => authClientService.CurrentUserId);
     }
 
     [Fact]
@@ -40,9 +40,9 @@ public class LoginViewModelTests
         var response = new LoginSuccessResponse { Token = "test-token", UserId = 1, Requires2Fa = false };
 
         _authClientService
-            .Setup(s => s.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(response);
-        _authClientService.Setup(s => s.SetToken(It.IsAny<string>()));
+        _authClientService.Setup(authClientService => authClientService.SetToken(It.IsAny<string>()));
 
         // Act
         await viewModel.Login("test@test.com", "password");
@@ -60,7 +60,7 @@ public class LoginViewModelTests
         var response = new LoginSuccessResponse { UserId = 1, Requires2Fa = true };
 
         _authClientService
-            .Setup(s => s.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(response);
 
         // Act
@@ -78,7 +78,7 @@ public class LoginViewModelTests
         var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
 
         _authClientService
-            .Setup(s => s.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(Error.Unauthorized());
 
         // Act
@@ -95,7 +95,7 @@ public class LoginViewModelTests
         var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
 
         _authClientService
-            .Setup(s => s.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(Error.Failure());
 
         // Act

@@ -47,7 +47,7 @@ public class SecurityViewModelTests
     {
         // Arrange
         _profileClientService
-            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -64,7 +64,7 @@ public class SecurityViewModelTests
         // Arrange
         var error = Error.Validation("incorrect_password", "Description");
         _profileClientService
-            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(error);
 
         // Act
@@ -82,7 +82,7 @@ public class SecurityViewModelTests
         // Arrange
         var error = Error.Failure("server_error", "Description");
         _profileClientService
-            .Setup(s => s.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(error);
 
         // Act
@@ -99,7 +99,7 @@ public class SecurityViewModelTests
     {
         // Arrange
         _profileClientService
-            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -115,7 +115,7 @@ public class SecurityViewModelTests
     {
         // Arrange
         _profileClientService
-            .Setup(s => s.Disable2FaAsync())
+            .Setup(profileClientService => profileClientService.Disable2FaAsync())
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -131,7 +131,7 @@ public class SecurityViewModelTests
     {
         // Arrange
         _profileClientService
-            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -147,7 +147,7 @@ public class SecurityViewModelTests
     {
         // Arrange
         _profileClientService
-            .Setup(s => s.Disable2FaAsync())
+            .Setup(profileClientService => profileClientService.Disable2FaAsync())
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -164,7 +164,7 @@ public class SecurityViewModelTests
         // Arrange
         var error = Error.Failure("server_error", "Description");
         _profileClientService
-            .Setup(s => s.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(error);
 
         // Act
@@ -181,7 +181,7 @@ public class SecurityViewModelTests
         // Arrange
         var error = Error.Failure("server_error", "Description");
         _profileClientService
-            .Setup(s => s.Disable2FaAsync())
+            .Setup(profileClientService => profileClientService.Disable2FaAsync())
             .ReturnsAsync(error);
 
         // Act

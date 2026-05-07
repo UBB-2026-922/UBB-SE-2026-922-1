@@ -33,11 +33,11 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
 
         // Ensure the token validation and session are bypassed
         _factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId(ValidToken))
+            .Setup(jwtService => jwtService.ExtractUserId(ValidToken))
             .Returns(ValidUserId);
 
         _factory.AuthRepositoryMock
-            .Setup(auth => auth.IsSessionActive(ValidToken))
+            .Setup(authRepository => authRepository.IsSessionActive(ValidToken))
             .Returns(true);
     }
 
@@ -121,7 +121,7 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         _factory.BeneficiaryServiceMock
-            .Setup(s => s.Delete(999, ValidUserId))
+            .Setup(beneficiaryService => beneficiaryService.Delete(999, ValidUserId))
             .Returns(Error.NotFound("Beneficiary.NotFound", "Beneficiary not found."));
 
         // Act
