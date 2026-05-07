@@ -8,9 +8,9 @@ using BankingApp.Application.Common.Logging;
 using BankingApp.Application.Common.Security;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.TransactionAggregate;
+using Domain.Common.Errors;
 using Domain.Entities;
 using Domain.Enums;
-using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 

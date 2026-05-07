@@ -1,7 +1,7 @@
 namespace BankingApp.Domain.Aggregates.ForexAggregate.Entities;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.ValueObjects;
+using Common.Primitives;
+using Currency = NodaMoney.Currency;
 
 public sealed class LockedRate : Entity<int>
 {
@@ -13,16 +13,22 @@ public sealed class LockedRate : Entity<int>
 
     public int UserId { get; private set; }
 
-    public ExchangeRate ExchangeRate { get; private set; } = default!;
+    public Currency BaseCurrency { get; private set; }
+
+    public Currency QuoteCurrency { get; private set; }
+
+    public decimal Rate { get; private set; }
 
     public DateTime LockedAt { get; private set; }
 
-    public static LockedRate Create(int userId, ExchangeRate exchangeRate, DateTime lockedAt)
+    public static LockedRate Create(int userId, Currency baseCurrency, Currency quoteCurrency, decimal rate, DateTime lockedAt)
     {
         return new LockedRate
         {
             UserId = userId,
-            ExchangeRate = exchangeRate,
+            BaseCurrency = baseCurrency,
+            QuoteCurrency = quoteCurrency,
+            Rate = rate,
             LockedAt = lockedAt
         };
     }

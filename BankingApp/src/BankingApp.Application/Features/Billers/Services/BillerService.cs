@@ -3,8 +3,8 @@
 using BankingApp.Application.Features.Billers.Repositories;
 using BankingApp.Application.Features.Billers.Dtos;
 using Domain.Aggregates.BillerAggregate;
+using Domain.Common.Errors;
 using Domain.Entities;
-using Domain.Errors;
 using ErrorOr;
 
 /// <summary>

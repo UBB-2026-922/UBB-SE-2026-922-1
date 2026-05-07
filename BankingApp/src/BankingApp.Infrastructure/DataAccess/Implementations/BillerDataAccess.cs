@@ -1,8 +1,8 @@
 ﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 using Domain.Aggregates.BillerAggregate;
+using Domain.Common.Errors;
 using Domain.Entities;
-using Domain.Errors;
 using Interfaces;
 using ErrorOr;
 using Persistence;

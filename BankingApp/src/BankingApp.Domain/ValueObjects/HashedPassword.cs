@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.ValueObjects;
 
-using BankingApp.Domain.Common.Primitives;
+using Common.Primitives;
 
 public sealed record HashedPassword : ValueObject
 {

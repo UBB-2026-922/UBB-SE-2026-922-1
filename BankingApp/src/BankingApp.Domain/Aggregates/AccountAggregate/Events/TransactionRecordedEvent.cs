@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Aggregates.AccountAggregate.Events;
 
-using BankingApp.Domain.Common;
+using Common;
 
 public sealed record TransactionRecordedEvent(
     int AccountId,

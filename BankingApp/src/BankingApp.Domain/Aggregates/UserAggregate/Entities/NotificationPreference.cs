@@ -1,7 +1,7 @@
 namespace BankingApp.Domain.Aggregates.UserAggregate.Entities;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Enums;
+using Common.Primitives;
+using Enums;
 
 public sealed class NotificationPreference : Entity<int>
 {

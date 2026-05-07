@@ -1,5 +1,5 @@
 namespace BankingApp.Domain.Aggregates.BillPaymentAggregate.Events;
 
-using BankingApp.Domain.Common;
+using Common;
 
 public record BillPaymentProcessedEvent(int BillPaymentId, DateTime OccurredOnUtc) : IDomainEvent;

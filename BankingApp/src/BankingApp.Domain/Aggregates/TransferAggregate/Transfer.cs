@@ -1,8 +1,9 @@
 namespace BankingApp.Domain.Aggregates.TransferAggregate;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.ValueObjects;
+using Common.Primitives;
+using Enums;
+using ValueObjects;
+using Money = NodaMoney.Money;
 
 public sealed class Transfer : AggregateRoot<int>
 {
@@ -26,11 +27,11 @@ public sealed class Transfer : AggregateRoot<int>
 
     public Money Amount { get; private set; } = default!;
 
-    public decimal? ConvertedAmount { get; private set; }
+    public Money? ConvertedAmount { get; private set; }
 
     public decimal? ExchangeRate { get; private set; }
 
-    public decimal Fee { get; private set; }
+    public Money Fee { get; private set; } = default!;
 
     public string? Reference { get; private set; }
 
@@ -46,7 +47,7 @@ public sealed class Transfer : AggregateRoot<int>
         string recipientName,
         Iban recipientIban,
         Money amount,
-        decimal fee,
+        Money fee,
         string? reference,
         DateTime createdAt)
     {
@@ -64,7 +65,7 @@ public sealed class Transfer : AggregateRoot<int>
         };
     }
 
-    public static bool RequiresTwoFactorAuthentication(decimal amount) => amount >= TwoFaAmountThreshold;
+    public static bool RequiresTwoFactorAuthentication(Money amount) => amount.Amount >= TwoFaAmountThreshold;
 
     public void MarkExecuted(int? ledgerTransactionId, DateTime? estimatedArrival)
     {

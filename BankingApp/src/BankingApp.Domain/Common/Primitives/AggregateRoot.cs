@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Common.Primitives;
 
-using BankingApp.Domain.Common;
+using Common;
 
 public abstract class AggregateRoot<TId> : Entity<TId>
     where TId : notnull

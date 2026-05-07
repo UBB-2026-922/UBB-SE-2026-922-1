@@ -1,4 +1,4 @@
-namespace BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Enums;
 
 /// <summary>
 ///     Represents the current status of a payment card.

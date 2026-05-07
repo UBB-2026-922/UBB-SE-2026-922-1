@@ -1,7 +1,7 @@
-namespace BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Enums;
 
 /// <summary>
-///     Represents the type of a payment card.
+///     Represents the type of payment card.
 /// </summary>
 public enum CardType
 {

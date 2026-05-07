@@ -1,7 +1,7 @@
 namespace BankingApp.Domain.ValueObjects;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Errors;
+using Common.Primitives;
+using Common.Errors;
 using ErrorOr;
 
 public sealed record Email : ValueObject

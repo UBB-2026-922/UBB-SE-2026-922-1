@@ -9,11 +9,11 @@ using BankingApp.Application.Common.Security;
 using BankingApp.Application.Common.Utilities;
 using Domain.Entities;
 using Domain.Enums;
-using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 using BankingApp.Application.Features.Authentication.Dtos;
+using Domain.Common.Errors;
 
 /// <summary>
 ///     Provides login, logout, OAuth login, and 2FA operations.

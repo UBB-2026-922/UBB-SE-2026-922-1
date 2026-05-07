@@ -1,5 +1,5 @@
 namespace BankingApp.Domain.Aggregates.TransferAggregate.Events;
 
-using BankingApp.Domain.Common;
+using Common;
 
 public record TransferExecutedEvent(int TransferId, DateTime OccurredOnUtc) : IDomainEvent;

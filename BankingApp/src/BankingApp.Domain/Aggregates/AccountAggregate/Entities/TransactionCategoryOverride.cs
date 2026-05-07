@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Aggregates.AccountAggregate.Entities;
 
-using BankingApp.Domain.Common.Primitives;
+using Common.Primitives;
 
 public sealed class TransactionCategoryOverride : Entity<int>
 {

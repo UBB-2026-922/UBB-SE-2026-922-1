@@ -5,6 +5,8 @@ using Events;
 using Common.Primitives;
 using Enums;
 using ValueObjects;
+using Currency = NodaMoney.Currency;
+using Money = NodaMoney.Money;
 
 public sealed class Account : AggregateRoot<int>
 {
@@ -21,9 +23,7 @@ public sealed class Account : AggregateRoot<int>
 
     public Iban Iban { get; private set; } = default!;
 
-    public Currency Currency { get; private set; }
-
-    public decimal Balance { get; private set; }
+    public Money Balance { get; private set; } = default!;
 
     public AccountType AccountType { get; private set; }
 
@@ -35,13 +35,15 @@ public sealed class Account : AggregateRoot<int>
 
     public IReadOnlyCollection<Transaction> Transactions => _transactions.AsReadOnly();
 
+    public Currency Currency => Balance.Currency;
+
     public static Account Open(int userId, Iban iban, Currency currency, AccountType accountType, string? accountName, DateTime createdAt)
     {
         return new Account
         {
             UserId = userId,
             Iban = iban,
-            Currency = currency,
+            Balance = new Money(0m, currency),
             AccountType = accountType,
             AccountName = accountName,
             CreatedAt = createdAt
@@ -50,18 +52,18 @@ public sealed class Account : AggregateRoot<int>
 
     public bool IsActive() => Status == AccountStatus.Active;
 
-    public bool HasSufficientFunds(decimal amount) => amount >= 0 && Balance >= amount;
+    public bool HasSufficientFunds(Money amount) => amount.Amount >= 0 && Balance >= amount;
 
     public void Rename(string? accountName)
     {
         AccountName = accountName;
     }
 
-    public void ChangeBalance(decimal newBalance, DateTime occurredOnUtc)
+    public void ChangeBalance(Money newBalance, DateTime occurredOnUtc)
     {
-        decimal oldBalance = Balance;
+        Money oldBalance = Balance;
         Balance = newBalance;
-        Raise(new BalanceUpdatedEvent(Id, oldBalance, newBalance, occurredOnUtc));
+        Raise(new BalanceUpdatedEvent(Id, oldBalance.Amount, newBalance.Amount, occurredOnUtc));
     }
 
     public Card IssueCard(
@@ -82,8 +84,8 @@ public sealed class Account : AggregateRoot<int>
         string transactionRef,
         string type,
         TransactionDirection direction,
-        decimal amount,
-        decimal balanceAfter,
+        Money amount,
+        Money balanceAfter,
         TransactionStatus status,
         DateTime createdAt)
     {
@@ -93,7 +95,6 @@ public sealed class Account : AggregateRoot<int>
             type,
             direction,
             amount,
-            Currency,
             balanceAfter,
             status,
             createdAt);

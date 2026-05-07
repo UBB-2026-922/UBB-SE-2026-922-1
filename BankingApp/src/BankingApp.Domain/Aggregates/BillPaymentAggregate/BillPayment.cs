@@ -1,9 +1,10 @@
 namespace BankingApp.Domain.Aggregates.BillPaymentAggregate;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Errors;
+using Common.Errors;
+using Common.Primitives;
+using Enums;
 using ErrorOr;
+using Money = NodaMoney.Money;
 
 public sealed class BillPayment : AggregateRoot<int>
 {
@@ -21,9 +22,9 @@ public sealed class BillPayment : AggregateRoot<int>
 
     public string BillerReference { get; private set; } = string.Empty;
 
-    public decimal Amount { get; private set; }
+    public Money Amount { get; private set; } = default!;
 
-    public decimal Fee { get; private set; }
+    public Money Fee { get; private set; } = default!;
 
     public string ReceiptNumber { get; private set; } = string.Empty;
 
@@ -36,11 +37,11 @@ public sealed class BillPayment : AggregateRoot<int>
         int sourceAccountId,
         int billerId,
         string billerReference,
-        decimal amount,
-        decimal fee,
+        Money amount,
+        Money fee,
         DateTime createdAt)
     {
-        if (amount <= 0)
+        if (amount.Amount <= 0)
         {
             return BillPaymentErrors.InvalidAmount;
         }

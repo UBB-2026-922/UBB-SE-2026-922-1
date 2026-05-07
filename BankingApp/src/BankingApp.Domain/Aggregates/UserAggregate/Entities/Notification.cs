@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Aggregates.UserAggregate.Entities;
 
-using BankingApp.Domain.Common.Primitives;
+using Common.Primitives;
 
 public sealed class Notification : Entity<int>
 {

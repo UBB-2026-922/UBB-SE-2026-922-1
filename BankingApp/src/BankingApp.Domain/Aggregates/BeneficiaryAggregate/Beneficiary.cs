@@ -1,7 +1,7 @@
 namespace BankingApp.Domain.Aggregates.BeneficiaryAggregate;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.ValueObjects;
+using Common.Primitives;
+using ValueObjects;
 
 public sealed class Beneficiary : AggregateRoot<int>
 {

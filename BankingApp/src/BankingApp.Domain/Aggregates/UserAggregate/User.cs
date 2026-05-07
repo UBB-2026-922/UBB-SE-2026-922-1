@@ -14,7 +14,7 @@ public sealed class User : AggregateRoot<int>
     {
     }
 
-    public Email Email { get; private set; } = default!;
+    public Email Email { get; private set; } = null!;
 
     public string FullName { get; private set; } = string.Empty;
 

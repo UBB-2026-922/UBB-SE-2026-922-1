@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Aggregates.IdentityAggregate.Entities;
 
-using BankingApp.Domain.Common.Primitives;
+using Common.Primitives;
 
 public sealed class Session : Entity<int>
 {

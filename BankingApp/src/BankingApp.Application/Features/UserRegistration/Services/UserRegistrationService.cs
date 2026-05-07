@@ -5,8 +5,8 @@ using BankingApp.Application.Common.Security;
 using BankingApp.Application.Common.Utilities;
 using BankingApp.Application.Features.Authentication.Repositories;
 using BankingApp.Application.Features.UserRegistration.Dtos;
+using Domain.Common.Errors;
 using Domain.Entities;
-using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 

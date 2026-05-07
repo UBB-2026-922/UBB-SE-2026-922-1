@@ -1,8 +1,9 @@
 namespace BankingApp.Domain.Aggregates.RateAlertAggregate;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.ValueObjects;
+using Common.Errors;
+using Common.Primitives;
 using ErrorOr;
+using Currency = NodaMoney.Currency;
 
 public sealed class RateAlert : AggregateRoot<int>
 {
@@ -14,7 +15,11 @@ public sealed class RateAlert : AggregateRoot<int>
 
     public int UserId { get; private set; }
 
-    public ExchangeRate Target { get; private set; } = default!;
+    public Currency BaseCurrency { get; private set; }
+
+    public Currency QuoteCurrency { get; private set; }
+
+    public decimal TargetRate { get; private set; }
 
     public bool IsTriggered { get; private set; }
 
@@ -22,16 +27,30 @@ public sealed class RateAlert : AggregateRoot<int>
 
     public DateTime CreatedAt { get; private set; }
 
-    public static RateAlert Create(
+    public static ErrorOr<RateAlert> Create(
         int userId,
-        ExchangeRate target,
+        Currency baseCurrency,
+        Currency quoteCurrency,
+        decimal targetRate,
         bool isBuyAlert,
         DateTime createdAt)
     {
+        if (baseCurrency == quoteCurrency)
+        {
+            return RateAlertErrors.MatchingCurrencies;
+        }
+
+        if (targetRate <= 0)
+        {
+            return RateAlertErrors.InvalidTargetRate;
+        }
+
         return new RateAlert
         {
             UserId = userId,
-            Target = target,
+            BaseCurrency = baseCurrency,
+            QuoteCurrency = quoteCurrency,
+            TargetRate = targetRate,
             IsBuyAlert = isBuyAlert,
             CreatedAt = createdAt
         };
@@ -40,7 +59,7 @@ public sealed class RateAlert : AggregateRoot<int>
     public bool ShouldTrigger(decimal currentRate)
     {
         decimal roundedCurrentRate = Math.Round(currentRate, RatePrecisionDecimals);
-        decimal roundedTargetRate = Math.Round(Target.Value, RatePrecisionDecimals);
+        decimal roundedTargetRate = Math.Round(TargetRate, RatePrecisionDecimals);
 
         return IsBuyAlert
             ? roundedCurrentRate <= roundedTargetRate

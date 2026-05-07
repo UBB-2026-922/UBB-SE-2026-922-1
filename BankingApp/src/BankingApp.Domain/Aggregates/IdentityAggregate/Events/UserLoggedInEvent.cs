@@ -1,5 +1,5 @@
 namespace BankingApp.Domain.Aggregates.IdentityAggregate.Events;
 
-using BankingApp.Domain.Common;
+using Common;
 
 public record UserLoggedInEvent(int IdentityAccountId, DateTime OccurredOnUtc) : IDomainEvent;

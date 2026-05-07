@@ -1,9 +1,9 @@
 namespace BankingApp.Domain.Aggregates.RecurringPaymentAggregate;
 
-using BankingApp.Domain.Common.Extensions;
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Errors;
+using Common.Errors;
+using Common.Extensions;
+using Common.Primitives;
+using Enums;
 using ErrorOr;
 
 public sealed class RecurringPayment : AggregateRoot<int>

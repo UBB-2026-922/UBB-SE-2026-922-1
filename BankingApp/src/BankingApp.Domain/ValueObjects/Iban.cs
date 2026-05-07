@@ -1,8 +1,8 @@
 namespace BankingApp.Domain.ValueObjects;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Errors;
-using BankingApp.Domain.Services;
+using Common.Primitives;
+using Services;
+using Common.Errors;
 using ErrorOr;
 
 public sealed record Iban : ValueObject

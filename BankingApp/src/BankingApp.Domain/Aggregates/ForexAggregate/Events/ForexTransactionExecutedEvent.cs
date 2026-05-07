@@ -1,5 +1,5 @@
 namespace BankingApp.Domain.Aggregates.ForexAggregate.Events;
 
-using BankingApp.Domain.Common;
+using Common;
 
 public record ForexTransactionExecutedEvent(int ForexTransactionId, DateTime OccurredOnUtc) : IDomainEvent;

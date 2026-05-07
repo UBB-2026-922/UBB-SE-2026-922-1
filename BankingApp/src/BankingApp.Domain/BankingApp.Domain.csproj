@@ -9,6 +9,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="ErrorOr" Version="2.1.0"/>
+        <PackageReference Include="NodaMoney" Version="2.7.0"/>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Aggregates\" />

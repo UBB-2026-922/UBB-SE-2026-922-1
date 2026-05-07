@@ -1,7 +1,8 @@
 namespace BankingApp.Domain.Aggregates.ForexAggregate;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Enums;
+using Common.Primitives;
+using Enums;
+using Money = NodaMoney.Money;
 
 public sealed class ForexTransaction : AggregateRoot<int>
 {
@@ -19,17 +20,13 @@ public sealed class ForexTransaction : AggregateRoot<int>
 
     public int? TargetLedgerTransactionId { get; private set; }
 
-    public string SourceCurrency { get; private set; } = string.Empty;
+    public Money SourceAmount { get; private set; } = default!;
 
-    public string TargetCurrency { get; private set; } = string.Empty;
-
-    public decimal SourceAmount { get; private set; }
-
-    public decimal TargetAmount { get; private set; }
+    public Money TargetAmount { get; private set; } = default!;
 
     public decimal ExchangeRate { get; private set; }
 
-    public decimal Commission { get; private set; }
+    public Money Commission { get; private set; } = default!;
 
     public DateTime? RateLockedAt { get; private set; }
 
@@ -41,12 +38,10 @@ public sealed class ForexTransaction : AggregateRoot<int>
         int userId,
         int sourceAccountId,
         int targetAccountId,
-        string sourceCurrency,
-        string targetCurrency,
-        decimal sourceAmount,
-        decimal targetAmount,
+        Money sourceAmount,
+        Money targetAmount,
         decimal exchangeRate,
-        decimal commission,
+        Money commission,
         DateTime createdAt)
     {
         return new ForexTransaction
@@ -54,8 +49,6 @@ public sealed class ForexTransaction : AggregateRoot<int>
             UserId = userId,
             SourceAccountId = sourceAccountId,
             TargetAccountId = targetAccountId,
-            SourceCurrency = sourceCurrency,
-            TargetCurrency = targetCurrency,
             SourceAmount = sourceAmount,
             TargetAmount = targetAmount,
             ExchangeRate = exchangeRate,

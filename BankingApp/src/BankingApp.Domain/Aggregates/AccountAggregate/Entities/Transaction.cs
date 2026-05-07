@@ -2,6 +2,7 @@ namespace BankingApp.Domain.Aggregates.AccountAggregate.Entities;
 
 using BankingApp.Domain.Common.Primitives;
 using BankingApp.Domain.Enums;
+using Money = NodaMoney.Money;
 
 public sealed class Transaction : Entity<int>
 {
@@ -19,11 +20,9 @@ public sealed class Transaction : Entity<int>
 
     public TransactionDirection Direction { get; private set; }
 
-    public decimal Amount { get; private set; }
+    public Money Amount { get; private set; } = default!;
 
-    public Currency Currency { get; private set; }
-
-    public decimal BalanceAfter { get; private set; }
+    public Money BalanceAfter { get; private set; } = default!;
 
     public string? CounterpartyName { get; private set; }
 
@@ -35,7 +34,7 @@ public sealed class Transaction : Entity<int>
 
     public string? Description { get; private set; }
 
-    public decimal Fee { get; private set; }
+    public Money? Fee { get; private set; }
 
     public decimal? ExchangeRate { get; private set; }
 
@@ -52,9 +51,8 @@ public sealed class Transaction : Entity<int>
         string transactionRef,
         string type,
         TransactionDirection direction,
-        decimal amount,
-        Currency currency,
-        decimal balanceAfter,
+        Money amount,
+        Money balanceAfter,
         TransactionStatus status,
         DateTime createdAt)
     {
@@ -65,7 +63,6 @@ public sealed class Transaction : Entity<int>
             Type = type,
             Direction = direction,
             Amount = amount,
-            Currency = currency,
             BalanceAfter = balanceAfter,
             Status = status,
             CreatedAt = createdAt

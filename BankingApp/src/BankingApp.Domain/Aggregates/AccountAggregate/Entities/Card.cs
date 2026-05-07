@@ -1,7 +1,7 @@
 namespace BankingApp.Domain.Aggregates.AccountAggregate.Entities;
 
-using BankingApp.Domain.Common.Primitives;
-using BankingApp.Domain.Enums;
+using Common.Primitives;
+using Enums;
 
 public sealed class Card : Entity<int>
 {

@@ -7,11 +7,11 @@ using BankingApp.Application.Common.Security;
 using BankingApp.Application.Common.Utilities;
 using Domain.Entities;
 using Domain.Enums;
-using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 using BankingApp.Application.Features.UserProfile.Dtos;
+using Domain.Common.Errors;
 
 /// <summary>
 ///     Provides user profile management operations including personal info, passwords, 2FA, and notifications.

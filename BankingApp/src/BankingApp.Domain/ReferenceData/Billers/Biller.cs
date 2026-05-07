@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.ReferenceData.Billers;
 
-using BankingApp.Domain.Enums;
+using Enums;
 
 /// <summary>
 /// Represents shared reference data for a registered biller.

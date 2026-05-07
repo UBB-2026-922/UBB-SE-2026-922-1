@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Domain.Errors;
+﻿namespace BankingApp.Domain.Common.Errors;
 
 using ErrorOr;
 

@@ -7,8 +7,8 @@ using BankingApp.Application.Common.Logging;
 
 using BankingApp.Application.Common.Notifications;
 using BankingApp.Application.Common.Security;
+using Domain.Common.Errors;
 using Domain.Entities;
-using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
