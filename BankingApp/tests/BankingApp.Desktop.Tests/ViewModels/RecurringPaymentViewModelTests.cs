@@ -40,14 +40,14 @@ public class RecurringPaymentViewModelTests
         };
         var billers = new List<BillerDto>
         {
-            new BillerDto { Id = 1, Name = "Electric Co" },
+            new() { Id = 1, Name = "Electric Co" },
         };
 
-        _billPaymentClientService.Setup(s => s.GetAccountsAsync())
+        _billPaymentClientService.Setup(service => service.GetAccountsAsync())
             .ReturnsAsync(accounts);
-        _billPaymentClientService.Setup(s => s.GetRecurringPaymentsAsync())
+        _billPaymentClientService.Setup(service => service.GetRecurringPaymentsAsync())
             .ReturnsAsync(payments);
-        _billPaymentClientService.Setup(s => s.GetBillersAsync(null, null))
+        _billPaymentClientService.Setup(service => service.GetBillersAsync(null, null))
             .ReturnsAsync(billers);
 
         // Act

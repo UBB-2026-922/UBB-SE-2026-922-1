@@ -49,7 +49,7 @@ public class ProfileViewModelTests
         var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetProfileAsync())
+            .Setup(service => service.GetProfileAsync())
             .ReturnsAsync(Error.Failure(description: "server down"));
 
         // Act

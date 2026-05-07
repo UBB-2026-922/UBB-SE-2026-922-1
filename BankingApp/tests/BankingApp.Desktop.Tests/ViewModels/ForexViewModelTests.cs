@@ -138,7 +138,7 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _forexClientService.Setup(s => s.CurrentUserId).Returns(1);
+        _forexClientService.Setup(service => service.CurrentUserId).Returns(1);
 
         var response = new ExchangeTransactionResponse { Id = transactionId };
         _forexClientService

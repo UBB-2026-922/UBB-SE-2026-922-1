@@ -18,11 +18,11 @@ using Microsoft.Extensions.Logging;
 public partial class RateAlertViewModel : INotifyPropertyChanged
 {
     private const decimal MinimumRate = 0m;
-    private static readonly string[] AvailableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
+    private static readonly string[] _availableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
     private readonly IRateAlertClientService _rateAlertClientService;
     private readonly ILogger<RateAlertViewModel> _logger;
-    private ObservableCollection<RateAlertDto> _alerts = new();
+    private ObservableCollection<RateAlertDto> _alerts = [];
     private string _baseCurrency = string.Empty;
     private string _targetCurrency = string.Empty;
     private string _targetRateText = string.Empty;
@@ -37,7 +37,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     {
         _rateAlertClientService = rateAlertClientService ?? throw new ArgumentNullException(nameof(rateAlertClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        AvailableCurrencies = new ObservableCollection<string>(AvailableCurrencyCodes);
+        AvailableCurrencies = new ObservableCollection<string>(_availableCurrencyCodes);
     }
 
     /// <inheritdoc />

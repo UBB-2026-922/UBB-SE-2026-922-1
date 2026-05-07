@@ -119,7 +119,7 @@ public class DashboardViewModelTests
     {
         // Arrange
         _dashboardClientService
-            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
+            .Setup(service => service.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DashboardDto());
 
         // Act

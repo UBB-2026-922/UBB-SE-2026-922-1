@@ -86,14 +86,19 @@ public class PersonalInfoViewModelTests
         const int userId = 7;
         DateTime dateOfBirth = new(1999, 12, 31);
         UpdateProfileRequest? sentRequest = null;
-        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
-        viewModel.ProfileInfo.UserId = userId;
-        viewModel.ProfileInfo.FullName = "Existing Name";
-        viewModel.ProfileInfo.PhoneNumber = "0000";
-        viewModel.ProfileInfo.Address = "Old Address";
-        viewModel.ProfileInfo.DateOfBirth = dateOfBirth;
-        viewModel.ProfileInfo.Nationality = "Romanian";
-        viewModel.ProfileInfo.PreferredLanguage = "ro";
+        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance)
+            {
+                ProfileInfo =
+                {
+                    UserId = userId,
+                    FullName = "Existing Name",
+                    PhoneNumber = "0000",
+                    Address = "Old Address",
+                    DateOfBirth = dateOfBirth,
+                    Nationality = "Romanian",
+                    PreferredLanguage = "ro"
+                }
+            };
 
         _profileClientService
             .Setup(service => service.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
@@ -124,11 +129,16 @@ public class PersonalInfoViewModelTests
     {
         // Arrange
         UpdateProfileRequest? sentRequest = null;
-        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
-        viewModel.ProfileInfo.UserId = 7;
-        viewModel.ProfileInfo.FullName = "Existing Name";
-        viewModel.ProfileInfo.PhoneNumber = "0711";
-        viewModel.ProfileInfo.Address = "Old Address";
+        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance)
+            {
+                ProfileInfo =
+                {
+                    UserId = 7,
+                    FullName = "Existing Name",
+                    PhoneNumber = "0711",
+                    Address = "Old Address"
+                }
+            };
 
         _profileClientService
             .Setup(s => s.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
@@ -154,11 +164,16 @@ public class PersonalInfoViewModelTests
     public async Task UpdatePersonalInfo_WhenApiFails_DoesNotMutateProfileAndSetsErrorState()
     {
         // Arrange
-        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
-        viewModel.ProfileInfo.UserId = 7;
-        viewModel.ProfileInfo.FullName = "Existing Name";
-        viewModel.ProfileInfo.PhoneNumber = "0711";
-        viewModel.ProfileInfo.Address = "Old Address";
+        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance)
+            {
+                ProfileInfo =
+                {
+                    UserId = 7,
+                    FullName = "Existing Name",
+                    PhoneNumber = "0711",
+                    Address = "Old Address"
+                }
+            };
 
         _profileClientService
             .Setup(s => s.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
@@ -193,8 +208,13 @@ public class PersonalInfoViewModelTests
     public async Task VerifyPassword_WhenApiReturnsTrue_SetsSuccessState()
     {
         // Arrange
-        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
-        viewModel.ProfileInfo.UserId = 7;
+        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance)
+            {
+                ProfileInfo =
+                {
+                    UserId = 7
+                }
+            };
 
         _profileClientService
             .Setup(s => s.VerifyPasswordAsync("correct-password"))
@@ -212,11 +232,16 @@ public class PersonalInfoViewModelTests
     public async Task VerifyPassword_WhenApiReturnsFalse_SetsErrorState()
     {
         // Arrange
-        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
-        viewModel.ProfileInfo.UserId = 7;
+        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance)
+            {
+                ProfileInfo =
+                {
+                    UserId = 7
+                }
+            };
 
         _profileClientService
-            .Setup(s => s.VerifyPasswordAsync("wrong-password"))
+            .Setup(service => service.VerifyPasswordAsync("wrong-password"))
             .ReturnsAsync(false);
 
         // Act
@@ -231,8 +256,13 @@ public class PersonalInfoViewModelTests
     public async Task VerifyPassword_WhenApiFails_SetsErrorState()
     {
         // Arrange
-        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
-        viewModel.ProfileInfo.UserId = 7;
+        var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance)
+            {
+                ProfileInfo =
+                {
+                    UserId = 7
+                }
+            };
 
         _profileClientService
             .Setup(s => s.VerifyPasswordAsync("password"))

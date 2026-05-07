@@ -517,7 +517,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private void ConfigureActionButton(
+    private static void ConfigureActionButton(
         Button button,
         Border badge,
         TextBlock statusText,

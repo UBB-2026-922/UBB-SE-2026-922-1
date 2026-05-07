@@ -79,7 +79,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Email = "test@example.com", Password = "WrongPassword!" };
         _factory.LoginServiceMock
-            .Setup(s => s.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
+            .Setup(service => service.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
             .Returns(Error.Unauthorized("invalid_credentials", "Invalid credentials."));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request, _cancellationToken);
@@ -126,7 +126,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { UserId = 1, OtpCode = "123456" };
         _factory.LoginServiceMock
-            .Setup(s => s.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata>()))
+            .Setup(service => service.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata>()))
             .Returns(new FullLogin(1, "fake-jwt-token"));
 
         // Act

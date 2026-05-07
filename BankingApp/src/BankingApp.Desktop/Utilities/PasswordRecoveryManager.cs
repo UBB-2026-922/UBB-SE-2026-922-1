@@ -59,7 +59,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
 
             double elapsed = (_clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds;
             double remaining = ResendCooldownSeconds - elapsed;
-            return remaining > default(double) ? (int)Math.Ceiling(remaining) : NoSecondsRemaining;
+            return remaining > 0 ? (int)Math.Ceiling(remaining) : NoSecondsRemaining;
         }
     }
 
@@ -142,7 +142,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
         return PasswordValidator.IsStrong(password);
     }
 
-    private ForgotPasswordState MapError(Error error)
+    private static ForgotPasswordState MapError(Error error)
     {
         return error.Code switch
         {

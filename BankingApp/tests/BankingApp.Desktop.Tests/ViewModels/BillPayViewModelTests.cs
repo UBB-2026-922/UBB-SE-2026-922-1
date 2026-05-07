@@ -262,7 +262,7 @@ public class BillPayViewModelTests
     public async Task ExecutePayBillAsync_WhenSuccess_ShouldSetReceiptAndGoToStep5()
     {
         _billPaymentClientService
-            .Setup(s => s.PayBillAsync(It.IsAny<BillPayRequest>()))
+            .Setup(service => service.PayBillAsync(It.IsAny<BillPayRequest>()))
             .ReturnsAsync(new BillPayResponse
             {
                 Id = 1,

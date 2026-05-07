@@ -123,6 +123,7 @@ dotnet_diagnostic.SA1638.severity = none
 dotnet_diagnostic.SA1010.severity = none
 dotnet_diagnostic.SA1515.severity = none
 dotnet_diagnostic.SA1601.severity = none
+dotnet_diagnostic.CsWinRT1030.severity = none
 dotnet_diagnostic.RCS1036.severity = none
 dotnet_diagnostic.RCS1246.severity = none
 

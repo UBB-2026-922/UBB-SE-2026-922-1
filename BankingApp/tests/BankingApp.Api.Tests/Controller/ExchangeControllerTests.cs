@@ -124,11 +124,11 @@ public class ExchangeControllerTests
         var responseDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
 
         _mockBillPaymentRepository
-            .Setup(r => r.GetAccountsByUserIdAsync(1))
+            .Setup(repository => repository.GetAccountsByUserIdAsync(1))
             .ReturnsAsync(userAccounts);
 
         _mockExchangeService
-            .Setup(s => s.ExecuteExchange(request))
+            .Setup(service => service.ExecuteExchange(request))
             .Returns(responseDto);
 
         // Act
@@ -282,12 +282,12 @@ public class ExchangeControllerTests
         // Arrange
         var historyList = new List<ExchangeTransactionResponse>
         {
-            new ExchangeTransactionResponse { Id = 1, SourceCurrency = "EUR", TargetCurrency = "USD" },
-            new ExchangeTransactionResponse { Id = 2, SourceCurrency = "GBP", TargetCurrency = "EUR" },
+            new() { Id = 1, SourceCurrency = "EUR", TargetCurrency = "USD" },
+            new() { Id = 2, SourceCurrency = "GBP", TargetCurrency = "EUR" },
         };
 
         _mockExchangeService
-            .Setup(s => s.GetExchangeHistory(1))
+            .Setup(service => service.GetExchangeHistory(1))
             .Returns(historyList);
 
         // Act
@@ -305,7 +305,7 @@ public class ExchangeControllerTests
         // Arrange
         var error = Error.Validation("Code", "Description");
         _mockExchangeService
-            .Setup(s => s.GetExchangeHistory(1))
+            .Setup(service => service.GetExchangeHistory(1))
             .Returns(error);
 
         // Act

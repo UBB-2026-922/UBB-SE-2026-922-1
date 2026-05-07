@@ -397,7 +397,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
     ///     Generates a random six-digit 2FA token string for display to the user.
     /// </summary>
     /// <returns>A six-digit string token.</returns>
-    internal string GenerateTwoFaToken()
+    internal static string GenerateTwoFaToken()
     {
         var random = new Random();
         return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive)
