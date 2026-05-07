@@ -1,6 +1,8 @@
 ﻿namespace BankingApp.Domain.Common;
 
-public interface IDomainEvent
+using MediatR;
+
+public interface IDomainEvent : INotification
 {
     public DateTime OccurredOnUtc { get; }
 }

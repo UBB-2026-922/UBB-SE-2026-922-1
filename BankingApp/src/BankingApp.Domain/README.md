@@ -4,7 +4,15 @@ Contains all business concepts and rules with zero dependencies on infrastructur
 
 ## Dependency rule
 
-This project has **no references** to Application, Infrastructure, or any external framework (except `ErrorOr` for result types and `NodaMoney` for monetary values). Everything else in the solution depends on this project, never the other way around.
+This project has **no references** to Application, Infrastructure, or any heavy framework. The only external dependencies are:
+
+| Package             | Why                                                                                                                             |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `ErrorOr`           | Result type — forces callers to handle failure without exceptions                                                               |
+| `NodaMoney`         | ISO 4217 money and currency with built-in arithmetic and validation                                                             |
+| `MediatR.Contracts` | `INotification` marker interface only — lets domain events be dispatched by MediatR without pulling in MediatR's implementation |
+
+Everything else in the solution depends on this project, never the other way around.
 
 ## Structure
 
@@ -76,18 +84,26 @@ Currently: `IbanValidationService` (structural IBAN check used by the `Iban` val
 
 ## Domain events
 
-Raised inside aggregate methods via `Raise(...)` and stored on the aggregate root until the Infrastructure layer clears them after a successful persistence. The Application layer picks them up and dispatches to handlers.
+`IDomainEvent` extends `MediatR.INotification`, so every domain event can be published directly via MediatR's `IPublisher` without any adapter layer.
 
-| Event                         | Raised by                            |
-|-------------------------------|--------------------------------------|
-| `BalanceUpdatedEvent`         | `Account.ChangeBalance`              |
-| `TransactionRecordedEvent`    | `Account.RecordTransaction`          |
-| `TransferExecutedEvent`       | (raised in Application after commit) |
-| `TransferFailedEvent`         | (raised in Application after commit) |
-| `BillPaymentProcessedEvent`   | (raised in Application after commit) |
-| `RecurringPaymentsExecutedEvent` | (raised in Application after commit) |
-| `ForexTransactionExecutedEvent`  | (raised in Application after commit) |
-| `RateAlertTriggeredEvent`     | (raised in Application after commit) |
-| `UserRegisteredEvent`         | (raised in Application after commit) |
-| `UserLoggedInEvent`           | (raised in Application after commit) |
-| `PasswordResetRequestedEvent` | (raised in Application after commit) |
+**Dispatch flow:**
+
+1. An aggregate method calls `Raise(new SomeEvent(...))` — the event is stored in `_domainEvents` on the root.
+2. After `SaveChangesAsync()` succeeds, Infrastructure reads `DomainEvents` from all tracked aggregates, calls `IPublisher.Publish(@event)` for each, then clears the list.
+3. Application provides the `INotificationHandler<TEvent>` implementations that react to each event.
+
+**Events by aggregate:**
+
+| Event                            | Raised by                        |
+|----------------------------------|----------------------------------|
+| `BalanceUpdatedEvent`            | `Account.ChangeBalance`          |
+| `TransactionRecordedEvent`       | `Account.RecordTransaction`      |
+| `TransferExecutedEvent`          | Application handler after commit |
+| `TransferFailedEvent`            | Application handler after commit |
+| `BillPaymentProcessedEvent`      | Application handler after commit |
+| `RecurringPaymentsExecutedEvent` | Application handler after commit |
+| `ForexTransactionExecutedEvent`  | Application handler after commit |
+| `RateAlertTriggeredEvent`        | Application handler after commit |
+| `UserRegisteredEvent`            | Application handler after commit |
+| `UserLoggedInEvent`              | Application handler after commit |
+| `PasswordResetRequestedEvent`    | Application handler after commit |
