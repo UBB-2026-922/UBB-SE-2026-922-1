@@ -4,6 +4,7 @@ using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DependencyInjection;
+using BankingApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;

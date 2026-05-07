@@ -4,6 +4,7 @@ using BankingApp.Infrastructure.DataAccess;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Persistence;
 using Respawn;
 using Testcontainers.MsSql;
 

@@ -6,6 +6,7 @@ using Domain.Entities;
 using Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;
 using ErrorOr;
+using Persistence;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IRecurringPaymentRepository" /> backed by <see cref="AppDatabaseContext" />.

@@ -1,9 +1,10 @@
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 using Domain.Entities;
 using Domain.Enums;
 using Interfaces;
 using ErrorOr;
+using Persistence;
 
 /// <summary>
 ///     Provides EF Core data access for transfer records.

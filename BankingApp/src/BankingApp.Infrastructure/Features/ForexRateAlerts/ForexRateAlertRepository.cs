@@ -5,6 +5,7 @@ using BankingApp.Application.Features.ForexRateAlerts.Repositories;
 using Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
 using ErrorOr;
+using Persistence;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IForexRateAlertRepository" />.

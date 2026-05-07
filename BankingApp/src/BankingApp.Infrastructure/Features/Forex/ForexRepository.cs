@@ -7,6 +7,7 @@ using Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore.Storage;
+using Persistence;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IForexRepository" />.

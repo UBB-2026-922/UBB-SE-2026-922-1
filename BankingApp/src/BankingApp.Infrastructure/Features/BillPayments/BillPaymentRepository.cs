@@ -8,6 +8,7 @@ using BankingApp.Application.Features.BillPayments.Repositories;
 using Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Persistence;
 
 /// <summary>
 /// Implements the data access operations for bill payments.

@@ -1,6 +1,5 @@
-global using FluentAssertions;
+﻿global using FluentAssertions;
 global using Moq;
-global using BankingApp.Infrastructure.Repositories.AccountOverview;
 global using BankingApp.Infrastructure.Repositories.Authentication;
 global using BankingApp.Infrastructure.Repositories.Beneficiaries;
 global using BankingApp.Infrastructure.Repositories.RecurringPayments;

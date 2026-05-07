@@ -1,8 +1,7 @@
-namespace BankingApp.Infrastructure.Repositories.AccountOverview;
-
+namespace BankingApp.Infrastructure.Features.AccountOverview;
 
 using BankingApp.Application.Features.AccountOverview.Repositories;
-using Domain.Entities;
+using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
 using ErrorOr;
 

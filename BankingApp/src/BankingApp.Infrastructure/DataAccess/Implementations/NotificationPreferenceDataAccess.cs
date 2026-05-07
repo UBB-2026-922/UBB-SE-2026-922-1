@@ -1,9 +1,10 @@
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 using Domain.Entities;
 using Domain.Extensions;
 using Interfaces;
 using ErrorOr;
+using Persistence;
 
 /// <summary>
 ///     Provides SQL Server data access for notification preference records.

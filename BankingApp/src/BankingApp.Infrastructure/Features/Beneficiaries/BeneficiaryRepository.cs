@@ -8,6 +8,7 @@ using Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Persistence;
 
 /// <summary>
 ///     Provides repository operations for managing beneficiaries.

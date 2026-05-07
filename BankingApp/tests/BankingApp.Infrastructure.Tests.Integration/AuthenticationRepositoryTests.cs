@@ -7,6 +7,7 @@ using BankingApp.Infrastructure.DataAccess.Implementations;
 using Infrastructure;
 using Bogus;
 using ErrorOr;
+using Persistence;
 
 [Trait("Category", "Integration")]
 [Collection("Integration")]

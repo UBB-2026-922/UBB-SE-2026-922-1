@@ -1,10 +1,11 @@
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 using Domain.Entities;
 using Domain.Errors;
 using Interfaces;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
+using Persistence;
 
 /// <summary>
 ///     Provides EF Core data access for saved billers.

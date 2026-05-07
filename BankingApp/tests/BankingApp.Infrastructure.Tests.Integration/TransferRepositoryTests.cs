@@ -1,4 +1,4 @@
-namespace BankingApp.Infrastructure.Tests.Integration;
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
 
 using Domain.Entities;
 using Domain.Enums;
@@ -6,6 +6,7 @@ using BankingApp.Infrastructure.DataAccess;
 
 using Infrastructure;
 using ErrorOr;
+using Persistence;
 
 /// <summary>
 ///     Integration tests for <see cref="TransferRepository" /> against a real database.
