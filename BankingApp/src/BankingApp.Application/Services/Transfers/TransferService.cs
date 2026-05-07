@@ -58,10 +58,7 @@ public class TransferService(
     public ErrorOr<List<TransferAccountSelectionResponse>> GetAvailableAccounts(int userId)
     {
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
-        if (accountsResult.IsError)
-        {
-            return accountsResult.FirstError;
-        }
+        if (accountsResult.IsError) return accountsResult.FirstError;
 
         return accountsResult.Value
             .Where(account => account.Status == AccountStatus.Active)
@@ -72,7 +69,7 @@ public class TransferService(
                 Iban = account.Iban,
                 Currency = account.Currency,
                 Balance = account.Balance,
-                AccountName = account.AccountName ?? string.Empty,
+                AccountName = account.AccountName ?? string.Empty
             })
             .ToList();
     }
@@ -84,7 +81,7 @@ public class TransferService(
         return new TransferIbanValidationResponse
         {
             IsValid = isValid,
-            BankName = isValid ? InferBankName(iban) : string.Empty,
+            BankName = isValid ? InferBankName(iban) : string.Empty
         };
     }
 
@@ -92,34 +89,24 @@ public class TransferService(
     public ErrorOr<TransferFxPreviewResponse> GetFxPreview(string sourceCurrency, string targetCurrency, decimal amount)
     {
         if (string.IsNullOrWhiteSpace(sourceCurrency) || string.IsNullOrWhiteSpace(targetCurrency))
-        {
             return Error.Validation(description: "Both currencies are required.");
-        }
 
-        if (amount <= 0)
-        {
-            return Error.Validation(description: "Amount must be greater than zero.");
-        }
+        if (amount <= 0) return Error.Validation(description: "Amount must be greater than zero.");
 
         if (sourceCurrency.Equals(targetCurrency, StringComparison.OrdinalIgnoreCase))
-        {
             return new TransferFxPreviewResponse
             {
                 ExchangeRate = 1m,
-                ConvertedAmount = amount,
+                ConvertedAmount = amount
             };
-        }
 
         ErrorOr<decimal> rateResult = GetExchangeRate(sourceCurrency, targetCurrency);
-        if (rateResult.IsError)
-        {
-            return rateResult.FirstError;
-        }
+        if (rateResult.IsError) return rateResult.FirstError;
 
         return new TransferFxPreviewResponse
         {
             ExchangeRate = rateResult.Value,
-            ConvertedAmount = Math.Round(amount * rateResult.Value, 2),
+            ConvertedAmount = Math.Round(amount * rateResult.Value, 2)
         };
     }
 
@@ -136,10 +123,7 @@ public class TransferService(
     public ErrorOr<TransferResponse> CreateTransfer(CreateTransferRequest request, int userId)
     {
         ErrorOr<Success> validationResult = ValidateRequest(request);
-        if (validationResult.IsError)
-        {
-            return validationResult.FirstError;
-        }
+        if (validationResult.IsError) return validationResult.FirstError;
 
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
         if (accountsResult.IsError)
@@ -177,10 +161,7 @@ public class TransferService(
         }
 
         ErrorOr<Success> authResult = CheckTwoFa(request, userId);
-        if (authResult.IsError)
-        {
-            return authResult.FirstError;
-        }
+        if (authResult.IsError) return authResult.FirstError;
 
         return DebitAndPersist(request, userId, account);
     }
@@ -204,35 +185,20 @@ public class TransferService(
 
     private static bool IsValidIban(string iban)
     {
-        if (string.IsNullOrWhiteSpace(iban))
-        {
-            return false;
-        }
+        if (string.IsNullOrWhiteSpace(iban)) return false;
 
-        if (iban.Length < IbanMinLength || iban.Length > IbanMaxLength)
-        {
-            return false;
-        }
+        if (iban.Length < IbanMinLength || iban.Length > IbanMaxLength) return false;
 
-        if (!char.IsLetter(iban[0]) || !char.IsLetter(iban[1]))
-        {
-            return false;
-        }
+        if (!char.IsLetter(iban[0]) || !char.IsLetter(iban[1])) return false;
 
-        if (!char.IsDigit(iban[2]) || !char.IsDigit(iban[3]))
-        {
-            return false;
-        }
+        if (!char.IsDigit(iban[2]) || !char.IsDigit(iban[3])) return false;
 
         return true;
     }
 
     private static string InferBankName(string iban)
     {
-        if (string.IsNullOrWhiteSpace(iban) || iban.Length < IbanCountryCodeLength)
-        {
-            return "Unknown Bank";
-        }
+        if (string.IsNullOrWhiteSpace(iban) || iban.Length < IbanCountryCodeLength) return "Unknown Bank";
 
         return iban[..IbanCountryCodeLength].ToUpperInvariant() switch
         {
@@ -241,7 +207,7 @@ public class TransferService(
             "GB" => "UK Bank",
             "FR" => "French Bank",
             "US" => "US Bank",
-            _ => "International Bank",
+            _ => "International Bank"
         };
     }
 
@@ -266,7 +232,7 @@ public class TransferService(
             Fee = transfer.Fee,
             Reference = transfer.Reference,
             Status = transfer.Status,
-            CreatedAt = transfer.CreatedAt,
+            CreatedAt = transfer.CreatedAt
         };
     }
 
@@ -278,35 +244,24 @@ public class TransferService(
             { EurGbpPair, EurGbpRate },
             { EurRonPair, EurRonRate },
             { UsdRonPair, UsdRonRate },
-            { GbpRonPair, GbpRonRate },
+            { GbpRonPair, GbpRonRate }
         };
 
         string directPair = $"{sourceCurrency.ToUpperInvariant()}/{targetCurrency.ToUpperInvariant()}";
-        if (rates.TryGetValue(directPair, out decimal directRate))
-        {
-            return directRate;
-        }
+        if (rates.TryGetValue(directPair, out decimal directRate)) return directRate;
 
         string inversePair = $"{targetCurrency.ToUpperInvariant()}/{sourceCurrency.ToUpperInvariant()}";
         if (rates.TryGetValue(inversePair, out decimal inverseRate))
-        {
             return Math.Round(1 / inverseRate, ExchangeRatePrecision);
-        }
 
         return Error.NotFound(description: $"Rate not found for pair {sourceCurrency}/{targetCurrency}.");
     }
 
-    private ErrorOr<Success> ValidateRequest(CreateTransferRequest request)
+    private static ErrorOr<Success> ValidateRequest(CreateTransferRequest request)
     {
-        if (!IsValidIban(request.RecipientIban))
-        {
-            return TransferErrors.InvalidIban;
-        }
+        if (!IsValidIban(request.RecipientIban)) return TransferErrors.InvalidIban;
 
-        if (request.Amount <= 0)
-        {
-            return TransferErrors.InvalidAmount;
-        }
+        if (request.Amount <= 0) return TransferErrors.InvalidAmount;
 
         if (string.IsNullOrWhiteSpace(request.Currency)
             || request.Currency.Length != ExpectedCurrencyCodeLength)
@@ -319,10 +274,7 @@ public class TransferService(
 
     private ErrorOr<Success> CheckTwoFa(CreateTransferRequest request, int userId)
     {
-        if (request.Amount < TwoFaAmountThreshold)
-        {
-            return Result.Success;
-        }
+        if (request.Amount < TwoFaAmountThreshold) return Result.Success;
 
         if (string.IsNullOrWhiteSpace(request.TwoFaToken))
         {
@@ -374,7 +326,7 @@ public class TransferService(
             Fee = 0m,
             Status = TransactionStatus.Completed,
             RelatedEntityType = TransferRelatedEntityType,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         ErrorOr<Transaction> logResult = _dashboardRepository.AddTransaction(transaction);
@@ -399,7 +351,7 @@ public class TransferService(
             Fee = 0m,
             Reference = request.Reference,
             Status = TransferStatus.Completed,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         ErrorOr<Transfer> persistResult = _dashboardRepository.AddTransfer(transfer);
@@ -426,7 +378,7 @@ public class TransferService(
             Fee = persistedTransfer.Fee,
             Reference = persistedTransfer.Reference,
             Status = persistedTransfer.Status,
-            CreatedAt = persistedTransfer.CreatedAt,
+            CreatedAt = persistedTransfer.CreatedAt
         };
     }
 }

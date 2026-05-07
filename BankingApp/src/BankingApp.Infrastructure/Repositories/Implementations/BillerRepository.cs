@@ -32,26 +32,38 @@ public class BillerRepository : IBillerRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<Biller>> GetAllBillers(bool activeOnly = true) =>
-        _billerDataAccess.GetAll(activeOnly);
+    public ErrorOr<List<Biller>> GetAllBillers(bool activeOnly = true)
+    {
+        return _billerDataAccess.GetAll(activeOnly);
+    }
 
     /// <inheritdoc />
-    public ErrorOr<List<Biller>> SearchBillers(string searchTerm, string? category = null, bool activeOnly = true) =>
-        _billerDataAccess.Search(searchTerm, category, activeOnly);
+    public ErrorOr<List<Biller>> SearchBillers(string searchTerm, string? category = null, bool activeOnly = true)
+    {
+        return _billerDataAccess.Search(searchTerm, category, activeOnly);
+    }
 
     /// <inheritdoc />
-    public ErrorOr<Biller> GetBillerById(int billerId) =>
-        _billerDataAccess.FindById(billerId);
+    public ErrorOr<Biller> GetBillerById(int billerId)
+    {
+        return _billerDataAccess.FindById(billerId);
+    }
 
     /// <inheritdoc />
-    public ErrorOr<List<SavedBiller>> GetSavedBillers(int userId) =>
-        _savedBillerDataAccess.FindByUserId(userId);
+    public ErrorOr<List<SavedBiller>> GetSavedBillers(int userId)
+    {
+        return _savedBillerDataAccess.FindByUserId(userId);
+    }
 
     /// <inheritdoc />
-    public ErrorOr<SavedBiller> SaveBiller(SavedBiller savedBiller) =>
-        _savedBillerDataAccess.Add(savedBiller);
+    public ErrorOr<SavedBiller> SaveBiller(SavedBiller savedBiller)
+    {
+        return _savedBillerDataAccess.Add(savedBiller);
+    }
 
     /// <inheritdoc />
-    public ErrorOr<Success> DeleteSavedBiller(int savedBillerId) =>
-        _savedBillerDataAccess.Delete(savedBillerId);
+    public ErrorOr<Success> DeleteSavedBiller(int savedBillerId)
+    {
+        return _savedBillerDataAccess.Delete(savedBillerId);
+    }
 }

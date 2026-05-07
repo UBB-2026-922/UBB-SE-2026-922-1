@@ -48,18 +48,12 @@ public sealed partial class RecurringPaymentView : Page
 
     private void StartDatePicker_DateChanged(object sender, DatePickerValueChangedEventArgs args)
     {
-        if (sender is DatePicker picker)
-        {
-            _viewModel.StartDate = picker.Date.DateTime.Date;
-        }
+        if (sender is DatePicker picker) _viewModel.StartDate = picker.Date.DateTime.Date;
     }
 
     private void EndDatePicker_DateChanged(object sender, DatePickerValueChangedEventArgs args)
     {
-        if (sender is DatePicker picker)
-        {
-            _viewModel.EndDate = picker.Date.DateTime.Date;
-        }
+        if (sender is DatePicker picker) _viewModel.EndDate = picker.Date.DateTime.Date;
     }
 
     private async void CreateButton_Click(object sender, RoutedEventArgs args)
@@ -69,25 +63,16 @@ public sealed partial class RecurringPaymentView : Page
 
     private void PauseButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: RecurringPaymentResponse payment })
-        {
-            _ = _viewModel.PauseAsync(payment);
-        }
+        if (sender is Button { Tag: RecurringPaymentResponse payment }) _ = _viewModel.PauseAsync(payment);
     }
 
     private void ResumeButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: RecurringPaymentResponse payment })
-        {
-            _ = _viewModel.ResumeAsync(payment);
-        }
+        if (sender is Button { Tag: RecurringPaymentResponse payment }) _ = _viewModel.ResumeAsync(payment);
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: RecurringPaymentResponse payment })
-        {
-            _ = _viewModel.CancelAsync(payment);
-        }
+        if (sender is Button { Tag: RecurringPaymentResponse payment }) _ = _viewModel.CancelAsync(payment);
     }
 }

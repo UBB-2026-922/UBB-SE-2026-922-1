@@ -48,10 +48,7 @@ public class RegistrationService : IRegistrationService
     public ErrorOr<Success> Register(RegisterRequest request)
     {
         Error? validationError = ValidateRegistration(request);
-        if (validationError is not null)
-        {
-            return validationError.Value;
-        }
+        if (validationError is not null) return validationError.Value;
 
         ErrorOr<User> existingUserResult = _authRepository.FindUserByEmail(request.Email);
         if (!existingUserResult.IsError)
@@ -69,10 +66,7 @@ public class RegistrationService : IRegistrationService
         }
 
         ErrorOr<User> newUserResult = CreateUserFromRequest(request);
-        if (newUserResult.IsError)
-        {
-            return newUserResult.FirstError;
-        }
+        if (newUserResult.IsError) return newUserResult.FirstError;
 
         ErrorOr<Success> createResult = _authRepository.CreateUser(newUserResult.Value);
         if (createResult.IsError)
@@ -87,20 +81,11 @@ public class RegistrationService : IRegistrationService
 
     private static Error? ValidateRegistration(RegisterRequest request)
     {
-        if (!ValidationUtilities.IsValidEmail(request.Email))
-        {
-            return AuthErrors.InvalidEmail;
-        }
+        if (!ValidationUtilities.IsValidEmail(request.Email)) return AuthErrors.InvalidEmail;
 
-        if (!ValidationUtilities.IsStrongPassword(request.Password))
-        {
-            return ProfileErrors.WeakPassword;
-        }
+        if (!ValidationUtilities.IsStrongPassword(request.Password)) return ProfileErrors.WeakPassword;
 
-        if (string.IsNullOrWhiteSpace(request.FullName))
-        {
-            return ProfileErrors.FullNameRequired;
-        }
+        if (string.IsNullOrWhiteSpace(request.FullName)) return ProfileErrors.FullNameRequired;
 
         return null;
     }
@@ -122,7 +107,7 @@ public class RegistrationService : IRegistrationService
             PreferredLanguage = DefaultLanguage,
             Is2FaEnabled = false,
             IsLocked = false,
-            FailedLoginAttempts = 0,
+            FailedLoginAttempts = 0
         };
     }
 }

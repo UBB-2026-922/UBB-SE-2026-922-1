@@ -20,5 +20,5 @@ public enum TransactionDirection
     /// <summary>
     ///     The transaction is outbound. (Sending)
     /// </summary>
-    Out,
+    Out
 }

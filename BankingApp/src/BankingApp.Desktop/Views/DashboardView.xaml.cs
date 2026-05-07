@@ -179,7 +179,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
             {
                 Width = dotViewModel.IsActive ? ActiveCardDotSize : InactiveCardDotSize,
                 Height = InactiveCardDotSize,
-                Fill = new SolidColorBrush(dotViewModel.IsActive ? _activeDotColor : _inactiveDotColor),
+                Fill = new SolidColorBrush(dotViewModel.IsActive ? _activeDotColor : _inactiveDotColor)
             };
             CardDots.Children.Add(dot);
         }
@@ -190,10 +190,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
         IReadOnlyList<CardPageIndicatorViewModel> dots = _viewModel.CardDots;
         for (int index = FirstCardDotIndex; index < CardDots.Children.Count; index++)
         {
-            if (CardDots.Children[index] is not Ellipse dot || index >= dots.Count)
-            {
-                continue;
-            }
+            if (CardDots.Children[index] is not Ellipse dot || index >= dots.Count) continue;
 
             dot.Width = dots[index].IsActive ? ActiveCardDotSize : InactiveCardDotSize;
             dot.Fill = new SolidColorBrush(dots[index].IsActive ? _activeDotColor : _inactiveDotColor);
@@ -220,18 +217,12 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
 
     private void PrevCardButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!_viewModel.NavigatePrevious().IsError)
-        {
-            ShowCard();
-        }
+        if (!_viewModel.NavigatePrevious().IsError) ShowCard();
     }
 
     private void NextCardButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!_viewModel.NavigateNext().IsError)
-        {
-            ShowCard();
-        }
+        if (!_viewModel.NavigateNext().IsError) ShowCard();
     }
 
     private void TransferButton_Click(object sender, RoutedEventArgs e)
@@ -272,10 +263,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
     private async Task ShowCurrentCardDetailsAsync()
     {
         string details = _viewModel.GetSelectedCardDetails();
-        if (string.IsNullOrEmpty(details))
-        {
-            return;
-        }
+        if (string.IsNullOrEmpty(details)) return;
 
         await ShowAlertAsync("Card Details", details);
     }
@@ -287,7 +275,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
             Title = title,
             Content = message,
             CloseButtonText = "OK",
-            XamlRoot = XamlRoot,
+            XamlRoot = XamlRoot
         };
         await dialog.ShowAsync();
     }
@@ -323,10 +311,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
 
     private void AttachObserver()
     {
-        if (_isObserverAttached)
-        {
-            return;
-        }
+        if (_isObserverAttached) return;
 
         _viewModel.State.AddObserver(this);
         _isObserverAttached = true;
@@ -334,10 +319,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
 
     private void DetachObserver()
     {
-        if (!_isObserverAttached)
-        {
-            return;
-        }
+        if (!_isObserverAttached) return;
 
         _viewModel.State.RemoveObserver(this);
         _isObserverAttached = false;
@@ -345,10 +327,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
 
     private void CancelPendingLoad()
     {
-        if (_loadCancellationTokenSource is null)
-        {
-            return;
-        }
+        if (_loadCancellationTokenSource is null) return;
 
         _loadCancellationTokenSource.Cancel();
         _loadCancellationTokenSource.Dispose();

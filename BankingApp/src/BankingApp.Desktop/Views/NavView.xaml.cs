@@ -92,17 +92,14 @@ public sealed partial class NavView
             Title = feature,
             Content = $"{feature} is coming soon.",
             CloseButtonText = "OK",
-            XamlRoot = XamlRoot,
+            XamlRoot = XamlRoot
         };
         await dialog.ShowAsync();
     }
 
     private void SetActiveNav(Button selected)
     {
-        foreach (Button button in _navButtons)
-        {
-            button.Style = (Style)Resources["NavItemStyle"];
-        }
+        foreach (Button button in _navButtons) button.Style = (Style)Resources["NavItemStyle"];
 
         selected.Style = (Style)Resources["NavItemActiveStyle"];
         _activeNavButton = selected;
@@ -217,7 +214,7 @@ public sealed partial class NavView
             Title = title,
             Content = message,
             CloseButtonText = "OK",
-            XamlRoot = XamlRoot,
+            XamlRoot = XamlRoot
         };
         await dialog.ShowAsync();
     }

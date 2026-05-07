@@ -59,7 +59,7 @@ public class OtpService : IOtpService
     {
         try
         {
-            var code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpRangeMaximum).ToString();
+            string code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpRangeMaximum).ToString();
             DateTime expiryTime = DateTime.UtcNow.AddMinutes(SmsOtpExpiryMinutes);
             _temporarySmsStorage[userId] = (code, expiryTime);
             return code;
@@ -110,9 +110,7 @@ public class OtpService : IOtpService
         try
         {
             if (!_temporarySmsStorage.TryGetValue(userId, out (string Code, DateTime ExpiryTime) storedOtpData))
-            {
                 return false;
-            }
 
             if (DateTime.UtcNow > storedOtpData.ExpiryTime)
             {
@@ -120,14 +118,10 @@ public class OtpService : IOtpService
                 return false;
             }
 
-            if (storedOtpData.Code != code)
-            {
-                return false;
-            }
+            if (storedOtpData.Code != code) return false;
 
             InvalidateOtp(userId);
             return true;
-
         }
         catch (Exception exception)
         {
@@ -144,15 +138,9 @@ public class OtpService : IOtpService
         try
         {
             long currentWindow = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / TotpWindowSeconds;
-            if (code == GenerateHmacCode(userId, currentWindow))
-            {
-                return true;
-            }
+            if (code == GenerateHmacCode(userId, currentWindow)) return true;
 
-            if (code == GenerateHmacCode(userId, currentWindow - PreviousTotpWindowOffset))
-            {
-                return true;
-            }
+            if (code == GenerateHmacCode(userId, currentWindow - PreviousTotpWindowOffset)) return true;
 
             return false;
         }
@@ -164,7 +152,7 @@ public class OtpService : IOtpService
 
     private string GenerateHmacCode(int userId, long timeWindow)
     {
-        var secret = $"{_otpServerSecret}_{userId}";
+        string secret = $"{_otpServerSecret}_{userId}";
         using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(secret));
         byte[] hash = hmac.ComputeHash(BitConverter.GetBytes(timeWindow));
         int offset = hash.Last() & TruncationOffsetMask;

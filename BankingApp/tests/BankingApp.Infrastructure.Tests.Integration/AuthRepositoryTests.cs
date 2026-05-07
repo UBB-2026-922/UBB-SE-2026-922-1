@@ -152,7 +152,7 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         {
             UserId = user.Id,
             TokenHash = "sha256-hash-xyz",
-            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours),
+            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours)
         };
         repository.SavePasswordResetToken(token).IsError.Should().BeFalse();
 
@@ -180,7 +180,7 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         {
             UserId = user.Id,
             TokenHash = "mark-used-hash",
-            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours),
+            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours)
         };
         repository.SavePasswordResetToken(token).IsError.Should().BeFalse();
         ErrorOr<PasswordResetToken> created = repository.FindPasswordResetToken("mark-used-hash");

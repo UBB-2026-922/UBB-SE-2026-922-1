@@ -30,5 +30,5 @@ public enum TransactionStatus
     /// <summary>
     ///     The transaction was canceled.
     /// </summary>
-    Cancelled,
+    Cancelled
 }

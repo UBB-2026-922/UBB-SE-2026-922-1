@@ -46,7 +46,7 @@ public class BillPaymentsController : ApiControllerBase
     {
         try
         {
-            var billers = await _billPaymentService.GetAllBillersAsync();
+            IEnumerable<Biller> billers = await _billPaymentService.GetAllBillersAsync();
             return Ok(billers);
         }
         catch (Exception ex)
@@ -115,7 +115,7 @@ public class BillPaymentsController : ApiControllerBase
                 BillerReference = request.BillerReference,
                 Amount = request.Amount,
                 IsPayInFull = request.IsPayInFull,
-                TwoFaToken = request.TwoFaToken,
+                TwoFaToken = request.TwoFaToken
             });
 
             return Ok(new BillPayResponseDto
@@ -124,7 +124,7 @@ public class BillPaymentsController : ApiControllerBase
                 ReceiptNumber = payment.ReceiptNumber,
                 Fee = payment.Fee,
                 Amount = payment.Amount,
-                Status = payment.Status.ToString(),
+                Status = payment.Status.ToString()
             });
         }
         catch (Exception ex)
@@ -149,10 +149,7 @@ public class BillPaymentsController : ApiControllerBase
                 request.BillerId,
                 request.Nickname);
 
-            if (success)
-            {
-                return Ok(new { message = "Biller saved successfully." });
-            }
+            if (success) return Ok(new { message = "Biller saved successfully." });
 
             return BadRequest(new { error = "Failed to save the biller." });
         }
@@ -171,7 +168,7 @@ public class BillPaymentsController : ApiControllerBase
             Currency = account.Currency,
             Balance = account.Balance,
             AccountName = account.AccountName ?? string.Empty,
-            Status = account.Status.ToString(),
+            Status = account.Status.ToString()
         };
     }
 }

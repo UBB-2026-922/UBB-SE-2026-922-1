@@ -60,7 +60,7 @@ public class TransactionDataAccess : ITransactionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit)
     {
-        List<Transaction> transactions = _databaseContext.Transactions
+        var transactions = _databaseContext.Transactions
             .Where(transaction => transaction.AccountId == accountId)
             .OrderByDescending(transaction => transaction.CreatedAt)
             .Take(limit)

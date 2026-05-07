@@ -41,7 +41,7 @@ public class BeneficiaryServiceTests
         // Arrange
         List<Beneficiary> expectedBeneficiaries =
         [
-            new Beneficiary { Id = DefaultBeneficiaryId, UserId = DefaultUserId, Name = DefaultName, Iban = ValidIban },
+            new() { Id = DefaultBeneficiaryId, UserId = DefaultUserId, Name = DefaultName, Iban = ValidIban }
         ];
 
         _beneficiaryRepository
@@ -137,7 +137,7 @@ public class BeneficiaryServiceTests
                 return beneficiary;
             });
 
-        TimeSpan tolerance = TimeSpan.FromSeconds(2);
+        var tolerance = TimeSpan.FromSeconds(2);
 
         // Act
         ErrorOr<Beneficiary> result = _service.Create(DefaultUserId, $" {DefaultName} ", ValidIban, bankName);
@@ -169,7 +169,7 @@ public class BeneficiaryServiceTests
             Id = DefaultBeneficiaryId,
             UserId = DefaultUserId,
             Name = EmptyName,
-            Iban = ValidIban,
+            Iban = ValidIban
         };
 
         // Act
@@ -197,7 +197,7 @@ public class BeneficiaryServiceTests
             CreatedAt = createdAt,
             TotalAmountSent = 150,
             TransferCount = 3,
-            LastTransferDate = DateTime.UtcNow.AddDays(-1),
+            LastTransferDate = DateTime.UtcNow.AddDays(-1)
         };
         var updatedBeneficiary = new Beneficiary
         {
@@ -205,7 +205,7 @@ public class BeneficiaryServiceTests
             UserId = DefaultUserId,
             Name = $" {DefaultName} ",
             Iban = ValidIban,
-            BankName = " New Bank ",
+            BankName = " New Bank "
         };
 
         _beneficiaryRepository

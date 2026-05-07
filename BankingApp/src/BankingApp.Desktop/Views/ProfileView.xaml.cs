@@ -86,10 +86,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         {
             if (_isUpdatingToggle)
             {
-                if (state == ProfileState.Error)
-                {
-                    ShowError("Failed to save notification preferences.");
-                }
+                if (state == ProfileState.Error) ShowError("Failed to save notification preferences.");
 
                 return;
             }
@@ -173,10 +170,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         FullNameBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         PhoneBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         AddressBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
-        if (!enabled)
-        {
-            return;
-        }
+        if (!enabled) return;
 
         PhoneBox.Focus(FocusState.Programmatic);
         AddressBox.Focus(FocusState.Programmatic);
@@ -230,10 +224,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
         else if (_isTwoFactorFlow)
         {
-            DispatcherQueue.TryEnqueue(async void () =>
-            {
-                await Handle2FaActionAfterVerifyAsync();
-            });
+            DispatcherQueue.TryEnqueue(async void () => { await Handle2FaActionAfterVerifyAsync(); });
         }
         else
         {
@@ -365,10 +356,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private async void TwoFactorToggle_Toggled(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.IsInitializingView)
-        {
-            return;
-        }
+        if (_viewModel.IsInitializingView) return;
 
         bool success = await _viewModel.SetEmailTwoFactorEnabled(TwoFactorToggle.IsOn);
         if (!success)
@@ -386,10 +374,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private async void NotificationToggle_Toggled(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.IsInitializingView)
-        {
-            return;
-        }
+        if (_viewModel.IsInitializingView) return;
 
         if (sender is ToggleSwitch { Tag: NotificationPreferenceDataTransferObject preference } toggle)
         {
@@ -416,7 +401,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     {
         TwoFactorPhoneDisplay.Text = _viewModel.PersonalInfo.TwoFactorPhoneDisplay;
         if (!_viewModel.PersonalInfo.HasPhoneNumber)
-        {
             ConfigureActionButton(
                 ActionPhoneBtn,
                 PhoneStatusBadge,
@@ -425,9 +409,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#F1F5F9",
                 "#64748B",
                 "Not configured");
-        }
         else if (_viewModel.IsPhoneTwoFactorActive)
-        {
             ConfigureActionButton(
                 ActionPhoneBtn,
                 PhoneStatusBadge,
@@ -436,9 +418,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#DCFCE7",
                 "#16A34A",
                 "Active");
-        }
         else
-        {
             ConfigureActionButton(
                 ActionPhoneBtn,
                 PhoneStatusBadge,
@@ -447,10 +427,8 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#FFF7ED",
                 "#C2410C",
                 "Unverified");
-        }
 
         if (_viewModel.IsEmailTwoFactorActive)
-        {
             ConfigureActionButton(
                 ActionEmailBtn,
                 EmailStatusBadge,
@@ -459,9 +437,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#DCFCE7",
                 "#16A34A",
                 "Active");
-        }
         else
-        {
             ConfigureActionButton(
                 ActionEmailBtn,
                 EmailStatusBadge,
@@ -470,7 +446,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#FFF7ED",
                 "#C2410C",
                 "Unverified");
-        }
     }
 
     private void ConfigureActionButton(
@@ -562,7 +537,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     0,
                     NotificationPreferenceVerticalMargin,
                     0,
-                    NotificationPreferenceVerticalMargin),
+                    NotificationPreferenceVerticalMargin)
             };
             row.ColumnDefinitions.Add(
                 new ColumnDefinition { Width = new GridLength(SecondGridColumnIndex, GridUnitType.Star) });
@@ -572,13 +547,13 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 Text = preference.Category.ToDisplayName(),
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = NotificationPreferenceFontSize,
-                Foreground = (Brush)Resources["TextPrimary"],
+                Foreground = (Brush)Resources["TextPrimary"]
             };
             var toggle = new ToggleSwitch
             {
                 IsOn = preference.EmailEnabled,
                 Tag = preference,
-                VerticalAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
             };
             toggle.Toggled += NotificationToggle_Toggled;
             Grid.SetColumn(text, FirstGridColumnIndex);
@@ -639,7 +614,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 SessionCardHorizontalPadding,
                 SessionCardVerticalPadding,
                 SessionCardHorizontalPadding,
-                SessionCardVerticalPadding),
+                SessionCardVerticalPadding)
         };
         var grid = new Grid();
         grid.ColumnDefinitions.Add(
@@ -655,7 +630,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionPrimaryTextRed,
                     SessionPrimaryTextGreen,
-                    SessionPrimaryTextBlue)),
+                    SessionPrimaryTextBlue))
         };
         var browserText = new TextBlock
         {
@@ -666,7 +641,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionSecondaryTextRed,
                     SessionSecondaryTextGreen,
-                    SessionSecondaryTextBlue)),
+                    SessionSecondaryTextBlue))
         };
         var networkAddressText = new TextBlock
         {
@@ -677,7 +652,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionSecondaryTextRed,
                     SessionSecondaryTextGreen,
-                    SessionSecondaryTextBlue)),
+                    SessionSecondaryTextBlue))
         };
         var lastActiveText = new TextBlock
         {
@@ -690,7 +665,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionMutedTextRed,
                     SessionMutedTextGreen,
-                    SessionMutedTextBlue)),
+                    SessionMutedTextBlue))
         };
         infoStack.Children.Add(deviceText);
         infoStack.Children.Add(browserText);
@@ -701,7 +676,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             Content = "Revoke",
             Tag = session.Id,
             VerticalAlignment = VerticalAlignment.Center,
-            Style = (Style)Resources["DangerButtonStyle"],
+            Style = (Style)Resources["DangerButtonStyle"]
         };
         revokeButton.Click += RevokeSessionButton_Click;
         Grid.SetColumn(infoStack, FirstGridColumnIndex);
@@ -714,10 +689,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private async void RevokeSessionButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: int sessionId })
-        {
-            return;
-        }
+        if (sender is not Button { Tag: int sessionId }) return;
 
         (bool success, string? errorMessage) = await _viewModel.RevokeSessionAndReload(sessionId);
         if (success)
@@ -744,8 +716,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
 
         foreach (SessionDataTransferObject session in _viewModel.Sessions.ActiveSessions)
-        {
             SessionsListPanel.Children.Add(BuildSessionCard(session));
-        }
     }
 }

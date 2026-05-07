@@ -49,9 +49,7 @@ public sealed partial class BillPayView : Page
         AutoSuggestBoxTextChangedEventArgs autoSuggestBoxTextChangedEventArgs)
     {
         if (autoSuggestBoxTextChangedEventArgs.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-        {
             ViewModel.SearchCommand.Execute(null);
-        }
     }
 
     private void CategoryCombo_SelectionChanged(object sender, SelectionChangedEventArgs selectionChangedEventArgs)
@@ -61,18 +59,13 @@ public sealed partial class BillPayView : Page
 
     private void BillersList_ItemClick(object sender, ItemClickEventArgs itemClickEventArgs)
     {
-        if (itemClickEventArgs.ClickedItem is BillerDto biller)
-        {
-            ViewModel.SelectBillerCommand.Execute(biller);
-        }
+        if (itemClickEventArgs.ClickedItem is BillerDto biller) ViewModel.SelectBillerCommand.Execute(biller);
     }
 
     private void SavedBillersList_ItemClick(object sender, ItemClickEventArgs itemClickEventArgs)
     {
         if (itemClickEventArgs.ClickedItem is SavedBillerDto savedBiller)
-        {
             ViewModel.SelectBillerCommand.Execute(savedBiller);
-        }
     }
 
     private void AmountBox_ValueChanged(
@@ -80,12 +73,8 @@ public sealed partial class BillPayView : Page
         NumberBoxValueChangedEventArgs numberBoxValueChangedEventArgs)
     {
         if (!double.IsNaN(sender.Value) && !double.IsInfinity(sender.Value))
-        {
             ViewModel.Amount = Convert.ToDecimal(sender.Value);
-        }
         else
-        {
             ViewModel.Amount = ZeroAmount;
-        }
     }
 }

@@ -40,9 +40,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IBillerService, BillerService>();
-        services.AddScoped<BankingApp.Application.Services.Transfers.ITransferService, TransferService>();
-        services.AddScoped<BankingApp.Application.Services.Beneficiary.IBeneficiaryService, BeneficiaryService>();
-        services.AddScoped<BankingApp.Application.Services.RecurringPayments.IRecurringPaymentService, RecurringPaymentService>();
+        services.AddScoped<ITransferService, TransferService>();
+        services.AddScoped<IBeneficiaryService, BeneficiaryService>();
+        services.AddScoped<IRecurringPaymentService, RecurringPaymentService>();
         services.AddScoped<IRecurringPaymentProcessingService, RecurringPaymentProcessingService>();
         services.AddScoped<ExchangeServiceContract, ExchangeServiceImplementation>();
         services.AddScoped<RateAlertServiceContract, RateAlertServiceImplementation>();

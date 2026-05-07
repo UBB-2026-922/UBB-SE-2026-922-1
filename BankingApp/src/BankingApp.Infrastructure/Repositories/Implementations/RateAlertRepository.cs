@@ -32,10 +32,7 @@ public class RateAlertRepository : IRateAlertRepository
     public ErrorOr<RateAlert> GetById(int id)
     {
         RateAlert? alert = _databaseContext.RateAlerts.FirstOrDefault(rateAlert => rateAlert.Id == id);
-        if (alert is null)
-        {
-            return Error.NotFound(description: "Rate alert not found.");
-        }
+        if (alert is null) return Error.NotFound(description: "Rate alert not found.");
 
         return alert;
     }
@@ -93,10 +90,7 @@ public class RateAlertRepository : IRateAlertRepository
         try
         {
             RateAlert? alert = _databaseContext.RateAlerts.FirstOrDefault(rateAlert => rateAlert.Id == alertId);
-            if (alert is null)
-            {
-                return Error.NotFound(description: "Rate alert not found.");
-            }
+            if (alert is null) return Error.NotFound(description: "Rate alert not found.");
 
             alert.IsTriggered = true;
             _databaseContext.SaveChanges();
@@ -114,10 +108,7 @@ public class RateAlertRepository : IRateAlertRepository
         try
         {
             RateAlert? alert = _databaseContext.RateAlerts.FirstOrDefault(rateAlert => rateAlert.Id == id);
-            if (alert is null)
-            {
-                return Error.NotFound(description: "Rate alert not found.");
-            }
+            if (alert is null) return Error.NotFound(description: "Rate alert not found.");
 
             _databaseContext.RateAlerts.Remove(alert);
             _databaseContext.SaveChanges();

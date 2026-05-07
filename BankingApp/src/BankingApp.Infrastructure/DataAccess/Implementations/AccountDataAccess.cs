@@ -17,7 +17,6 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// </summary>
 public class AccountDataAccess : IAccountDataAccess
 {
-
     private readonly AppDatabaseContext _databaseContext;
 
     /// <summary>
@@ -35,11 +34,8 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Account> FindById(int id)
     {
-        Account? account = _databaseContext.Accounts.FirstOrDefault(account => account.Id == id);
-        if(account == null)
-        {
-            return Error.NotFound(description: "Account not found.");
-        }
+        Account? account = _databaseContext.Accounts.FirstOrDefault(a => a.Id == id);
+        if (account == null) return Error.NotFound(description: "Account not found.");
 
         return account;
     }
@@ -49,7 +45,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Account>> FindByUserId(int userId)
     {
-        List<Account> accounts = _databaseContext.Accounts.Where(account => account.UserId == userId).ToList();
+        var accounts = _databaseContext.Accounts.Where(a => a.UserId == userId).ToList();
         return accounts;
     }
 
@@ -62,10 +58,7 @@ public class AccountDataAccess : IAccountDataAccess
         try
         {
             Account? account = _databaseContext.Accounts.Find(accountId);
-            if (account is null)
-            {
-                return Error.NotFound(description: "Account not found.");
-            }
+            if (account is null) return Error.NotFound(description: "Account not found.");
 
             account.Balance -= amount;
             _databaseContext.SaveChanges();

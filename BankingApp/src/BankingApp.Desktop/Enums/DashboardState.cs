@@ -30,5 +30,5 @@ public enum DashboardState
     /// <summary>
     ///     An error occurred while loading dashboard data.
     /// </summary>
-    Error,
+    Error
 }

@@ -58,16 +58,12 @@ public sealed partial class BeneficiariesView : Page
     private async void Delete_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement fe && fe.DataContext is BeneficiaryDataTransferObject dto)
-        {
             await ViewModel.DeleteBeneficiaryAsync(dto.Id);
-        }
     }
 
     private void Use_Click(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement fe && fe.DataContext is BeneficiaryDataTransferObject dto)
-        {
             ViewModel.UseForTransfer(dto);
-        }
     }
 }

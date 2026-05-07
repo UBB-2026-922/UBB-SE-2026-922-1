@@ -25,5 +25,5 @@ public enum TwoFactorMethod
     /// <summary>
     ///     The OTP is delivered via SMS to the user's registered phone number.
     /// </summary>
-    Phone,
+    Phone
 }

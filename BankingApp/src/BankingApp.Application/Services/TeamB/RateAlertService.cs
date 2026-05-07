@@ -37,10 +37,7 @@ public class RateAlertService : IRateAlertService
     public ErrorOr<List<RateAlertDto>> GetAlerts(int userId)
     {
         ErrorOr<List<RateAlert>> result = _rateAlertRepository.GetByUserId(userId);
-        if (result.IsError)
-        {
-            return result.Errors;
-        }
+        if (result.IsError) return result.Errors;
 
         return result.Value.Select(MapToDto).ToList();
     }
@@ -49,26 +46,17 @@ public class RateAlertService : IRateAlertService
     public ErrorOr<RateAlertDto> CreateAlert(RateAlertDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.BaseCurrency))
-        {
             return Error.Validation(description: "Base currency cannot be empty.");
-        }
 
         if (string.IsNullOrWhiteSpace(dto.TargetCurrency))
-        {
             return Error.Validation(description: "Target currency cannot be empty.");
-        }
 
         if (dto.BaseCurrency.Equals(dto.TargetCurrency, StringComparison.OrdinalIgnoreCase))
-        {
             return Error.Validation(description: "Base and target currencies must differ.");
-        }
 
-        if (dto.TargetRate <= 0)
-        {
-            return Error.Validation(description: "Target rate must be greater than zero.");
-        }
+        if (dto.TargetRate <= 0) return Error.Validation(description: "Target rate must be greater than zero.");
 
-        RateAlert alert = new RateAlert
+        var alert = new RateAlert
         {
             UserId = dto.UserId,
             BaseCurrency = dto.BaseCurrency,
@@ -76,14 +64,11 @@ public class RateAlertService : IRateAlertService
             TargetRate = dto.TargetRate,
             IsBuyAlert = dto.IsBuyAlert,
             IsTriggered = false,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         ErrorOr<RateAlert> createResult = _rateAlertRepository.Create(alert);
-        if (createResult.IsError)
-        {
-            return createResult.Errors;
-        }
+        if (createResult.IsError) return createResult.Errors;
 
         return MapToDto(createResult.Value);
     }
@@ -98,10 +83,7 @@ public class RateAlertService : IRateAlertService
     public ErrorOr<int> ProcessAlerts()
     {
         ErrorOr<List<RateAlert>> alertsResult = _rateAlertRepository.GetUntriggeredAlerts();
-        if (alertsResult.IsError)
-        {
-            return alertsResult.Errors;
-        }
+        if (alertsResult.IsError) return alertsResult.Errors;
 
         int triggeredCount = 0;
 
@@ -112,10 +94,7 @@ public class RateAlertService : IRateAlertService
                 alert.TargetCurrency,
                 1m);
 
-            if (previewResult.IsError)
-            {
-                continue;
-            }
+            if (previewResult.IsError) continue;
 
             decimal currentRate = Math.Round(previewResult.Value.ExchangeRate, RatePrecisionDecimals);
             decimal targetRate = Math.Round(alert.TargetRate, RatePrecisionDecimals);
@@ -124,16 +103,10 @@ public class RateAlertService : IRateAlertService
                 ? currentRate <= targetRate
                 : currentRate >= targetRate;
 
-            if (!shouldTrigger)
-            {
-                continue;
-            }
+            if (!shouldTrigger) continue;
 
             ErrorOr<RateAlert> markResult = _rateAlertRepository.MarkTriggered(alert.Id);
-            if (!markResult.IsError)
-            {
-                triggeredCount++;
-            }
+            if (!markResult.IsError) triggeredCount++;
         }
 
         return triggeredCount;
@@ -150,7 +123,7 @@ public class RateAlertService : IRateAlertService
             TargetRate = alert.TargetRate,
             IsBuyAlert = alert.IsBuyAlert,
             IsTriggered = alert.IsTriggered,
-            CreatedAt = alert.CreatedAt,
+            CreatedAt = alert.CreatedAt
         };
     }
 }

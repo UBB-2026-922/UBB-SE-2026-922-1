@@ -22,5 +22,5 @@ public enum AccountType
     Business,
 
     /// <summary>A credit account.</summary>
-    Credit,
+    Credit
 }

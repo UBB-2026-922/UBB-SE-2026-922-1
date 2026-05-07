@@ -50,17 +50,12 @@ public class ExchangeController : ApiControllerBase
         [FromQuery] decimal amount)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<ExchangeTransactionResponseDto> result = _exchangeService.GetRatePreview(sourceCurrency, targetCurrency, amount);
-        if (result.IsError)
-        {
-            return MapError(result.FirstError);
-        }
+        ErrorOr<ExchangeTransactionResponseDto> result =
+            _exchangeService.GetRatePreview(sourceCurrency, targetCurrency, amount);
+        if (result.IsError) return MapError(result.FirstError);
 
         ErrorOr<LockedRate> lockResult = _exchangeService.LockRate(userId, sourceCurrency, targetCurrency);
-        if (lockResult.IsError)
-        {
-            return MapError(lockResult.FirstError);
-        }
+        if (lockResult.IsError) return MapError(lockResult.FirstError);
 
         return Ok(result.Value);
     }
@@ -81,10 +76,16 @@ public class ExchangeController : ApiControllerBase
             var accounts = (await _billPaymentRepository.GetAccountsByUserIdAsync(userId)).ToList();
             request.SourceAccountId = request.SourceAccountId > 0
                 ? request.SourceAccountId
-                : accounts.FirstOrDefault(account => string.Equals(account.Currency, request.SourceCurrency, StringComparison.OrdinalIgnoreCase))?.Id ?? 0;
+                : accounts.FirstOrDefault(account =>
+                      string.Equals(account.Currency, request.SourceCurrency, StringComparison.OrdinalIgnoreCase))
+                  ?.Id ??
+                  0;
             request.TargetAccountId = request.TargetAccountId > 0
                 ? request.TargetAccountId
-                : accounts.FirstOrDefault(account => string.Equals(account.Currency, request.TargetCurrency, StringComparison.OrdinalIgnoreCase))?.Id ?? 0;
+                : accounts.FirstOrDefault(account =>
+                      string.Equals(account.Currency, request.TargetCurrency, StringComparison.OrdinalIgnoreCase))
+                  ?.Id ??
+                  0;
         }
 
         if (request.SourceAccountId > 0 || request.TargetAccountId > 0)
@@ -93,15 +94,13 @@ public class ExchangeController : ApiControllerBase
             bool hasSourceAccount = accounts.Any(account => account.Id == request.SourceAccountId);
             bool hasTargetAccount = accounts.Any(account => account.Id == request.TargetAccountId);
             if (!hasSourceAccount || !hasTargetAccount)
-            {
-                return NotFound(new { error = "The selected exchange accounts do not belong to the authenticated user." });
-            }
+                return NotFound(new
+                    { error = "The selected exchange accounts do not belong to the authenticated user." });
         }
 
         if (request.SourceAccountId <= 0 || request.TargetAccountId <= 0)
-        {
-            return NotFound(new { error = "Matching source and target accounts were not found for the requested currencies." });
-        }
+            return NotFound(new
+                { error = "Matching source and target accounts were not found for the requested currencies." });
 
         ErrorOr<ExchangeTransactionResponseDto> result = _exchangeService.ExecuteExchange(request);
         return ToActionResult(result, data => Ok(data));

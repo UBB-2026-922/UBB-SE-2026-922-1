@@ -50,5 +50,5 @@ public enum ForgotPasswordState
     /// <summary>
     ///     An unexpected error occurred during the forgot-password flow.
     /// </summary>
-    Error,
+    Error
 }

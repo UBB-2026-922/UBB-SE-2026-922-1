@@ -31,7 +31,7 @@ public sealed class DispatcherCountdownTimer : ICountdownTimer
     {
         _inner = new DispatcherTimer
         {
-            Interval = TimeSpan.FromSeconds(TimerIntervalSeconds),
+            Interval = TimeSpan.FromSeconds(TimerIntervalSeconds)
         };
         _inner.Tick += (_, _) => Tick?.Invoke(this, EventArgs.Empty);
     }

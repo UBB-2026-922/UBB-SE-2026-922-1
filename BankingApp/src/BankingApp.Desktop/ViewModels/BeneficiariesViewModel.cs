@@ -33,7 +33,8 @@ public class BeneficiariesViewModel
     /// <param name="apiClient">The API client used to call backend endpoints.</param>
     /// <param name="navigationService">The navigation service used for view navigation.</param>
     /// <param name="logger">Logger instance for diagnostics.</param>
-    public BeneficiariesViewModel(IApiClient apiClient, IAppNavigationService navigationService, ILogger<BeneficiariesViewModel> logger)
+    public BeneficiariesViewModel(IApiClient apiClient, IAppNavigationService navigationService,
+        ILogger<BeneficiariesViewModel> logger)
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
@@ -72,7 +73,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            var result =
+            ErrorOr<List<BeneficiaryDataTransferObject>> result =
                 await _apiClient.GetAsync<List<BeneficiaryDataTransferObject>>(ApiEndpoints.Beneficiaries);
 
             if (result.IsError)
@@ -154,10 +155,7 @@ public class BeneficiariesViewModel
     /// <param name="beneficiary">The beneficiary to use for a transfer.</param>
     public void UseForTransfer(BeneficiaryDataTransferObject? beneficiary)
     {
-        if (beneficiary == null)
-        {
-            return;
-        }
+        if (beneficiary == null) return;
 
         // navigate to the main nav view as a placeholder for transfer navigation.
         _navigationService.NavigateTo<NavView>();

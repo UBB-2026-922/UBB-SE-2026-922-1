@@ -39,11 +39,9 @@ public class BeneficiaryRepository : IBeneficiaryRepository
             .FirstOrDefault(beneficiary => beneficiary.Id == beneficiaryId && beneficiary.UserId == userId);
 
         if (beneficiary is null)
-        {
             return Error.NotFound(
-                code: "Beneficiary.NotFound",
-                description: $"Beneficiary with id '{beneficiaryId}' was not found.");
-        }
+                "Beneficiary.NotFound",
+                $"Beneficiary with id '{beneficiaryId}' was not found.");
 
         return beneficiary;
     }
@@ -51,7 +49,7 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     /// <inheritdoc />
     public ErrorOr<List<Beneficiary>> FindByUserId(int userId)
     {
-        List<Beneficiary> beneficiaries = _databaseContext.Beneficiaries
+        var beneficiaries = _databaseContext.Beneficiaries
             .AsNoTracking()
             .Where(beneficiary => beneficiary.UserId == userId)
             .OrderBy(beneficiary => beneficiary.Name)
@@ -85,8 +83,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         catch (DbUpdateException databaseUpdateException)
         {
             return Error.Failure(
-                code: "Beneficiary.CreateFailed",
-                description: $"Failed to create beneficiary: {databaseUpdateException.Message}");
+                "Beneficiary.CreateFailed",
+                $"Failed to create beneficiary: {databaseUpdateException.Message}");
         }
     }
 
@@ -100,11 +98,9 @@ public class BeneficiaryRepository : IBeneficiaryRepository
                 existingBeneficiary.UserId == beneficiary.UserId);
 
         if (!exists)
-        {
             return Error.NotFound(
-                code: "Beneficiary.NotFound",
-                description: $"Beneficiary with id '{beneficiary.Id}' was not found.");
-        }
+                "Beneficiary.NotFound",
+                $"Beneficiary with id '{beneficiary.Id}' was not found.");
 
         try
         {
@@ -115,8 +111,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         catch (DbUpdateException databaseUpdateException)
         {
             return Error.Failure(
-                code: "Beneficiary.UpdateFailed",
-                description: $"Failed to update beneficiary: {databaseUpdateException.Message}");
+                "Beneficiary.UpdateFailed",
+                $"Failed to update beneficiary: {databaseUpdateException.Message}");
         }
     }
 
@@ -129,11 +125,9 @@ public class BeneficiaryRepository : IBeneficiaryRepository
                 existingBeneficiary.UserId == userId);
 
         if (beneficiary is null)
-        {
             return Error.NotFound(
-                code: "Beneficiary.NotFound",
-                description: $"Beneficiary with id '{beneficiaryId}' was not found.");
-        }
+                "Beneficiary.NotFound",
+                $"Beneficiary with id '{beneficiaryId}' was not found.");
 
         try
         {
@@ -144,8 +138,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         catch (DbUpdateException databaseUpdateException)
         {
             return Error.Failure(
-                code: "Beneficiary.DeleteFailed",
-                description: $"Failed to delete beneficiary: {databaseUpdateException.Message}");
+                "Beneficiary.DeleteFailed",
+                $"Failed to delete beneficiary: {databaseUpdateException.Message}");
         }
     }
 }

@@ -18,6 +18,7 @@ using BankingApp.Desktop.Commands;
 using BankingApp.Desktop.Master;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.Views;
+using ErrorOr;
 using Microsoft.UI.Xaml;
 
 namespace BankingApp.Desktop.ViewModels;
@@ -151,10 +152,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
         get => _selectedCategory;
         set
         {
-            if (SetProperty(ref _selectedCategory, value))
-            {
-                ExecuteSearch();
-            }
+            if (SetProperty(ref _selectedCategory, value)) ExecuteSearch();
         }
     }
 
@@ -229,10 +227,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
         get => _errorMessage;
         set
         {
-            if (SetProperty(ref _errorMessage, value))
-            {
-                OnPropertyChanged(nameof(ErrorMessageVisibility));
-            }
+            if (SetProperty(ref _errorMessage, value)) OnPropertyChanged(nameof(ErrorMessageVisibility));
         }
     }
 
@@ -324,23 +319,17 @@ public partial class BillPayViewModel : INotifyPropertyChanged
             ErrorMessage = string.Empty;
             ResetFormStateOnly();
 
-            var billersResult = await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers);
-            if (!billersResult.IsError)
-            {
-                Billers = new ObservableCollection<BillerDto>(billersResult.Value);
-            }
+            ErrorOr<List<BillerDto>> billersResult =
+                await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers);
+            if (!billersResult.IsError) Billers = new ObservableCollection<BillerDto>(billersResult.Value);
 
-            var savedResult = await _apiClient.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers);
-            if (!savedResult.IsError)
-            {
-                SavedBillers = new ObservableCollection<SavedBillerDto>(savedResult.Value);
-            }
+            ErrorOr<List<SavedBillerDto>> savedResult =
+                await _apiClient.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers);
+            if (!savedResult.IsError) SavedBillers = new ObservableCollection<SavedBillerDto>(savedResult.Value);
 
-            var accountsResult = await _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
-            if (!accountsResult.IsError)
-            {
-                Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
-            }
+            ErrorOr<List<AccountDto>> accountsResult =
+                await _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
+            if (!accountsResult.IsError) Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
         }
         catch (Exception loadException)
         {
@@ -359,18 +348,14 @@ public partial class BillPayViewModel : INotifyPropertyChanged
             string query = SearchQuery ?? string.Empty;
             string endpoint = $"{ApiEndpoints.BillPayBillersSearch}?search={Uri.EscapeDataString(query)}";
             if (!string.IsNullOrWhiteSpace(SelectedCategory))
-            {
                 endpoint += $"&category={Uri.EscapeDataString(SelectedCategory)}";
-            }
 
-            var task = _apiClient.GetAsync<List<BillerDto>>(endpoint);
+            Task<ErrorOr<List<BillerDto>>> task = _apiClient.GetAsync<List<BillerDto>>(endpoint);
             task.ContinueWith(
                 completedTask =>
                 {
                     if (!completedTask.Result.IsError)
-                    {
                         Billers = new ObservableCollection<BillerDto>(completedTask.Result.Value);
-                    }
                 },
                 TaskScheduler.Default);
         }
@@ -399,9 +384,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
         {
             SelectedBiller = savedBiller.ToBiller();
             if (!string.IsNullOrWhiteSpace(savedBiller.DefaultReference))
-            {
                 BillerReference = savedBiller.DefaultReference!;
-            }
 
             CurrentStep = PaymentDetailsStep;
         }
@@ -453,12 +436,12 @@ public partial class BillPayViewModel : INotifyPropertyChanged
             }
 
             // Calculate fee and check 2FA via API
-            var feeResult = _apiClient
+            ErrorOr<FeeResponseDto> feeResult = _apiClient
                 .GetAsync<FeeResponseDto>($"{ApiEndpoints.BillPayFee}?amount={Amount}")
                 .GetAwaiter().GetResult();
             Fee = !feeResult.IsError ? feeResult.Value.Fee : 0m;
 
-            var twoFaResult = _apiClient
+            ErrorOr<Requires2FaResponseDto> twoFaResult = _apiClient
                 .GetAsync<Requires2FaResponseDto>($"{ApiEndpoints.BillPayRequires2Fa}?amount={Amount}")
                 .GetAwaiter().GetResult();
             Requires2Fa = !twoFaResult.IsError && twoFaResult.Value.Required;
@@ -475,10 +458,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(TwoFaToken))
-            {
-                TwoFaToken = GenerateTwoFaToken();
-            }
+            if (string.IsNullOrWhiteSpace(TwoFaToken)) TwoFaToken = GenerateTwoFaToken();
 
             CurrentStep = ReviewAndConfirmStep;
         }
@@ -494,17 +474,11 @@ public partial class BillPayViewModel : INotifyPropertyChanged
         if (CurrentStep > SelectBillerStep)
         {
             if (CurrentStep == ReviewAndConfirmStep && Requires2Fa)
-            {
                 CurrentStep = TwoFactorAuthenticationStep;
-            }
             else if (CurrentStep == ReviewAndConfirmStep && !Requires2Fa)
-            {
                 CurrentStep = PaymentDetailsStep;
-            }
             else
-            {
                 CurrentStep--;
-            }
         }
     }
 
@@ -549,10 +523,10 @@ public partial class BillPayViewModel : INotifyPropertyChanged
                 BillerReference = BillerReference,
                 Amount = Amount,
                 IsPayInFull = false,
-                TwoFaToken = Requires2Fa ? TwoFaToken : null,
+                TwoFaToken = Requires2Fa ? TwoFaToken : null
             };
 
-            var payResult = await _apiClient
+            ErrorOr<BillPayResponseDto> payResult = await _apiClient
                 .PostAsync<BillPayRequestDto, BillPayResponseDto>(ApiEndpoints.BillPayPay, request);
 
             if (payResult.IsError)
@@ -573,16 +547,13 @@ public partial class BillPayViewModel : INotifyPropertyChanged
                     {
                         BillerId = SelectedBiller.Id,
                         Nickname = SelectedBiller.Name,
-                        DefaultReference = BillerReference,
+                        DefaultReference = BillerReference
                     };
 
-                    var saveResult = await _apiClient
+                    ErrorOr<SavedBillerDto> saveResult = await _apiClient
                         .PostAsync<SaveBillerRequestDto, SavedBillerDto>(ApiEndpoints.BillPaySaveBiller, saveRequest);
 
-                    if (!saveResult.IsError)
-                    {
-                        SavedBillers.Add(saveResult.Value);
-                    }
+                    if (!saveResult.IsError) SavedBillers.Add(saveResult.Value);
                 }
             }
 
@@ -638,27 +609,19 @@ public partial class BillPayViewModel : INotifyPropertyChanged
 
     private void ApplySavedDefaultsForSelectedBiller()
     {
-        if (SelectedBiller == null || SavedBillers == null || SavedBillers.Count == MinimumBillers)
-        {
-            return;
-        }
+        if (SelectedBiller == null || SavedBillers == null || SavedBillers.Count == MinimumBillers) return;
 
-        var matchingSaved = SavedBillers.FirstOrDefault(savedBiller => savedBiller.BillerId == SelectedBiller.Id);
+        SavedBillerDto? matchingSaved = SavedBillers.FirstOrDefault(s => s.BillerId == SelectedBiller.Id);
 
         if (matchingSaved != null &&
             string.IsNullOrWhiteSpace(BillerReference) &&
             !string.IsNullOrWhiteSpace(matchingSaved.DefaultReference))
-        {
             BillerReference = matchingSaved.DefaultReference!;
-        }
     }
 
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value))
-        {
-            return false;
-        }
+        if (Equals(field, value)) return false;
 
         field = value;
         OnPropertyChanged(propertyName);

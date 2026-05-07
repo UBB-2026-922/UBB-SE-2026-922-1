@@ -40,5 +40,5 @@ public enum NotificationType
     /// <summary>
     ///     Unusual activity has been detected on the account.
     /// </summary>
-    SuspiciousActivity,
+    SuspiciousActivity
 }

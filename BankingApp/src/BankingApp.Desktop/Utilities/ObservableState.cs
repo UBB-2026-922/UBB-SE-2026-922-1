@@ -61,9 +61,6 @@ public class ObservableState<T>(T value)
 
     private void NotifyObservers()
     {
-        foreach (IStateObserver<T> observer in _observers)
-        {
-            observer.Update(Value);
-        }
+        foreach (IStateObserver<T> observer in _observers) observer.Update(Value);
     }
 }

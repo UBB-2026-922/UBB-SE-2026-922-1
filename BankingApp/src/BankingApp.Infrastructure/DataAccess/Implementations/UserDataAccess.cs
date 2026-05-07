@@ -34,12 +34,7 @@ public class UserDataAccess : IUserDataAccess
     public ErrorOr<User> FindByEmail(string email)
     {
         User? user = _databaseContext.Users.FirstOrDefault(user => user.Email == email);
-        if (user is null)
-        {
-            return Error.NotFound(description: "User not found.");
-        }
-
-        return user;
+        return user ?? (ErrorOr<User>)Error.NotFound(description: "User not found.");
     }
 
     /// <inheritdoc />
@@ -48,12 +43,7 @@ public class UserDataAccess : IUserDataAccess
     public ErrorOr<User> FindById(int id)
     {
         User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == id);
-        if (user is null)
-        {
-            return Error.NotFound(description: "User not found.");
-        }
-
-        return user;
+        return user ?? (ErrorOr<User>)Error.NotFound(description: "User not found.");
     }
 
     /// <inheritdoc />

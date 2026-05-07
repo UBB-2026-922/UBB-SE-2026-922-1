@@ -76,14 +76,9 @@ public class SecurityViewModel
         string confirmPassword)
     {
         if (!PasswordValidator.MeetsMinimumLength(newPassword))
-        {
             return (false, UserMessages.Security.MinimumLengthRequired);
-        }
 
-        if (newPassword != confirmPassword)
-        {
-            return (false, UserMessages.Security.PasswordMismatch);
-        }
+        if (newPassword != confirmPassword) return (false, UserMessages.Security.PasswordMismatch);
 
         State.SetValue(ProfileState.Loading);
         var request = new ChangePasswordRequest(userId, currentPassword, newPassword);

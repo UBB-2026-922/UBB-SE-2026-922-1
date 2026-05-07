@@ -65,25 +65,16 @@ public class AuthRepository : IAuthRepository
     public ErrorOr<Success> CreateUser(User user)
     {
         ErrorOr<Success> createResult = _userDataAccess.Create(user);
-        if (createResult.IsError)
-        {
-            return createResult.FirstError;
-        }
+        if (createResult.IsError) return createResult.FirstError;
 
         ErrorOr<User> createdUser = _userDataAccess.FindByEmail(user.Email);
-        if (createdUser.IsError)
-        {
-            return createdUser.FirstError;
-        }
+        if (createdUser.IsError) return createdUser.FirstError;
 
         foreach (NotificationType type in Enum.GetValues(typeof(NotificationType)))
         {
             ErrorOr<Success> preferenceResult =
                 _notificationPreferenceDataAccess.Create(createdUser.Value.Id, type.ToDisplayName());
-            if (preferenceResult.IsError)
-            {
-                return preferenceResult.FirstError;
-            }
+            if (preferenceResult.IsError) return preferenceResult.FirstError;
         }
 
         return Result.Success;

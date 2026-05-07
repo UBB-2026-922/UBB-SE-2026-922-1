@@ -51,5 +51,5 @@ public enum LoginState
     ///     The application is not properly configured and cannot connect to the server.
     ///     The login form should be permanently disabled until the configuration is fixed.
     /// </summary>
-    ServerNotConfigured,
+    ServerNotConfigured
 }

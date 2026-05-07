@@ -240,10 +240,7 @@ public class PasswordRecoveryManagerTests
         {
             get
             {
-                if (_lastRequestedAt is null)
-                {
-                    return true;
-                }
+                if (_lastRequestedAt is null) return true;
 
                 return (_clock.UtcNow - _lastRequestedAt.Value).TotalSeconds >= CooldownSeconds;
             }
@@ -253,10 +250,7 @@ public class PasswordRecoveryManagerTests
         {
             get
             {
-                if (_lastRequestedAt is null)
-                {
-                    return 0;
-                }
+                if (_lastRequestedAt is null) return 0;
 
                 double remaining = CooldownSeconds - (_clock.UtcNow - _lastRequestedAt.Value).TotalSeconds;
                 return remaining > 0 ? (int)Math.Ceiling(remaining) : 0;
@@ -268,16 +262,10 @@ public class PasswordRecoveryManagerTests
         /// </summary>
         public async Task<ForgotPasswordState> RequestCodeAsync(string email)
         {
-            if (!CanResendCode)
-            {
-                return ForgotPasswordState.EmailSent;
-            }
+            if (!CanResendCode) return ForgotPasswordState.EmailSent;
 
             ForgotPasswordState state = await _responder.HandleRequestCodeAsync();
-            if (state == ForgotPasswordState.EmailSent)
-            {
-                _lastRequestedAt = _clock.UtcNow;
-            }
+            if (state == ForgotPasswordState.EmailSent) _lastRequestedAt = _clock.UtcNow;
 
             return state;
         }

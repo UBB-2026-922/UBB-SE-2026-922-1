@@ -282,10 +282,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
         get => _errorMessage;
         set
         {
-            if (SetProperty(ref _errorMessage, value))
-            {
-                OnPropertyChanged(nameof(HasError));
-            }
+            if (SetProperty(ref _errorMessage, value)) OnPropertyChanged(nameof(HasError));
         }
     }
 
@@ -312,13 +309,9 @@ public partial class TransferViewModel : INotifyPropertyChanged
             SetProperty(ref _amountText, value);
 
             if (decimal.TryParse(value, out decimal parsed))
-            {
                 Amount = parsed;
-            }
             else
-            {
                 Amount = default;
-            }
         }
     }
 
@@ -373,15 +366,9 @@ public partial class TransferViewModel : INotifyPropertyChanged
 
             Accounts.Clear();
 
-            foreach (TransferAccountDto account in result.Value)
-            {
-                Accounts.Add(account);
-            }
+            foreach (TransferAccountDto account in result.Value) Accounts.Add(account);
 
-            if (Accounts.Count > MinimumAccounts)
-            {
-                SelectedAccount = Accounts[FirstAccountIndex];
-            }
+            if (Accounts.Count > MinimumAccounts) SelectedAccount = Accounts[FirstAccountIndex];
         }
         catch (Exception loadAccountsException)
         {
@@ -445,10 +432,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
                 return;
             }
 
-            if (Requires2Fa && string.IsNullOrWhiteSpace(TwoFaToken))
-            {
-                TwoFaToken = GenerateTwoFaToken();
-            }
+            if (Requires2Fa && string.IsNullOrWhiteSpace(TwoFaToken)) TwoFaToken = GenerateTwoFaToken();
 
             CurrentStep = ReviewAndConfirmationStep;
             return;
@@ -468,10 +452,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
 
-            if (SelectedAccount == null)
-            {
-                throw new InvalidOperationException(UserMessages.Transfer.NoAccountSelected);
-            }
+            if (SelectedAccount == null) throw new InvalidOperationException(UserMessages.Transfer.NoAccountSelected);
 
             var request = new TransferRequestDto
             {
@@ -480,7 +461,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
                 RecipientIban = RecipientIban,
                 Amount = Amount,
                 Currency = Currency,
-                TwoFaToken = Requires2Fa ? TwoFaToken : null,
+                TwoFaToken = Requires2Fa ? TwoFaToken : null
             };
 
             ErrorOr<TransferResultDto> result =
@@ -539,10 +520,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
     /// <returns><see langword="true" /> if the value changed; otherwise <see langword="false" />.</returns>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value))
-        {
-            return false;
-        }
+        if (Equals(field, value)) return false;
 
         field = value;
         OnPropertyChanged(propertyName);
@@ -613,14 +591,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
             FxPreviewDto preview = result.Value;
 
             if (preview.ExchangeRate == IdentityExchangeRate)
-            {
                 FxPreviewText = $"{Amount:F2} {Currency}";
-            }
             else
-            {
                 FxPreviewText =
                     $"{Amount:F2} {SelectedAccount.Currency} -> {preview.ConvertedAmount:F2} {Currency} (rate: {preview.ExchangeRate:F4})";
-            }
         }
         catch
         {
@@ -659,10 +633,16 @@ public partial class TransferViewModel : INotifyPropertyChanged
 #pragma warning restore CS0067
 
         /// <inheritdoc />
-        public bool CanExecute(object? parameter) => true;
+        public bool CanExecute(object? parameter)
+        {
+            return true;
+        }
 
         /// <inheritdoc />
-        public void Execute(object? parameter) => _execute();
+        public void Execute(object? parameter)
+        {
+            _execute();
+        }
     }
 
     /// <summary>
@@ -686,7 +666,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
         public event EventHandler? CanExecuteChanged;
 
         /// <inheritdoc />
-        public bool CanExecute(object? parameter) => !_isExecuting;
+        public bool CanExecute(object? parameter)
+        {
+            return !_isExecuting;
+        }
 
         /// <inheritdoc />
         public void Execute(object? parameter)

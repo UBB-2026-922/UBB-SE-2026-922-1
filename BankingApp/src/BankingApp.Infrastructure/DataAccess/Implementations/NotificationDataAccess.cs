@@ -14,27 +14,20 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// <summary>
 ///     Provides SQL Server data access for notification records.
 /// </summary>
-public class NotificationDataAccess : INotificationDataAccess
+/// <remarks>
+///     Initializes a new instance of the <see cref="NotificationDataAccess" /> class.
+/// </remarks>
+/// <param name="databaseContext">The database context used for executing queries.</param>
+/// <returns>The result of the operation.</returns>
+public class NotificationDataAccess(AppDatabaseContext databaseContext) : INotificationDataAccess
 {
-
-    private readonly AppDatabaseContext _databaseContext;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="NotificationDataAccess" /> class.
-    /// </summary>
-    /// <param name="databaseContext">The database context used for executing queries.</param>
-    /// <returns>The result of the operation.</returns>
-    public NotificationDataAccess(AppDatabaseContext databaseContext)
-    {
-        _databaseContext = databaseContext;
-    }
-
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
     public ErrorOr<int> CountUnreadByUserId(int userId)
     {
-        List<Notification> notifications = _databaseContext.Notifications.Where(notification => notification.UserId == userId && !notification.IsRead).ToList();
+        var notifications = databaseContext.Notifications
+            .Where(notification => notification.UserId == userId && !notification.IsRead).ToList();
         return notifications.Count;
     }
 
@@ -43,7 +36,8 @@ public class NotificationDataAccess : INotificationDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Notification>> FindByUserId(int userId)
     {
-        List<Notification> notifications = _databaseContext.Notifications.Where(notification => notification.UserId == userId).OrderByDescending(notification => notification.CreatedAt).ToList();
+        var notifications = databaseContext.Notifications.Where(notification => notification.UserId == userId)
+            .OrderByDescending(notification => notification.CreatedAt).ToList();
         return notifications;
     }
 }

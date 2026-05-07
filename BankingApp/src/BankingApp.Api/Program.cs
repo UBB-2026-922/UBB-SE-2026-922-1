@@ -62,7 +62,7 @@ try
                 Scheme = "Bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Description = "Paste your JWT token here",
+                Description = "Paste your JWT token here"
             });
         options.AddSecurityRequirement(_ =>
             new OpenApiSecurityRequirement
@@ -70,7 +70,7 @@ try
                 {
                     new OpenApiSecuritySchemeReference("Bearer", null, null),
                     []
-                },
+                }
             });
     });
     builder.Services.AddApplication();

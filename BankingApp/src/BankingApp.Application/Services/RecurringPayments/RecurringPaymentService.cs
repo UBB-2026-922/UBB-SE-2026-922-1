@@ -49,18 +49,14 @@ public class RecurringPaymentService : IRecurringPaymentService
     public ErrorOr<RecurringPaymentResponse> Create(int userId, CreateRecurringPaymentRequest request)
     {
         if (request.Amount <= 0)
-        {
             return Error.Validation(
-                code: "recurring_payment.invalid_amount",
-                description: "Amount must be greater than zero.");
-        }
+                "recurring_payment.invalid_amount",
+                "Amount must be greater than zero.");
 
         if (request.EndDate.HasValue && request.EndDate.Value <= request.StartDate)
-        {
             return Error.Validation(
-                code: "recurring_payment.invalid_end_date",
-                description: "EndDate must be after StartDate.");
-        }
+                "recurring_payment.invalid_end_date",
+                "EndDate must be after StartDate.");
 
         var payment = new RecurringPayment
         {
@@ -74,13 +70,14 @@ public class RecurringPaymentService : IRecurringPaymentService
             EndDate = request.EndDate,
             NextExecutionDate = ComputeNextRunDate(request.Frequency, request.StartDate),
             Status = RecurringPaymentStatus.Active,
-            CreatedAt = _clock.UtcNow,
+            CreatedAt = _clock.UtcNow
         };
 
         ErrorOr<RecurringPayment> createResult = _repository.Create(payment);
         if (createResult.IsError)
         {
-            _logger.LogError("Failed to create recurring payment for user {UserId}: {Error}", userId, createResult.FirstError.Description);
+            _logger.LogError("Failed to create recurring payment for user {UserId}: {Error}", userId,
+                createResult.FirstError.Description);
             return createResult.FirstError;
         }
 
@@ -91,10 +88,7 @@ public class RecurringPaymentService : IRecurringPaymentService
     public ErrorOr<List<RecurringPaymentResponse>> GetByUser(int userId)
     {
         ErrorOr<List<RecurringPayment>> result = _repository.GetByUserId(userId);
-        if (result.IsError)
-        {
-            return result.FirstError;
-        }
+        if (result.IsError) return result.FirstError;
 
         return result.Value.Select(MapToResponse).ToList();
     }
@@ -103,16 +97,11 @@ public class RecurringPaymentService : IRecurringPaymentService
     public ErrorOr<Success> Pause(int userId, int id)
     {
         ErrorOr<RecurringPayment> findResult = _repository.GetById(id);
-        if (findResult.IsError)
-        {
-            return findResult.FirstError;
-        }
+        if (findResult.IsError) return findResult.FirstError;
 
         RecurringPayment payment = findResult.Value;
         if (payment.UserId != userId)
-        {
             return Error.Forbidden(description: "You do not have permission to modify this recurring payment.");
-        }
 
         payment.Status = RecurringPaymentStatus.Paused;
         return _repository.Update(payment);
@@ -122,21 +111,14 @@ public class RecurringPaymentService : IRecurringPaymentService
     public ErrorOr<Success> Resume(int userId, int id)
     {
         ErrorOr<RecurringPayment> findResult = _repository.GetById(id);
-        if (findResult.IsError)
-        {
-            return findResult.FirstError;
-        }
+        if (findResult.IsError) return findResult.FirstError;
 
         RecurringPayment payment = findResult.Value;
         if (payment.UserId != userId)
-        {
             return Error.Forbidden(description: "You do not have permission to modify this recurring payment.");
-        }
 
         if (payment.Status != RecurringPaymentStatus.Paused)
-        {
             return Error.Conflict(description: "Only paused recurring payments can be resumed.");
-        }
 
         payment.Status = RecurringPaymentStatus.Active;
         return _repository.Update(payment);
@@ -146,16 +128,11 @@ public class RecurringPaymentService : IRecurringPaymentService
     public ErrorOr<Success> Cancel(int userId, int id)
     {
         ErrorOr<RecurringPayment> findResult = _repository.GetById(id);
-        if (findResult.IsError)
-        {
-            return findResult.FirstError;
-        }
+        if (findResult.IsError) return findResult.FirstError;
 
         RecurringPayment payment = findResult.Value;
         if (payment.UserId != userId)
-        {
             return Error.Forbidden(description: "You do not have permission to modify this recurring payment.");
-        }
 
         payment.Status = RecurringPaymentStatus.Cancelled;
         return _repository.Update(payment);
@@ -171,7 +148,7 @@ public class RecurringPaymentService : IRecurringPaymentService
             RecurringFrequency.Monthly => from.AddMonths(MonthlyIntervalMonths),
             RecurringFrequency.Quarterly => from.AddMonths(QuarterlyIntervalMonths),
             RecurringFrequency.Yearly => from.AddYears(YearlyIntervalYears),
-            _ => throw new ArgumentOutOfRangeException(nameof(frequency), $"Unknown frequency: {frequency}"),
+            _ => throw new ArgumentOutOfRangeException(nameof(frequency), $"Unknown frequency: {frequency}")
         };
     }
 
@@ -190,7 +167,7 @@ public class RecurringPaymentService : IRecurringPaymentService
             EndDate = payment.EndDate,
             NextExecutionDate = payment.NextExecutionDate,
             Status = payment.Status,
-            CreatedAt = payment.CreatedAt,
+            CreatedAt = payment.CreatedAt
         };
     }
 }

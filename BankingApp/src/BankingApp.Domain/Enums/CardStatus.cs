@@ -30,5 +30,5 @@ public enum CardStatus
     /// <summary>
     ///     The card has passed its expiry date.
     /// </summary>
-    Expired,
+    Expired
 }

@@ -60,12 +60,7 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     public ErrorOr<PasswordResetToken> FindByToken(string tokenHash)
     {
         PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(resetToken => resetToken.TokenHash == tokenHash);
-        if (token == null)
-        {
-            return Error.NotFound(description: "Password reset token not found.");
-        }
-
-        return token;
+        return token ?? (ErrorOr<PasswordResetToken>)Error.NotFound(description: "Password reset token not found.");
     }
 
     /// <inheritdoc />
@@ -76,7 +71,7 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
         try
         {
             PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(resetToken => resetToken.Id == tokenId);
-            if (token == null)
+            if (token is null)
             {
                 return Error.NotFound(description: "Password reset token not found.");
             }
@@ -97,11 +92,10 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     {
         try
         {
-            List<PasswordResetToken> expiredTokens = _databaseContext.PasswordResetTokens.Where(resetToken => resetToken.ExpiresAt < DateTime.UtcNow || resetToken.UsedAt != null).ToList();
+            var expiredTokens = _databaseContext.PasswordResetTokens.Where(resetToken => resetToken.ExpiresAt < DateTime.UtcNow || resetToken.UsedAt != null).ToList();
             _databaseContext.PasswordResetTokens.RemoveRange(expiredTokens);
             _databaseContext.SaveChanges();
             return Result.Success;
-
         }
         catch (Exception ex)
         {

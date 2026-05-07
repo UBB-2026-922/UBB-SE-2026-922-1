@@ -50,18 +50,14 @@ public class BeneficiaryService : IBeneficiaryService
     public ErrorOr<DomainBeneficiary> Create(int userId, string name, string iban, string? bankName)
     {
         if (string.IsNullOrWhiteSpace(name))
-        {
             return Error.Validation(
-                code: "Beneficiary.NameRequired",
-                description: "Beneficiary name cannot be empty.");
-        }
+                "Beneficiary.NameRequired",
+                "Beneficiary name cannot be empty.");
 
         if (!ValidateIban(iban))
-        {
             return Error.Validation(
-                code: "Beneficiary.InvalidIban",
-                description: "Invalid IBAN format.");
-        }
+                "Beneficiary.InvalidIban",
+                "Invalid IBAN format.");
 
         string normalizedName = name.Trim();
         string normalizedIban = iban.Trim().ToUpperInvariant();
@@ -77,11 +73,9 @@ public class BeneficiaryService : IBeneficiaryService
         }
 
         if (existsResult.Value)
-        {
             return Error.Conflict(
-                code: "Beneficiary.DuplicateIban",
-                description: "A beneficiary with this IBAN already exists for this user.");
-        }
+                "Beneficiary.DuplicateIban",
+                "A beneficiary with this IBAN already exists for this user.");
 
         var beneficiary = new DomainBeneficiary
         {
@@ -91,7 +85,7 @@ public class BeneficiaryService : IBeneficiaryService
             BankName = normalizedBankName,
             CreatedAt = DateTime.UtcNow,
             TotalAmountSent = 0,
-            TransferCount = 0,
+            TransferCount = 0
         };
 
         ErrorOr<DomainBeneficiary> createResult = _beneficiaryRepository.Create(beneficiary);
@@ -115,18 +109,14 @@ public class BeneficiaryService : IBeneficiaryService
     public ErrorOr<Success> Update(DomainBeneficiary beneficiary)
     {
         if (string.IsNullOrWhiteSpace(beneficiary.Name))
-        {
             return Error.Validation(
-                code: "Beneficiary.NameRequired",
-                description: "Beneficiary name cannot be empty.");
-        }
+                "Beneficiary.NameRequired",
+                "Beneficiary name cannot be empty.");
 
         if (!ValidateIban(beneficiary.Iban))
-        {
             return Error.Validation(
-                code: "Beneficiary.InvalidIban",
-                description: "Invalid IBAN format.");
-        }
+                "Beneficiary.InvalidIban",
+                "Invalid IBAN format.");
 
         string normalizedName = beneficiary.Name.Trim();
         string normalizedIban = beneficiary.Iban.Trim().ToUpperInvariant();
@@ -136,10 +126,7 @@ public class BeneficiaryService : IBeneficiaryService
 
         ErrorOr<DomainBeneficiary> existingBeneficiaryResult =
             _beneficiaryRepository.FindById(beneficiary.Id, beneficiary.UserId);
-        if (existingBeneficiaryResult.IsError)
-        {
-            return existingBeneficiaryResult.FirstError;
-        }
+        if (existingBeneficiaryResult.IsError) return existingBeneficiaryResult.FirstError;
 
         ErrorOr<List<DomainBeneficiary>> userBeneficiariesResult =
             _beneficiaryRepository.FindByUserId(beneficiary.UserId);
@@ -157,11 +144,9 @@ public class BeneficiaryService : IBeneficiaryService
             string.Equals(existingBeneficiary.Iban, normalizedIban, StringComparison.OrdinalIgnoreCase));
 
         if (duplicateOwnedByAnotherBeneficiary)
-        {
             return Error.Conflict(
-                code: "Beneficiary.DuplicateIban",
-                description: "A beneficiary with this IBAN already exists for this user.");
-        }
+                "Beneficiary.DuplicateIban",
+                "A beneficiary with this IBAN already exists for this user.");
 
         DomainBeneficiary existingBeneficiary = existingBeneficiaryResult.Value;
         existingBeneficiary.Name = normalizedName;
@@ -180,17 +165,11 @@ public class BeneficiaryService : IBeneficiaryService
     /// <inheritdoc />
     public bool ValidateIban(string iban)
     {
-        if (string.IsNullOrWhiteSpace(iban))
-        {
-            return false;
-        }
+        if (string.IsNullOrWhiteSpace(iban)) return false;
 
         string normalized = iban.Replace(" ", string.Empty).Trim().ToUpperInvariant();
 
-        if (normalized.Length < 15 || normalized.Length > 34)
-        {
-            return false;
-        }
+        if (normalized.Length < 15 || normalized.Length > 34) return false;
 
         return Regex.IsMatch(normalized, "^[A-Z]{2}[0-9]{2}[A-Z0-9]+$");
     }

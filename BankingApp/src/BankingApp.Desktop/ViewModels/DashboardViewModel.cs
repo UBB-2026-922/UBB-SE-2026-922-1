@@ -233,10 +233,7 @@ public class DashboardViewModel
     /// </returns>
     public ErrorOr<Success> NavigatePrevious()
     {
-        if (!CanNavigatePrevious)
-        {
-            return Error.Failure(CardAtStartErrorCode, CardAtStartErrorDescription);
-        }
+        if (!CanNavigatePrevious) return Error.Failure(CardAtStartErrorCode, CardAtStartErrorDescription);
 
         CurrentCardIndex--;
         return Result.Success;
@@ -251,10 +248,7 @@ public class DashboardViewModel
     /// </returns>
     public ErrorOr<Success> NavigateNext()
     {
-        if (!CanNavigateNext)
-        {
-            return Error.Failure(CardAtEndErrorCode, CardAtEndErrorDescription);
-        }
+        if (!CanNavigateNext) return Error.Failure(CardAtEndErrorCode, CardAtEndErrorDescription);
 
         CurrentCardIndex++;
         return Result.Success;
@@ -267,10 +261,7 @@ public class DashboardViewModel
     /// <returns>A multi-line string with card details, or an empty string when no card is selected.</returns>
     public string GetSelectedCardDetails()
     {
-        if (SelectedCard is not { } card)
-        {
-            return string.Empty;
-        }
+        if (SelectedCard is not { } card) return string.Empty;
 
         return
             $"Card Type:       {card.CardType}\n" +
@@ -339,10 +330,7 @@ public class DashboardViewModel
     /// <returns>A masked string such as "**** **** **** 1234".</returns>
     private static string MaskCardNumber(string? cardNumber)
     {
-        if (string.IsNullOrWhiteSpace(cardNumber))
-        {
-            return FullyMaskedCardNumber;
-        }
+        if (string.IsNullOrWhiteSpace(cardNumber)) return FullyMaskedCardNumber;
 
         return cardNumber.Length >= CardNumberVisibleSuffixLength
             ? $"{CardNumberMaskPrefix} {cardNumber[^CardNumberVisibleSuffixLength..]}"
@@ -357,7 +345,7 @@ public class DashboardViewModel
             {
                 MerchantDisplayName = GetMerchantDisplayName(transaction),
                 Currency = GetValueOrFallback(transaction.Currency, "N/A"),
-                AmountDisplay = FormatAmountDisplay(transaction),
+                AmountDisplay = FormatAmountDisplay(transaction)
             })
             .ToList();
     }

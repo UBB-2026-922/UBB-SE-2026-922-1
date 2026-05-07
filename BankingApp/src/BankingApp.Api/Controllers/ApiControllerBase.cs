@@ -67,7 +67,7 @@ public abstract class ApiControllerBase : ControllerBase
         var body = new ApplicationErrorResponse
         {
             Error = error.Description,
-            ErrorCode = error.Code,
+            ErrorCode = error.Code
         };
         return error.Type switch
         {

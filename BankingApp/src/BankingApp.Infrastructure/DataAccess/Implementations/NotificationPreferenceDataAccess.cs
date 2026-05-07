@@ -40,11 +40,11 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
         {
             NotificationPreference notification = new()
             {
-            UserId = userId,
-            Category = NotificationTypeExtensions.FromString(category),
-            PushEnabled = false,
-            EmailEnabled = false,
-            SmsEnabled = false,
+                UserId = userId,
+                Category = NotificationTypeExtensions.FromString(category),
+                PushEnabled = false,
+                EmailEnabled = false,
+                SmsEnabled = false
             };
             _databaseContext.NotificationPreferences.Add(notification);
             _databaseContext.SaveChanges();
@@ -61,7 +61,8 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<NotificationPreference>> FindByUserId(int userId)
     {
-        List<NotificationPreference> preferences = _databaseContext.NotificationPreferences.Where(preference => preference.UserId == userId).ToList();
+        var preferences = _databaseContext.NotificationPreferences.Where(preference => preference.UserId == userId)
+            .ToList();
         return preferences;
     }
 

@@ -16,7 +16,6 @@ namespace BankingApp.Infrastructure.DataAccess.Implementations;
 /// </summary>
 public class CardDataAccess : ICardDataAccess
 {
-
     private readonly AppDatabaseContext _databaseContext;
 
     /// <summary>
@@ -34,11 +33,8 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Card> FindById(int id)
     {
-        Card? card = _databaseContext.Cards.FirstOrDefault(card => card.Id == id);
-        if (card == null)
-        {
-            return Error.NotFound(description: "Card not found.");
-        }
+        Card? card = _databaseContext.Cards.FirstOrDefault(c => c.Id == id);
+        if (card == null) return Error.NotFound(description: "Card not found.");
 
         return card;
     }
@@ -48,7 +44,7 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Card>> FindByUserId(int userId)
     {
-        List<Card> cards = _databaseContext.Cards.Where(card => card.UserId == userId).ToList();
+        var cards = _databaseContext.Cards.Where(card => card.UserId == userId).ToList();
         return cards;
     }
 }

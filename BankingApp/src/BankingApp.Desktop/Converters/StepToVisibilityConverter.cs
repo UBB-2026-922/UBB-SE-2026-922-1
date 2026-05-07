@@ -24,9 +24,7 @@ public partial class StepToVisibilityConverter : IValueConverter
         if (value is int currentStepNumber
             && parameter is string targetStepText
             && int.TryParse(targetStepText, out int targetStepNumber))
-        {
             return currentStepNumber == targetStepNumber ? Visibility.Visible : Visibility.Collapsed;
-        }
 
         return Visibility.Collapsed;
     }

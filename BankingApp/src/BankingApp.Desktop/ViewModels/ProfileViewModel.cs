@@ -154,10 +154,7 @@ public class ProfileViewModel
     public async Task<bool> EnableTwoFactor(TwoFactorMethod method)
     {
         bool success = await Security.EnableTwoFactor(method);
-        if (!success)
-        {
-            return false;
-        }
+        if (!success) return false;
 
         ProfileInfo.Is2FaEnabled = true;
         ProfileInfo.Preferred2FaMethod = method;
@@ -171,10 +168,7 @@ public class ProfileViewModel
     public async Task<bool> DisableTwoFactor()
     {
         bool success = await Security.DisableTwoFactor();
-        if (!success)
-        {
-            return false;
-        }
+        if (!success) return false;
 
         ProfileInfo.Is2FaEnabled = false;
         ProfileInfo.Preferred2FaMethod = null;
@@ -189,10 +183,7 @@ public class ProfileViewModel
     public async Task<bool> SetEmailTwoFactorEnabled(bool enabled)
     {
         bool success = await Security.SetTwoFactorEnabled(enabled);
-        if (!success)
-        {
-            return false;
-        }
+        if (!success) return false;
 
         ProfileInfo.Is2FaEnabled = enabled;
         ProfileInfo.Preferred2FaMethod = enabled ? TwoFactorMethod.Email : null;
@@ -217,10 +208,7 @@ public class ProfileViewModel
     public async Task<(bool Success, string? ErrorMessage)> LoadSessionsForCurrentUser()
     {
         int? userId = ProfileInfo.UserId;
-        if (userId == null)
-        {
-            return (false, "User not loaded.");
-        }
+        if (userId == null) return (false, "User not loaded.");
 
         bool loaded = await Sessions.LoadSessionsAsync(userId.Value);
         return loaded ? (true, null) : (false, "Failed to load active sessions.");
@@ -234,10 +222,7 @@ public class ProfileViewModel
     public async Task<(bool Success, string? ErrorMessage)> RevokeSessionAndReload(int sessionId)
     {
         bool revoked = await Sessions.RevokeSessionAsync(sessionId);
-        if (!revoked)
-        {
-            return (false, "Failed to revoke session.");
-        }
+        if (!revoked) return (false, "Failed to revoke session.");
 
         (bool loaded, string? errorMessage) = await LoadSessionsForCurrentUser();
         return loaded ? (true, null) : (false, errorMessage);
@@ -248,10 +233,7 @@ public class ProfileViewModel
     /// </summary>
     public void Dispose()
     {
-        if (_disposed)
-        {
-            return;
-        }
+        if (_disposed) return;
 
         _disposed = true;
         GC.SuppressFinalize(this);

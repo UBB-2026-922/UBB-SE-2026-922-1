@@ -34,7 +34,7 @@ public sealed class AuthControllerTests
     public void Login_WhenSuccessWithFullLogin_ReturnsOkWithToken()
     {
         // Arrange
-        var validUserId = 1;
+        int validUserId = 1;
         var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
         _loginService
             .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
@@ -56,7 +56,7 @@ public sealed class AuthControllerTests
     public void Login_WhenRequires2FA_ReturnsOk()
     {
         // Arrange
-        var validUserId = 1;
+        int validUserId = 1;
         var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
         _loginService
             .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
@@ -119,7 +119,7 @@ public sealed class AuthControllerTests
     public void Login_WhenUnexpectedSuccessType_ReturnsInternalServerError()
     {
         // Arrange
-        var validUserId = 1;
+        int validUserId = 1;
         var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
         _loginService
             .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
@@ -443,7 +443,7 @@ public sealed class AuthControllerTests
 
         controller.ControllerContext = new ControllerContext
         {
-            HttpContext = new DefaultHttpContext(),
+            HttpContext = new DefaultHttpContext()
         };
 
         return controller;

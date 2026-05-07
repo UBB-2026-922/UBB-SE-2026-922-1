@@ -71,8 +71,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardRepository, DashboardRepository>();
         services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
         services.AddScoped<
-            BankingApp.Application.Services.BillPayments.IBillPaymentService,
-            BankingApp.Application.Services.BillPayments.BillPaymentService>();
+            IBillPaymentService,
+            BillPaymentService>();
         services.AddScoped<IBillerDataAccess, BillerDataAccess>();
         services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
         services.AddScoped<IBillerRepository, BillerRepository>();

@@ -81,7 +81,7 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj" />
+        <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj"/>
     </ItemGroup>
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">

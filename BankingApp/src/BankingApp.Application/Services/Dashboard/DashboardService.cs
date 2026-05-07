@@ -55,20 +55,16 @@ public class DashboardService : IDashboardService
         ErrorOr<List<Card>> cardsResult = _dashboardRepository.GetCardsByUser(userId);
         ErrorOr<int> notifCountResult = _dashboardRepository.GetUnreadNotificationCount(userId);
         if (cardsResult.IsError)
-        {
             _logger.LogError(
                 "Failed to fetch cards for user {UserId}: {Error}",
                 userId,
                 cardsResult.FirstError.Description);
-        }
 
         if (notifCountResult.IsError)
-        {
             _logger.LogError(
                 "Failed to fetch notification count for user {UserId}: {Error}",
                 userId,
                 notifCountResult.FirstError.Description);
-        }
 
         var allTransactions = new List<Transaction>();
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
@@ -112,7 +108,7 @@ public class DashboardService : IDashboardService
                 FullName = userResult.Value.FullName,
                 Email = userResult.Value.Email,
                 PhoneNumber = userResult.Value.PhoneNumber,
-                Is2FaEnabled = userResult.Value.Is2FaEnabled,
+                Is2FaEnabled = userResult.Value.Is2FaEnabled
             },
             Cards = cardsResult.IsError
                 ? new List<CardDataTransferObject>()
@@ -131,7 +127,7 @@ public class DashboardService : IDashboardService
                         AccountName = accountsById.TryGetValue(card.AccountId, out Account? account)
                             ? account.AccountName
                             : null,
-                        AccountBalance = account?.Balance,
+                        AccountBalance = account?.Balance
                     })
                     .ToList(),
             RecentTransactions = allTransactions
@@ -145,10 +141,10 @@ public class DashboardService : IDashboardService
                     MerchantName = transaction.MerchantName,
                     CounterpartyName = transaction.CounterpartyName,
                     Status = transaction.Status,
-                    CreatedAt = transaction.CreatedAt,
+                    CreatedAt = transaction.CreatedAt
                 })
                 .ToList(),
-            UnreadNotificationCount = notifCountResult.IsError ? default : notifCountResult.Value,
+            UnreadNotificationCount = notifCountResult.IsError ? default : notifCountResult.Value
         };
     }
 }

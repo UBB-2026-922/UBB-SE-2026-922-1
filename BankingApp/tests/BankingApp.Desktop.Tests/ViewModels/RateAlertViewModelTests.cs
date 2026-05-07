@@ -40,7 +40,7 @@ public class RateAlertViewModelTests
         var alerts = new List<RateAlertDto>
         {
             new RateAlertDto { Id = 1, BaseCurrency = "EUR", TargetCurrency = "USD", TargetRate = 1.10m },
-            new RateAlertDto { Id = 2, BaseCurrency = "GBP", TargetCurrency = "RON", TargetRate = 5.80m },
+            new RateAlertDto { Id = 2, BaseCurrency = "GBP", TargetCurrency = "RON", TargetRate = 5.80m }
         };
 
         _apiClient
@@ -169,7 +169,7 @@ public class RateAlertViewModelTests
             Id = 42,
             BaseCurrency = "EUR",
             TargetCurrency = "USD",
-            TargetRate = 1.10m,
+            TargetRate = 1.10m
         };
 
         _apiClient

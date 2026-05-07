@@ -45,15 +45,15 @@ public class RecurringPaymentViewModelTests
         // Arrange
         var accounts = new List<AccountDto>
         {
-            new AccountDto { Id = 1, AccountName = "Checking", Balance = 1000m },
+            new AccountDto { Id = 1, AccountName = "Checking", Balance = 1000m }
         };
         var payments = new List<RecurringPaymentResponse>
         {
-            new RecurringPaymentResponse { Id = 1, Amount = 50m },
+            new RecurringPaymentResponse { Id = 1, Amount = 50m }
         };
         var billers = new List<BillerDto>
         {
-            new BillerDto { Id = 1, Name = "Electric Co" },
+            new BillerDto { Id = 1, Name = "Electric Co" }
         };
 
         _apiClient.Setup(apiClient => apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts))
@@ -98,7 +98,7 @@ public class RecurringPaymentViewModelTests
             SourceAccountId = account.Id,
             Amount = amount,
             Frequency = RecurringFrequency.Monthly,
-            StartDate = startDate,
+            StartDate = startDate
         };
 
         _apiClient.Setup(apiClient => apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(

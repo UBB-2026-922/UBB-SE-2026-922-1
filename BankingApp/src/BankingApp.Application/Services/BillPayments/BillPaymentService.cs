@@ -38,40 +38,29 @@ public class BillPaymentService : IBillPaymentService
     }
 
     /// <inheritdoc/>
-    public bool Requires2Fa(decimal amount) => amount >= TwoFaAmountThreshold;
+    public bool Requires2Fa(decimal amount)
+    {
+        return amount >= TwoFaAmountThreshold;
+    }
 
     /// <inheritdoc/>
     public async Task<BillPayment> ProcessPaymentAsync(BillPaymentDto request)
     {
-        var biller = await _billRepository.GetBillerByIdAsync(request.BillerId);
-        if (biller == null)
-        {
-            throw new Exception("Biller not found.");
-        }
+        Biller? biller = await _billRepository.GetBillerByIdAsync(request.BillerId);
+        if (biller == null) throw new Exception("Biller not found.");
 
-        var account = await _billRepository.GetAccountByIdAsync(request.SourceAccountId);
-        if (account == null)
-        {
-            throw new Exception("Source account not found.");
-        }
+        Account? account = await _billRepository.GetAccountByIdAsync(request.SourceAccountId);
+        if (account == null) throw new Exception("Source account not found.");
 
         if (account.UserId != request.UserId)
-        {
             throw new Exception("Source account does not belong to the authenticated user.");
-        }
 
-        if (request.Amount <= 0)
-        {
-            throw new Exception("Payment amount must be greater than zero.");
-        }
+        if (request.Amount <= 0) throw new Exception("Payment amount must be greater than zero.");
 
         decimal fee = CalculateFee(request.Amount);
         decimal totalAmount = request.Amount + fee;
 
-        if (account.Balance < totalAmount)
-        {
-            throw new Exception("Insufficient funds to pay this bill (including fees).");
-        }
+        if (account.Balance < totalAmount) throw new Exception("Insufficient funds to pay this bill (including fees).");
 
         account.Balance -= totalAmount;
         await _billRepository.UpdateAccountAsync(account);
@@ -89,7 +78,7 @@ public class BillPaymentService : IBillPaymentService
             TransactionRef = $"TXN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
             Type = "BillPayment",
             Currency = account.Currency ?? "RON",
-            BalanceAfter = account.Balance,
+            BalanceAfter = account.Balance
         };
 
         await _billRepository.AddTransactionAsync(globalTransaction);
@@ -105,7 +94,7 @@ public class BillPaymentService : IBillPaymentService
             Fee = fee,
             ReceiptNumber = GenerateReceiptNumber(),
             Status = BillPaymentStatus.Completed,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         await _billRepository.AddPaymentAsync(payment);
@@ -133,7 +122,7 @@ public class BillPaymentService : IBillPaymentService
             UserId = userId,
             BillerId = billerId,
             Nickname = nickname,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         await _billRepository.AddSavedBillerAsync(saved);

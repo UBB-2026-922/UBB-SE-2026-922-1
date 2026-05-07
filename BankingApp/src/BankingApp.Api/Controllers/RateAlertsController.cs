@@ -66,15 +66,9 @@ public class RateAlertsController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         ErrorOr<List<RateAlertDto>> alertsResult = _rateAlertService.GetAlerts(userId);
-        if (alertsResult.IsError)
-        {
-            return MapError(alertsResult.FirstError);
-        }
+        if (alertsResult.IsError) return MapError(alertsResult.FirstError);
 
-        if (!alertsResult.Value.Any(alert => alert.Id == id))
-        {
-            return NotFound(new { error = "Rate alert not found." });
-        }
+        if (!alertsResult.Value.Any(alert => alert.Id == id)) return NotFound(new { error = "Rate alert not found." });
 
         ErrorOr<Success> result = _rateAlertService.DeleteAlert(id);
         return ToActionResult(result);

@@ -25,5 +25,5 @@ public class SaveBillerDto
     /// <summary>
     /// Gets or sets a personal nickname for the saved biller.
     /// </summary>
-    required public string Nickname { get; set; }
+    public required string Nickname { get; set; }
 }

@@ -99,7 +99,7 @@ public class BeneficiariesController : ApiControllerBase
             UserId = userId,
             Name = request.Name,
             Iban = request.Iban,
-            BankName = request.BankName,
+            BankName = request.BankName
         };
 
         return ToActionResult(_beneficiaryService.Update(beneficiary));
@@ -130,7 +130,7 @@ public class BeneficiariesController : ApiControllerBase
             LastTransferDate = beneficiary.LastTransferDate,
             TotalAmountSent = beneficiary.TotalAmountSent,
             TransferCount = beneficiary.TransferCount,
-            CreatedAt = beneficiary.CreatedAt,
+            CreatedAt = beneficiary.CreatedAt
         };
     }
 }

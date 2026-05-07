@@ -40,9 +40,7 @@ public class BillersController : ApiControllerBase
     public IActionResult GetBillers([FromQuery] string? search, [FromQuery] string? category)
     {
         if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(category))
-        {
             return ToActionResult(_billerService.SearchBillers(search ?? string.Empty, category), data => Ok(data));
-        }
 
         return ToActionResult(_billerService.GetBillerDirectory(), data => Ok(data));
     }

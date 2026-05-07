@@ -25,5 +25,5 @@ public enum BillPaymentStatus
     /// <summary>
     ///     The payment failed due to insufficient funds or a biller error.
     /// </summary>
-    Failed,
+    Failed
 }

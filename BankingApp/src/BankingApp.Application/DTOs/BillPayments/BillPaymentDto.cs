@@ -32,7 +32,7 @@ public class BillPaymentDto
     /// <summary>
     /// Gets or sets the customer reference or invoice number.
     /// </summary>
-    required public string BillerReference { get; set; }
+    public required string BillerReference { get; set; }
 
     /// <summary>
     /// Gets or sets the amount to be paid.

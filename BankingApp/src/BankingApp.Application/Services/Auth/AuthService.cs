@@ -16,7 +16,6 @@ using BankingApp.Domain.Entities;
 using BankingApp.Domain.Enums;
 using BankingApp.Domain.Errors;
 using ErrorOr;
-
 using Microsoft.Extensions.Logging;
 
 namespace BankingApp.Application.Services.Auth;
@@ -69,10 +68,7 @@ public class AuthService : IAuthService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<LoginSuccess> Login(LoginRequest request)
     {
-        if (!ValidationUtilities.IsValidEmail(request.Email))
-        {
-            return AuthErrors.InvalidEmail;
-        }
+        if (!ValidationUtilities.IsValidEmail(request.Email)) return AuthErrors.InvalidEmail;
 
         ErrorOr<User> userResult = _authRepository.FindUserByEmail(request.Email);
         if (userResult.IsError)
@@ -83,10 +79,7 @@ public class AuthService : IAuthService
 
         User user = userResult.Value;
         Error? lockError = CheckAccountLock(user);
-        if (lockError is not null)
-        {
-            return lockError.Value;
-        }
+        if (lockError is not null) return lockError.Value;
 
         if (user.PasswordHash is null)
         {
@@ -105,10 +98,7 @@ public class AuthService : IAuthService
             return verifyResult.FirstError;
         }
 
-        if (!verifyResult.Value)
-        {
-            return HandleFailedPassword(user);
-        }
+        if (!verifyResult.Value) return HandleFailedPassword(user);
 
         return user.Is2FaEnabled ? Handle2Fa(user) : CompleteLogin(user);
     }
@@ -119,10 +109,7 @@ public class AuthService : IAuthService
     public ErrorOr<Success> Register(RegisterRequest request)
     {
         Error? validationError = ValidateRegistration(request);
-        if (validationError is not null)
-        {
-            return validationError.Value;
-        }
+        if (validationError is not null) return validationError.Value;
 
         if (!_authRepository.FindUserByEmail(request.Email).IsError)
         {
@@ -131,10 +118,7 @@ public class AuthService : IAuthService
         }
 
         ErrorOr<User> newUserResult = CreateUserFromRequest(request);
-        if (newUserResult.IsError)
-        {
-            return newUserResult.FirstError;
-        }
+        if (newUserResult.IsError) return newUserResult.FirstError;
 
         if (_authRepository.CreateUser(newUserResult.Value).IsError)
         {
@@ -205,9 +189,7 @@ public class AuthService : IAuthService
 
         if (string.Equals(method, nameof(TwoFactorMethod.Email), StringComparison.OrdinalIgnoreCase)
             || user.Preferred2FaMethod == TwoFactorMethod.Email)
-        {
             _emailService.SendOtpCode(user.Email, otpResult.Value);
-        }
 
         return Result.Success;
     }
@@ -234,7 +216,7 @@ public class AuthService : IAuthService
             UserId = user.Id,
             TokenHash = tokenHashForDb,
             ExpiresAt = DateTime.UtcNow.AddMinutes(PasswordResetTokenExpiryMinutes),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
         if (_authRepository.SavePasswordResetToken(resetToken).IsError)
         {
@@ -253,10 +235,7 @@ public class AuthService : IAuthService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> ResetPassword(string token, string newPassword)
     {
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return PasswordResetErrors.TokenInvalid;
-        }
+        if (string.IsNullOrWhiteSpace(token)) return PasswordResetErrors.TokenInvalid;
 
         string tokenHash = ComputeSha256Hash(token);
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
@@ -315,17 +294,11 @@ public class AuthService : IAuthService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> VerifyResetToken(string token)
     {
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return PasswordResetErrors.TokenInvalid;
-        }
+        if (string.IsNullOrWhiteSpace(token)) return PasswordResetErrors.TokenInvalid;
 
         string tokenHash = ComputeSha256Hash(token);
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
-        if (tokenResult.IsError)
-        {
-            return PasswordResetErrors.TokenInvalid;
-        }
+        if (tokenResult.IsError) return PasswordResetErrors.TokenInvalid;
 
         return ValidateResetToken(tokenResult.Value);
     }
@@ -349,10 +322,7 @@ public class AuthService : IAuthService
 
     private Error? CheckAccountLock(User user)
     {
-        if (!user.IsLocked)
-        {
-            return null;
-        }
+        if (!user.IsLocked) return null;
 
         if (user.IsCurrentlyLocked())
         {
@@ -376,10 +346,7 @@ public class AuthService : IAuthService
             user.Id,
             failedAttemptsAfterCurrentFailure,
             MaxFailedAttempts);
-        if (failedAttemptsAfterCurrentFailure < MaxFailedAttempts)
-        {
-            return AuthErrors.InvalidCredentials;
-        }
+        if (failedAttemptsAfterCurrentFailure < MaxFailedAttempts) return AuthErrors.InvalidCredentials;
 
         if (_authRepository.LockAccount(user.Id, DateTime.UtcNow.AddMinutes(LockoutMinutes)).IsError)
         {
@@ -411,10 +378,7 @@ public class AuthService : IAuthService
             return otpResult.FirstError;
         }
 
-        if (user.Preferred2FaMethod == TwoFactorMethod.Email)
-        {
-            _emailService.SendOtpCode(user.Email, otpResult.Value);
-        }
+        if (user.Preferred2FaMethod == TwoFactorMethod.Email) _emailService.SendOtpCode(user.Email, otpResult.Value);
 
         _logger.LogInformation("2FA required for user {UserId} via {Method}.", user.Id, user.Preferred2FaMethod);
         return new RequiresTwoFactor(user.Id);
@@ -447,20 +411,11 @@ public class AuthService : IAuthService
 
     private Error? ValidateRegistration(RegisterRequest request)
     {
-        if (!ValidationUtilities.IsValidEmail(request.Email))
-        {
-            return AuthErrors.InvalidEmail;
-        }
+        if (!ValidationUtilities.IsValidEmail(request.Email)) return AuthErrors.InvalidEmail;
 
-        if (!ValidationUtilities.IsStrongPassword(request.Password))
-        {
-            return ProfileErrors.WeakPassword;
-        }
+        if (!ValidationUtilities.IsStrongPassword(request.Password)) return ProfileErrors.WeakPassword;
 
-        if (string.IsNullOrWhiteSpace(request.FullName))
-        {
-            return ProfileErrors.FullNameRequired;
-        }
+        if (string.IsNullOrWhiteSpace(request.FullName)) return ProfileErrors.FullNameRequired;
 
         return null;
     }
@@ -482,21 +437,15 @@ public class AuthService : IAuthService
             PreferredLanguage = DefaultLanguage,
             Is2FaEnabled = false,
             IsLocked = false,
-            FailedLoginAttempts = 0,
+            FailedLoginAttempts = 0
         };
     }
 
     private ErrorOr<Success> ValidateResetToken(PasswordResetToken resetToken)
     {
-        if (resetToken.UsedAt != null)
-        {
-            return PasswordResetErrors.TokenAlreadyUsed;
-        }
+        if (resetToken.UsedAt != null) return PasswordResetErrors.TokenAlreadyUsed;
 
-        if (resetToken.ExpiresAt < DateTime.UtcNow)
-        {
-            return PasswordResetErrors.TokenExpired;
-        }
+        if (resetToken.ExpiresAt < DateTime.UtcNow) return PasswordResetErrors.TokenExpired;
 
         return Result.Success;
     }

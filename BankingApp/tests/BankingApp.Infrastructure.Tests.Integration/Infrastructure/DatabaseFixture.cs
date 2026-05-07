@@ -20,8 +20,9 @@ namespace BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 // ReSharper disable once ClassNeverInstantiated.Global - xUnit instantiates fixtures via reflection.
 public sealed class DatabaseFixture : IAsyncLifetime
 {
-    private readonly MsSqlContainer _databaseContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
-        .Build();
+    private readonly MsSqlContainer _databaseContainer =
+        new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
+            .Build();
 
     private string _connectionString = string.Empty;
     private SqlConnection? _connection;
@@ -46,7 +47,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
             new RespawnerOptions
             {
                 DbAdapter = DbAdapter.SqlServer,
-                SchemasToInclude = [schemaName],
+                SchemasToInclude = [schemaName]
             });
     }
 
@@ -82,9 +83,6 @@ public sealed class DatabaseFixture : IAsyncLifetime
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task ResetAsync()
     {
-        if (_respawner != null && _connection != null)
-        {
-            await _respawner.ResetAsync(_connection);
-        }
+        if (_respawner != null && _connection != null) await _respawner.ResetAsync(_connection);
     }
 }

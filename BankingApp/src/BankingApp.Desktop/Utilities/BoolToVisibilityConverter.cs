@@ -27,10 +27,7 @@ public partial class BoolToVisibilityConverter : IValueConverter
     /// <returns><see cref="Visibility.Visible" /> when <paramref name="value" /> is true; otherwise <see cref="Visibility.Collapsed" />.</returns>
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is bool isVisible)
-        {
-            return isVisible ? Visibility.Visible : Visibility.Collapsed;
-        }
+        if (value is bool isVisible) return isVisible ? Visibility.Visible : Visibility.Collapsed;
 
         return Visibility.Collapsed;
     }

@@ -45,5 +45,5 @@ public enum BillerCategory
     /// <summary>
     ///     Any biller that does not fit the specific categories above.
     /// </summary>
-    Other,
+    Other
 }

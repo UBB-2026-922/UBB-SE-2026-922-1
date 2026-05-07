@@ -40,5 +40,5 @@ public enum RecurringFrequency
     /// <summary>
     ///     The payment executes once every year.
     /// </summary>
-    Yearly,
+    Yearly
 }

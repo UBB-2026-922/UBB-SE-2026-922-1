@@ -21,7 +21,8 @@ public interface IExchangeService
     /// <param name="targetCurrency">The ISO 4217 target currency code.</param>
     /// <param name="amount">The amount to convert.</param>
     /// <returns>An <see cref="ExchangeTransactionResponseDto" /> with rate and preview amounts, or an error.</returns>
-    ErrorOr<ExchangeTransactionResponseDto> GetRatePreview(string sourceCurrency, string targetCurrency, decimal amount);
+    ErrorOr<ExchangeTransactionResponseDto>
+        GetRatePreview(string sourceCurrency, string targetCurrency, decimal amount);
 
     /// <summary>Locks the current exchange rate for the authenticated user.</summary>
     /// <param name="userId">The authenticated user identifier.</param>

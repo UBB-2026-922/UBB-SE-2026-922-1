@@ -30,5 +30,5 @@ public enum TransferStatus
     /// <summary>
     ///     The transfer was cancelled before processing.
     /// </summary>
-    Cancelled,
+    Cancelled
 }

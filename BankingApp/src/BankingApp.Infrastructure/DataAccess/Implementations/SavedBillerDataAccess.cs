@@ -51,10 +51,7 @@ public class SavedBillerDataAccess : ISavedBillerDataAccess
     public ErrorOr<Success> Delete(int id)
     {
         SavedBiller? entry = _databaseContext.SavedBillers.FirstOrDefault(savedBiller => savedBiller.Id == id);
-        if (entry is null)
-        {
-            return BillerErrors.SavedBillerNotFound;
-        }
+        if (entry is null) return BillerErrors.SavedBillerNotFound;
 
         _databaseContext.SavedBillers.Remove(entry);
         _databaseContext.SaveChanges();

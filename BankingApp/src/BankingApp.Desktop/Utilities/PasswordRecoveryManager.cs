@@ -44,10 +44,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
     {
         get
         {
-            if (_lastCodeRequestedAt is null)
-            {
-                return true;
-            }
+            if (_lastCodeRequestedAt is null) return true;
 
             return (_clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds >= ResendCooldownSeconds;
         }
@@ -58,10 +55,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
     {
         get
         {
-            if (_lastCodeRequestedAt is null)
-            {
-                return NoSecondsRemaining;
-            }
+            if (_lastCodeRequestedAt is null) return NoSecondsRemaining;
 
             double elapsed = (_clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds;
             double remaining = ResendCooldownSeconds - elapsed;
@@ -74,15 +68,9 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
     /// <returns>The result of the operation.</returns>
     public async Task<ForgotPasswordState> RequestCodeAsync(string email)
     {
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            return ForgotPasswordState.Error;
-        }
+        if (string.IsNullOrWhiteSpace(email)) return ForgotPasswordState.Error;
 
-        if (!CanResendCode)
-        {
-            return ForgotPasswordState.EmailSent;
-        }
+        if (!CanResendCode) return ForgotPasswordState.EmailSent;
 
         var request = new ForgotPasswordRequest { Email = email };
         ErrorOr<ApiResponse> result = await _apiClient.PostAsync<ForgotPasswordRequest, ApiResponse>(
@@ -107,10 +95,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
     /// <returns>The result of the operation.</returns>
     public async Task<ForgotPasswordState> VerifyTokenAsync(string token)
     {
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return ForgotPasswordState.Error;
-        }
+        if (string.IsNullOrWhiteSpace(token)) return ForgotPasswordState.Error;
 
         ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.VerifyResetToken, new { Token = token });
         return result.Match(
@@ -125,14 +110,12 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
     public async Task<ForgotPasswordState> ResetPasswordAsync(string token, string newPassword)
     {
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
-        {
             return ForgotPasswordState.Error;
-        }
 
         var request = new ResetPasswordRequest
         {
             Token = token,
-            NewPassword = newPassword,
+            NewPassword = newPassword
         };
         ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.ResetPassword, request);
         return result.Match(

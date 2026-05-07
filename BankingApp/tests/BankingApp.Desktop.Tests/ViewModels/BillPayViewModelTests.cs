@@ -108,7 +108,7 @@ public class BillPayViewModelTests
             Id = 1,
             BillerId = 1,
             DefaultReference = "REF-123",
-            Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" },
+            Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" }
         };
 
         // Act
@@ -337,7 +337,7 @@ public class BillPayViewModelTests
                 ReceiptNumber = "RCP-20260504-ABC123",
                 Fee = 0.50m,
                 Amount = 200m,
-                Status = "Completed",
+                Status = "Completed"
             });
 
         BillPayViewModel vm = CreateViewModel();
@@ -406,7 +406,7 @@ public class BillPayViewModelTests
                 ReceiptNumber = "RCP-TEST",
                 Fee = 0.50m,
                 Amount = 200m,
-                Status = "Completed",
+                Status = "Completed"
             });
         _apiClient
             .Setup(apiClient => apiClient.PostAsync<SaveBillerRequestDto, SavedBillerDto>(
@@ -417,7 +417,7 @@ public class BillPayViewModelTests
                 Id = 99,
                 BillerId = 1,
                 Nickname = "Test",
-                Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" },
+                Biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" }
             });
 
         BillPayViewModel vm = CreateViewModel();
@@ -584,7 +584,7 @@ public class BillPayViewModelTests
         return
         [
             new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities", IsActive = true },
-            new BillerDto { Id = 2, Name = "Digi RCS-RDS", Category = "Internet", IsActive = true },
+            new BillerDto { Id = 2, Name = "Digi RCS-RDS", Category = "Internet", IsActive = true }
         ];
     }
 
@@ -599,8 +599,8 @@ public class BillPayViewModelTests
                 BillerId = 1,
                 Nickname = "Enel Home",
                 DefaultReference = "EL-001",
-                Biller = new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities", IsActive = true },
-            },
+                Biller = new BillerDto { Id = 1, Name = "Enel Energie", Category = "Utilities", IsActive = true }
+            }
         ];
     }
 
@@ -615,8 +615,8 @@ public class BillPayViewModelTests
                 Currency = "RON",
                 Balance = 8500m,
                 AccountName = "RON Account",
-                Status = "Active",
-            },
+                Status = "Active"
+            }
         ];
     }
 

@@ -57,7 +57,7 @@ public class DashboardViewModelTests
             CurrentUser = new UserSummaryDataTransferObject
             {
                 FullName = fullName,
-                Email = email,
+                Email = email
             },
             Cards =
             [
@@ -70,8 +70,8 @@ public class DashboardViewModelTests
                     ExpiryDate = cardExpiry,
                     Status = CardStatus.Active,
                     IsContactlessEnabled = true,
-                    IsOnlineEnabled = true,
-                },
+                    IsOnlineEnabled = true
+                }
             ],
             RecentTransactions =
             [
@@ -80,10 +80,10 @@ public class DashboardViewModelTests
                     MerchantName = merchantName,
                     Direction = TransactionDirection.Out,
                     Amount = transactionAmount,
-                    Currency = currency,
-                },
+                    Currency = currency
+                }
             ],
-            UnreadNotificationCount = unreadCount,
+            UnreadNotificationCount = unreadCount
         };
         _apiClient
             .Setup(getsAsync =>
@@ -103,7 +103,7 @@ public class DashboardViewModelTests
             new UserSummaryDataTransferObject
             {
                 FullName = fullName,
-                Email = email,
+                Email = email
             });
 
         // Assert - selected card display properties
@@ -122,7 +122,7 @@ public class DashboardViewModelTests
                 {
                     MerchantDisplayName = merchantName,
                     AmountDisplay = expectedAmountDisplay,
-                    Currency = currency,
+                    Currency = currency
                 });
 
         // Assert - notification count
@@ -521,14 +521,14 @@ public class DashboardViewModelTests
                 CardBrand = cardBrand,
                 CardType = cardType,
                 CardholderName = cardholderName,
-                CardNumber = cardNumber,
+                CardNumber = cardNumber
             })
             .ToList();
 
         var response = new DashboardResponse
         {
             CurrentUser = new UserSummaryDataTransferObject { FullName = "Test User" },
-            Cards = cards,
+            Cards = cards
         };
 
         _apiClient

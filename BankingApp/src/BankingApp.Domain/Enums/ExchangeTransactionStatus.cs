@@ -30,5 +30,5 @@ public enum ExchangeTransactionStatus
     /// <summary>
     ///     The exchange was cancelled before execution.
     /// </summary>
-    Cancelled,
+    Cancelled
 }

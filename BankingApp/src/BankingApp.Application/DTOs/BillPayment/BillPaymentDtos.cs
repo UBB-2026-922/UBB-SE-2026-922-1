@@ -132,7 +132,7 @@ public class SavedBillerDto
             Name = BillerName,
             Category = BillerCategory,
             LogoUrl = LogoUrl,
-            IsActive = true,
+            IsActive = true
         };
     }
 }

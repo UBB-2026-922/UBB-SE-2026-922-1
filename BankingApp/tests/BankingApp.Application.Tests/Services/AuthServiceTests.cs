@@ -76,7 +76,7 @@ public sealed class AuthServiceTests
         var user = new User
         {
             Id = 1, Email = request.Email, IsLocked = true,
-            LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutDurationMinutes),
+            LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutDurationMinutes)
         };
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
@@ -209,7 +209,7 @@ public sealed class AuthServiceTests
         var user = new User
         {
             Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email,
+            Preferred2FaMethod = TwoFactorMethod.Email
         };
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
@@ -233,7 +233,7 @@ public sealed class AuthServiceTests
         var user = new User
         {
             Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email,
+            Preferred2FaMethod = TwoFactorMethod.Email
         };
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
@@ -302,7 +302,7 @@ public sealed class AuthServiceTests
         // Arrange
         var request = new LoginRequest { Email = "ok@user.com", Password = "ValidPassword123!" };
         var user = new User { Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = false };
-        var token = "jwt-token";
+        string token = "jwt-token";
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
         _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
@@ -803,7 +803,7 @@ public sealed class AuthServiceTests
         // Arrange
         var token = new PasswordResetToken
             { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes), UsedAt = null };
-        var newPassword = "NewValidPassword123!";
+        string newPassword = "NewValidPassword123!";
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
             .Returns((ErrorOr<PasswordResetToken>)token);

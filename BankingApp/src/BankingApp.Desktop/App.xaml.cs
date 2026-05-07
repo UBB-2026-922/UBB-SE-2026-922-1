@@ -32,7 +32,7 @@ public partial class App
     public App()
     {
         ConfigureLogging();
-        var configuration = new ConfigurationBuilder()
+        IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", false)
             // appsettings.Local.json is `.gitignore`
@@ -66,13 +66,13 @@ public partial class App
     ///     Invoked when the application is launched. Resolves the navigation service,
     ///     creates the main window and activates it.
     /// </summary>
-    /// <param name="arguments">
+    /// <param name="args">
     ///     Contains information about the launch request and process, such as the
     ///     activation kind and previous execution state.
     /// </param>
-    protected override void OnLaunched(LaunchActivatedEventArgs arguments)
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        var navigationService = Services.GetRequiredService<IAppNavigationService>();
+        IAppNavigationService navigationService = Services.GetRequiredService<IAppNavigationService>();
         _window = new MainWindow(navigationService);
         _window.Activate();
     }

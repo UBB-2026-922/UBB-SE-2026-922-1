@@ -66,10 +66,7 @@ public class NotificationsViewModel
         bool previousValue = preference.EmailEnabled;
         preference.EmailEnabled = enabled;
         bool success = await UpdateNotificationPreferences(NotificationPreferences);
-        if (!success)
-        {
-            preference.EmailEnabled = previousValue;
-        }
+        if (!success) preference.EmailEnabled = previousValue;
 
         return success;
     }
@@ -100,10 +97,7 @@ public class NotificationsViewModel
     /// <returns><see langword="true" /> if the preferences were updated; otherwise, <see langword="false" />.</returns>
     public async Task<bool> UpdateNotificationPreferences(List<NotificationPreferenceDataTransferObject> preferences)
     {
-        if (preferences.Count == default)
-        {
-            return false;
-        }
+        if (preferences.Count == default) return false;
 
         State.SetValue(ProfileState.Loading);
         ErrorOr<Success> result = await _apiClient.PutAsync(ApiEndpoints.NotificationPreferences, preferences);

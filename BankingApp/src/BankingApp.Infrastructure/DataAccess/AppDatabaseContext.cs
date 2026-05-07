@@ -80,6 +80,7 @@ public class AppDatabaseContext : DbContext
 
     /// <summary>Gets or sets the rate alerts table.</summary>
     public DbSet<RateAlert> RateAlerts { get; set; }
+
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -91,7 +92,8 @@ public class AppDatabaseContext : DbContext
             entity.Property(beneficiary => beneficiary.Name).IsRequired().HasMaxLength(200);
             entity.Property(beneficiary => beneficiary.Iban).IsRequired().HasMaxLength(34).HasColumnName("IBAN");
             entity.Property(beneficiary => beneficiary.BankName).HasMaxLength(200);
-            entity.Property(beneficiary => beneficiary.TotalAmountSent).HasColumnType("decimal(18,2)").HasDefaultValue(0);
+            entity.Property(beneficiary => beneficiary.TotalAmountSent).HasColumnType("decimal(18,2)")
+                .HasDefaultValue(0);
             entity.Property(beneficiary => beneficiary.TransferCount).HasDefaultValue(0);
             entity.Property(beneficiary => beneficiary.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasIndex(beneficiary => new { beneficiary.UserId, beneficiary.Iban }).IsUnique();
@@ -139,7 +141,8 @@ public class AppDatabaseContext : DbContext
             entity.Property(account => account.Currency).IsRequired().HasMaxLength(3);
             entity.Property(account => account.Balance).HasColumnType("decimal(18,2)").HasDefaultValue(0);
             entity.Property(account => account.AccountType).IsRequired().HasConversion<string>().HasMaxLength(20);
-            entity.Property(account => account.Status).HasConversion<string>().HasMaxLength(20).HasDefaultValue(AccountStatus.Active);
+            entity.Property(account => account.Status).HasConversion<string>().HasMaxLength(20)
+                .HasDefaultValue(AccountStatus.Active);
             entity.Property(account => account.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<User>().WithMany().HasForeignKey(account => account.UserId);
         });
@@ -153,7 +156,8 @@ public class AppDatabaseContext : DbContext
             entity.Property(card => card.Cvv).IsRequired().HasMaxLength(4).HasColumnName("CVV");
             entity.Property(card => card.CardType).IsRequired().HasConversion<string>().HasMaxLength(20);
             entity.Property(card => card.CardBrand).HasMaxLength(20);
-            entity.Property(card => card.Status).IsRequired().HasConversion<string>().HasMaxLength(20).HasDefaultValue(CardStatus.Active);
+            entity.Property(card => card.Status).IsRequired().HasConversion<string>().HasMaxLength(20)
+                .HasDefaultValue(CardStatus.Active);
             entity.Property(card => card.DailyTransactionLimit).HasColumnType("decimal(18,2)");
             entity.Property(card => card.MonthlySpendingCap).HasColumnType("decimal(18,2)");
             entity.Property(card => card.AtmWithdrawalLimit).HasColumnType("decimal(18,2)");
@@ -186,7 +190,8 @@ public class AppDatabaseContext : DbContext
             entity.Property(transaction => transaction.Currency).IsRequired().HasMaxLength(3);
             entity.Property(transaction => transaction.BalanceAfter).IsRequired().HasColumnType("decimal(18,2)");
             entity.Property(transaction => transaction.CounterpartyName).HasMaxLength(200);
-            entity.Property(transaction => transaction.CounterpartyIban).HasMaxLength(34).HasColumnName("CounterpartyIBAN");
+            entity.Property(transaction => transaction.CounterpartyIban).HasMaxLength(34)
+                .HasColumnName("CounterpartyIBAN");
             entity.Property(transaction => transaction.MerchantName).HasMaxLength(200);
             entity.Property(transaction => transaction.Fee).HasColumnType("decimal(18,2)").HasDefaultValue(0);
             entity.Property(transaction => transaction.ExchangeRate).HasColumnType("decimal(18,6)");
@@ -194,8 +199,10 @@ public class AppDatabaseContext : DbContext
             entity.Property(transaction => transaction.RelatedEntityType).HasMaxLength(50);
             entity.Property(transaction => transaction.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<Account>().WithMany().HasForeignKey(transaction => transaction.AccountId);
-            entity.HasOne<Card>().WithMany().HasForeignKey(transaction => transaction.CardId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<Category>().WithMany().HasForeignKey(transaction => transaction.CategoryId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Card>().WithMany().HasForeignKey(transaction => transaction.CardId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Category>().WithMany().HasForeignKey(transaction => transaction.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -220,11 +227,13 @@ public class AppDatabaseContext : DbContext
         {
             entity.ToTable("NotificationPreference");
             entity.HasKey(notificationPreference => notificationPreference.Id);
-            entity.Property(notificationPreference => notificationPreference.Category).IsRequired().HasConversion<string>().HasMaxLength(30);
+            entity.Property(notificationPreference => notificationPreference.Category).IsRequired()
+                .HasConversion<string>().HasMaxLength(30);
             entity.Property(notificationPreference => notificationPreference.PushEnabled).HasDefaultValue(true);
             entity.Property(notificationPreference => notificationPreference.EmailEnabled).HasDefaultValue(true);
             entity.Property(notificationPreference => notificationPreference.SmsEnabled).HasDefaultValue(false);
-            entity.Property(notificationPreference => notificationPreference.MinAmountThreshold).HasColumnType("decimal(18,2)");
+            entity.Property(notificationPreference => notificationPreference.MinAmountThreshold)
+                .HasColumnType("decimal(18,2)");
             entity.HasOne<User>().WithMany().HasForeignKey(notificationPreference => notificationPreference.UserId);
         });
 
@@ -241,9 +250,15 @@ public class AppDatabaseContext : DbContext
         {
             entity.ToTable("TransactionCategoryOverride");
             entity.HasKey(transactionCategoryOverride => transactionCategoryOverride.Id);
-            entity.HasOne<Transaction>().WithMany().HasForeignKey(transactionCategoryOverride => transactionCategoryOverride.TransactionId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<User>().WithMany().HasForeignKey(transactionCategoryOverride => transactionCategoryOverride.UserId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<Category>().WithMany().HasForeignKey(transactionCategoryOverride => transactionCategoryOverride.CategoryId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Transaction>().WithMany()
+                .HasForeignKey(transactionCategoryOverride => transactionCategoryOverride.TransactionId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<User>().WithMany()
+                .HasForeignKey(transactionCategoryOverride => transactionCategoryOverride.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Category>().WithMany()
+                .HasForeignKey(transactionCategoryOverride => transactionCategoryOverride.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Transfer>(entity =>
@@ -251,7 +266,8 @@ public class AppDatabaseContext : DbContext
             entity.ToTable("Transfers");
             entity.HasKey(transfer => transfer.Id);
             entity.Property(transfer => transfer.RecipientName).IsRequired().HasMaxLength(200);
-            entity.Property(transfer => transfer.RecipientIban).IsRequired().HasMaxLength(50).HasColumnName("RecipientIBAN");
+            entity.Property(transfer => transfer.RecipientIban).IsRequired().HasMaxLength(50)
+                .HasColumnName("RecipientIBAN");
             entity.Property(transfer => transfer.RecipientBankName).HasMaxLength(200);
             entity.Property(transfer => transfer.Amount).IsRequired().HasColumnType("decimal(18,2)");
             entity.Property(transfer => transfer.Currency).IsRequired().HasMaxLength(10);
@@ -261,9 +277,12 @@ public class AppDatabaseContext : DbContext
             entity.Property(transfer => transfer.Reference).HasMaxLength(200);
             entity.Property(transfer => transfer.Status).IsRequired().HasConversion<string>().HasMaxLength(50);
             entity.Property(transfer => transfer.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
-            entity.HasOne<User>().WithMany().HasForeignKey(transfer => transfer.UserId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<Account>().WithMany().HasForeignKey(transfer => transfer.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<Transaction>().WithMany().HasForeignKey(transfer => transfer.TransactionId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<User>().WithMany().HasForeignKey(transfer => transfer.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Account>().WithMany().HasForeignKey(transfer => transfer.SourceAccountId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Transaction>().WithMany().HasForeignKey(transfer => transfer.TransactionId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<Biller>(entity =>
@@ -288,9 +307,11 @@ public class AppDatabaseContext : DbContext
             entity.Property(billPayment => billPayment.Status).IsRequired().HasConversion<string>().HasMaxLength(50);
             entity.Property(billPayment => billPayment.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<User>().WithMany().HasForeignKey(billPayment => billPayment.UserId);
-            entity.HasOne<Account>().WithMany().HasForeignKey(billPayment => billPayment.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Account>().WithMany().HasForeignKey(billPayment => billPayment.SourceAccountId)
+                .OnDelete(DeleteBehavior.NoAction);
             entity.HasOne<Biller>().WithMany().HasForeignKey(billPayment => billPayment.BillerId);
-            entity.HasOne<Transaction>().WithMany().HasForeignKey(billPayment => billPayment.TransactionId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Transaction>().WithMany().HasForeignKey(billPayment => billPayment.TransactionId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<SavedBiller>(entity =>
@@ -310,16 +331,27 @@ public class AppDatabaseContext : DbContext
             entity.HasKey(exchangeTransaction => exchangeTransaction.Id);
             entity.Property(exchangeTransaction => exchangeTransaction.SourceCurrency).IsRequired().HasMaxLength(3);
             entity.Property(exchangeTransaction => exchangeTransaction.TargetCurrency).IsRequired().HasMaxLength(3);
-            entity.Property(exchangeTransaction => exchangeTransaction.SourceAmount).IsRequired().HasColumnType("decimal(18,2)");
-            entity.Property(exchangeTransaction => exchangeTransaction.TargetAmount).IsRequired().HasColumnType("decimal(18,2)");
-            entity.Property(exchangeTransaction => exchangeTransaction.ExchangeRate).IsRequired().HasColumnType("decimal(18,6)");
-            entity.Property(exchangeTransaction => exchangeTransaction.Commission).IsRequired().HasColumnType("decimal(18,2)");
-            entity.Property(exchangeTransaction => exchangeTransaction.Status).IsRequired().HasConversion<string>().HasMaxLength(20);
+            entity.Property(exchangeTransaction => exchangeTransaction.SourceAmount).IsRequired()
+                .HasColumnType("decimal(18,2)");
+            entity.Property(exchangeTransaction => exchangeTransaction.TargetAmount).IsRequired()
+                .HasColumnType("decimal(18,2)");
+            entity.Property(exchangeTransaction => exchangeTransaction.ExchangeRate).IsRequired()
+                .HasColumnType("decimal(18,6)");
+            entity.Property(exchangeTransaction => exchangeTransaction.Commission).IsRequired()
+                .HasColumnType("decimal(18,2)");
+            entity.Property(exchangeTransaction => exchangeTransaction.Status).IsRequired().HasConversion<string>()
+                .HasMaxLength(20);
             entity.Property(exchangeTransaction => exchangeTransaction.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasOne<User>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.UserId);
-            entity.HasOne<Account>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.SourceAccountId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<Account>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.TargetAccountId).OnDelete(DeleteBehavior.NoAction);
-            entity.HasOne<Transaction>().WithMany().HasForeignKey(exchangeTransaction => exchangeTransaction.TransactionId).OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Account>().WithMany()
+                .HasForeignKey(exchangeTransaction => exchangeTransaction.SourceAccountId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Account>().WithMany()
+                .HasForeignKey(exchangeTransaction => exchangeTransaction.TargetAccountId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.HasOne<Transaction>().WithMany()
+                .HasForeignKey(exchangeTransaction => exchangeTransaction.TransactionId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
 
         modelBuilder.Entity<RateAlert>(entity =>

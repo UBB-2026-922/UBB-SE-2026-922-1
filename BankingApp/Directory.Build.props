@@ -1,13 +1,12 @@
-﻿<Project>
+<Project>
     <PropertyGroup>
-        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)StyleCop.ruleset</CodeAnalysisRuleSet>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <NoWarn>$(NoWarn);SA1101</NoWarn>
+        <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0007;IDE0008;IDE0062;CA1822;CA1848</WarningsNotAsErrors>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all"/>
-    </ItemGroup>
-    <ItemGroup>
-        <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json"/>
+        <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="all"/>
     </ItemGroup>
 </Project>

@@ -137,16 +137,10 @@ public class ApiClient : IApiClient
         try
         {
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(endpoint, data);
-            if (!response.IsSuccessStatusCode)
-            {
-                return await MapErrorAsync(response, endpoint, CancellationToken.None);
-            }
+            if (!response.IsSuccessStatusCode) return await MapErrorAsync(response, endpoint, CancellationToken.None);
 
-            var result = await response.Content.ReadFromJsonAsync<TResponse>();
-            if (result is null)
-            {
-                return Error.Failure(description: $"POST {endpoint} returned an empty response.");
-            }
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
+            if (result is null) return Error.Failure(description: $"POST {endpoint} returned an empty response.");
 
             return result;
         }
@@ -203,16 +197,10 @@ public class ApiClient : IApiClient
         try
         {
             HttpResponseMessage response = await _httpClient.GetAsync(endpoint, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                return await MapErrorAsync(response, endpoint, cancellationToken);
-            }
+            if (!response.IsSuccessStatusCode) return await MapErrorAsync(response, endpoint, cancellationToken);
 
-            var result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
-            if (result is null)
-            {
-                return Error.Failure(description: $"GET {endpoint} returned an empty response.");
-            }
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
+            if (result is null) return Error.Failure(description: $"GET {endpoint} returned an empty response.");
 
             return result;
         }
@@ -239,16 +227,10 @@ public class ApiClient : IApiClient
         try
         {
             HttpResponseMessage response = await _httpClient.PutAsJsonAsync(endpoint, data);
-            if (!response.IsSuccessStatusCode)
-            {
-                return await MapErrorAsync(response, endpoint, CancellationToken.None);
-            }
+            if (!response.IsSuccessStatusCode) return await MapErrorAsync(response, endpoint, CancellationToken.None);
 
-            var result = await response.Content.ReadFromJsonAsync<TResponse>();
-            if (result is null)
-            {
-                return Error.Failure(description: $"PUT {endpoint} returned an empty response.");
-            }
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
+            if (result is null) return Error.Failure(description: $"PUT {endpoint} returned an empty response.");
 
             return result;
         }
@@ -319,11 +301,11 @@ public class ApiClient : IApiClient
         string endpoint,
         CancellationToken cancellationToken)
     {
-        var errorCode = string.Empty;
+        string errorCode = string.Empty;
         string description;
         try
         {
-            var errorBody = await response.Content
+            ApplicationErrorResponse? errorBody = await response.Content
                 .ReadFromJsonAsync<ApplicationErrorResponse>(cancellationToken);
             if (errorBody is not null && !string.IsNullOrWhiteSpace(errorBody.Error))
             {

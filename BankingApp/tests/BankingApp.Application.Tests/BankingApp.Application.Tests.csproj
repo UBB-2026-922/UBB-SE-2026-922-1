@@ -16,6 +16,6 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\BankingApp.Application\BankingApp.Application.csproj" />
+        <ProjectReference Include="..\..\src\BankingApp.Application\BankingApp.Application.csproj"/>
     </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <Page
     x:Class="BankingApp.Desktop.Views.RateAlertsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -36,26 +37,27 @@
                     <Border Padding="12" Margin="0,4" BorderBrush="Gray" BorderThickness="1" CornerRadius="4">
                         <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="60"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="60"/>
-                                <ColumnDefinition Width="100"/>
-                                <ColumnDefinition Width="80"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="60" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="60" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="80" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Text="{Binding BaseCurrency}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="➔" VerticalAlignment="Center" Foreground="Gray"/>
+                            <TextBlock Grid.Column="1" Text="➔" VerticalAlignment="Center" Foreground="Gray" />
                             <TextBlock Grid.Column="2" Text="{Binding TargetCurrency}" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="3" Text="{Binding TargetRate}" FontWeight="Bold" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="3" Text="{Binding TargetRate}" FontWeight="Bold"
+                                       VerticalAlignment="Center" />
                             <TextBlock Grid.Column="4" VerticalAlignment="Center" FontWeight="Bold">
                                 <Run Text="BUY" x:Name="BuyLabel" />
                             </TextBlock>
 
                             <Border Grid.Column="5" Background="#44FF0000" CornerRadius="4" Padding="8,4"
                                     HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <TextBlock Text="TRIGGERED" Foreground="Red" FontWeight="Bold" FontSize="12"/>
+                                <TextBlock Text="TRIGGERED" Foreground="Red" FontWeight="Bold" FontSize="12" />
                             </Border>
 
                             <Button Grid.Column="6" Content="Delete"

@@ -40,5 +40,5 @@ public enum ProfileState
     /// <summary>
     ///     An unexpected error occurred during a profile operation.
     /// </summary>
-    Error,
+    Error
 }

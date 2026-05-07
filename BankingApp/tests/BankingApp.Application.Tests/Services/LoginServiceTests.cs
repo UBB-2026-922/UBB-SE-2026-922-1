@@ -68,7 +68,7 @@ public class LoginServiceTests
         {
             Id = 1,
             Email = request.Email,
-            PasswordHash = null,
+            PasswordHash = null
         };
 
         _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
@@ -92,13 +92,13 @@ public class LoginServiceTests
         {
             DeviceInfo = "Windows",
             Browser = "Edge",
-            IpAddress = "127.0.0.1",
+            IpAddress = "127.0.0.1"
         };
         var user = new User
         {
             Id = 1,
             Email = request.Email,
-            PasswordHash = "hash",
+            PasswordHash = "hash"
         };
 
         _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
@@ -142,7 +142,7 @@ public class LoginServiceTests
             Email = request.Email,
             PasswordHash = "hash",
             Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Authenticator,
+            Preferred2FaMethod = TwoFactorMethod.Authenticator
         };
 
         _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
@@ -173,7 +173,7 @@ public class LoginServiceTests
             Id = 1,
             Email = request.Email,
             PasswordHash = "hash",
-            FailedLoginAttempts = AttemptsBeforeLockout,
+            FailedLoginAttempts = AttemptsBeforeLockout
         };
         DateTime before = DateTime.UtcNow.AddMinutes(LockoutLowerBoundMinutes);
 
@@ -206,7 +206,7 @@ public class LoginServiceTests
             Email = request.Email,
             PasswordHash = "hash",
             Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email,
+            Preferred2FaMethod = TwoFactorMethod.Email
         };
 
         _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))

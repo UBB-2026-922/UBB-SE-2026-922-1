@@ -33,7 +33,7 @@ public class RegisterViewModelTests
                 { "OAuth:Google:Authority", "https://accounts.google.com" },
                 { "OAuth:Google:ClientId", "client-id" },
                 { "OAuth:Google:ClientSecret", "client-secret" },
-                { "OAuth:Google:RedirectUri", "http://localhost:5000/callback" },
+                { "OAuth:Google:RedirectUri", "http://localhost:5000/callback" }
             });
 
         _configuration = configBuilder.Build();

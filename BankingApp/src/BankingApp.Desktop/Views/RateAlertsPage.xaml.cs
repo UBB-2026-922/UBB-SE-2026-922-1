@@ -48,9 +48,6 @@ public sealed partial class RateAlertsPage : Page
 
     private async void DeleteAlertButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is int alertId)
-        {
-            await _viewModel.DeleteAlertAsync(alertId);
-        }
+        if (sender is Button button && button.Tag is int alertId) await _viewModel.DeleteAlertAsync(alertId);
     }
 }

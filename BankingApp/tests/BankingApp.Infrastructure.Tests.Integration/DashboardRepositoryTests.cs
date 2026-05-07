@@ -148,7 +148,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             Email = faker.Internet.Email(),
             PasswordHash = faker.Internet.Password(),
             FullName = faker.Person.FullName,
-            PreferredLanguage = "en",
+            PreferredLanguage = "en"
         };
 
         dataAccess.Create(user).IsError.Should().BeFalse();
@@ -170,7 +170,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             Currency = "RON",
             Balance = 5000.00m,
             AccountType = AccountType.Checking,
-            Status = AccountStatus.Active,
+            Status = AccountStatus.Active
         };
         databaseContext.Accounts.Add(account);
         databaseContext.SaveChanges();
@@ -188,7 +188,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             ExpiryDate = new DateTime(2027, 12, 31),
             Cvv = "123",
             CardType = CardType.Debit,
-            Status = CardStatus.Active,
+            Status = CardStatus.Active
         };
         databaseContext.Cards.Add(card);
         databaseContext.SaveChanges();
@@ -196,7 +196,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
 
     private void SeedTransactions(AppDatabaseContext databaseContext, int accountId, int count)
     {
-        for (var index = 0; index < count; index++)
+        for (int index = 0; index < count; index++)
         {
             var transaction = new Transaction
             {
@@ -208,7 +208,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
                 Amount = 100.00m,
                 Currency = "RON",
                 BalanceAfter = 5100.00m,
-                Status = TransactionStatus.Completed,
+                Status = TransactionStatus.Completed
             };
             databaseContext.Transactions.Add(transaction);
         }
@@ -218,7 +218,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
 
     private void SeedNotifications(AppDatabaseContext databaseContext, int userId, int count)
     {
-        for (var index = 0; index < count; index++)
+        for (int index = 0; index < count; index++)
         {
             var notification = new Notification
             {
@@ -227,7 +227,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
                 Message = "You have a new notification.",
                 Type = "Alert",
                 Channel = "Push",
-                IsRead = false,
+                IsRead = false
             };
             databaseContext.Notifications.Add(notification);
         }

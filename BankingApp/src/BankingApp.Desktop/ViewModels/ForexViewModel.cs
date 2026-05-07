@@ -98,9 +98,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         set
         {
             if (SetProperty(ref _amountText, value))
-            {
                 _amount = decimal.TryParse(value, out decimal parsed) ? parsed : MinimumAmount;
-            }
         }
     }
 
@@ -179,8 +177,10 @@ public partial class ForexViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            string endpoint = $"{ApiEndpoints.ExchangePreview}?sourceCurrency={SourceCurrency}&targetCurrency={TargetCurrency}&amount={_amount}";
-            ErrorOr<ExchangeTransactionResponseDto> result = await _apiClient.GetAsync<ExchangeTransactionResponseDto>(endpoint);
+            string endpoint =
+                $"{ApiEndpoints.ExchangePreview}?sourceCurrency={SourceCurrency}&targetCurrency={TargetCurrency}&amount={_amount}";
+            ErrorOr<ExchangeTransactionResponseDto> result =
+                await _apiClient.GetAsync<ExchangeTransactionResponseDto>(endpoint);
 
             if (result.IsError)
             {
@@ -228,7 +228,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
                 UserId = _apiClient.CurrentUserId ?? 0,
                 SourceCurrency = SourceCurrency,
                 TargetCurrency = TargetCurrency,
-                SourceAmount = _amount,
+                SourceAmount = _amount
             };
 
             ErrorOr<ExchangeTransactionResponseDto> result =
@@ -287,10 +287,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
     /// <returns><see langword="true"/> if the value changed; otherwise, <see langword="false"/>.</returns>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value))
-        {
-            return false;
-        }
+        if (Equals(field, value)) return false;
 
         field = value;
         OnPropertyChanged(propertyName);

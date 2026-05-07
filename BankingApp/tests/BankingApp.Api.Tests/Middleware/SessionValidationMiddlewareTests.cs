@@ -156,13 +156,10 @@ public sealed class SessionValidationMiddlewareTests
         {
             Request =
             {
-                Path = path,
-            },
+                Path = path
+            }
         };
-        if (authorizationHeader != null)
-        {
-            context.Request.Headers.Authorization = authorizationHeader;
-        }
+        if (authorizationHeader != null) context.Request.Headers.Authorization = authorizationHeader;
 
         return context;
     }

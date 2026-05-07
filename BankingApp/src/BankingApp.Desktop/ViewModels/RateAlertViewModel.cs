@@ -30,7 +30,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     private readonly IApiClient _apiClient;
     private readonly ILogger<RateAlertViewModel> _logger;
 
-    private ObservableCollection<RateAlertDto> _alerts = new ObservableCollection<RateAlertDto>();
+    private ObservableCollection<RateAlertDto> _alerts = new();
     private string _baseCurrency = string.Empty;
     private string _targetCurrency = string.Empty;
     private string _targetRateText = string.Empty;
@@ -194,7 +194,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
                 BaseCurrency = BaseCurrency,
                 TargetCurrency = TargetCurrency,
                 TargetRate = parsedRate,
-                IsBuyAlert = IsBuyAlert,
+                IsBuyAlert = IsBuyAlert
             };
 
             ErrorOr<RateAlertDto> result =
@@ -245,10 +245,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
             }
 
             RateAlertDto? toRemove = Alerts.FirstOrDefault(alert => alert.Id == alertId);
-            if (toRemove != null)
-            {
-                Alerts.Remove(toRemove);
-            }
+            if (toRemove != null) Alerts.Remove(toRemove);
         }
         catch (Exception exception)
         {
@@ -272,10 +269,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     /// <returns><see langword="true"/> if the value changed; otherwise, <see langword="false"/>.</returns>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value))
-        {
-            return false;
-        }
+        if (Equals(field, value)) return false;
 
         field = value;
         OnPropertyChanged(propertyName);

@@ -70,7 +70,7 @@ public class PasswordRecoveryService : IPasswordRecoveryService
             UserId = user.Id,
             TokenHash = tokenHashForDb,
             ExpiresAt = DateTime.UtcNow.AddMinutes(PasswordResetTokenExpiryMinutes),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
         if (_authRepository.SavePasswordResetToken(resetToken).IsError)
         {
@@ -89,10 +89,7 @@ public class PasswordRecoveryService : IPasswordRecoveryService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> ResetPassword(string token, string newPassword)
     {
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return PasswordResetErrors.TokenInvalid;
-        }
+        if (string.IsNullOrWhiteSpace(token)) return PasswordResetErrors.TokenInvalid;
 
         string tokenHash = ComputeSha256Hash(token);
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
@@ -151,32 +148,20 @@ public class PasswordRecoveryService : IPasswordRecoveryService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> VerifyResetToken(string token)
     {
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return PasswordResetErrors.TokenInvalid;
-        }
+        if (string.IsNullOrWhiteSpace(token)) return PasswordResetErrors.TokenInvalid;
 
         string tokenHash = ComputeSha256Hash(token);
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
-        if (tokenResult.IsError)
-        {
-            return PasswordResetErrors.TokenInvalid;
-        }
+        if (tokenResult.IsError) return PasswordResetErrors.TokenInvalid;
 
         return ValidateResetToken(tokenResult.Value);
     }
 
     private static ErrorOr<Success> ValidateResetToken(PasswordResetToken resetToken)
     {
-        if (resetToken.UsedAt != null)
-        {
-            return PasswordResetErrors.TokenAlreadyUsed;
-        }
+        if (resetToken.UsedAt != null) return PasswordResetErrors.TokenAlreadyUsed;
 
-        if (resetToken.ExpiresAt < DateTime.UtcNow)
-        {
-            return PasswordResetErrors.TokenExpired;
-        }
+        if (resetToken.ExpiresAt < DateTime.UtcNow) return PasswordResetErrors.TokenExpired;
 
         return Result.Success;
     }

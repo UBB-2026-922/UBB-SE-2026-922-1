@@ -59,7 +59,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new HttpRequestMessage(new HttpMethod(method), path)
         {
-            Content = JsonContent.Create(new { }),
+            Content = JsonContent.Create(new { })
         };
 
         // Act
@@ -121,10 +121,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         // Provide minimal JSON body for endpoints that expect one.
-        if (method is "POST" or "PUT")
-        {
-            request.Content = JsonContent.Create(new { });
-        }
+        if (method is "POST" or "PUT") request.Content = JsonContent.Create(new { });
 
         // Act
         HttpResponseMessage response = await _client.SendAsync(request);

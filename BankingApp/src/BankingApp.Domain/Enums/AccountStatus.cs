@@ -19,5 +19,5 @@ public enum AccountStatus
     Suspended,
 
     /// <summary>The account has been permanently closed.</summary>
-    Closed,
+    Closed
 }

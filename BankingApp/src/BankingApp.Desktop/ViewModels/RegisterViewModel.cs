@@ -69,7 +69,7 @@ public class RegisterViewModel
         {
             Email = email,
             Password = password,
-            FullName = fullName,
+            FullName = fullName
         };
         ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Register, request);
         result.Switch(
@@ -103,24 +103,14 @@ public class RegisterViewModel
             || string.IsNullOrWhiteSpace(email)
             || string.IsNullOrWhiteSpace(password)
             || string.IsNullOrWhiteSpace(confirmPassword))
-        {
             return RegisterState.Error;
-        }
 
         if (string.IsNullOrWhiteSpace(email) || !email.Contains("@", StringComparison.Ordinal))
-        {
             return RegisterState.InvalidEmail;
-        }
 
-        if (!PasswordValidator.IsStrong(password))
-        {
-            return RegisterState.WeakPassword;
-        }
+        if (!PasswordValidator.IsStrong(password)) return RegisterState.WeakPassword;
 
-        if (password != confirmPassword)
-        {
-            return RegisterState.PasswordMismatch;
-        }
+        if (password != confirmPassword) return RegisterState.PasswordMismatch;
 
         return null;
     }

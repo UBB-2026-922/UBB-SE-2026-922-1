@@ -25,5 +25,5 @@ public enum CardType
     /// <summary>
     ///     A prepaid card loaded with a fixed amount.
     /// </summary>
-    Prepaid,
+    Prepaid
 }

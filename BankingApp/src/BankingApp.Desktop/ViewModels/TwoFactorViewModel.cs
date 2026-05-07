@@ -91,10 +91,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
         get => _isLoading;
         private set
         {
-            if (SetField(ref _isLoading, value))
-            {
-                OnPropertyChanged(nameof(IsInputEnabled));
-            }
+            if (SetField(ref _isLoading, value)) OnPropertyChanged(nameof(IsInputEnabled));
         }
     }
 
@@ -145,10 +142,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
         get => _secondsRemaining;
         internal set
         {
-            if (!SetField(ref _secondsRemaining, value))
-            {
-                return;
-            }
+            if (!SetField(ref _secondsRemaining, value)) return;
 
             OnPropertyChanged(nameof(CanResend));
             OnPropertyChanged(nameof(IsCountdownVisible));
@@ -223,7 +217,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
         var request = new VerifyOtpRequest
         {
             UserId = userId.Value,
-            OtpCode = OtpCode,
+            OtpCode = OtpCode
         };
         ErrorOr<LoginSuccessResponse> result = await _apiClient.PostAsync<VerifyOtpRequest, LoginSuccessResponse>(
             ApiEndpoints.VerifyOtp,
@@ -238,9 +232,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
             errors =>
             {
                 if (errors.First().Type != ErrorType.Unauthorized)
-                {
                     _logger.LogError("VerifyOtp failed: {Errors}", errors);
-                }
 
                 ApplyInvalidOtp();
             });
@@ -256,20 +248,14 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task ResendOtp()
     {
-        if (!CanResend)
-        {
-            return;
-        }
+        if (!CanResend) return;
 
         ClearError();
         _secondsRemaining = ResendCooldownSeconds;
         _countdownTimer.Start();
         State.SetValue(TwoFactorState.Idle);
         int? userId = _apiClient.CurrentUserId;
-        if (userId == null)
-        {
-            return;
-        }
+        if (userId == null) return;
 
         ErrorOr<object> result = await _apiClient.PostAsync<object?, object>(
             $"{ApiEndpoints.ResendOtp}?userId={userId.Value}",
@@ -281,15 +267,9 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
 
     private void OnCountdownTick(object? sender, EventArgs e)
     {
-        if (_secondsRemaining > 0.0d)
-        {
-            _secondsRemaining--;
-        }
+        if (_secondsRemaining > 0.0d) _secondsRemaining--;
 
-        if (_secondsRemaining <= 0)
-        {
-            _countdownTimer.Stop();
-        }
+        if (_secondsRemaining <= 0) _countdownTimer.Stop();
     }
 
     private void ApplyInvalidOtp()
@@ -323,10 +303,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
     /// <returns><see langword="true" /> if the value changed; otherwise <see langword="false" />.</returns>
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
     {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-        {
-            return false;
-        }
+        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
 
         field = value;
         OnPropertyChanged(propertyName);

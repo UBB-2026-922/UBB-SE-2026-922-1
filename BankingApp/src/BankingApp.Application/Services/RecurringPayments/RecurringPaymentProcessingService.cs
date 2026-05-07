@@ -51,12 +51,10 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
         cancellationToken.ThrowIfCancellationRequested();
 
         ErrorOr<List<RecurringPayment>> duePaymentsResult = _recurringPaymentRepository.GetDuePayments(_clock.UtcNow);
-        if (duePaymentsResult.IsError)
-        {
-            return duePaymentsResult.FirstError;
-        }
+        if (duePaymentsResult.IsError) return duePaymentsResult.FirstError;
 
-        foreach (RecurringPayment payment in duePaymentsResult.Value.Where(payment => payment.Status == RecurringPaymentStatus.Active))
+        foreach (RecurringPayment payment in duePaymentsResult.Value.Where(payment =>
+                     payment.Status == RecurringPaymentStatus.Active))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -69,27 +67,21 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
                     BillerId = payment.BillerId,
                     BillerReference = string.Empty,
                     Amount = payment.Amount,
-                    IsPayInFull = payment.IsPayInFull,
+                    IsPayInFull = payment.IsPayInFull
                 });
 
                 DateTime nextExecutionDate = ComputeNextRunDate(payment.Frequency, payment.NextExecutionDate);
                 if (payment.EndDate.HasValue && nextExecutionDate > payment.EndDate.Value)
-                {
                     payment.Status = RecurringPaymentStatus.Cancelled;
-                }
                 else
-                {
                     payment.NextExecutionDate = nextExecutionDate;
-                }
 
                 ErrorOr<Success> updateResult = _recurringPaymentRepository.Update(payment);
                 if (updateResult.IsError)
-                {
                     _logger.LogWarning(
                         "Failed to update recurring payment {RecurringPaymentId} after execution: {Error}",
                         payment.Id,
                         updateResult.FirstError.Description);
-                }
             }
             catch (Exception exception)
             {
@@ -115,7 +107,7 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
             RecurringFrequency.Monthly => from.AddMonths(1),
             RecurringFrequency.Quarterly => from.AddMonths(3),
             RecurringFrequency.Yearly => from.AddYears(1),
-            _ => throw new ArgumentOutOfRangeException(nameof(frequency), frequency, null),
+            _ => throw new ArgumentOutOfRangeException(nameof(frequency), frequency, null)
         };
     }
 }

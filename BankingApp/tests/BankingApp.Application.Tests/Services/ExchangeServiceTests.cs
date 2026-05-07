@@ -58,7 +58,8 @@ public class ExchangeServiceTests
         string sourceCurrency = string.Empty;
 
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview(sourceCurrency, UsdCurrency, ValidAmount);
+        ErrorOr<ExchangeTransactionResponseDto> result =
+            _service.GetRatePreview(sourceCurrency, UsdCurrency, ValidAmount);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -75,7 +76,8 @@ public class ExchangeServiceTests
         string targetCurrency = string.Empty;
 
         // Act
-        ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview(EurCurrency, targetCurrency, ValidAmount);
+        ErrorOr<ExchangeTransactionResponseDto> result =
+            _service.GetRatePreview(EurCurrency, targetCurrency, ValidAmount);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -148,7 +150,7 @@ public class ExchangeServiceTests
     {
         // Arrange
         decimal expectedCommission = Math.Max(MinimumCommission, ValidAmount * CommissionRate);
-        decimal expectedTarget = (ValidAmount * EurUsdRate) - expectedCommission;
+        decimal expectedTarget = ValidAmount * EurUsdRate - expectedCommission;
 
         // Act
         ErrorOr<ExchangeTransactionResponseDto> result = _service.GetRatePreview(EurCurrency, UsdCurrency, ValidAmount);
@@ -166,7 +168,7 @@ public class ExchangeServiceTests
     public void CalculateCommission_WhenAmountProducesFeeBelowMinimum_ReturnsMinimumCommission()
     {
         // Act
-        decimal commission = _service.CalculateCommission(SmallAmount);
+        decimal commission = ExchangeService.CalculateCommission(SmallAmount);
 
         // Assert
         commission.Should().Be(MinimumCommission);
@@ -182,7 +184,7 @@ public class ExchangeServiceTests
         decimal expectedCommission = LargeAmount * CommissionRate;
 
         // Act
-        decimal commission = _service.CalculateCommission(LargeAmount);
+        decimal commission = ExchangeService.CalculateCommission(LargeAmount);
 
         // Assert
         commission.Should().Be(expectedCommission);
@@ -254,14 +256,14 @@ public class ExchangeServiceTests
     public void ExecuteExchange_WhenNoRateLockExists_ReturnsValidationError()
     {
         // Arrange
-        ExchangeTransactionRequestDto request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequestDto
         {
             UserId = NonExistentUserId,
             SourceAccountId = ValidSourceAccountId,
             TargetAccountId = ValidTargetAccountId,
             SourceCurrency = EurCurrency,
             TargetCurrency = UsdCurrency,
-            SourceAmount = ValidAmount,
+            SourceAmount = ValidAmount
         };
 
         // Act
@@ -281,14 +283,14 @@ public class ExchangeServiceTests
         // Arrange
         _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
 
-        ExchangeTransactionRequestDto request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequestDto
         {
             UserId = ValidUserId,
             SourceAccountId = ValidSourceAccountId,
             TargetAccountId = ValidTargetAccountId,
             SourceCurrency = EurCurrency,
             TargetCurrency = UsdCurrency,
-            SourceAmount = ValidAmount,
+            SourceAmount = ValidAmount
         };
 
         // Act
@@ -310,14 +312,14 @@ public class ExchangeServiceTests
         // Arrange
         _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
 
-        ExchangeTransactionRequestDto request = new ExchangeTransactionRequestDto
+        var request = new ExchangeTransactionRequestDto
         {
             UserId = ValidUserId,
             SourceAccountId = ValidSourceAccountId,
             TargetAccountId = ValidTargetAccountId,
             SourceCurrency = EurCurrency,
             TargetCurrency = UsdCurrency,
-            SourceAmount = ValidAmount,
+            SourceAmount = ValidAmount
         };
 
         // Act
@@ -372,9 +374,9 @@ public class ExchangeServiceTests
     public void GetExchangeHistory_WhenTransactionsExist_ReturnsMappedDtos()
     {
         // Arrange
-        List<ExchangeTransaction> exchanges = new List<ExchangeTransaction>
+        var exchanges = new List<ExchangeTransaction>
         {
-            new ExchangeTransaction
+            new()
             {
                 Id = 1,
                 UserId = ValidUserId,
@@ -385,8 +387,8 @@ public class ExchangeServiceTests
                 ExchangeRate = EurUsdRate,
                 Commission = MinimumCommission,
                 Status = ExchangeTransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow,
-            },
+                CreatedAt = DateTime.UtcNow
+            }
         };
 
         _exchangeRepository

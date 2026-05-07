@@ -60,10 +60,7 @@ public class ProfileService : IProfileService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> UpdatePersonalInfo(UpdateProfileRequest request)
     {
-        if (request.UserId == null)
-        {
-            return ProfileErrors.UserIdRequired;
-        }
+        if (request.UserId == null) return ProfileErrors.UserIdRequired;
 
         int userId = request.UserId.Value;
         ErrorOr<User> userResult = _userRepository.FindById(userId);
@@ -76,45 +73,27 @@ public class ProfileService : IProfileService
         User user = userResult.Value;
         if (request.FullName != null)
         {
-            if (string.IsNullOrWhiteSpace(request.FullName))
-            {
-                return ProfileErrors.FullNameRequired;
-            }
+            if (string.IsNullOrWhiteSpace(request.FullName)) return ProfileErrors.FullNameRequired;
 
             user.FullName = request.FullName.Trim();
         }
 
         if (request.PhoneNumber != null)
         {
-            if (!ValidationUtilities.IsValidPhoneNumber(request.PhoneNumber))
-            {
-                return ProfileErrors.InvalidPhone;
-            }
+            if (!ValidationUtilities.IsValidPhoneNumber(request.PhoneNumber)) return ProfileErrors.InvalidPhone;
 
             user.PhoneNumber = request.PhoneNumber;
         }
 
-        if (request.DateOfBirth != null)
-        {
-            user.DateOfBirth = request.DateOfBirth;
-        }
+        if (request.DateOfBirth != null) user.DateOfBirth = request.DateOfBirth;
 
-        if (request.Address != null)
-        {
-            user.Address = request.Address.Trim();
-        }
+        if (request.Address != null) user.Address = request.Address.Trim();
 
-        if (request.Nationality != null)
-        {
-            user.Nationality = request.Nationality.Trim();
-        }
+        if (request.Nationality != null) user.Nationality = request.Nationality.Trim();
 
         if (request.PreferredLanguage != null)
         {
-            if (string.IsNullOrWhiteSpace(request.PreferredLanguage))
-            {
-                return ProfileErrors.PreferredLanguageRequired;
-            }
+            if (string.IsNullOrWhiteSpace(request.PreferredLanguage)) return ProfileErrors.PreferredLanguageRequired;
 
             user.PreferredLanguage = request.PreferredLanguage.Trim();
         }
@@ -141,10 +120,7 @@ public class ProfileService : IProfileService
         }
 
         User user = userResult.Value;
-        if (!ValidationUtilities.IsStrongPassword(request.NewPassword))
-        {
-            return ProfileErrors.WeakPasswordChange;
-        }
+        if (!ValidationUtilities.IsStrongPassword(request.NewPassword)) return ProfileErrors.WeakPasswordChange;
 
         if (user.PasswordHash is null)
         {
@@ -263,7 +239,7 @@ public class ProfileService : IProfileService
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,
                 SmsEnabled = preference.SmsEnabled,
-                MinAmountThreshold = preference.MinAmountThreshold,
+                MinAmountThreshold = preference.MinAmountThreshold
             })
             .ToList();
     }
@@ -283,7 +259,7 @@ public class ProfileService : IProfileService
             return userResult.FirstError;
         }
 
-        List<NotificationPreference> entities = preferences
+        var entities = preferences
             .Select(preference => new NotificationPreference
             {
                 Id = preference.Id,
@@ -292,7 +268,7 @@ public class ProfileService : IProfileService
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,
                 SmsEnabled = preference.SmsEnabled,
-                MinAmountThreshold = preference.MinAmountThreshold,
+                MinAmountThreshold = preference.MinAmountThreshold
             })
             .ToList();
         if (_userRepository.UpdateNotificationPreferences(userId, entities).IsError)
@@ -358,7 +334,7 @@ public class ProfileService : IProfileService
                 IpAddress = session.IpAddress,
                 LastActiveAt = session.LastActiveAt,
                 ExpiresAt = session.ExpiresAt,
-                CreatedAt = session.CreatedAt,
+                CreatedAt = session.CreatedAt
             })
             .ToList();
     }

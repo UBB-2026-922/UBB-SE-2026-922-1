@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <Page
     x:Class="BankingApp.Desktop.Views.BillPayView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -202,7 +203,7 @@
                     <TextBlock Text="Step 3 - 2FA Confirmation"
                                FontSize="16" FontWeight="SemiBold"
                                Foreground="White"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center" />
                     <CheckBox Content="I confirm this transaction"
                               IsChecked="{Binding Is2FaConfirmed, Mode=TwoWay}"
                               HorizontalAlignment="Center"
@@ -210,7 +211,7 @@
                     <Button Content="Next"
                             Command="{Binding NextStepCommand}"
                             IsEnabled="{Binding Is2FaConfirmed, Mode=OneWay}"
-                            HorizontalAlignment="Center" Width="150"/>
+                            HorizontalAlignment="Center" Width="150" />
                 </StackPanel>
             </Border>
 

@@ -68,8 +68,8 @@ public sealed class DashboardControllerTests
         {
             Items =
             {
-                ["UserId"] = authenticatedUserId,
-            },
+                ["UserId"] = authenticatedUserId
+            }
         };
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return controller;

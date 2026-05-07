@@ -58,15 +58,15 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
 
-        _payments = new ObservableCollection<RecurringPaymentResponse>();
-        _accounts = new ObservableCollection<AccountDto>();
-        _billers = new ObservableCollection<BillerDto>();
-        _frequencies = new ObservableCollection<RecurringFrequency>
-        {
+        _payments = [];
+        _accounts = [];
+        _billers = [];
+        _frequencies =
+        [
             RecurringFrequency.Weekly,
             RecurringFrequency.Monthly,
-            RecurringFrequency.Quarterly,
-        };
+            RecurringFrequency.Quarterly
+        ];
 
         _selectedPayment = null;
         _selectedBillerId = NoBillerSelected;
@@ -250,10 +250,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
         get => _selectedBiller;
         set
         {
-            if (SetProperty(ref _selectedBiller, value))
-            {
-                SelectedBillerId = value?.Id ?? NoBillerSelected;
-            }
+            if (SetProperty(ref _selectedBiller, value)) SelectedBillerId = value?.Id ?? NoBillerSelected;
         }
     }
 
@@ -290,23 +287,18 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
 
-            ErrorOr<List<AccountDto>> accountsResult = await _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
-            if (!accountsResult.IsError)
-            {
-                Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
-            }
+            ErrorOr<List<AccountDto>> accountsResult =
+                await _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
+            if (!accountsResult.IsError) Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
 
-            ErrorOr<List<RecurringPaymentResponse>> paymentsResult = await _apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments);
+            ErrorOr<List<RecurringPaymentResponse>> paymentsResult =
+                await _apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments);
             if (!paymentsResult.IsError)
-            {
                 Payments = new ObservableCollection<RecurringPaymentResponse>(paymentsResult.Value);
-            }
 
-            ErrorOr<List<BillerDto>> billersResult = await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers);
-            if (!billersResult.IsError)
-            {
-                Billers = new ObservableCollection<BillerDto>(billersResult.Value);
-            }
+            ErrorOr<List<BillerDto>> billersResult =
+                await _apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers);
+            if (!billersResult.IsError) Billers = new ObservableCollection<BillerDto>(billersResult.Value);
         }
         catch (Exception loadException)
         {
@@ -329,7 +321,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Raises the <see cref="PropertyChanged" /> event for the specified property.
     /// </summary>
-    internal void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -378,9 +370,10 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
                 EndDate = EndDate,
             };
 
-            ErrorOr<RecurringPaymentResponse> result = await _apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
-                ApiEndpoints.RecurringPayments,
-                request);
+            ErrorOr<RecurringPaymentResponse> result =
+                await _apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
+                    ApiEndpoints.RecurringPayments,
+                    request);
 
             if (result.IsError)
             {
@@ -497,13 +490,11 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
 
     private void UpdatePaymentInCollection(int paymentId, RecurringPaymentStatus newStatus)
     {
-        var existingPayment = Payments.FirstOrDefault(payment => payment.Id == paymentId);
-        if (existingPayment != null)
-        {
-            var index = Payments.IndexOf(existingPayment);
-            existingPayment.Status = newStatus;
-            Payments[index] = existingPayment;
-        }
+        RecurringPaymentResponse? existingPayment = Payments.FirstOrDefault(payment => payment.Id == paymentId);
+        if (existingPayment == null) return;
+        int index = Payments.IndexOf(existingPayment);
+        existingPayment.Status = newStatus;
+        Payments[index] = existingPayment;
     }
 
     /// <summary>Resets all create-form fields to their initial values.</summary>
@@ -525,7 +516,7 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
     /// </summary>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value)) { return false; }
+        if (Equals(field, value)) return false;
 
         field = value;
         OnPropertyChanged(propertyName);
@@ -570,13 +561,9 @@ public class RecurringPaymentViewModel : INotifyPropertyChanged
             try
             {
                 if (_executeAsyncNoParam != null)
-                {
                     await _executeAsyncNoParam();
-                }
                 else
-                {
                     await _executeAsyncWithParam(parameter);
-                }
             }
             finally
             {

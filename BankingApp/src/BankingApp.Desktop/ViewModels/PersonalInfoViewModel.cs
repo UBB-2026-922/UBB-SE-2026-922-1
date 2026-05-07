@@ -117,7 +117,7 @@ public class PersonalInfoViewModel
             FullName = trimmedFullName,
             DateOfBirth = ProfileInfo.DateOfBirth,
             Nationality = ProfileInfo.Nationality,
-            PreferredLanguage = ProfileInfo.PreferredLanguage,
+            PreferredLanguage = ProfileInfo.PreferredLanguage
         };
         ErrorOr<Success> result = await _apiClient.PutAsync(ApiEndpoints.Profile, request);
         return result.Match(

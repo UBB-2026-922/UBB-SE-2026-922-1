@@ -45,5 +45,4 @@ public static class ProfileErrors
     /// <summary>The supplied current password did not match the stored hash.</summary>
     public static readonly Error IncorrectPassword =
         Error.Validation("incorrect_password", "Current password is incorrect. Please try again.");
-
 }

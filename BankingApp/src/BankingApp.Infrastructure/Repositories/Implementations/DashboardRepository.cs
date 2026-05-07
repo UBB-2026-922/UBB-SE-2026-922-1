@@ -43,7 +43,6 @@ public class DashboardRepository : IDashboardRepository
         _transactionDataAccess = transactionDataAccess;
         _notificationDataAccess = notificationDataAccess;
         _transferDataAccess = transferDataAccess;
-
     }
 
     /// <inheritdoc />

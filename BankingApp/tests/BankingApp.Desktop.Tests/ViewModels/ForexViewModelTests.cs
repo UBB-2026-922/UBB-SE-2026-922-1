@@ -103,7 +103,7 @@ public class ForexViewModelTests
         {
             ExchangeRate = expectedRate,
             Commission = expectedCommission,
-            TargetAmount = expectedTargetAmount,
+            TargetAmount = expectedTargetAmount
         };
 
         _apiClient

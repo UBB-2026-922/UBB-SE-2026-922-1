@@ -40,7 +40,7 @@ public class ProfileViewModelTests
                     UserId = userId,
                     Email = email,
                     FullName = fullName,
-                    PhoneNumber = phoneNumber,
+                    PhoneNumber = phoneNumber
                 });
 
         // Act
@@ -291,7 +291,7 @@ public class ProfileViewModelTests
         const int preferenceId = 1;
         var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
         var notificationPreference = new NotificationPreferenceDataTransferObject
-        { Id = preferenceId, EmailEnabled = false };
+            { Id = preferenceId, EmailEnabled = false };
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _apiClient
@@ -319,7 +319,7 @@ public class ProfileViewModelTests
         const int preferenceId = 1;
         var viewModel = new NotificationsViewModel(_apiClient.Object, NullLogger<NotificationsViewModel>.Instance);
         var notificationPreference = new NotificationPreferenceDataTransferObject
-        { Id = preferenceId, EmailEnabled = true };
+            { Id = preferenceId, EmailEnabled = true };
         viewModel.NotificationPreferences.Add(notificationPreference);
 
         _apiClient

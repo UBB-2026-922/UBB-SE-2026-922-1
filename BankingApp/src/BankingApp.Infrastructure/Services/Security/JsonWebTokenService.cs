@@ -40,7 +40,7 @@ public class JsonWebTokenService : IJsonWebTokenService
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var claims = new[] { new Claim("userId", userId.ToString()) };
+            Claim[] claims = new[] { new Claim("userId", userId.ToString()) };
             var token = new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(TokenExpirationDays),
@@ -69,7 +69,7 @@ public class JsonWebTokenService : IJsonWebTokenService
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
-                    IssuerSigningKey = key,
+                    IssuerSigningKey = key
                 },
                 out _);
             return principal;
@@ -90,16 +90,10 @@ public class JsonWebTokenService : IJsonWebTokenService
     public ErrorOr<int> ExtractUserId(string token)
     {
         ErrorOr<ClaimsPrincipal> principalResult = ValidateToken(token);
-        if (principalResult.IsError)
-        {
-            return principalResult.FirstError;
-        }
+        if (principalResult.IsError) return principalResult.FirstError;
 
         Claim? claim = principalResult.Value.FindFirst("userId");
-        if (claim is not null && int.TryParse(claim.Value, out int userId))
-        {
-            return userId;
-        }
+        if (claim is not null && int.TryParse(claim.Value, out int userId)) return userId;
 
         return Error.Validation("token_missing_claim", "The token does not contain a valid user ID claim.");
     }

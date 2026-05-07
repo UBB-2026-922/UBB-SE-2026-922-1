@@ -40,20 +40,19 @@ public class FinanceBackgroundService : BackgroundService
             try
             {
                 using IServiceScope scope = _serviceProvider.CreateScope();
-                IRecurringPaymentProcessingService recurringPaymentProcessingService = scope.ServiceProvider.GetRequiredService<IRecurringPaymentProcessingService>();
+                IRecurringPaymentProcessingService recurringPaymentProcessingService =
+                    scope.ServiceProvider.GetRequiredService<IRecurringPaymentProcessingService>();
                 IRateAlertService rateAlertService = scope.ServiceProvider.GetRequiredService<IRateAlertService>();
 
-                var recurringResult = await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
+                ErrorOr<Success> recurringResult =
+                    await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
                 if (recurringResult.IsError)
-                {
-                    _logger.LogWarning("Recurring payment processing failed: {Error}", recurringResult.FirstError.Description);
-                }
+                    _logger.LogWarning("Recurring payment processing failed: {Error}",
+                        recurringResult.FirstError.Description);
 
-                var rateAlertResult = rateAlertService.ProcessAlerts();
+                ErrorOr<int> rateAlertResult = rateAlertService.ProcessAlerts();
                 if (rateAlertResult.IsError)
-                {
                     _logger.LogWarning("Rate-alert processing failed: {Error}", rateAlertResult.FirstError.Description);
-                }
             }
             catch (Exception exception)
             {

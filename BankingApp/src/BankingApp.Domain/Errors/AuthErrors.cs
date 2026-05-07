@@ -49,5 +49,4 @@ public static class AuthErrors
     /// <summary>An account with the given email address already exists.</summary>
     public static readonly Error EmailAlreadyRegistered =
         Error.Conflict("email_registered", "Email is already registered.");
-
 }

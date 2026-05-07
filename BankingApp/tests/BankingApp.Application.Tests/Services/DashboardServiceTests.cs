@@ -123,15 +123,15 @@ public class DashboardServiceTests
                         CardholderName = "Ada Lovelace",
                         CardType = CardType.Debit,
                         ExpiryDate = new DateTime(2027, 12, 1),
-                        Status = CardStatus.Active,
-                    },
+                        Status = CardStatus.Active
+                    }
                 });
         _dashboardRepository
             .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(userId))
             .Returns(
                 new List<Account>
                 {
-                    new() { Id = 0, AccountName = "Checking", Balance = 2500 },
+                    new() { Id = 0, AccountName = "Checking", Balance = 2500 }
                 });
 
         // Act
@@ -187,7 +187,7 @@ public class DashboardServiceTests
             .Returns(
                 new List<Account>
                 {
-                    new() { Id = accountId, UserId = userId },
+                    new() { Id = accountId, UserId = userId }
                 });
         _dashboardRepository
             .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId, It.IsAny<int>()))
@@ -203,8 +203,8 @@ public class DashboardServiceTests
                         Currency = "RON",
                         Status = TransactionStatus.Completed,
                         MerchantName = "Shop",
-                        CreatedAt = DateTime.UtcNow,
-                    },
+                        CreatedAt = DateTime.UtcNow
+                    }
                 });
 
         // Act
@@ -282,10 +282,10 @@ public class DashboardServiceTests
                 new List<Account>
                 {
                     new() { Id = accountId1, UserId = userId },
-                    new() { Id = accountId2, UserId = userId },
+                    new() { Id = accountId2, UserId = userId }
                 });
 
-        List<Transaction> transactions1 = Enumerable.Range(1, FirstAccountTransactionCount).Select(index =>
+        var transactions1 = Enumerable.Range(1, FirstAccountTransactionCount).Select(index =>
             new Transaction
             {
                 Id = index,
@@ -294,9 +294,9 @@ public class DashboardServiceTests
                 Amount = index * AmountMultiplier,
                 Currency = "RON",
                 Status = TransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-index),
+                CreatedAt = DateTime.UtcNow.AddMinutes(-index)
             }).ToList();
-        List<Transaction> transactions2 = Enumerable.Range(9, SecondAccountTransactionCount).Select(index =>
+        var transactions2 = Enumerable.Range(9, SecondAccountTransactionCount).Select(index =>
             new Transaction
             {
                 Id = index,
@@ -305,7 +305,7 @@ public class DashboardServiceTests
                 Amount = index * AmountMultiplier,
                 Currency = "RON",
                 Status = TransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-index),
+                CreatedAt = DateTime.UtcNow.AddMinutes(-index)
             }).ToList();
         _dashboardRepository
             .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId1, It.IsAny<int>()))

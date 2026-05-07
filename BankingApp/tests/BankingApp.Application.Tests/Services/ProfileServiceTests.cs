@@ -51,7 +51,7 @@ public class ProfileServiceTests
                     FullName = fullName,
                     Email = email,
                     DateOfBirth = dateOfBirth,
-                    PreferredLanguage = "ro",
+                    PreferredLanguage = "ro"
                 });
 
         // Act
@@ -154,7 +154,7 @@ public class ProfileServiceTests
             FullName = fullName,
             DateOfBirth = dateOfBirth,
             Nationality = nationality,
-            PreferredLanguage = preferredLanguage,
+            PreferredLanguage = preferredLanguage
         };
 
         // Act
@@ -446,7 +446,7 @@ public class ProfileServiceTests
             .Returns(
                 new List<NotificationPreference>
                 {
-                    new() { Id = 1, UserId = userId, Category = NotificationType.Payment, EmailEnabled = true },
+                    new() { Id = 1, UserId = userId, Category = NotificationType.Payment, EmailEnabled = true }
                 });
 
         // Act
@@ -487,7 +487,7 @@ public class ProfileServiceTests
             .Returns(
                 new List<Session>
                 {
-                    new() { Id = 1, UserId = userId, Token = "token1", DeviceInfo = "Chrome/Windows" },
+                    new() { Id = 1, UserId = userId, Token = "token1", DeviceInfo = "Chrome/Windows" }
                 });
 
         // Act

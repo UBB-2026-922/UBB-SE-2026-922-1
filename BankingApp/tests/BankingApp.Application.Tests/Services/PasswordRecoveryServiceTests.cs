@@ -144,7 +144,7 @@ public class PasswordRecoveryServiceTests
                     Id = 1,
                     UserId = 1,
                     ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes),
-                    UsedAt = DateTime.UtcNow,
+                    UsedAt = DateTime.UtcNow
                 });
 
         var service = new PasswordRecoveryService(
@@ -178,7 +178,7 @@ public class PasswordRecoveryServiceTests
                 {
                     Id = 1,
                     UserId = 1,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes)
                 });
 
         var service = new PasswordRecoveryService(

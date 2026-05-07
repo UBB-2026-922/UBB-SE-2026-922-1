@@ -34,7 +34,8 @@ Docker Compose reads:
 src/BankingApp.Api/.env
 ```
 
-The root `.env` is for Compose infrastructure values. The API `.env` is injected into the `server` container with `env_file`.
+The root `.env` is for Compose infrastructure values. The API `.env` is injected into the `server` container with
+`env_file`.
 
 ## Configuration
 
@@ -47,17 +48,17 @@ The API reads configuration from:
 
 Important environment variables:
 
-| Key | Purpose |
-|---|---|
-| `ConnectionStrings__BankingAppDb` | SQL Server connection string |
-| `Database__ApplyMigrations` | Set to `false` to skip automatic EF Core migrations at startup |
-| `Jwt__Secret` | JWT signing secret |
-| `Otp__Secret` | server-side OTP secret |
-| `Email__SmtpHost` | SMTP host |
-| `Email__SmtpPort` | SMTP port |
-| `Email__SmtpUser` | SMTP username |
-| `Email__SmtpPass` | SMTP password |
-| `Email__FromAddress` | sender address |
+| Key                               | Purpose                                                        |
+|-----------------------------------|----------------------------------------------------------------|
+| `ConnectionStrings__BankingAppDb` | SQL Server connection string                                   |
+| `Database__ApplyMigrations`       | Set to `false` to skip automatic EF Core migrations at startup |
+| `Jwt__Secret`                     | JWT signing secret                                             |
+| `Otp__Secret`                     | server-side OTP secret                                         |
+| `Email__SmtpHost`                 | SMTP host                                                      |
+| `Email__SmtpPort`                 | SMTP port                                                      |
+| `Email__SmtpUser`                 | SMTP username                                                  |
+| `Email__SmtpPass`                 | SMTP password                                                  |
+| `Email__FromAddress`              | sender address                                                 |
 
 ## Running Without Docker
 

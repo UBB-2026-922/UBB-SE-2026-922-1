@@ -48,7 +48,7 @@ public class TransferViewModelTests
         var accounts = new List<TransferAccountDto>
         {
             new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR", Balance = 1000m },
-            new TransferAccountDto { Id = 2, AccountName = "Savings", Currency = "USD", Balance = 500m },
+            new TransferAccountDto { Id = 2, AccountName = "Savings", Currency = "USD", Balance = 500m }
         };
 
         _apiClient
@@ -245,7 +245,7 @@ public class TransferViewModelTests
         // Arrange - set up accounts and dirty state
         var accounts = new List<TransferAccountDto>
         {
-            new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR" },
+            new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR" }
         };
 
         _apiClient

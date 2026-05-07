@@ -79,7 +79,7 @@ public class LoginViewModel
         var request = new LoginRequest
         {
             Email = email.Trim(),
-            Password = password,
+            Password = password
         };
         ErrorOr<LoginSuccessResponse> result = await _apiClient.PostAsync<LoginRequest, LoginSuccessResponse>(
             ApiEndpoints.Login,
@@ -115,5 +115,4 @@ public class LoginViewModel
                 }
             });
     }
-
 }

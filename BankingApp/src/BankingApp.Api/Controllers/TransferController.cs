@@ -63,7 +63,7 @@ public class TransferController : ApiControllerBase
             _transferService.CreateTransfer(request, userId),
             transfer => Ok(new TransferExecutionResponse
             {
-                TransactionRef = transfer.TransactionRef ?? string.Empty,
+                TransactionRef = transfer.TransactionRef ?? string.Empty
             }));
     }
 

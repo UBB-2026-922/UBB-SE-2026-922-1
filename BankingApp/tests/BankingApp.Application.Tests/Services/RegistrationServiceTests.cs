@@ -40,7 +40,7 @@ public class RegistrationServiceTests
         {
             Email = "new@test.com",
             Password = "StrongPass1!",
-            FullName = "New User",
+            FullName = "New User"
         };
         _authRepository
             .Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
@@ -62,7 +62,7 @@ public class RegistrationServiceTests
         {
             Email = "new@test.com",
             Password = "StrongPass1!",
-            FullName = "New User",
+            FullName = "New User"
         };
         _authRepository
             .Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))

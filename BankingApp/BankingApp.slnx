@@ -1,30 +1,31 @@
 <Solution>
     <Configurations>
-        <Platform Name="Any CPU" />
-        <Platform Name="x64" />
-        <Platform Name="x86" />
+        <Platform Name="Any CPU"/>
+        <Platform Name="x64"/>
+        <Platform Name="x86"/>
     </Configurations>
     <Folder Name="/src/">
-        <Project Path="src/BankingApp.Api/BankingApp.Api.csproj" />
-        <Project Path="src/BankingApp.Application/BankingApp.Application.csproj" />
         <Project Path="src/BankingApp.Desktop/BankingApp.Desktop.csproj">
-            <Platform Solution="*|Any CPU" Project="x64" />
-            <Platform Solution="*|x64" Project="x64" />
-            <Platform Solution="*|x86" Project="x86" />
-            <Deploy Solution="Debug|Any CPU" />
-            <Deploy Solution="Debug|x64" />
+            <Platform Solution="*|Any CPU" Project="x64"/>
+            <Platform Solution="*|x64" Project="x64"/>
+            <Platform Solution="*|x86" Project="x86"/>
+            <Deploy Solution="Debug|Any CPU"/>
+            <Deploy Solution="Debug|x64"/>
         </Project>
-        <Project Path="src/BankingApp.Domain/BankingApp.Domain.csproj" />
-        <Project Path="src/BankingApp.Infrastructure/BankingApp.Infrastructure.csproj" />
+        <Project Path="src/BankingApp.Api/BankingApp.Api.csproj"/>
+        <Project Path="src/BankingApp.Application/BankingApp.Application.csproj"/>
+        <Project Path="src/BankingApp.Domain/BankingApp.Domain.csproj"/>
+        <Project Path="src/BankingApp.Infrastructure/BankingApp.Infrastructure.csproj"/>
     </Folder>
     <Folder Name="/tests/">
-        <Project Path="tests/BankingApp.Api.Tests.Integration/BankingApp.Api.Tests.Integration.csproj" />
-        <Project Path="tests/BankingApp.Api.Tests/BankingApp.Api.Tests.csproj" />
-        <Project Path="tests/BankingApp.Application.Tests.Integration/BankingApp.Application.Tests.Integration.csproj" />
-        <Project Path="tests/BankingApp.Application.Tests/BankingApp.Application.Tests.csproj" />
-        <Project Path="tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj" />
-        <Project Path="tests/BankingApp.Domain.Tests/BankingApp.Domain.Tests.csproj" />
-        <Project Path="tests/BankingApp.Infrastructure.Tests.Integration/BankingApp.Infrastructure.Tests.Integration.csproj" />
-        <Project Path="tests/BankingApp.Infrastructure.Tests/BankingApp.Infrastructure.Tests.csproj" />
+        <Project Path="tests/BankingApp.Api.Tests.Integration/BankingApp.Api.Tests.Integration.csproj"/>
+        <Project Path="tests/BankingApp.Api.Tests/BankingApp.Api.Tests.csproj"/>
+        <Project Path="tests/BankingApp.Application.Tests.Integration/BankingApp.Application.Tests.Integration.csproj"/>
+        <Project Path="tests/BankingApp.Application.Tests/BankingApp.Application.Tests.csproj"/>
+        <Project Path="tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj"/>
+        <Project Path="tests/BankingApp.Domain.Tests/BankingApp.Domain.Tests.csproj"/>
+        <Project
+                Path="tests/BankingApp.Infrastructure.Tests.Integration/BankingApp.Infrastructure.Tests.Integration.csproj"/>
+        <Project Path="tests/BankingApp.Infrastructure.Tests/BankingApp.Infrastructure.Tests.csproj"/>
     </Folder>
 </Solution>

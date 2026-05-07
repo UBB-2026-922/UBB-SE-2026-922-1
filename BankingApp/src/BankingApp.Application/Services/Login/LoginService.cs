@@ -69,10 +69,7 @@ public class LoginService : ILoginService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<LoginSuccess> Login(LoginRequest request, SessionMetadata? metadata = null)
     {
-        if (!ValidationUtilities.IsValidEmail(request.Email))
-        {
-            return AuthErrors.InvalidEmail;
-        }
+        if (!ValidationUtilities.IsValidEmail(request.Email)) return AuthErrors.InvalidEmail;
 
         ErrorOr<User> userResult = _authRepository.FindUserByEmail(request.Email);
         if (userResult.IsError)
@@ -83,10 +80,7 @@ public class LoginService : ILoginService
 
         User user = userResult.Value;
         Error? lockError = CheckAccountLock(user);
-        if (lockError is not null)
-        {
-            return lockError.Value;
-        }
+        if (lockError is not null) return lockError.Value;
 
         if (user.PasswordHash is null)
         {
@@ -105,10 +99,7 @@ public class LoginService : ILoginService
             return verifyResult.FirstError;
         }
 
-        if (!verifyResult.Value)
-        {
-            return HandleFailedPassword(user);
-        }
+        if (!verifyResult.Value) return HandleFailedPassword(user);
 
         return user.Is2FaEnabled ? Handle2Fa(user) : CompleteLogin(user, metadata);
     }
@@ -140,10 +131,7 @@ public class LoginService : ILoginService
         if (!verifyResult.Value)
         {
             _logger.LogWarning("OTP verification failed for user {UserId}: invalid or expired code.", user.Id);
-            if (_otpAttemptTracker.RecordFailure(user.Id) < MaxFailedOtpAttempts)
-            {
-                return AuthErrors.InvalidOtp;
-            }
+            if (_otpAttemptTracker.RecordFailure(user.Id) < MaxFailedOtpAttempts) return AuthErrors.InvalidOtp;
 
             _otpService.InvalidateOtp(user.Id);
             _otpAttemptTracker.Reset(user.Id);
@@ -152,7 +140,6 @@ public class LoginService : ILoginService
                 user.Id,
                 MaxFailedOtpAttempts);
             return AuthErrors.OtpAttemptsExceeded;
-
         }
 
         _otpAttemptTracker.Reset(user.Id);
@@ -186,9 +173,7 @@ public class LoginService : ILoginService
 
         if (string.Equals(method, nameof(TwoFactorMethod.Email), StringComparison.OrdinalIgnoreCase)
             || user.Preferred2FaMethod == TwoFactorMethod.Email)
-        {
             _emailService.SendOtpCode(user.Email, otpResult.Value);
-        }
 
         _otpAttemptTracker.Reset(user.Id);
         return Result.Success;
@@ -213,10 +198,7 @@ public class LoginService : ILoginService
 
     private Error? CheckAccountLock(User user)
     {
-        if (!user.IsLocked)
-        {
-            return null;
-        }
+        if (!user.IsLocked) return null;
 
         if (user.IsCurrentlyLocked())
         {
@@ -240,10 +222,7 @@ public class LoginService : ILoginService
             user.Id,
             failedAttemptsAfterCurrentFailure,
             MaxFailedAttempts);
-        if (failedAttemptsAfterCurrentFailure < MaxFailedAttempts)
-        {
-            return AuthErrors.InvalidCredentials;
-        }
+        if (failedAttemptsAfterCurrentFailure < MaxFailedAttempts) return AuthErrors.InvalidCredentials;
 
         if (_authRepository.LockAccount(user.Id, DateTime.UtcNow.AddMinutes(LockoutMinutes)).IsError)
         {
@@ -275,10 +254,7 @@ public class LoginService : ILoginService
             return otpResult.FirstError;
         }
 
-        if (user.Preferred2FaMethod == TwoFactorMethod.Email)
-        {
-            _emailService.SendOtpCode(user.Email, otpResult.Value);
-        }
+        if (user.Preferred2FaMethod == TwoFactorMethod.Email) _emailService.SendOtpCode(user.Email, otpResult.Value);
 
         _otpAttemptTracker.Reset(user.Id);
         _logger.LogInformation("2FA required for user {UserId} via {Method}.", user.Id, user.Preferred2FaMethod);

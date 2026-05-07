@@ -25,5 +25,5 @@ public enum RecurringPaymentStatus
     /// <summary>
     ///     The recurring payment has been permanently cancelled.
     /// </summary>
-    Cancelled,
+    Cancelled
 }

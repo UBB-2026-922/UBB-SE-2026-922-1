@@ -40,5 +40,5 @@ public enum TwoFactorState
     /// <summary>
     ///     Too many failed verification attempts have been made. Further attempts are blocked.
     /// </summary>
-    MaxAttemptsReached,
+    MaxAttemptsReached
 }

@@ -55,5 +55,5 @@ public enum RegisterState
     /// <summary>
     ///     Registration via OAuth succeeded and the user was automatically signed in.
     /// </summary>
-    AutoLoggedIn,
+    AutoLoggedIn
 }
