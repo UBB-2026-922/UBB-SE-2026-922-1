@@ -1,4 +1,4 @@
-namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using System.Globalization;
 using Controllers;
