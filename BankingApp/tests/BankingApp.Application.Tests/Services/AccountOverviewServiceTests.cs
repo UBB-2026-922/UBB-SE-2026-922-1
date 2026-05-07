@@ -8,6 +8,8 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using BankingApp.Application.Features.AccountOverview.Dtos;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.TransactionAggregate;
 
 /// <summary>
 ///     Unit tests for <see cref="AccountOverviewService" />.

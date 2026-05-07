@@ -7,6 +7,8 @@ using BankingApp.Infrastructure.DataAccess.Implementations;
 
 using Infrastructure;
 using Bogus;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using ErrorOr;
 using Features.AccountOverview;
 using Persistence;

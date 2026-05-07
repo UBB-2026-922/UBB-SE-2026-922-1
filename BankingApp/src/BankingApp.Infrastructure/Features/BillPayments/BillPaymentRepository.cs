@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using BankingApp.Application.Features.BillPayments.Repositories;
 using Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.BillerAggregate;
+using Domain.Aggregates.BillPaymentAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 

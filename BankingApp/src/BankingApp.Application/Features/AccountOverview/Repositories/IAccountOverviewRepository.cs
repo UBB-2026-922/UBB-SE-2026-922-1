@@ -1,5 +1,7 @@
 namespace BankingApp.Application.Features.AccountOverview.Repositories;
 
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using Domain.Entities;
 using ErrorOr;
 

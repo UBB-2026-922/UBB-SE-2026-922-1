@@ -1,5 +1,6 @@
-namespace BankingApp.Infrastructure.DataAccess.Interfaces;
+﻿namespace BankingApp.Infrastructure.DataAccess.Interfaces;
 
+using Domain.Aggregates.BillerAggregate;
 using Domain.Entities;
 using ErrorOr;
 

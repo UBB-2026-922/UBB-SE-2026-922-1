@@ -5,6 +5,9 @@ using BankingApp.Application.Features.Forex.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.ForexAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore.Storage;
 using Persistence;
@@ -27,9 +30,9 @@ public class ForexRepository : IForexRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<ExchangeTransaction> GetById(int id)
+    public ErrorOr<ForexTransaction> GetById(int id)
     {
-        ExchangeTransaction? exchange =
+        ForexTransaction? exchange =
             _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == id);
         if (exchange is null)
         {
@@ -40,7 +43,7 @@ public class ForexRepository : IForexRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<ExchangeTransaction>> GetByUserId(int userId)
+    public ErrorOr<List<ForexTransaction>> GetByUserId(int userId)
     {
         try
         {
@@ -56,34 +59,34 @@ public class ForexRepository : IForexRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<ExchangeTransaction> Create(ExchangeTransaction exchange)
+    public ErrorOr<ForexTransaction> Create(ForexTransaction forex)
     {
         using IDbContextTransaction databaseTransaction = _databaseContext.Database.BeginTransaction();
 
         try
         {
             Account? sourceAccount =
-                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.SourceAccountId);
+                _databaseContext.Accounts.FirstOrDefault(account => account.Id == forex.SourceAccountId);
             if (sourceAccount is null)
             {
                 return Error.NotFound(description: "Source account not found.");
             }
 
             Account? targetAccount =
-                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.TargetAccountId);
+                _databaseContext.Accounts.FirstOrDefault(account => account.Id == forex.TargetAccountId);
             if (targetAccount is null)
             {
                 return Error.NotFound(description: "Target account not found.");
             }
 
-            decimal totalDebit = exchange.SourceAmount;
+            decimal totalDebit = forex.SourceAmount;
             if (sourceAccount.Balance < totalDebit)
             {
                 return Error.Forbidden(description: "Insufficient funds for exchange.");
             }
 
             sourceAccount.Balance -= totalDebit;
-            targetAccount.Balance += exchange.TargetAmount;
+            targetAccount.Balance += forex.TargetAmount;
 
             var ledgerTransaction = new Transaction
             {
@@ -91,25 +94,25 @@ public class ForexRepository : IForexRepository
                 TransactionRef = $"FX-{Guid.NewGuid():N}"[..20].ToUpperInvariant(),
                 Type = ExchangeRelatedEntityType,
                 Direction = TransactionDirection.Out,
-                Amount = exchange.SourceAmount,
-                Currency = exchange.SourceCurrency,
+                Amount = forex.SourceAmount,
+                Currency = forex.SourceCurrency,
                 BalanceAfter = sourceAccount.Balance,
-                CounterpartyName = $"Exchange to {exchange.TargetCurrency}",
-                Fee = exchange.Commission,
-                ExchangeRate = exchange.ExchangeRate,
+                CounterpartyName = $"Exchange to {forex.TargetCurrency}",
+                Fee = forex.Commission,
+                ExchangeRate = forex.ExchangeRate,
                 Status = TransactionStatus.Completed,
                 RelatedEntityType = ExchangeRelatedEntityType,
-                CreatedAt = exchange.CreatedAt
+                CreatedAt = forex.CreatedAt
             };
 
             _databaseContext.Transactions.Add(ledgerTransaction);
             _databaseContext.SaveChanges();
 
-            exchange.TransactionId = ledgerTransaction.Id;
-            _databaseContext.ExchangeTransactions.Add(exchange);
+            forex.TransactionId = ledgerTransaction.Id;
+            _databaseContext.ExchangeTransactions.Add(forex);
             _databaseContext.SaveChanges();
             databaseTransaction.Commit();
-            return exchange;
+            return forex;
         }
         catch (Exception exception)
         {
@@ -119,11 +122,11 @@ public class ForexRepository : IForexRepository
     }
 
     /// <inheritdoc />
-    public ErrorOr<ExchangeTransaction> UpdateStatus(int exchangeId, ExchangeTransactionStatus status)
+    public ErrorOr<ForexTransaction> UpdateStatus(int exchangeId, ExchangeTransactionStatus status)
     {
         try
         {
-            ExchangeTransaction? exchange =
+            ForexTransaction? exchange =
                 _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == exchangeId);
             if (exchange is null)
             {

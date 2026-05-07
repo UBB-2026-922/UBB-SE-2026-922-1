@@ -1,4 +1,4 @@
-namespace BankingApp.Application.Features.RecurringPayments.Services;
+﻿namespace BankingApp.Application.Features.RecurringPayments.Services;
 
 using BankingApp.Application.Features.RecurringPayments.Repositories;
 using BankingApp.Application.Features.BillPayments.Dtos;
@@ -6,6 +6,7 @@ using BankingApp.Application.Common.Logging;
 
 using BankingApp.Application.Features.BillPayments.Services;
 using BankingApp.Application.Common.Utilities;
+using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;

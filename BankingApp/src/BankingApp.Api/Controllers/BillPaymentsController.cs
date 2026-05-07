@@ -1,4 +1,4 @@
-namespace BankingApp.Api.Controllers;
+﻿namespace BankingApp.Api.Controllers;
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using BankingApp.Application.Features.Billers.Dtos;
 using BankingApp.Application.Features.BillPayments.Dtos;
 using BankingApp.Application.Features.BillPayments.Services;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.BillerAggregate;
+using Domain.Aggregates.BillPaymentAggregate;
 using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

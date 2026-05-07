@@ -6,6 +6,7 @@ using BankingApp.Infrastructure.DataAccess.Implementations;
 
 using Infrastructure;
 using Bogus;
+using Domain.Aggregates.BeneficiaryAggregate;
 using ErrorOr;
 using Persistence;
 

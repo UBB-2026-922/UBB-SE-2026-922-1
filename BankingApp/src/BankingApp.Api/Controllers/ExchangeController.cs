@@ -1,8 +1,9 @@
-namespace BankingApp.Api.Controllers;
+﻿namespace BankingApp.Api.Controllers;
 
 using BankingApp.Application.Features.Forex.Dtos;
 using BankingApp.Application.Features.BillPayments.Repositories;
 using BankingApp.Application.Features.Forex.Services;
+using Domain.Aggregates.ForexAggregate;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;

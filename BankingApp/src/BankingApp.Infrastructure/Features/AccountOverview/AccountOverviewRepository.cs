@@ -3,6 +3,8 @@ namespace BankingApp.Infrastructure.Features.AccountOverview;
 using BankingApp.Application.Features.AccountOverview.Repositories;
 using BankingApp.Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using ErrorOr;
 
 /// <summary>

@@ -3,6 +3,7 @@ namespace BankingApp.Application.Features.ForexRateAlerts.Services;
 using BankingApp.Application.Features.Forex.Services;
 using BankingApp.Application.Features.ForexRateAlerts.Dtos;
 using BankingApp.Application.Features.ForexRateAlerts.Repositories;
+using Domain.Aggregates.RateAlertAggregate;
 using Domain.Entities;
 using ErrorOr;
 

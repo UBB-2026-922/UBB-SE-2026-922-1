@@ -1,5 +1,6 @@
-namespace BankingApp.Application.Features.RecurringPayments.Repositories;
+﻿namespace BankingApp.Application.Features.RecurringPayments.Repositories;
 
+using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Entities;
 using ErrorOr;
 

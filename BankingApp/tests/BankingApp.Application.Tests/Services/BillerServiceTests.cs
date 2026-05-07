@@ -1,8 +1,9 @@
-namespace BankingApp.Application.Tests.Services;
+﻿namespace BankingApp.Application.Tests.Services;
 
 using BankingApp.Application.Features.Billers.Dtos;
 
 using BankingApp.Application.Features.Billers.Services;
+using Domain.Aggregates.BillerAggregate;
 using Domain.Entities;
 using Domain.Errors;
 using ErrorOr;

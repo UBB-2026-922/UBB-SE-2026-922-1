@@ -1,5 +1,6 @@
-namespace BankingApp.Application.Features.Beneficiaries.Services;
+﻿namespace BankingApp.Application.Features.Beneficiaries.Services;
 
+using Domain.Aggregates.BeneficiaryAggregate;
 using ErrorOr;
 using Domain.Entities;
 

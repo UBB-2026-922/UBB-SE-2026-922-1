@@ -9,6 +9,8 @@ using BankingApp.Application.Features.BillPayments.Dtos;
 using BankingApp.Application.Features.BillPayments.Services;
 using BankingApp.Application.Features.RecurringPayments.Services;
 using BankingApp.Application.Common.Utilities;
+using Domain.Aggregates.BillPaymentAggregate;
+using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;

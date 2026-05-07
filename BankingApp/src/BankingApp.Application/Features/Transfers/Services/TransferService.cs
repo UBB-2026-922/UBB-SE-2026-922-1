@@ -1,4 +1,4 @@
-namespace BankingApp.Application.Features.Transfers.Services;
+﻿namespace BankingApp.Application.Features.Transfers.Services;
 
 using BankingApp.Application.Features.Transfers.Repositories;
 using BankingApp.Application.Features.AccountOverview.Repositories;
@@ -6,6 +6,8 @@ using BankingApp.Application.Features.Transfers.Dtos;
 using BankingApp.Application.Common.Logging;
 
 using BankingApp.Application.Common.Security;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Errors;

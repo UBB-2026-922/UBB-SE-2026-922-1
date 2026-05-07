@@ -1,5 +1,6 @@
-namespace BankingApp.Application.Features.Billers.Repositories;
+﻿namespace BankingApp.Application.Features.Billers.Repositories;
 
+using Domain.Aggregates.BillerAggregate;
 using Domain.Entities;
 using ErrorOr;
 

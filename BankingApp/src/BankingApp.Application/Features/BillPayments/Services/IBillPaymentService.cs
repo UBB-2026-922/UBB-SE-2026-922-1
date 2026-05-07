@@ -1,7 +1,10 @@
-namespace BankingApp.Application.Features.BillPayments.Services;
+﻿namespace BankingApp.Application.Features.BillPayments.Services;
 
 using Domain.Entities;
 using BankingApp.Application.Features.BillPayments.Dtos;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.BillerAggregate;
+using Domain.Aggregates.BillPaymentAggregate;
 
 /// <summary>
 /// Defines the business logic for handling bill payments.

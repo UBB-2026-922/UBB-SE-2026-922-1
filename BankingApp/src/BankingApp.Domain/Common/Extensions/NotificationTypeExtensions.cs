@@ -1,6 +1,6 @@
-﻿namespace BankingApp.Domain.Extensions;
+﻿namespace BankingApp.Domain.Common.Extensions;
 
-using Enums;
+using BankingApp.Domain.Enums;
 
 /// <summary>
 ///     Provides extension methods for the <see cref="NotificationType" /> enum.

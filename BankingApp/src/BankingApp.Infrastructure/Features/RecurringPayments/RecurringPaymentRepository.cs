@@ -5,6 +5,7 @@ using BankingApp.Application.Features.RecurringPayments.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;
+using Domain.Aggregates.RecurringPaymentAggregate;
 using ErrorOr;
 using Persistence;
 

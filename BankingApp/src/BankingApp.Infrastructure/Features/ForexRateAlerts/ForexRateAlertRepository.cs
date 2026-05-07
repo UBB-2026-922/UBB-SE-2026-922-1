@@ -4,6 +4,7 @@ namespace BankingApp.Infrastructure.Repositories.ForexRateAlerts;
 using BankingApp.Application.Features.ForexRateAlerts.Repositories;
 using Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
+using Domain.Aggregates.RateAlertAggregate;
 using ErrorOr;
 using Persistence;
 

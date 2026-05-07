@@ -1,5 +1,6 @@
-namespace BankingApp.Infrastructure.DataAccess.Configurations;
+﻿namespace BankingApp.Infrastructure.DataAccess.Configurations;
 
+using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,7 @@
 namespace BankingApp.Application.Features.Forex.Services;
 
 using BankingApp.Application.Features.Forex.Dtos;
+using Domain.Aggregates.ForexAggregate;
 using Domain.Entities;
 using ErrorOr;
 

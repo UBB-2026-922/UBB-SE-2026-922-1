@@ -3,6 +3,7 @@ namespace BankingApp.Application.Tests.Services;
 using BankingApp.Application.Features.Forex.Dtos;
 
 using BankingApp.Application.Features.Forex.Services;
+using Domain.Aggregates.ForexAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
@@ -35,11 +36,11 @@ public class ForexServiceTests
     public ForexServiceTests()
     {
         _exchangeRepository
-            .Setup(createsExchange => createsExchange.Create(It.IsAny<ExchangeTransaction>()))
-            .Returns((ExchangeTransaction exchange) => exchange);
+            .Setup(createsExchange => createsExchange.Create(It.IsAny<ForexTransaction>()))
+            .Returns((ForexTransaction forex) => forex);
         _exchangeRepository
             .Setup(getsByUserId => getsByUserId.GetByUserId(It.IsAny<int>()))
-            .Returns(new List<ExchangeTransaction>());
+            .Returns(new List<ForexTransaction>());
 
         _service = new ForexService(_exchangeRepository.Object);
     }
@@ -335,7 +336,7 @@ public class ForexServiceTests
         // Arrange
         _exchangeRepository
             .Setup(getsByUserId => getsByUserId.GetByUserId(ValidUserId))
-            .Returns(new List<ExchangeTransaction>());
+            .Returns(new List<ForexTransaction>());
 
         // Act
         ErrorOr<List<ForexTransactionResponse>> result = _service.GetExchangeHistory(ValidUserId);
@@ -370,7 +371,7 @@ public class ForexServiceTests
     public void GetExchangeHistory_WhenTransactionsExist_ReturnsMappedDtos()
     {
         // Arrange
-        var exchanges = new List<ExchangeTransaction>
+        var exchanges = new List<ForexTransaction>
         {
             new()
             {

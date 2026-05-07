@@ -6,6 +6,7 @@ using System.Linq;
 using BankingApp.Application.Features.Beneficiaries.Repositories;
 using Domain.Entities;
 using BankingApp.Infrastructure.DataAccess;
+using Domain.Aggregates.BeneficiaryAggregate;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
 using Persistence;

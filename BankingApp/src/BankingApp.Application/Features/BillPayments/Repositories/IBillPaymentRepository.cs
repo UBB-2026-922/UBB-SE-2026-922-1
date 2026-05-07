@@ -1,5 +1,9 @@
 namespace BankingApp.Application.Features.BillPayments.Repositories;
 
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.BillerAggregate;
+using Domain.Aggregates.BillPaymentAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using Domain.Entities;
 
 /// <summary>

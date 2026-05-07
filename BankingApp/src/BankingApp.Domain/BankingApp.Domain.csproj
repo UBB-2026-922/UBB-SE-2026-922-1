@@ -4,14 +4,13 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
         <RootNamespace>BankingApp.Domain</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="ErrorOr" Version="2.1.0"/>
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Common\" />
-      <Folder Include="Events\" />
-      <Folder Include="ValueObjects\" />
+      <Folder Include="Aggregates\" />
     </ItemGroup>
 </Project>

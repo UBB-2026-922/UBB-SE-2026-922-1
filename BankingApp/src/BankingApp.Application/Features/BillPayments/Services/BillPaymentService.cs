@@ -1,9 +1,12 @@
-namespace BankingApp.Application.Features.BillPayments.Services;
+﻿namespace BankingApp.Application.Features.BillPayments.Services;
 
 using BankingApp.Application.Features.BillPayments.Repositories;
 using System.Globalization;
 using BankingApp.Application.Features.BillPayments.Dtos;
-
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.BillerAggregate;
+using Domain.Aggregates.BillPaymentAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using Domain.Entities;
 using Domain.Enums;
 

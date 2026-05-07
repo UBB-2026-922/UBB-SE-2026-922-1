@@ -42,4 +42,12 @@ public static class UserErrors
     /// <summary>A transient database error prevented the operation from completing.</summary>
     public static readonly Error DatabaseError =
         Error.Failure("database_error", "A service error occurred. Please try again later.");
+
+    /// <summary>The provided email address is not a valid email format.</summary>
+    public static readonly Error InvalidEmail =
+        Error.Validation("user.invalid_email", "The email address is not valid.");
+
+    /// <summary>No user account exists for the given identifier.</summary>
+    public static readonly Error NotFound =
+        Error.NotFound("user.not_found", "User was not found.");
 }

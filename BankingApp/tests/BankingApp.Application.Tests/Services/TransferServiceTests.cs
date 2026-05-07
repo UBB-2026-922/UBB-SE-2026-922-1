@@ -1,9 +1,11 @@
-namespace BankingApp.Application.Tests.Services;
+﻿namespace BankingApp.Application.Tests.Services;
 
 using BankingApp.Application.Features.Transfers.Dtos;
 
 using BankingApp.Application.Common.Security;
 using BankingApp.Application.Features.Transfers.Services;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;

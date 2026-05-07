@@ -3,6 +3,14 @@
 using Domain.Entities;
 using Domain.Enums;
 using DataAccess.Configurations;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.BeneficiaryAggregate;
+using Domain.Aggregates.BillerAggregate;
+using Domain.Aggregates.BillPaymentAggregate;
+using Domain.Aggregates.ForexAggregate;
+using Domain.Aggregates.RateAlertAggregate;
+using Domain.Aggregates.RecurringPaymentAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using Microsoft.EntityFrameworkCore;
 
 /// <summary>
@@ -67,7 +75,7 @@ public class AppDatabaseContext : DbContext
     public DbSet<RecurringPayment> RecurringPayments { get; set; }
 
     /// <summary>Gets or sets the exchange transactions table.</summary>
-    public DbSet<ExchangeTransaction> ExchangeTransactions { get; set; }
+    public DbSet<ForexTransaction> ExchangeTransactions { get; set; }
 
     /// <summary>Gets or sets the rate alerts table.</summary>
     public DbSet<RateAlert> RateAlerts { get; set; }
@@ -312,7 +320,7 @@ public class AppDatabaseContext : DbContext
             entity.HasOne(savedBiller => savedBiller.Biller).WithMany().HasForeignKey(savedBiller => savedBiller.BillerId);
         });
 
-        modelBuilder.Entity<ExchangeTransaction>(entity =>
+        modelBuilder.Entity<ForexTransaction>(entity =>
         {
             entity.ToTable("ExchangeTransaction");
             entity.HasKey(exchangeTransaction => exchangeTransaction.Id);

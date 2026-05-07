@@ -1,4 +1,4 @@
-namespace BankingApp.Api.Tests.Controller;
+﻿namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
 using BankingApp.Application.Features.Beneficiaries.Services;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 using BankingApp.Application.Features.Beneficiaries.Dtos;
+using Domain.Aggregates.BeneficiaryAggregate;
 
 [Trait("Category", "Unit")]
 public sealed class BeneficiariesControllerTests

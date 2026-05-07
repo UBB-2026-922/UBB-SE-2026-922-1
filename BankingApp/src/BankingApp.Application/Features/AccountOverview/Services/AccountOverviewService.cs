@@ -6,6 +6,8 @@ using BankingApp.Application.Common.Logging;
 
 using Domain.Entities;
 using BankingApp.Application.Features.AccountOverview.Dtos;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.TransactionAggregate;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 

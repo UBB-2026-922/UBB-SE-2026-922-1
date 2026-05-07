@@ -1,9 +1,10 @@
-namespace BankingApp.Application.Tests.Services;
+﻿namespace BankingApp.Application.Tests.Services;
 
 using BankingApp.Application.Features.RecurringPayments.Dtos;
 
 using BankingApp.Application.Features.RecurringPayments.Services;
 using BankingApp.Application.Common.Utilities;
+using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;

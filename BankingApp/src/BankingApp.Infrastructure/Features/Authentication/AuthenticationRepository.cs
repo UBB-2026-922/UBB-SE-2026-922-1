@@ -4,7 +4,6 @@ namespace BankingApp.Infrastructure.Repositories.Authentication;
 using BankingApp.Application.Features.Authentication.Repositories;
 using Domain.Entities;
 using Domain.Enums;
-using Domain.Extensions;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
 using ErrorOr;
 

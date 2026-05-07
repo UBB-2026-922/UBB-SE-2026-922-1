@@ -3,7 +3,7 @@
 using Domain.Entities;
 using Domain.Enums;
 using BankingApp.Infrastructure.DataAccess;
-
+using Domain.Aggregates.AccountAggregate;
 using Infrastructure;
 using ErrorOr;
 using Persistence;

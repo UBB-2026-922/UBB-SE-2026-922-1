@@ -1,7 +1,8 @@
-namespace BankingApp.Application.Tests.Services;
+﻿namespace BankingApp.Application.Tests.Services;
 
 
 using BankingApp.Application.Features.Beneficiaries.Services;
+using Domain.Aggregates.BeneficiaryAggregate;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;

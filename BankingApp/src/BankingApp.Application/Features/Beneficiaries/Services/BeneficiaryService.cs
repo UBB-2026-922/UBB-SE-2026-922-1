@@ -1,9 +1,9 @@
-namespace BankingApp.Application.Features.Beneficiaries.Services;
+﻿namespace BankingApp.Application.Features.Beneficiaries.Services;
 
 using BankingApp.Application.Features.Beneficiaries.Repositories;
 using System.Text.RegularExpressions;
 using BankingApp.Application.Common.Logging;
-
+using Domain.Aggregates.BeneficiaryAggregate;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Domain.Entities;

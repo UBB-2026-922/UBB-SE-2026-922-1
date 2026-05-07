@@ -38,7 +38,4 @@
             <_Parameter1>BankingApp.Infrastructure.Tests.Integration</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Security\" />
-    </ItemGroup>
 </Project>

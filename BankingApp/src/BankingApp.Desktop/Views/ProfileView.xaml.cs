@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Views;
+﻿namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,6 @@ using Master;
 using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using BankingApp.Domain.Enums;
-using Domain.Extensions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

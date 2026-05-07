@@ -5,6 +5,8 @@ using BankingApp.Application.Common.Dtos;
 using BankingApp.Application.Features.Forex.Dtos;
 using BankingApp.Application.Features.UserProfile.Repositories;
 using BankingApp.Application.Features.Forex.Services;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.ForexAggregate;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;

@@ -4,6 +4,7 @@ namespace BankingApp.Infrastructure.Repositories.Billers;
 using BankingApp.Application.Features.Billers.Repositories;
 using Domain.Entities;
 using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Aggregates.BillerAggregate;
 using ErrorOr;
 
 /// <summary>

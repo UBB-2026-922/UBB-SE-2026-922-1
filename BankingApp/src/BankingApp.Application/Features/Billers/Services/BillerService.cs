@@ -1,8 +1,8 @@
-namespace BankingApp.Application.Features.Billers.Services;
+﻿namespace BankingApp.Application.Features.Billers.Services;
 
 using BankingApp.Application.Features.Billers.Repositories;
 using BankingApp.Application.Features.Billers.Dtos;
-
+using Domain.Aggregates.BillerAggregate;
 using Domain.Entities;
 using Domain.Errors;
 using ErrorOr;

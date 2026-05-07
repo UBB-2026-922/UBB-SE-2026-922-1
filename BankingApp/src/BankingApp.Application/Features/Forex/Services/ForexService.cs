@@ -2,7 +2,7 @@ namespace BankingApp.Application.Features.Forex.Services;
 
 using BankingApp.Application.Features.Forex.Repositories;
 using BankingApp.Application.Features.Forex.Dtos;
-
+using Domain.Aggregates.ForexAggregate;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
@@ -107,7 +107,7 @@ public class ForexService : IForexService
         decimal commission = CalculateCommission(request.SourceAmount);
         decimal targetAmount = (request.SourceAmount * lockedRate.Rate) - commission;
 
-        var exchange = new ExchangeTransaction
+        var exchange = new ForexTransaction
         {
             UserId = request.UserId,
             SourceAccountId = request.SourceAccountId,
@@ -123,7 +123,7 @@ public class ForexService : IForexService
             CreatedAt = DateTime.UtcNow
         };
 
-        ErrorOr<ExchangeTransaction> createResult = _exchangeRepository.Create(exchange);
+        ErrorOr<ForexTransaction> createResult = _exchangeRepository.Create(exchange);
         if (createResult.IsError)
         {
             return createResult.Errors;
@@ -137,7 +137,7 @@ public class ForexService : IForexService
     /// <inheritdoc />
     public ErrorOr<List<ForexTransactionResponse>> GetExchangeHistory(int userId)
     {
-        ErrorOr<List<ExchangeTransaction>> result = _exchangeRepository.GetByUserId(userId);
+        ErrorOr<List<ForexTransaction>> result = _exchangeRepository.GetByUserId(userId);
         if (result.IsError)
         {
             return result.Errors;
@@ -192,17 +192,17 @@ public class ForexService : IForexService
         return Math.Max(MinimumCommission, amount * CommissionRate);
     }
 
-    private static ForexTransactionResponse MapToResponseDto(ExchangeTransaction exchange)
+    private static ForexTransactionResponse MapToResponseDto(ForexTransaction forex)
     {
         return new ForexTransactionResponse
         {
-            Id = exchange.Id,
-            SourceCurrency = exchange.SourceCurrency,
-            TargetCurrency = exchange.TargetCurrency,
-            TargetAmount = exchange.TargetAmount,
-            ExchangeRate = exchange.ExchangeRate,
-            Commission = exchange.Commission,
-            Status = exchange.Status
+            Id = forex.Id,
+            SourceCurrency = forex.SourceCurrency,
+            TargetCurrency = forex.TargetCurrency,
+            TargetAmount = forex.TargetAmount,
+            ExchangeRate = forex.ExchangeRate,
+            Commission = forex.Commission,
+            Status = forex.Status
         };
     }
 

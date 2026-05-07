@@ -4,8 +4,8 @@
 
 namespace BankingApp.Domain.Tests.Extensions;
 
+using Common.Extensions;
 using Enums;
-using BankingApp.Domain.Extensions;
 
 /// <summary>
 ///     Unit tests for <see cref="NotificationTypeExtensions" />.
