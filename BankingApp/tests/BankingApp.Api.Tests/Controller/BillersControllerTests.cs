@@ -1,5 +1,6 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
+using System.Globalization;
 using Controllers;
 using Application.DTOs.Billers;
 using Application.Services.Billers;
@@ -123,7 +124,7 @@ public sealed class BillersControllerTests
         BillersController controller = CreateController();
 
         // Act
-        IActionResult result = controller.RemoveSavedBiller(DefaultSavedBillerId);
+        IActionResult result = controller.RemoveSavedBiller(DefaultSavedBillerId.ToString(CultureInfo.InvariantCulture));
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
