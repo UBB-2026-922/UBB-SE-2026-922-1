@@ -50,7 +50,6 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         DispatcherQueue.TryEnqueue(() => OnStateChanged(state));
     }
 
-    // ─── Visibility helper for {x:Bind} function expressions ──────────────────
     // Used in XAML as: Visibility="{x:Bind BoolToVisibility(ViewModel.SomeBool), Mode=OneWay}"
     // Keeps WinUI-specific Visibility type out of the ViewModel.
     private Visibility BoolToVisibility(bool value)
@@ -58,7 +57,6 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         return value ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // ─── State handling ────────────────────────────────────────────────────────
     /// <summary>
     ///     Reacts to state transitions from the ViewModel.
     ///     Most visual state is handled automatically through {x:Bind} — this method
@@ -84,7 +82,6 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         }
     }
 
-    // ─── Event handlers ────────────────────────────────────────────────────────
     private async void VerifyButton_Click(object sender, RoutedEventArgs e)
     {
         // Validation (6-digit length check) is enforced inside the ViewModel.
