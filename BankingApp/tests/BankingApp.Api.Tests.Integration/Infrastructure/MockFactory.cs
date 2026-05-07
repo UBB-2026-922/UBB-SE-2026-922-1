@@ -2,6 +2,7 @@ namespace BankingApp.Api.Tests.Integration.Infrastructure;
 
 using Application.Repositories.Interfaces;
 using Application.Services.Beneficiary;
+using Application.Services.Billers;
 using Application.Services.Dashboard;
 using Application.Services.Login;
 using Application.Services.PasswordRecovery;
@@ -70,5 +71,12 @@ public static class MockFactory
     public static Mock<IBeneficiaryService> CreateBeneficiaryService()
     {
         return new Mock<IBeneficiaryService>();
+    }
+
+    /// <summary>Creates a loose mock for <see cref="IBillerService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IBillerService" />.</returns>
+    public static Mock<IBillerService> CreateBillerService()
+    {
+        return new Mock<IBillerService>();
     }
 }

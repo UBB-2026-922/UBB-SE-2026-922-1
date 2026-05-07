@@ -1,5 +1,6 @@
 ﻿using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Beneficiary;
+using BankingApp.Application.Services.Billers;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.PasswordRecovery;
@@ -32,8 +33,6 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     /// </summary>
     public BankingAppWebFactory()
     {
-        // These environment variables must be set before the host is built so that
-        // AddInfrastructure does not throw and Program.cs does not run migrations.
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("Database__ApplyMigrations", "false");
@@ -84,6 +83,11 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     public Mock<IBeneficiaryService> BeneficiaryServiceMock { get; } = MockFactory.CreateBeneficiaryService();
 
     /// <summary>
+    ///     Gets the mock biller service.
+    /// </summary>
+    public Mock<IBillerService> BillerServiceMock { get; } = MockFactory.CreateBillerService();
+
+    /// <summary>
     ///     Configures the test server by replacing service-layer dependencies with Moq stubs.
     /// </summary>
     /// <param name="builder">The web host builder.</param>
@@ -111,6 +115,7 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
             ReplaceService<IDashboardService>(services, DashboardServiceMock.Object);
             ReplaceService<IProfileService>(services, ProfileServiceMock.Object);
             ReplaceService<IBeneficiaryService>(services, BeneficiaryServiceMock.Object);
+            ReplaceService<IBillerService>(services, BillerServiceMock.Object);
         });
     }
 
