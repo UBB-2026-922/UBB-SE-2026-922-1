@@ -12,6 +12,8 @@ using System.Globalization;
 public class SessionValidationMiddleware
 {
     private const string BearerPrefix = "Bearer ";
+    private const string BillersPathPrefix = "/api/billers";
+    private const string SavedBillersPathPrefix = "/api/billers/saved";
 
     private static readonly string[] _publicEndpointPrefixes = ["/api/auth/", "/swagger"];
     private readonly RequestDelegate _next;
@@ -85,10 +87,24 @@ public class SessionValidationMiddleware
 
     private static bool IsPublicEndpoint(string? path)
     {
-        return path is not null &&
-               Array.Exists(
-                   _publicEndpointPrefixes,
-                   prefix => path.StartsWith(prefix, StringComparison.Ordinal));
+        if (path is null)
+        {
+            return false;
+        }
+
+        if (path.StartsWith(SavedBillersPathPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (path.StartsWith(BillersPathPrefix, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return Array.Exists(
+            _publicEndpointPrefixes,
+            prefix => path.StartsWith(prefix, StringComparison.Ordinal));
     }
 
     private static async Task RejectRequest(HttpContext context, string error)

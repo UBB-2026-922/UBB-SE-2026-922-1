@@ -1,5 +1,6 @@
 namespace BankingApp.Api.Controllers;
 
+using System.Globalization;
 using Application.DTOs.Billers;
 using Application.Services.Billers;
 using Microsoft.AspNetCore.Mvc;
@@ -70,10 +71,15 @@ public class BillersController : ApiControllerBase
     /// </summary>
     /// <param name="id">The saved biller entry identifier.</param>
     /// <returns>204 No Content on success.</returns>
-    [HttpDelete("saved/{id:int}")]
-    public IActionResult RemoveSavedBiller(int id)
+    [HttpDelete("saved/{id}")]
+    public IActionResult RemoveSavedBiller(string id)
     {
+        if (!int.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out int savedBillerId))
+        {
+            return BadRequest(new { error = "Saved biller id must be a valid integer." });
+        }
+
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_billerService.RemoveSavedBiller(userId, id));
+        return ToActionResult(_billerService.RemoveSavedBiller(userId, savedBillerId));
     }
 }
