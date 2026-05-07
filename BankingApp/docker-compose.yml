@@ -37,3 +37,9 @@
 
 volumes:
   sqlserver-data:
+  bankingapp.web:
+    image: bankingapp.web
+    build:
+      context: .
+      dockerfile: src/BankingApp.Web/Dockerfile
+
