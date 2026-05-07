@@ -1,17 +1,13 @@
-﻿// <copyright file="DashboardServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Application.Tests.Services;
 
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Repositories.Interfaces;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Dashboard;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-using ApplicationCardType = BankingApp.Application.Enums.CardType;
 
-namespace BankingApp.Application.Tests.Services;
+using DTOs.Dashboard;
 
 /// <summary>
 ///     Unit tests for <see cref="DashboardService" />.
@@ -70,7 +66,7 @@ public class DashboardServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(NonExistentUserId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(NonExistentUserId);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -92,7 +88,7 @@ public class DashboardServiceTests
             .Returns(new User { Id = userId, FullName = fullName, Email = email });
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -124,25 +120,25 @@ public class DashboardServiceTests
                         CardholderName = "Ada Lovelace",
                         CardType = CardType.Debit,
                         ExpiryDate = new DateTime(2027, 12, 1),
-                        Status = CardStatus.Active,
-                    },
+                        Status = CardStatus.Active
+                    }
                 });
         _dashboardRepository
             .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(userId))
             .Returns(
                 new List<Account>
                 {
-                    new() { Id = 0, AccountName = "Checking", Balance = 2500 },
+                    new() { Id = 0, AccountName = "Checking", Balance = 2500 }
                 });
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Cards.Should().ContainSingle();
         result.Value.Cards.First().CardholderName.Should().Be("Ada Lovelace");
-        result.Value.Cards.First().CardType.Should().Be(ApplicationCardType.Debit);
+        result.Value.Cards.First().CardType.Should().Be(CardType.Debit);
         result.Value.Cards.First().CardNumber.Should().Be("**** **** **** 3456");
         result.Value.Cards.First().AccountName.Should().Be("Checking");
         result.Value.Cards.First().AccountBalance.Should().Be(2500);
@@ -164,7 +160,7 @@ public class DashboardServiceTests
             .Returns(Error.Failure());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -188,7 +184,7 @@ public class DashboardServiceTests
             .Returns(
                 new List<Account>
                 {
-                    new() { Id = accountId, UserId = userId },
+                    new() { Id = accountId, UserId = userId }
                 });
         _dashboardRepository
             .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId, It.IsAny<int>()))
@@ -204,12 +200,12 @@ public class DashboardServiceTests
                         Currency = "RON",
                         Status = TransactionStatus.Completed,
                         MerchantName = "Shop",
-                        CreatedAt = DateTime.UtcNow,
-                    },
+                        CreatedAt = DateTime.UtcNow
+                    }
                 });
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -234,7 +230,7 @@ public class DashboardServiceTests
             .Returns(Error.Failure());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -257,7 +253,7 @@ public class DashboardServiceTests
             .Returns(Error.Failure());
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -283,10 +279,10 @@ public class DashboardServiceTests
                 new List<Account>
                 {
                     new() { Id = accountId1, UserId = userId },
-                    new() { Id = accountId2, UserId = userId },
+                    new() { Id = accountId2, UserId = userId }
                 });
 
-        List<Transaction> transactions1 = Enumerable.Range(1, FirstAccountTransactionCount).Select(index =>
+        var transactions1 = Enumerable.Range(1, FirstAccountTransactionCount).Select(index =>
             new Transaction
             {
                 Id = index,
@@ -295,9 +291,9 @@ public class DashboardServiceTests
                 Amount = index * AmountMultiplier,
                 Currency = "RON",
                 Status = TransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-index),
+                CreatedAt = DateTime.UtcNow.AddMinutes(-index)
             }).ToList();
-        List<Transaction> transactions2 = Enumerable.Range(9, SecondAccountTransactionCount).Select(index =>
+        var transactions2 = Enumerable.Range(9, SecondAccountTransactionCount).Select(index =>
             new Transaction
             {
                 Id = index,
@@ -306,7 +302,7 @@ public class DashboardServiceTests
                 Amount = index * AmountMultiplier,
                 Currency = "RON",
                 Status = TransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-index),
+                CreatedAt = DateTime.UtcNow.AddMinutes(-index)
             }).ToList();
         _dashboardRepository
             .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId1, It.IsAny<int>()))
@@ -316,7 +312,7 @@ public class DashboardServiceTests
             .Returns(transactions2);
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -340,7 +336,7 @@ public class DashboardServiceTests
             .Returns(unreadCount);
 
         // Act
-        ErrorOr<DashboardResponse> result = _service.GetDashboardData(userId);
+        ErrorOr<DashboardDto> result = _service.GetDashboardData(userId);
 
         // Assert
         result.IsError.Should().BeFalse();

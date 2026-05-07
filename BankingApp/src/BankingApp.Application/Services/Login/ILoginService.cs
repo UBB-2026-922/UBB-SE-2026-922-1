@@ -1,14 +1,8 @@
-﻿// <copyright file="ILoginService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ILoginService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Login;
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.Login;
+using BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Defines operations for user login, logout, OAuth login, and 2FA.
@@ -27,24 +21,10 @@ public interface ILoginService
     ///     an unauthorized error with code <c>invalid_credentials</c> if the email/password is wrong,
     ///     or a forbidden error with code <c>account_locked</c> if the account is locked.
     /// </returns>
-    ErrorOr<LoginSuccess> Login(LoginRequest request, SessionMetadata? metadata = null);
+    public ErrorOr<LoginSuccess> Login(LoginRequest request, SessionMetadata? metadata = null);
 
     /// <summary>
-    ///     Authenticates a user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth login details.</param>
-    /// <param name="metadata">Request-derived metadata to store with the created session.</param>
-    /// <returns>
-    ///     A task that resolves to a <see cref="FullLogin" /> or <see cref="RequiresTwoFactor" /> on success,
-    ///     a validation error with code <c>unsupported_provider</c> if the provider is not supported,
-    ///     a validation error with code <c>invalid_google_token</c> if the Google token is rejected,
-    ///     a forbidden error with code <c>account_locked</c> if the account is locked,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    Task<ErrorOr<LoginSuccess>> OAuthLoginAsync(OAuthLoginRequest request, SessionMetadata? metadata = null);
-
-    /// <summary>
-    ///     Verifies a OTP for 2FA.
+    ///     Verifies an OTP for 2FA.
     /// </summary>
     /// <param name="request">The OTP verification details.</param>
     /// <param name="metadata">Request-derived metadata to store with the created session.</param>
@@ -53,10 +33,10 @@ public interface ILoginService
     ///     a not-found error if the user does not exist,
     ///     or an unauthorized error with code <c>invalid_otp</c> if the code is invalid or expired.
     /// </returns>
-    ErrorOr<LoginSuccess> VerifyOtp(VerifyOtpRequest request, SessionMetadata? metadata = null);
+    public ErrorOr<LoginSuccess> VerifyOtp(VerifyOtpRequest request, SessionMetadata? metadata = null);
 
     /// <summary>
-    ///     Resends a OTP to the specified user.
+    ///     Resends an OTP to the specified user.
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <param name="method">The delivery method (e.g., "email").</param>
@@ -64,7 +44,7 @@ public interface ILoginService
     ///     <see cref="Result.Success" /> on success,
     ///     or an error if the user does not exist or OTP generation fails.
     /// </returns>
-    ErrorOr<Success> ResendOtp(int userId, string method);
+    public ErrorOr<Success> ResendOtp(int userId, string method);
 
     /// <summary>
     ///     Logs out the user by invalidating the specified session token.
@@ -74,5 +54,5 @@ public interface ILoginService
     ///     <see cref="Result.Success" /> on success,
     ///     or an error if no active session exists for the given token.
     /// </returns>
-    ErrorOr<Success> Logout(string token);
+    public ErrorOr<Success> Logout(string token);
 }

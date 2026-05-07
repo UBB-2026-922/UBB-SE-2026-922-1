@@ -27,11 +27,11 @@ environment variables
 
 Key settings:
 
-| Key | Default |
-|---|---|
-| `ApiBaseUrl` | `http://localhost:5024` |
-| `OAuth:Google:Authority` | `https://accounts.google.com` |
-| `OAuth:Google:RedirectUri` | `http://127.0.0.1:7890/` |
+| Key                        | Default                       |
+|----------------------------|-------------------------------|
+| `ApiBaseUrl`               | `http://localhost:5024`       |
+| `OAuth:Google:Authority`   | `https://accounts.google.com` |
+| `OAuth:Google:RedirectUri` | `http://127.0.0.1:7890/`      |
 
 `OAuth:Google:ClientId` and `OAuth:Google:ClientSecret` are required for Google sign-in.
 
@@ -41,4 +41,5 @@ Open `BankingApp.slnx`, set `BankingApp.Desktop` as the startup project, select 
 
 For Rider, create a compound run configuration with `BankingApp.Api` and `BankingApp.Desktop`.
 
-The desktop shell includes a Beneficiaries page in the left navigation, wired to the API-backed view model for loading and managing saved beneficiaries.
+The desktop shell includes a Beneficiaries page in the left navigation, wired to the API-backed view model for loading
+and managing saved beneficiaries.

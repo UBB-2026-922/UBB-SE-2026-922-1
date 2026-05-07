@@ -1,34 +1,31 @@
-﻿// <copyright file="SessionsViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Profile;
+using Enums;
+using Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace BankingApp.Desktop.Tests.ViewModels;
-
 public class SessionsViewModelTests
 {
-    private readonly Mock<IApiClient> _apiClient = new(MockBehavior.Strict);
+    private readonly Mock<IProfileClientService> _profileClientService = new(MockBehavior.Strict);
+
     [Fact]
     public async Task LoadSessionsAsync_WhenApiReturnsSessions_PopulatesCollectionAndResetsState()
     {
         // Arrange
         const int userId = 7;
-        var sessions = new List<SessionDataTransferObject>
+        var sessions = new List<SessionDto>
         {
             new() { Id = 1, DeviceInfo = "Desktop" },
             new() { Id = 2, DeviceInfo = "Phone" },
         };
 
-        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+        var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
-        _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+        _profileClientService
+            .Setup(service => service.GetSessionsAsync())
             .ReturnsAsync(sessions);
 
         // Act
@@ -45,10 +42,10 @@ public class SessionsViewModelTests
     {
         // Arrange
         const int userId = 7;
-        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+        var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
-        _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+        _profileClientService
+            .Setup(service => service.GetSessionsAsync())
             .ReturnsAsync(Error.Failure(description: "server error"));
 
         // Act
@@ -65,10 +62,10 @@ public class SessionsViewModelTests
     {
         // Arrange
         const int userId = 7;
-        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+        var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
-        _apiClient
-            .Setup(getsAsync => getsAsync.GetAsync<List<SessionDataTransferObject>>(ApiEndpoints.Sessions, It.IsAny<CancellationToken>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.GetSessionsAsync())
             .ThrowsAsync(new InvalidOperationException("boom"));
 
         // Act
@@ -85,10 +82,10 @@ public class SessionsViewModelTests
     {
         // Arrange
         const int sessionId = 42;
-        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+        var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
-        _apiClient
-            .Setup(deletesAsync => deletesAsync.DeleteAsync($"{ApiEndpoints.Sessions}/{sessionId}"))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.RevokeSessionAsync(sessionId))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -104,10 +101,10 @@ public class SessionsViewModelTests
     {
         // Arrange
         const int sessionId = 42;
-        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+        var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
-        _apiClient
-            .Setup(deletesAsync => deletesAsync.DeleteAsync($"{ApiEndpoints.Sessions}/{sessionId}"))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.RevokeSessionAsync(sessionId))
             .ReturnsAsync(Error.Failure(description: "revoke failed"));
 
         // Act
@@ -123,10 +120,10 @@ public class SessionsViewModelTests
     {
         // Arrange
         const int sessionId = 42;
-        var viewModel = new SessionsViewModel(_apiClient.Object, NullLogger<SessionsViewModel>.Instance);
+        var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
-        _apiClient
-            .Setup(deletesAsync => deletesAsync.DeleteAsync($"{ApiEndpoints.Sessions}/{sessionId}"))
+        _profileClientService
+            .Setup(service => service.RevokeSessionAsync(sessionId))
             .ThrowsAsync(new InvalidOperationException("boom"));
 
         // Act

@@ -1,13 +1,6 @@
-﻿// <copyright file="EmailTemplates.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the EmailTemplates class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Services.Notifications;
 
-using BankingApp.Infrastructure.Services.Security;
-
-namespace BankingApp.Infrastructure.Services.Notifications;
+using Security;
 
 /// <summary>
 ///     Defines the subjects and body templates for all transactional emails sent by the application.

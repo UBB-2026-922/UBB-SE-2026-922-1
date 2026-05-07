@@ -1,9 +1,4 @@
-﻿// <copyright file="DashboardViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardViewModel class.
-// </summary>
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
@@ -11,17 +6,16 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Enums;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Dashboard;
+using Enums;
+using Services;
+using Utilities;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.ViewModels;
-
 /// <summary>
-///     Loads and exposes the data required by the dashboard view.
+///     Loads and exposes the data needed by the dashboard view.
 /// </summary>
 public class DashboardViewModel
 {
@@ -34,24 +28,21 @@ public class DashboardViewModel
     private const int CardNumberVisibleSuffixLength = 4;
     private const string FullyMaskedCardNumber = "**** **** **** ****";
     private const string CardNumberMaskPrefix = "**** **** ****";
-    private readonly IApiClient _apiClient;
+    private readonly IDashboardClientService _dashboardClientService;
     private readonly ILogger<DashboardViewModel> _logger;
     private int _currentCardIndex;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DashboardViewModel" /> class.
     /// </summary>
-    /// <param name="apiClient">The API client used for dashboard data requests.</param>
-    /// <param name="logger">Logger for dashboard load errors.</param>
-    /// <returns>The result of the operation.</returns>
-    public DashboardViewModel(IApiClient apiClient, ILogger<DashboardViewModel> logger)
+    public DashboardViewModel(IDashboardClientService dashboardClientService, ILogger<DashboardViewModel> logger)
     {
-        _apiClient = apiClient;
+        _dashboardClientService = dashboardClientService ?? throw new ArgumentNullException(nameof(dashboardClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         CurrentUser = null;
         State = new ObservableState<DashboardState>(DashboardState.Idle);
-        Cards = new List<CardDataTransferObject>();
-        RecentTransactions = new List<TransactionDataTransferObject>();
+        Cards = new List<CardDto>();
+        RecentTransactions = new List<TransactionDto>();
         RecentTransactionItems = new List<DashboardTransactionItem>();
         UnreadNotificationCount = 0;
         ErrorMessage = string.Empty;
@@ -59,51 +50,33 @@ public class DashboardViewModel
     }
 
     /// <summary>
-    ///     Gets the state.
+    ///     Gets the current dashboard workflow state.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public ObservableState<DashboardState> State { get; }
 
     /// <summary>
-    ///     Gets the current user whose dashboard data has been loaded.
+    ///     Gets the current user summary shown on the dashboard.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public UserSummaryDataTransferObject? CurrentUser { get; private set; }
+    public UserSummaryDto? CurrentUser { get; private set; }
 
     /// <summary>
-    ///     Gets the formatted dashboard transaction rows for display.
+    ///     Gets the formatted recent-transaction items shown on the dashboard.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public List<DashboardTransactionItem> RecentTransactionItems { get; private set; }
 
     /// <summary>
-    ///     Gets the unread notification count.
+    ///     Gets the unread-notification count shown on the dashboard.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public int UnreadNotificationCount { get; private set; }
 
     /// <summary>
-    ///     Gets the latest load error message.
+    ///     Gets the latest user-facing dashboard error message.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public string ErrorMessage { get; private set; }
 
     /// <summary>
-    ///     Gets the index of the currently displayed card.
+    ///     Gets the index of the currently selected payment card.
     /// </summary>
-    /// <value>
-    ///     The index of the currently displayed card.
-    /// </value>
     public int CurrentCardIndex
     {
         get => _currentCardIndex;
@@ -114,37 +87,23 @@ public class DashboardViewModel
     }
 
     /// <summary>
-    ///     Gets a value indicating whether the user can navigate to the previous card.
+    ///     Gets a value indicating whether the previous-card action is available.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public bool CanNavigatePrevious => Cards.Count > 0 && CurrentCardIndex > FirstCardIndex;
 
     /// <summary>
-    ///     Gets a value indicating whether the user can navigate to the next card.
+    ///     Gets a value indicating whether the next-card action is available.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public bool CanNavigateNext => Cards.Count > 0 && CurrentCardIndex < Cards.Count - LastCardIndexOffset;
 
     /// <summary>
-    ///     Gets a value indicating whether the user has any linked cards.
+    ///     Gets a value indicating whether any cards are available for display.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public bool HasCards => Cards.Count > 0;
 
     /// <summary>
-    ///     Gets the ordered list of card-dot view models for the carousel indicator.
-    ///     Each dot knows whether it represents the currently active card.
+    ///     Gets the card-page indicator state for the card carousel.
     /// </summary>
-    /// <value>
-    ///     The ordered list of card-dot view models for the carousel indicator.
-    ///     Each dot knows whether it represents the currently active card.
-    /// </value>
     public IReadOnlyList<CardPageIndicatorViewModel> CardDots
     {
         get
@@ -155,30 +114,21 @@ public class DashboardViewModel
     }
 
     /// <summary>
-    ///     Gets a value indicating whether the user has any recent transactions.
+    ///     Gets a value indicating whether recent transactions are available.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public bool HasTransactions => RecentTransactionItems.Count > 0;
 
     /// <summary>
-    ///     Gets the display name of the selected card's brand (falls back to card type when brand is absent).
+    ///     Gets the selected card brand display text.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public string SelectedCardBrandDisplay =>
         SelectedCard is { } card
             ? string.IsNullOrWhiteSpace(card.CardBrand) ? card.CardType.ToString() : card.CardBrand
             : string.Empty;
 
     /// <summary>
-    ///     Gets the upper-cased cardholder name, or a placeholder when absent.
+    ///     Gets the selected cardholder display text.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public string SelectedCardHolderDisplay =>
         SelectedCard is { } card
             ? string.IsNullOrWhiteSpace(card.CardholderName)
@@ -187,50 +137,26 @@ public class DashboardViewModel
             : string.Empty;
 
     /// <summary>
-    ///     Gets the formatted expiry date (MM/yy) of the selected card.
+    ///     Gets the selected card expiry display text.
     /// </summary>
-    /// <returns>The result of the operation.</returns>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public string SelectedCardExpiryDisplay => SelectedCard?.ExpiryDate.ToString("MM/yy") ?? string.Empty;
+    public string SelectedCardExpiryDisplay =>
+        SelectedCard?.ExpiryDate.ToString("MM/yy", CultureInfo.InvariantCulture) ?? string.Empty;
 
     /// <summary>
-    ///     Gets the masked card number of the selected card.
+    ///     Gets the masked number of the selected card.
     /// </summary>
-    /// <returns>The result of the operation.</returns>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public string SelectedCardNumberMasked =>
         SelectedCard is { } card ? MaskCardNumber(card.CardNumber) : FullyMaskedCardNumber;
 
-    /// <summary>
-    ///     Gets or sets the cards.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    private List<CardDataTransferObject> Cards { get; set; }
+    private List<CardDto> Cards { get; set; }
+
+    private CardDto? SelectedCard => Cards.Count > 0 ? Cards.ElementAt(CurrentCardIndex) : null;
+
+    private List<TransactionDto> RecentTransactions { get; set; }
 
     /// <summary>
-    ///     Gets the currently selected card, or <see langword="null" /> if no cards are available.
+    ///     Moves the card carousel to the previous card.
     /// </summary>
-    /// <returns>The result of the operation.</returns>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    private CardDataTransferObject? SelectedCard => Cards.Count > 0 ? Cards.ElementAt(CurrentCardIndex) : null;
-
-    private List<TransactionDataTransferObject> RecentTransactions { get; set; }
-
-    /// <summary>
-    ///     Navigates to the previous card if possible.
-    /// </summary>
-    /// <returns>
-    ///     <see cref="Result.Success" /> if navigation occurred;
-    ///     otherwise an <see cref="Error" /> when already at the first card.
-    /// </returns>
     public ErrorOr<Success> NavigatePrevious()
     {
         if (!CanNavigatePrevious)
@@ -243,12 +169,8 @@ public class DashboardViewModel
     }
 
     /// <summary>
-    ///     Navigates to the next card if possible.
+    ///     Moves the card carousel to the next card.
     /// </summary>
-    /// <returns>
-    ///     <see cref="Result.Success" /> if navigation occurred;
-    ///     otherwise an <see cref="Error" /> when already at the last card.
-    /// </returns>
     public ErrorOr<Success> NavigateNext()
     {
         if (!CanNavigateNext)
@@ -261,10 +183,8 @@ public class DashboardViewModel
     }
 
     /// <summary>
-    ///     Builds a human-readable details string for the currently selected card.
-    ///     The result is suitable for display in a dialog; it contains no UI types.
+    ///     Builds the details string for the currently selected card.
     /// </summary>
-    /// <returns>A multi-line string with card details, or an empty string when no card is selected.</returns>
     public string GetSelectedCardDetails()
     {
         if (SelectedCard is not { } card)
@@ -284,20 +204,13 @@ public class DashboardViewModel
     }
 
     /// <summary>
-    ///     Fetches dashboard data for the currently authenticated user.
+    ///     Loads dashboard data for the current user.
     /// </summary>
-    /// <param name="cancellationToken">A token that can cancel the load operation.</param>
-    /// <returns>
-    ///     <see cref="Result.Success" /> if all dashboard data loaded successfully;
-    ///     otherwise an <see cref="Error" /> describing what went wrong.
-    /// </returns>
     public async Task<ErrorOr<Success>> LoadDashboard(CancellationToken cancellationToken = default)
     {
         State.SetValue(DashboardState.Loading);
         ErrorMessage = string.Empty;
-        ErrorOr<DashboardResponse> result = await _apiClient.GetAsync<DashboardResponse>(
-            ApiEndpoints.Dashboard,
-            cancellationToken);
+        ErrorOr<DashboardDto> result = await _dashboardClientService.GetDashboardAsync(cancellationToken);
         return result.Match<ErrorOr<Success>>(
             dashboard =>
             {
@@ -313,7 +226,6 @@ public class DashboardViewModel
                 RecentTransactions = dashboard.RecentTransactions;
                 RecentTransactionItems = BuildTransactionItems(RecentTransactions);
                 UnreadNotificationCount = dashboard.UnreadNotificationCount;
-                // Reset card navigation to first card after a fresh load.
                 _currentCardIndex = FirstCardIndex;
                 State.SetValue(DashboardState.Success);
                 return Result.Success;
@@ -324,19 +236,14 @@ public class DashboardViewModel
                 {
                     ErrorType.Unauthorized => UserMessages.Dashboard.SessionExpired,
                     ErrorType.NotFound => UserMessages.Dashboard.NotFound,
-                    _ => UserMessages.Dashboard.LoadFailed
+                    _ => UserMessages.Dashboard.LoadFailed,
                 };
-                _logger.LogError("LoadDashboard failed: {Errors}", errors);
+                _logger.LoadDashboardFailed(errors);
                 State.SetValue(DashboardState.Error);
                 return errors.First();
             });
     }
 
-    /// <summary>
-    ///     Returns a masked representation of a card number, showing only the last four digits.
-    /// </summary>
-    /// <param name="cardNumber">The raw card number.</param>
-    /// <returns>A masked string such as "**** **** **** 1234".</returns>
     private static string MaskCardNumber(string? cardNumber)
     {
         if (string.IsNullOrWhiteSpace(cardNumber))
@@ -349,8 +256,7 @@ public class DashboardViewModel
             : FullyMaskedCardNumber;
     }
 
-    private static List<DashboardTransactionItem> BuildTransactionItems(
-        IEnumerable<TransactionDataTransferObject> transactions)
+    private static List<DashboardTransactionItem> BuildTransactionItems(IEnumerable<TransactionDto> transactions)
     {
         return transactions
             .Select(transaction => new DashboardTransactionItem
@@ -362,7 +268,7 @@ public class DashboardViewModel
             .ToList();
     }
 
-    private static string GetMerchantDisplayName(TransactionDataTransferObject transaction)
+    private static string GetMerchantDisplayName(TransactionDto transaction)
     {
         return FirstNonEmpty(
             transaction.MerchantName,
@@ -371,13 +277,16 @@ public class DashboardViewModel
             "Transaction");
     }
 
-    private static string FormatAmountDisplay(TransactionDataTransferObject transaction)
+    private static string FormatAmountDisplay(TransactionDto transaction)
     {
         string sign = transaction.Direction switch
         {
             TransactionDirection.Out => "-",
             TransactionDirection.In => "+",
-            _ => throw new ArgumentOutOfRangeException(nameof(transaction.Direction), transaction.Direction, null)
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(transaction),
+                transaction.Direction,
+                "Unsupported transaction direction."),
         };
         return $"{sign}{transaction.Amount.ToString("N2", CultureInfo.InvariantCulture)}";
     }

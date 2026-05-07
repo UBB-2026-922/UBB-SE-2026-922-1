@@ -1,27 +1,18 @@
-﻿// <copyright file="ProfileViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileViewModel class.
-// </summary>
+﻿namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
-using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Desktop.ViewModels;
+using Application.DTOs.Profile;
+using Enums;
+using Utilities;
+using BankingApp.Domain.Enums;
 
 /// <summary>
-///     Coordinates profile-related operations by delegating to specialised sub-ViewModels
-///     for personal info, security, OAuth, notifications, and sessions.
+///     Coordinates profile-related operations by delegating to specialized sub-ViewModels
+///     for personal info, security, notifications, and sessions.
 /// </summary>
-public class ProfileViewModel
+public partial class ProfileViewModel : IDisposable
 {
-    private readonly ILogger<ProfileViewModel> _logger;
     private bool _disposed;
 
     /// <summary>
@@ -29,24 +20,18 @@ public class ProfileViewModel
     /// </summary>
     /// <param name="personalInfo">The personal info sub-ViewModel.</param>
     /// <param name="security">The security sub-ViewModel.</param>
-    /// <param name="oauthViewModel">The OAuth sub-ViewModel.</param>
     /// <param name="notifications">The notifications sub-ViewModel.</param>
     /// <param name="sessions">The sessions sub-ViewModel.</param>
-    /// <param name="logger">Logger for profile coordination errors.</param>
     public ProfileViewModel(
         PersonalInfoViewModel personalInfo,
         SecurityViewModel security,
-        OAuthViewModel oauthViewModel,
         NotificationsViewModel notifications,
-        SessionsViewModel sessions,
-        ILogger<ProfileViewModel> logger)
+        SessionsViewModel sessions)
     {
         PersonalInfo = personalInfo ?? throw new ArgumentNullException(nameof(personalInfo));
         Security = security ?? throw new ArgumentNullException(nameof(security));
-        OAuth = oauthViewModel ?? throw new ArgumentNullException(nameof(oauthViewModel));
         Notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
         Sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<ProfileState>(ProfileState.Idle);
     }
 
@@ -84,14 +69,6 @@ public class ProfileViewModel
     public SecurityViewModel Security { get; }
 
     /// <summary>
-    ///     Gets the OAuth sub-ViewModel.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public OAuthViewModel OAuth { get; }
-
-    /// <summary>
     ///     Gets the notifications sub-ViewModel.
     /// </summary>
     /// <value>
@@ -113,7 +90,7 @@ public class ProfileViewModel
     /// <value>
     ///     The current user's profile details (convenience accessor).
     /// </value>
-    public ProfileInfo ProfileInfo => PersonalInfo.ProfileInfo;
+    public ProfileDto ProfileDto => PersonalInfo.ProfileDto;
 
     /// <summary>
     ///     Gets a value indicating whether phone-based 2FA is active.
@@ -122,7 +99,7 @@ public class ProfileViewModel
     ///     Gets or sets the current value.
     /// </value>
     public bool IsPhoneTwoFactorActive =>
-        ProfileInfo.Is2FaEnabled && ProfileInfo.Preferred2FaMethod == TwoFactorMethod.Phone;
+        ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Phone };
 
     /// <summary>
     ///     Gets a value indicating whether email-based 2FA is active.
@@ -131,7 +108,7 @@ public class ProfileViewModel
     ///     Gets or sets the current value.
     /// </value>
     public bool IsEmailTwoFactorActive =>
-        ProfileInfo.Is2FaEnabled && ProfileInfo.Preferred2FaMethod == TwoFactorMethod.Email;
+        ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Email };
 
     /// <summary>
     ///     Loads the current user's profile, OAuth links, and notification preferences.
@@ -142,12 +119,6 @@ public class ProfileViewModel
     {
         State.SetValue(ProfileState.Loading);
         if (!await PersonalInfo.LoadProfile())
-        {
-            State.SetValue(ProfileState.Error);
-            return false;
-        }
-
-        if (!await OAuth.LoadOAuthLinks())
         {
             State.SetValue(ProfileState.Error);
             return false;
@@ -176,8 +147,8 @@ public class ProfileViewModel
             return false;
         }
 
-        ProfileInfo.Is2FaEnabled = true;
-        ProfileInfo.Preferred2FaMethod = method;
+        ProfileDto.Is2FaEnabled = true;
+        ProfileDto.Preferred2FaMethod = method;
         return true;
     }
 
@@ -193,8 +164,8 @@ public class ProfileViewModel
             return false;
         }
 
-        ProfileInfo.Is2FaEnabled = false;
-        ProfileInfo.Preferred2FaMethod = null;
+        ProfileDto.Is2FaEnabled = false;
+        ProfileDto.Preferred2FaMethod = null;
         return true;
     }
 
@@ -211,8 +182,8 @@ public class ProfileViewModel
             return false;
         }
 
-        ProfileInfo.Is2FaEnabled = enabled;
-        ProfileInfo.Preferred2FaMethod = enabled ? TwoFactorMethod.Email : null;
+        ProfileDto.Is2FaEnabled = enabled;
+        ProfileDto.Preferred2FaMethod = enabled ? TwoFactorMethod.Email : null;
         return true;
     }
 
@@ -222,7 +193,7 @@ public class ProfileViewModel
     /// <param name="preference">The preference to toggle.</param>
     /// <param name="enabled">The new enabled value.</param>
     /// <returns><see langword="true" /> if the preference was saved; otherwise, <see langword="false" />.</returns>
-    public Task<bool> ToggleNotificationPreference(NotificationPreferenceDataTransferObject preference, bool enabled)
+    public Task<bool> ToggleNotificationPreference(NotificationPreferenceDto preference, bool enabled)
     {
         return Notifications.ToggleNotificationPreference(preference, enabled);
     }
@@ -233,7 +204,7 @@ public class ProfileViewModel
     /// <returns>A result indicating whether sessions were loaded and why loading may have failed.</returns>
     public async Task<(bool Success, string? ErrorMessage)> LoadSessionsForCurrentUser()
     {
-        int? userId = ProfileInfo.UserId;
+        int? userId = ProfileDto.UserId;
         if (userId == null)
         {
             return (false, "User not loaded.");

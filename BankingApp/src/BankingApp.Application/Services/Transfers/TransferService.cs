@@ -1,22 +1,14 @@
-﻿// <copyright file="TransferService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Transfers;
 
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Mapping;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Application.Services.Transfers;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Errors;
+using DTOs.Transfer;
+using Logging;
+using Repositories.Interfaces;
+using Security;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.Transfers;
 
 /// <summary>
 ///     Handles transfer creation and history retrieval.
@@ -33,11 +25,6 @@ public class TransferService(
     ILogger<TransferService> logger)
     : ITransferService
 {
-    private const decimal TwoFaAmountThreshold = 1000m;
-    private const int ExpectedCurrencyCodeLength = 3;
-    private const int IbanMinLength = 15;
-    private const int IbanMaxLength = 34;
-    private const int IbanCountryCodeLength = 2;
     private const int ExchangeRatePrecision = 4;
     private const string TransferRelatedEntityType = "Transfer";
     private const string EurUsdPair = "EUR/USD";
@@ -73,7 +60,7 @@ public class TransferService(
                 Iban = account.Iban,
                 Currency = account.Currency,
                 Balance = account.Balance,
-                AccountName = account.AccountName ?? string.Empty,
+                AccountName = account.AccountName ?? string.Empty
             })
             .ToList();
     }
@@ -81,16 +68,16 @@ public class TransferService(
     /// <inheritdoc />
     public ErrorOr<TransferIbanValidationResponse> ValidateRecipientIban(string iban)
     {
-        bool isValid = IsValidIban(iban);
+        bool isValid = Transfer.IsValidRecipientIban(iban);
         return new TransferIbanValidationResponse
         {
             IsValid = isValid,
-            BankName = isValid ? InferBankName(iban) : string.Empty,
+            BankName = isValid ? Transfer.InferRecipientBankName(iban) : string.Empty
         };
     }
 
     /// <inheritdoc />
-    public ErrorOr<TransferFxPreviewResponse> GetFxPreview(string sourceCurrency, string targetCurrency, decimal amount)
+    public ErrorOr<TransferForexPreviewResponse> GetFxPreview(string sourceCurrency, string targetCurrency, decimal amount)
     {
         if (string.IsNullOrWhiteSpace(sourceCurrency) || string.IsNullOrWhiteSpace(targetCurrency))
         {
@@ -104,10 +91,10 @@ public class TransferService(
 
         if (sourceCurrency.Equals(targetCurrency, StringComparison.OrdinalIgnoreCase))
         {
-            return new TransferFxPreviewResponse
+            return new TransferForexPreviewResponse
             {
                 ExchangeRate = 1m,
-                ConvertedAmount = amount,
+                ConvertedAmount = amount
             };
         }
 
@@ -117,17 +104,17 @@ public class TransferService(
             return rateResult.FirstError;
         }
 
-        return new TransferFxPreviewResponse
+        return new TransferForexPreviewResponse
         {
             ExchangeRate = rateResult.Value,
-            ConvertedAmount = Math.Round(amount * rateResult.Value, 2),
+            ConvertedAmount = Math.Round(amount * rateResult.Value, 2)
         };
     }
 
     /// <inheritdoc />
     public bool RequiresTwoFactorAuthentication(decimal amount)
     {
-        return amount >= TwoFaAmountThreshold;
+        return Transfer.RequiresTwoFactorAuthentication(amount);
     }
 
     /// <inheritdoc />
@@ -145,35 +132,26 @@ public class TransferService(
         ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
         if (accountsResult.IsError)
         {
-            _logger.LogWarning(
-                "Transfer failed: could not retrieve accounts for user {UserId}.",
-                userId);
+            _logger.TransferAccountsLookupFailed(userId);
             return TransferErrors.AccountNotFound;
         }
 
         Account? account = accountsResult.Value.FirstOrDefault(account => account.Id == request.SourceAccountId);
         if (account is null)
         {
-            _logger.LogWarning(
-                "Transfer failed: account {AccountId} not found for user {UserId}.",
-                request.SourceAccountId,
-                userId);
+            _logger.TransferAccountNotFound(request.SourceAccountId, userId);
             return TransferErrors.AccountNotFound;
         }
 
-        if (account.Status != AccountStatus.Active)
+        if (!account.IsActive())
         {
-            _logger.LogWarning(
-                "Transfer failed: account {AccountId} is not active.",
-                request.SourceAccountId);
+            _logger.TransferAccountNotActive(request.SourceAccountId);
             return TransferErrors.AccountNotActive;
         }
 
-        if (account.Balance < request.Amount)
+        if (!account.HasSufficientFunds(request.Amount))
         {
-            _logger.LogWarning(
-                "Transfer failed: insufficient funds on account {AccountId}.",
-                request.SourceAccountId);
+            _logger.TransferInsufficientFunds(request.SourceAccountId);
             return TransferErrors.InsufficientFunds;
         }
 
@@ -194,56 +172,13 @@ public class TransferService(
         ErrorOr<List<Transfer>> result = _dashboardRepository.GetTransfersByUserId(userId);
         if (result.IsError)
         {
-            _logger.LogError("Failed to retrieve transfer history for user {UserId}.", userId);
+            _logger.TransferHistoryFetchFailed(userId);
             return result.FirstError;
         }
 
         return result.Value
             .Select(MapToResponse)
             .ToList();
-    }
-
-    private static bool IsValidIban(string iban)
-    {
-        if (string.IsNullOrWhiteSpace(iban))
-        {
-            return false;
-        }
-
-        if (iban.Length < IbanMinLength || iban.Length > IbanMaxLength)
-        {
-            return false;
-        }
-
-        if (!char.IsLetter(iban[0]) || !char.IsLetter(iban[1]))
-        {
-            return false;
-        }
-
-        if (!char.IsDigit(iban[2]) || !char.IsDigit(iban[3]))
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private static string InferBankName(string iban)
-    {
-        if (string.IsNullOrWhiteSpace(iban) || iban.Length < IbanCountryCodeLength)
-        {
-            return "Unknown Bank";
-        }
-
-        return iban[..IbanCountryCodeLength].ToUpperInvariant() switch
-        {
-            "RO" => "Romanian Bank",
-            "DE" => "German Bank",
-            "GB" => "UK Bank",
-            "FR" => "French Bank",
-            "US" => "US Bank",
-            _ => "International Bank",
-        };
     }
 
     private static string GenerateTransactionRef()
@@ -266,8 +201,8 @@ public class TransferService(
             Currency = transfer.Currency,
             Fee = transfer.Fee,
             Reference = transfer.Reference,
-            Status = DomainEnumMapper.ToApplication(transfer.Status),
-            CreatedAt = transfer.CreatedAt,
+            Status = transfer.Status,
+            CreatedAt = transfer.CreatedAt
         };
     }
 
@@ -279,7 +214,7 @@ public class TransferService(
             { EurGbpPair, EurGbpRate },
             { EurRonPair, EurRonRate },
             { UsdRonPair, UsdRonRate },
-            { GbpRonPair, GbpRonRate },
+            { GbpRonPair, GbpRonRate }
         };
 
         string directPair = $"{sourceCurrency.ToUpperInvariant()}/{targetCurrency.ToUpperInvariant()}";
@@ -297,49 +232,28 @@ public class TransferService(
         return Error.NotFound(description: $"Rate not found for pair {sourceCurrency}/{targetCurrency}.");
     }
 
-    private ErrorOr<Success> ValidateRequest(CreateTransferRequest request)
+    private static ErrorOr<Success> ValidateRequest(CreateTransferRequest request)
     {
-        if (!IsValidIban(request.RecipientIban))
-        {
-            return TransferErrors.InvalidIban;
-        }
-
-        if (request.Amount <= 0)
-        {
-            return TransferErrors.InvalidAmount;
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Currency)
-            || request.Currency.Length != ExpectedCurrencyCodeLength)
-        {
-            return TransferErrors.InvalidCurrency;
-        }
-
-        return Result.Success;
+        return Transfer.Validate(request.RecipientIban, request.Amount, request.Currency);
     }
 
     private ErrorOr<Success> CheckTwoFa(CreateTransferRequest request, int userId)
     {
-        if (request.Amount < TwoFaAmountThreshold)
+        if (!Transfer.RequiresTwoFactorAuthentication(request.Amount))
         {
             return Result.Success;
         }
 
         if (string.IsNullOrWhiteSpace(request.TwoFaToken))
         {
-            _logger.LogWarning(
-                "Transfer rejected: 2FA token missing for amount {Amount}, user {UserId}.",
-                request.Amount,
-                userId);
+            _logger.TransferTwoFactorMissing(request.Amount, userId);
             return TransferErrors.TwoFaRequired;
         }
 
         ErrorOr<bool> verifyResult = _otpService.VerifyTotp(userId, request.TwoFaToken);
         if (verifyResult.IsError || !verifyResult.Value)
         {
-            _logger.LogWarning(
-                "Transfer rejected: invalid 2FA token for user {UserId}.",
-                userId);
+            _logger.TransferTwoFactorInvalid(userId);
             return TransferErrors.InvalidTwoFaToken;
         }
 
@@ -354,9 +268,7 @@ public class TransferService(
         ErrorOr<Success> debitResult = _dashboardRepository.DebitAccount(account.Id, request.Amount);
         if (debitResult.IsError)
         {
-            _logger.LogError(
-                "Transfer failed: could not debit account {AccountId}.",
-                account.Id);
+            _logger.TransferDebitFailed(account.Id);
             return TransferErrors.DebitFailed;
         }
 
@@ -375,15 +287,13 @@ public class TransferService(
             Fee = 0m,
             Status = TransactionStatus.Completed,
             RelatedEntityType = TransferRelatedEntityType,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         ErrorOr<Transaction> logResult = _dashboardRepository.AddTransaction(transaction);
         if (logResult.IsError)
         {
-            _logger.LogError(
-                "Transfer failed: could not log transaction for account {AccountId}.",
-                account.Id);
+            _logger.TransferTransactionLogFailed(account.Id);
             return TransferErrors.TransactionLogFailed;
         }
 
@@ -394,21 +304,19 @@ public class TransferService(
             TransactionId = logResult.Value.Id,
             RecipientName = request.RecipientName,
             RecipientIban = request.RecipientIban,
-            RecipientBankName = InferBankName(request.RecipientIban),
+            RecipientBankName = Transfer.InferRecipientBankName(request.RecipientIban),
             Amount = request.Amount,
             Currency = request.Currency,
             Fee = 0m,
             Reference = request.Reference,
             Status = TransferStatus.Completed,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         ErrorOr<Transfer> persistResult = _dashboardRepository.AddTransfer(transfer);
         if (persistResult.IsError)
         {
-            _logger.LogError(
-                "Transfer failed: could not persist transfer record for user {UserId}.",
-                userId);
+            _logger.TransferPersistenceFailed(userId);
             return TransferErrors.PersistenceFailed;
         }
 
@@ -426,8 +334,8 @@ public class TransferService(
             Currency = persistedTransfer.Currency,
             Fee = persistedTransfer.Fee,
             Reference = persistedTransfer.Reference,
-            Status = DomainEnumMapper.ToApplication(persistedTransfer.Status),
-            CreatedAt = persistedTransfer.CreatedAt,
+            Status = persistedTransfer.Status,
+            CreatedAt = persistedTransfer.CreatedAt
         };
     }
 }

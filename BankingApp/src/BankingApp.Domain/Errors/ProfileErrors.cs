@@ -1,13 +1,6 @@
-﻿// <copyright file="ProfileErrors.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileErrors class.
-// </summary>
+﻿namespace BankingApp.Domain.Errors;
 
 using ErrorOr;
-
-namespace BankingApp.Domain.Errors;
 
 /// <summary>
 ///     Canonical error definitions for profile and registration validation.
@@ -45,8 +38,4 @@ public static class ProfileErrors
     /// <summary>The supplied current password did not match the stored hash.</summary>
     public static readonly Error IncorrectPassword =
         Error.Validation("incorrect_password", "Current password is incorrect. Please try again.");
-
-    /// <summary>The requested OAuth provider is not supported for linking.</summary>
-    public static readonly Error UnsupportedOAuthProvider =
-        Error.Validation("unsupported_provider", "Only Google OAuth is supported.");
 }

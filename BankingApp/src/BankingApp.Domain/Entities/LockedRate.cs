@@ -1,10 +1,3 @@
-﻿// <copyright file="LockedRate.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the LockedRate class.
-// </summary>
-
 namespace BankingApp.Domain.Entities;
 
 /// <summary>
@@ -18,6 +11,9 @@ public class LockedRate
     /// <summary>Gets or sets the identifier of the user who locked this rate.</summary>
     /// <value>Gets or sets the current value.</value>
     public int UserId { get; set; }
+
+    /// <summary>Gets or sets the user who locked this rate.</summary>
+    public User? User { get; set; }
 
     /// <summary>Gets or sets the currency pair string (e.g., "EUR/USD").</summary>
     /// <value>Gets or sets the current value.</value>

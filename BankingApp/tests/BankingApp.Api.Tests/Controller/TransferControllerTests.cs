@@ -1,15 +1,11 @@
-﻿// <copyright file="TransferControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests.Controller;
 
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Services.Transfers;
+using Controllers;
+using Application.DTOs.Transfer;
+using Application.Services.Transfers;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 [Trait("Category", "Unit")]
 public sealed class TransferControllerTests
@@ -245,7 +241,7 @@ public sealed class TransferControllerTests
     public void GetFxPreview_WhenServiceSucceeds_ReturnsOkWithPreview()
     {
         // Arrange
-        var preview = new TransferFxPreviewResponse { ExchangeRate = 4.95m, ConvertedAmount = 495m };
+        var preview = new TransferForexPreviewResponse { ExchangeRate = 4.95m, ConvertedAmount = 495m };
         _transferService
             .Setup(service => service.GetFxPreview("EUR", "RON", 100m))
             .Returns(preview);

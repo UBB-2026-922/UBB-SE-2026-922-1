@@ -1,18 +1,8 @@
-﻿// <copyright file="TransactionDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransactionDataAccess class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using Interfaces;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides SQL Server data access for financial transaction records.
@@ -60,7 +50,7 @@ public class TransactionDataAccess : ITransactionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit)
     {
-        List<Transaction> transactions = _databaseContext.Transactions
+        var transactions = _databaseContext.Transactions
             .Where(transaction => transaction.AccountId == accountId)
             .OrderByDescending(transaction => transaction.CreatedAt)
             .Take(limit)

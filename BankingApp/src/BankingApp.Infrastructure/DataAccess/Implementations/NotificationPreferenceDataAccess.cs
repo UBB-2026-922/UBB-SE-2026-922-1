@@ -1,17 +1,9 @@
-﻿// <copyright file="NotificationPreferenceDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the NotificationPreferenceDataAccess class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Extensions;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using Domain.Extensions;
+using Interfaces;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides SQL Server data access for notification preference records.
@@ -40,11 +32,11 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
         {
             NotificationPreference notification = new()
             {
-            UserId = userId,
-            Category = NotificationTypeExtensions.FromString(category),
-            PushEnabled = false,
-            EmailEnabled = false,
-            SmsEnabled = false,
+                UserId = userId,
+                Category = NotificationTypeExtensions.FromString(category),
+                PushEnabled = false,
+                EmailEnabled = false,
+                SmsEnabled = false
             };
             _databaseContext.NotificationPreferences.Add(notification);
             _databaseContext.SaveChanges();
@@ -61,7 +53,8 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<NotificationPreference>> FindByUserId(int userId)
     {
-        List<NotificationPreference> preferences = _databaseContext.NotificationPreferences.Where(preference => preference.UserId == userId).ToList();
+        var preferences = _databaseContext.NotificationPreferences.Where(preference => preference.UserId == userId)
+            .ToList();
         return preferences;
     }
 

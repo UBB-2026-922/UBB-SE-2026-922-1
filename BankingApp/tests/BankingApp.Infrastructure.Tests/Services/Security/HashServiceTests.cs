@@ -1,6 +1,7 @@
-﻿using BankingApp.Infrastructure.Services.Security;
+﻿namespace BankingApp.Infrastructure.Tests.Services.Security;
 
-namespace BankingApp.Infrastructure.Tests.Services.Security;
+using BankingApp.Infrastructure.Services.Security;
+using ErrorOr;
 
 public class HashServiceTests
 {
@@ -11,7 +12,7 @@ public class HashServiceTests
         var service = new HashService();
 
         // Act
-        var hashResult = service.GetHash("ValidPassword123!");
+        ErrorOr<string> hashResult = service.GetHash("ValidPassword123!");
 
         // Assert
         hashResult.IsError.Should().BeFalse();
@@ -26,7 +27,7 @@ public class HashServiceTests
         var service = new HashService();
 
         // Act
-        var hashResult = service.GetHash(null!);
+        ErrorOr<string> hashResult = service.GetHash(null!);
 
         // Assert
         hashResult.IsError.Should().BeTrue();
@@ -38,10 +39,10 @@ public class HashServiceTests
     {
         // Arrange
         var service = new HashService();
-        var hashResult = service.GetHash("ValidPassword123!");
+        ErrorOr<string> hashResult = service.GetHash("ValidPassword123!");
 
         // Act
-        var verifyResult = service.Verify("ValidPassword123!", hashResult.Value);
+        ErrorOr<bool> verifyResult = service.Verify("ValidPassword123!", hashResult.Value);
 
         // Assert
         verifyResult.IsError.Should().BeFalse();
@@ -53,10 +54,10 @@ public class HashServiceTests
     {
         // Arrange
         var service = new HashService();
-        var hashResult = service.GetHash("ValidPassword123!");
+        ErrorOr<string> hashResult = service.GetHash("ValidPassword123!");
 
         // Act
-        var verifyResult = service.Verify("WrongPassword123!", hashResult.Value);
+        ErrorOr<bool> verifyResult = service.Verify("WrongPassword123!", hashResult.Value);
 
         // Assert
         verifyResult.IsError.Should().BeFalse();
@@ -70,7 +71,7 @@ public class HashServiceTests
         var service = new HashService();
 
         // Act
-        var verifyResult = service.Verify("ValidPassword123!", "not-a-bcrypt-hash");
+        ErrorOr<bool> verifyResult = service.Verify("ValidPassword123!", "not-a-bcrypt-hash");
 
         // Assert
         verifyResult.IsError.Should().BeTrue();

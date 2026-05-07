@@ -1,21 +1,15 @@
-﻿// <copyright file="PasswordRecoveryService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the PasswordRecoveryService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.PasswordRecovery;
 
 using System.Security.Cryptography;
 using System.Text;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
+using Logging;
+using Repositories.Interfaces;
+using Notifications;
+using Security;
+using Domain.Entities;
+using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.PasswordRecovery;
 
 /// <summary>
 ///     Provides password reset and recovery operations.
@@ -56,7 +50,7 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         ErrorOr<User> userResult = _authRepository.FindUserByEmail(email);
         if (userResult.IsError)
         {
-            _logger.LogInformation("Password reset requested: no account found.");
+            _logger.PasswordResetNoAccountFound();
             return userResult.FirstError;
         }
 
@@ -70,15 +64,15 @@ public class PasswordRecoveryService : IPasswordRecoveryService
             UserId = user.Id,
             TokenHash = tokenHashForDb,
             ExpiresAt = DateTime.UtcNow.AddMinutes(PasswordResetTokenExpiryMinutes),
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
         if (_authRepository.SavePasswordResetToken(resetToken).IsError)
         {
-            _logger.LogError("Failed to save password reset token for user {UserId}.", user.Id);
+            _logger.PasswordResetSaveTokenFailed(user.Id);
             return PasswordResetErrors.SaveTokenFailed;
         }
 
-        _logger.LogInformation("Password reset email sent for user {UserId}.", user.Id);
+        _logger.PasswordResetEmailSent(user.Id);
         _emailService.SendPasswordResetLink(user.Email, rawToken);
         return Result.Success;
     }
@@ -98,7 +92,7 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(tokenHash);
         if (tokenResult.IsError)
         {
-            _logger.LogWarning("Password reset failed: token not found.");
+            _logger.PasswordResetTokenNotFound();
             return PasswordResetErrors.TokenInvalid;
         }
 
@@ -106,43 +100,36 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         ErrorOr<Success> validationResult = ValidateResetToken(resetToken);
         if (validationResult.IsError)
         {
-            _logger.LogWarning(
-                "Password reset failed for user {UserId}: {Code}.",
-                resetToken.UserId,
-                validationResult.FirstError.Code);
+            _logger.PasswordResetValidationFailed(resetToken.UserId, validationResult.FirstError.Code);
             return validationResult.FirstError;
         }
 
         ErrorOr<string> hashResult = _hashService.GetHash(newPassword);
         if (hashResult.IsError)
         {
-            _logger.LogError("Hash generation failed during password reset for user {UserId}.", resetToken.UserId);
+            _logger.PasswordResetHashGenerationFailed(resetToken.UserId);
             return hashResult.FirstError;
         }
 
         if (_authRepository.UpdatePassword(resetToken.UserId, hashResult.Value).IsError)
         {
-            _logger.LogError("Password update failed for user {UserId}.", resetToken.UserId);
+            _logger.PasswordUpdateFailed(resetToken.UserId);
             return PasswordResetErrors.TokenInvalid;
         }
 
         if (_authRepository.MarkPasswordResetTokenAsUsed(resetToken.Id).IsError)
         {
-            _logger.LogError(
-                "Failed to mark password reset token as used for user {UserId}. Token may be replayable.",
-                resetToken.UserId);
+            _logger.PasswordResetMarkUsedFailed(resetToken.UserId);
             return PasswordResetErrors.ResetFailedTokenNotInvalidated;
         }
 
         if (_authRepository.InvalidateAllSessions(resetToken.UserId).IsError)
         {
-            _logger.LogError(
-                "Failed to invalidate sessions for user {UserId} after password reset. Active sessions may remain valid.",
-                resetToken.UserId);
+            _logger.PasswordResetInvalidateSessionsFailed(resetToken.UserId);
             return PasswordResetErrors.ResetFailedSessionsNotInvalidated;
         }
 
-        _logger.LogInformation("Password reset successfully for user {UserId}.", resetToken.UserId);
+        _logger.PasswordResetSucceeded(resetToken.UserId);
         return Result.Success;
     }
 
@@ -181,7 +168,7 @@ public class PasswordRecoveryService : IPasswordRecoveryService
         return Result.Success;
     }
 
-    private string ComputeSha256Hash(string rawData)
+    private static string ComputeSha256Hash(string rawData)
     {
         byte[] bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawData));
         return Convert.ToHexString(bytes).ToLowerInvariant();

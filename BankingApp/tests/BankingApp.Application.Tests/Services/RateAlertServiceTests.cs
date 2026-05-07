@@ -1,14 +1,12 @@
-﻿// <copyright file="RateAlertServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Application.Tests.Services;
 
-using BankingApp.Application.DTOs.TeamB;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.TeamB;
-using BankingApp.Domain.Entities;
+using DTOs.Exchange;
+using DTOs.RateAlerts;
+using Repositories.Interfaces;
+using BankingApp.Application.Services.Exchange;
+using BankingApp.Application.Services.RateAlerts;
+using Domain.Entities;
 using ErrorOr;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="RateAlertService" />.
@@ -51,8 +49,9 @@ public class RateAlertServiceTests
             .Returns((int id) => new RateAlert { Id = id, IsTriggered = true });
 
         _exchangeService
-            .Setup(getsPreview => getsPreview.GetRatePreview(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Setup(getsPreview =>
+                getsPreview.GetRatePreview(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         _service = new RateAlertService(_rateAlertRepository.Object, _exchangeService.Object);
     }
@@ -101,9 +100,9 @@ public class RateAlertServiceTests
     public void GetAlerts_WhenAlertsExist_ReturnsMappedDtos()
     {
         // Arrange
-        List<RateAlert> alerts = new List<RateAlert>
+        var alerts = new List<RateAlert>
         {
-            new RateAlert
+            new()
             {
                 Id = ValidAlertId,
                 UserId = ValidUserId,
@@ -112,8 +111,8 @@ public class RateAlertServiceTests
                 TargetRate = ValidTargetRate,
                 IsBuyAlert = true,
                 IsTriggered = false,
-                CreatedAt = DateTime.UtcNow,
-            },
+                CreatedAt = DateTime.UtcNow
+            }
         };
 
         _rateAlertRepository
@@ -137,12 +136,12 @@ public class RateAlertServiceTests
     public void CreateAlert_WhenBaseCurrencyIsEmpty_ReturnsValidationError()
     {
         // Arrange
-        RateAlertDto dto = new RateAlertDto
+        var dto = new RateAlertDto
         {
             UserId = ValidUserId,
             BaseCurrency = string.Empty,
             TargetCurrency = UsdCurrency,
-            TargetRate = ValidTargetRate,
+            TargetRate = ValidTargetRate
         };
 
         // Act
@@ -160,12 +159,12 @@ public class RateAlertServiceTests
     public void CreateAlert_WhenTargetCurrencyIsEmpty_ReturnsValidationError()
     {
         // Arrange
-        RateAlertDto dto = new RateAlertDto
+        var dto = new RateAlertDto
         {
             UserId = ValidUserId,
             BaseCurrency = EurCurrency,
             TargetCurrency = string.Empty,
-            TargetRate = ValidTargetRate,
+            TargetRate = ValidTargetRate
         };
 
         // Act
@@ -183,12 +182,12 @@ public class RateAlertServiceTests
     public void CreateAlert_WhenCurrenciesAreTheSame_ReturnsValidationError()
     {
         // Arrange
-        RateAlertDto dto = new RateAlertDto
+        var dto = new RateAlertDto
         {
             UserId = ValidUserId,
             BaseCurrency = EurCurrency,
             TargetCurrency = EurCurrency,
-            TargetRate = ValidTargetRate,
+            TargetRate = ValidTargetRate
         };
 
         // Act
@@ -206,12 +205,12 @@ public class RateAlertServiceTests
     public void CreateAlert_WhenTargetRateIsZero_ReturnsValidationError()
     {
         // Arrange
-        RateAlertDto dto = new RateAlertDto
+        var dto = new RateAlertDto
         {
             UserId = ValidUserId,
             BaseCurrency = EurCurrency,
             TargetCurrency = UsdCurrency,
-            TargetRate = 0m,
+            TargetRate = 0m
         };
 
         // Act
@@ -229,13 +228,13 @@ public class RateAlertServiceTests
     public void CreateAlert_WhenValidDto_ReturnsCreatedAlert()
     {
         // Arrange
-        RateAlertDto dto = new RateAlertDto
+        var dto = new RateAlertDto
         {
             UserId = ValidUserId,
             BaseCurrency = EurCurrency,
             TargetCurrency = UsdCurrency,
             TargetRate = ValidTargetRate,
-            IsBuyAlert = true,
+            IsBuyAlert = true
         };
 
         // Act
@@ -260,12 +259,12 @@ public class RateAlertServiceTests
             .Setup(creates => creates.Create(It.IsAny<RateAlert>()))
             .Returns(Error.Failure());
 
-        RateAlertDto dto = new RateAlertDto
+        var dto = new RateAlertDto
         {
             UserId = ValidUserId,
             BaseCurrency = EurCurrency,
             TargetCurrency = UsdCurrency,
-            TargetRate = ValidTargetRate,
+            TargetRate = ValidTargetRate
         };
 
         // Act
@@ -356,9 +355,9 @@ public class RateAlertServiceTests
     public void ProcessAlerts_WhenBuyAlertRateConditionMet_TriggersAlert()
     {
         // Arrange
-        List<RateAlert> alerts = new List<RateAlert>
+        var alerts = new List<RateAlert>
         {
-            new RateAlert
+            new()
             {
                 Id = ValidAlertId,
                 UserId = ValidUserId,
@@ -366,8 +365,8 @@ public class RateAlertServiceTests
                 TargetCurrency = UsdCurrency,
                 TargetRate = BuyAlertTargetRateAboveCurrent,
                 IsBuyAlert = true,
-                IsTriggered = false,
-            },
+                IsTriggered = false
+            }
         };
 
         _rateAlertRepository
@@ -376,7 +375,7 @@ public class RateAlertServiceTests
 
         _exchangeService
             .Setup(getsPreview => getsPreview.GetRatePreview(EurCurrency, UsdCurrency, 1m))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         // Act
         ErrorOr<int> result = _service.ProcessAlerts();
@@ -394,9 +393,9 @@ public class RateAlertServiceTests
     public void ProcessAlerts_WhenSellAlertRateConditionMet_TriggersAlert()
     {
         // Arrange
-        List<RateAlert> alerts = new List<RateAlert>
+        var alerts = new List<RateAlert>
         {
-            new RateAlert
+            new()
             {
                 Id = ValidAlertId,
                 UserId = ValidUserId,
@@ -404,8 +403,8 @@ public class RateAlertServiceTests
                 TargetCurrency = UsdCurrency,
                 TargetRate = SellAlertTargetRateBelowCurrent,
                 IsBuyAlert = false,
-                IsTriggered = false,
-            },
+                IsTriggered = false
+            }
         };
 
         _rateAlertRepository
@@ -414,7 +413,7 @@ public class RateAlertServiceTests
 
         _exchangeService
             .Setup(getsPreview => getsPreview.GetRatePreview(EurCurrency, UsdCurrency, 1m))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         // Act
         ErrorOr<int> result = _service.ProcessAlerts();
@@ -432,9 +431,9 @@ public class RateAlertServiceTests
     public void ProcessAlerts_WhenConditionNotMet_DoesNotTriggerAlert()
     {
         // Arrange
-        List<RateAlert> alerts = new List<RateAlert>
+        var alerts = new List<RateAlert>
         {
-            new RateAlert
+            new()
             {
                 Id = ValidAlertId,
                 UserId = ValidUserId,
@@ -442,8 +441,8 @@ public class RateAlertServiceTests
                 TargetCurrency = UsdCurrency,
                 TargetRate = 1.50m,
                 IsBuyAlert = false,
-                IsTriggered = false,
-            },
+                IsTriggered = false
+            }
         };
 
         _rateAlertRepository
@@ -452,7 +451,7 @@ public class RateAlertServiceTests
 
         _exchangeService
             .Setup(getsPreview => getsPreview.GetRatePreview(EurCurrency, UsdCurrency, 1m))
-            .Returns(new ExchangeTransactionResponseDto { ExchangeRate = EurUsdRate });
+            .Returns(new ExchangeTransactionResponse { ExchangeRate = EurUsdRate });
 
         // Act
         ErrorOr<int> result = _service.ProcessAlerts();

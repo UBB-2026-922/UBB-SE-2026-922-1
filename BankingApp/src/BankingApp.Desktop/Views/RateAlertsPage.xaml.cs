@@ -1,16 +1,8 @@
-﻿// <copyright file="RateAlertsPage.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RateAlertsPage code-behind.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
-using BankingApp.Desktop.ViewModels;
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Code-behind for the Rate Alerts management page.

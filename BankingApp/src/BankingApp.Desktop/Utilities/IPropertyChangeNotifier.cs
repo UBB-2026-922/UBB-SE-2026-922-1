@@ -1,11 +1,4 @@
-﻿// <copyright file="IPropertyChangeNotifier.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IPropertyChangeNotifier interface.
-// </summary>
-
-namespace BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Defines a contract for notifying subscribers when a property value changes.
@@ -16,5 +9,5 @@ internal interface IPropertyChangeNotifier
     ///     Raises a property-changed notification for the given property name.
     /// </summary>
     /// <param name="propertyName">The name of the property that changed.</param>
-    void OnPropertyChanged(string propertyName);
+    public void OnPropertyChanged(string propertyName);
 }

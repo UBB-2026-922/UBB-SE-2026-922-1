@@ -1,21 +1,15 @@
-﻿// <copyright file="BeneficiariesViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiariesViewModel class.
-// </summary>
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Beneficiaries;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.Views;
+using Application.DTOs.Beneficiaries;
+using Master;
+using Services.Transfers;
+using Utilities;
+using Views;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     View model for the beneficiaries page in the desktop application.
@@ -23,29 +17,30 @@ namespace BankingApp.Desktop.ViewModels;
 /// </summary>
 public class BeneficiariesViewModel
 {
-    private readonly IApiClient _apiClient;
-    private readonly IAppNavigationService _navigationService;
     private readonly ILogger<BeneficiariesViewModel> _logger;
+    private readonly IAppNavigationService _navigationService;
+    private readonly ITransferClientService _transferClientService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BeneficiariesViewModel"/> class.
     /// </summary>
-    /// <param name="apiClient">The API client used to call backend endpoints.</param>
+    /// <param name="transferClientService">The transfer client service used to call backend endpoints.</param>
     /// <param name="navigationService">The navigation service used for view navigation.</param>
     /// <param name="logger">Logger instance for diagnostics.</param>
-    public BeneficiariesViewModel(IApiClient apiClient, IAppNavigationService navigationService, ILogger<BeneficiariesViewModel> logger)
+    public BeneficiariesViewModel(ITransferClientService transferClientService, IAppNavigationService navigationService,
+        ILogger<BeneficiariesViewModel> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        Beneficiaries = new List<BeneficiaryDataTransferObject>();
+        Beneficiaries = new List<BeneficiaryDto>();
         ErrorMessage = string.Empty;
     }
 
     /// <summary>
     ///     Gets the currently loaded list of beneficiaries.
     /// </summary>
-    public List<BeneficiaryDataTransferObject> Beneficiaries { get; private set; }
+    public List<BeneficiaryDto> Beneficiaries { get; private set; }
 
     /// <summary>
     ///     Gets or sets a value indicating whether the add-beneficiary form is visible in the UI.
@@ -72,8 +67,8 @@ public class BeneficiariesViewModel
     {
         try
         {
-            var result =
-                await _apiClient.GetAsync<List<BeneficiaryDataTransferObject>>(ApiEndpoints.Beneficiaries);
+            ErrorOr<List<BeneficiaryDto>> result =
+                await _transferClientService.GetBeneficiariesAsync();
 
             if (result.IsError)
             {
@@ -87,7 +82,7 @@ public class BeneficiariesViewModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load beneficiaries");
+            _logger.FailedToLoadBeneficiaries(ex);
             ErrorMessage = "An unexpected error occurred while loading beneficiaries.";
             return Error.Failure();
         }
@@ -100,7 +95,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            ErrorOr<Success> result = await _apiClient.DeleteAsync($"{ApiEndpoints.Beneficiaries}/{id}");
+            ErrorOr<Success> result = await _transferClientService.DeleteBeneficiaryAsync(id);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to delete beneficiary.";
@@ -112,7 +107,7 @@ public class BeneficiariesViewModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete beneficiary {Id}", id);
+            _logger.FailedToDeleteBeneficiary(ex, id);
             ErrorMessage = "An unexpected error occurred while deleting the beneficiary.";
             return false;
         }
@@ -124,8 +119,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            var request = new { Name = NewName, IBAN = NewIban, BankName = NewBankName };
-            ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Beneficiaries, request);
+            ErrorOr<Success> result = await _transferClientService.AddBeneficiaryAsync(NewName, NewIban, NewBankName);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to save beneficiary.";
@@ -140,9 +134,9 @@ public class BeneficiariesViewModel
             IsAddFormVisible = false;
             return true;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.LogError(ex, "Failed to add beneficiary");
+            _logger.FailedToAddBeneficiary(exception);
             ErrorMessage = "An unexpected error occurred while saving the beneficiary.";
             return false;
         }
@@ -152,7 +146,7 @@ public class BeneficiariesViewModel
     ///     Marks a beneficiary for use in a transfer and navigates to the transfer view (placeholder).
     /// </summary>
     /// <param name="beneficiary">The beneficiary to use for a transfer.</param>
-    public void UseForTransfer(BeneficiaryDataTransferObject? beneficiary)
+    public void UseForTransfer(BeneficiaryDto? beneficiary)
     {
         if (beneficiary == null)
         {

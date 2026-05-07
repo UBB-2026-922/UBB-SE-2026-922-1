@@ -1,11 +1,4 @@
-﻿// <copyright file="ChangePasswordRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ChangePasswordRequest class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Profile;
+﻿namespace BankingApp.Application.DTOs.Profile;
 
 /// <summary>
 ///     Represents a request to change the user's password.

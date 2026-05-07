@@ -1,16 +1,12 @@
-﻿// <copyright file="RecurringPaymentsControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests.Controller;
 
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Domain.Enums;
+using Controllers;
+using Application.DTOs.RecurringPayments;
+using Application.Services.RecurringPayments;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 [Trait("Category", "Unit")]
 public sealed class RecurringPaymentsControllerTests
@@ -164,16 +160,18 @@ public sealed class RecurringPaymentsControllerTests
     {
         // Arrange
         _recurringPaymentService
-            .Setup(service => service.Resume(DefaultUserId, DefaultPaymentId))
+            .Setup(service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId))
             .Returns(Result.Success);
         RecurringPaymentsController controller = CreateController();
 
         // Act
-        IActionResult result = controller.Resume(DefaultPaymentId);
+        IActionResult result = controller.ResumePayment(DefaultPaymentId);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
-        _recurringPaymentService.Verify(service => service.Resume(DefaultUserId, DefaultPaymentId), Times.Once);
+        _recurringPaymentService.Verify(
+            service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId),
+            Times.Once);
     }
 
     [Fact]
@@ -181,12 +179,12 @@ public sealed class RecurringPaymentsControllerTests
     {
         // Arrange
         _recurringPaymentService
-            .Setup(service => service.Resume(DefaultUserId, DefaultPaymentId))
+            .Setup(service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId))
             .Returns(Error.NotFound("not_found", "Schedule not found."));
         RecurringPaymentsController controller = CreateController();
 
         // Act
-        IActionResult result = controller.Resume(DefaultPaymentId);
+        IActionResult result = controller.ResumePayment(DefaultPaymentId);
 
         // Assert
         result.Should().BeOfType<NotFoundObjectResult>();
@@ -197,12 +195,12 @@ public sealed class RecurringPaymentsControllerTests
     {
         // Arrange
         _recurringPaymentService
-            .Setup(service => service.Resume(DefaultUserId, DefaultPaymentId))
+            .Setup(service => service.ResumeRecurringPayment(DefaultUserId, DefaultPaymentId))
             .Returns(Error.Forbidden("forbidden", "You do not own this schedule."));
         RecurringPaymentsController controller = CreateController();
 
         // Act
-        IActionResult result = controller.Resume(DefaultPaymentId);
+        IActionResult result = controller.ResumePayment(DefaultPaymentId);
 
         // Assert
         ObjectResult errorResult = result.Should().BeOfType<ObjectResult>().Subject;

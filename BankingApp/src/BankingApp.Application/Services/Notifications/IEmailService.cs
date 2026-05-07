@@ -1,10 +1,3 @@
-﻿// <copyright file="IEmailService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IEmailService interface.
-// </summary>
-
 namespace BankingApp.Application.Services.Notifications;
 
 /// <summary>
@@ -17,24 +10,24 @@ public interface IEmailService
     /// </summary>
     /// <param name="email">The recipient email address.</param>
     /// <param name="token">The password reset token to include.</param>
-    void SendPasswordResetLink(string email, string token);
+    public void SendPasswordResetLink(string email, string token);
 
     /// <summary>
-    ///     Sends a OTP code to the specified email address.
+    ///     Sends an OTP code to the specified email address.
     /// </summary>
     /// <param name="email">The recipient email address.</param>
     /// <param name="code">The OTP code to send.</param>
-    void SendOtpCode(string email, string code);
+    public void SendOtpCode(string email, string code);
 
     /// <summary>
     ///     Sends a login alert notification to the specified email address.
     /// </summary>
     /// <param name="email">The recipient email address.</param>
-    void SendLoginAlert(string email);
+    public void SendLoginAlert(string email);
 
     /// <summary>
     ///     Sends an account lock notification to the specified email address.
     /// </summary>
     /// <param name="email">The recipient email address.</param>
-    void SendLockNotification(string email);
+    public void SendLockNotification(string email);
 }

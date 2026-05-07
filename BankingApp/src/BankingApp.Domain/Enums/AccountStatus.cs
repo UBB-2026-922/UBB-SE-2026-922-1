@@ -1,10 +1,3 @@
-﻿// <copyright file="AccountStatus.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AccountStatus values.
-// </summary>
-
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
@@ -19,5 +12,5 @@ public enum AccountStatus
     Suspended,
 
     /// <summary>The account has been permanently closed.</summary>
-    Closed,
+    Closed
 }

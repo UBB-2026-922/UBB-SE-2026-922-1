@@ -35,14 +35,14 @@ dotnet test BankingApp\tests\BankingApp.Api.Tests\BankingApp.Api.Tests.csproj
 dotnet test BankingApp\tests\BankingApp.Desktop.Tests\BankingApp.Desktop.Tests.csproj
 ```
 
-Integration tests may require Docker services and local configuration to be running. Do not merge changes that leave failing tests, StyleCop warnings, or analyzer warnings in touched projects.
+Integration tests may require Docker services and local configuration to be running. Do not merge changes that leave failing tests, formatting violations, or analyzer warnings in touched projects.
 Also there are buttons in IDE's for running tests, commands are not necessarly needed.
 
 ## Code style
 
-StyleCop is the source of truth for baseline C# formatting, ordering, naming, and documentation rules. 
-`BankingApp/Directory.Build.props` treats warnings as errors and applies `BankingApp/StyleCop.ruleset`, `BankingApp/stylecop.json`, and `BankingApp/.editorconfig`. 
-If this document and StyleCop conflict, either follow StyleCop or update the StyleCop configuration in the same pull request with a clear reason.
+The source of truth for baseline C# formatting and analyzer behavior is the shared build configuration in `BankingApp/Directory.Build.props` together with `BankingApp/.editorconfig`.
+The repository uses the SDK .NET analyzers plus `Roslynator.Analyzers`, and warnings are treated as errors during normal builds.
+If this document and the analyzer or editor configuration conflict, update the configuration in the same pull request with a clear reason.
 
 1. Use PascalCase for types, methods, properties, events, enum values, constants, and public fields.
 2. Use camelCase for local variables and method parameters.
@@ -50,29 +50,28 @@ If this document and StyleCop conflict, either follow StyleCop or update the Sty
 4. Prefix interface names with `I`, for example `IApiClient`.
 5. Use file-scoped namespaces and place `using` directives outside the namespace.
 6. Order `using` directives alphabetically, with `System` namespaces first.
-7. Keep one public type per `.cs` file, and name the file after that type.
-8. Always declare access modifiers explicitly.
-9. Keep fields private, exceptions can occur (framework or contract requierments).
-10. Prefer `readonly` fields for dependencies assigned in constructors.
-11. Use dependency injection instead of constructing services, repositories, clients, loggers, or configuration objects inside application code.
-12. Keep controllers thin: validate transport concerns, call application services, and map responses without embedding business rules.
-13. Keep domain and application logic independent from API, desktop, database, and UI framework details.
-14. Return `ErrorOr<T>` across application service boundaries when an operation can fail in an expected way.
-15. Use async APIs for I/O-bound work and name asynchronous methods with the `Async` suffix.
-16. Pass `CancellationToken` through public async APIs when the caller can reasonably cancel the operation.
-17. Do not use `async void` except for UI event handlers required by WinUI.
-18. Prefer `string.Empty` over `""` for empty strings.
-19. Use braces for all `if`, `else`, `for`, `foreach`, `while`, and `using` blocks.
-20. Add XML documentation to public APIs when the type or member is part of a cross-project contract.
-21. Write comments only when they explain intent, business rules, non-obvious tradeoffs, or external constraints.
-22. In XAML, use clear `x:Name` values for elements referenced from code-behind, keep bindings explicit, and use observable state (`INotifyPropertyChanged` or observable collections) when UI data changes after load.
-23. Name test methods with the `MethodOrScenario_WhenCondition_ExpectedResult` pattern.
-24. Structure tests with clear Arrange, Act, and Assert sections when the test has more than one step.
-25. Use focused unit tests for application/domain behavior and integration tests only when process, database, API routing, or dependency wiring must be verified.
-26. Mock dependencies at project boundaries; do not mock the class under test.
-27. Test expected failures and edge cases, not only the successful path.
+7. Prefer `var` only when the exact type is obvious from the same line through the constructed value, such as `new SomeType(...)`. Use the explicit type for built-in literals and in every other case where the right-hand side does not make the type immediately clear.
+8. Keep one public type per `.cs` file, and name the file after that type.
+9. Always declare access modifiers explicitly.
+10. Keep fields private, exceptions can occur (framework or contract requierments).
+11. Prefer `readonly` fields for dependencies assigned in constructors.
+12. Use dependency injection instead of constructing services, repositories, clients, loggers, or configuration objects inside application code.
+13. Keep controllers thin: validate transport concerns, call application services, and map responses without embedding business rules.
+14. Keep domain and application logic independent from API, desktop, database, and UI framework details.
+15. Return `ErrorOr<T>` across application service boundaries when an operation can fail in an expected way.
+16. Use async APIs for I/O-bound work and name asynchronous methods with the `Async` suffix.
+17. Pass `CancellationToken` through public async APIs when the caller can reasonably cancel the operation.
+18. Do not use `async void` except for UI event handlers required by WinUI.
+19. Prefer `string.Empty` over `""` for empty strings.
+20. Use braces for all `if`, `else`, `for`, `foreach`, `while`, and `using` blocks.
+21. Add XML documentation to public APIs when the type or member is part of a cross-project contract.
+22. Write comments only when they explain intent, business rules, non-obvious tradeoffs, or external constraints.
+23. In XAML, use clear `x:Name` values for elements referenced from code-behind, keep bindings explicit, and use observable state (`INotifyPropertyChanged` or observable collections) when UI data changes after load.
+24. Name test methods with the `MethodOrScenario_WhenCondition_ExpectedResult` pattern.
+25. Structure tests with clear Arrange, Act, and Assert sections.
+26. Test expected failures and edge cases, not only the successful path.
+27. Prefer null-coalescing expressions over null-check ternaries when the code is equivalent, for example `value ?? fallback` instead of a warning-producing `value is null ? fallback : value`.
 28. Keep test data explicit and local to the test unless sharing it removes real duplication without hiding intent.
-29. Do not introduce alternate databases or infrastructure providers in tests unless they are already approved for the project.
 
 ## Branch naming and Commit messages
 
@@ -118,7 +117,7 @@ docs/contribution-guidelines
 Before requesting review, confirm:
 
 - The PR scope matches its issue or clearly explains any intentional scope change.
-- Code follows the rules in this document and passes StyleCop/analyzer checks.
+- Code follows the rules in this document and passes formatting/analyzer checks.
 - New or changed behavior is covered by focused tests.
 - Existing relevant tests were run, and any tests not run are called out in the PR.
 - API changes include request/response DTOs, validation behavior, and error mappings.

@@ -1,67 +1,48 @@
-﻿// <copyright file="NotificationsViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the NotificationsViewModel class.
-// </summary>
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Profile;
+using Enums;
+using Services;
+using Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.ViewModels;
-
 /// <summary>
-///     Handles loading and updating notification preferences for the current user.
+///     Handles notification-preference loading and updates for the profile area.
 /// </summary>
 public class NotificationsViewModel
 {
-    private readonly IApiClient _apiClient;
+    private readonly IProfileClientService _profileClientService;
     private readonly ILogger<NotificationsViewModel> _logger;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="NotificationsViewModel" /> class.
     /// </summary>
-    /// <param name="apiClient">The API client used for notification operations.</param>
-    /// <param name="logger">Logger for notification operation errors.</param>
-    public NotificationsViewModel(IApiClient apiClient, ILogger<NotificationsViewModel> logger)
+    public NotificationsViewModel(IProfileClientService profileClientService, ILogger<NotificationsViewModel> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         State = new ObservableState<ProfileState>(ProfileState.Idle);
-        NotificationPreferences = new List<NotificationPreferenceDataTransferObject>();
+        NotificationPreferences = new List<NotificationPreferenceDto>();
     }
 
     /// <summary>
     ///     Gets the current notifications workflow state.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
     public ObservableState<ProfileState> State { get; }
 
     /// <summary>
-    ///     Gets the notification preferences for the current user.
+    ///     Gets the current notification preferences.
     /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public List<NotificationPreferenceDataTransferObject> NotificationPreferences { get; private set; }
+    public List<NotificationPreferenceDto> NotificationPreferences { get; private set; }
 
     /// <summary>
-    ///     Toggles one notification preference and saves the updated list.
+    ///     Toggles a single notification preference and rolls the change back if persistence fails.
     /// </summary>
-    /// <param name="preference">The preference to update.</param>
-    /// <param name="enabled">Whether email notifications should be enabled.</param>
-    /// <returns><see langword="true" /> if the update was saved; otherwise, <see langword="false" />.</returns>
-    public async Task<bool> ToggleNotificationPreference(
-        NotificationPreferenceDataTransferObject preference,
-        bool enabled)
+    public async Task<bool> ToggleNotificationPreference(NotificationPreferenceDto preference, bool enabled)
     {
         bool previousValue = preference.EmailEnabled;
         preference.EmailEnabled = enabled;
@@ -75,17 +56,15 @@ public class NotificationsViewModel
     }
 
     /// <summary>
-    ///     Loads notification preferences for the current user from the server.
+    ///     Loads notification preferences for the current user.
     /// </summary>
-    /// <returns><see langword="true" /> if loaded successfully; otherwise, <see langword="false" />.</returns>
     public async Task<bool> LoadNotificationPreferences()
     {
-        ErrorOr<List<NotificationPreferenceDataTransferObject>> preferencesResult =
-            await _apiClient.GetAsync<List<NotificationPreferenceDataTransferObject>>(
-                ApiEndpoints.NotificationPreferences);
+        ErrorOr<List<NotificationPreferenceDto>> preferencesResult =
+            await _profileClientService.GetNotificationPreferencesAsync();
         if (preferencesResult.IsError)
         {
-            _logger.LogError("LoadNotificationPreferences: request failed: {Errors}", preferencesResult.Errors);
+            _logger.LoadNotificationPreferencesFailed(preferencesResult.Errors);
             return false;
         }
 
@@ -94,19 +73,17 @@ public class NotificationsViewModel
     }
 
     /// <summary>
-    ///     Updates notification preferences for the current user.
+    ///     Persists the provided notification preferences.
     /// </summary>
-    /// <param name="preferences">The preferences to persist.</param>
-    /// <returns><see langword="true" /> if the preferences were updated; otherwise, <see langword="false" />.</returns>
-    public async Task<bool> UpdateNotificationPreferences(List<NotificationPreferenceDataTransferObject> preferences)
+    public async Task<bool> UpdateNotificationPreferences(List<NotificationPreferenceDto> preferences)
     {
-        if (preferences.Count == default)
+        if (preferences.Count == 0)
         {
             return false;
         }
 
         State.SetValue(ProfileState.Loading);
-        ErrorOr<Success> result = await _apiClient.PutAsync(ApiEndpoints.NotificationPreferences, preferences);
+        ErrorOr<Success> result = await _profileClientService.UpdateNotificationPreferencesAsync(preferences);
         return result.Match(
             _ =>
             {
@@ -116,7 +93,7 @@ public class NotificationsViewModel
             },
             errors =>
             {
-                _logger.LogError("UpdateNotificationPreferences failed: {Errors}", errors);
+                _logger.UpdateNotificationPreferencesFailed(errors);
                 State.SetValue(ProfileState.Error);
                 return false;
             });

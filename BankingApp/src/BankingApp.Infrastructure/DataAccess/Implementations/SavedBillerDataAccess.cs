@@ -1,17 +1,10 @@
-﻿// <copyright file="SavedBillerDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SavedBillerDataAccess class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using Domain.Errors;
+using Interfaces;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides EF Core data access for saved billers.

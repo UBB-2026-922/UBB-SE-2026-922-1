@@ -1,13 +1,6 @@
-﻿// <copyright file="ISystemClock.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ISystemClock interface.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Abstracts the system clock to allow deterministic time-based testing.
@@ -20,5 +13,5 @@ public interface ISystemClock
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    DateTime UtcNow { get; }
+    public DateTime UtcNow { get; }
 }

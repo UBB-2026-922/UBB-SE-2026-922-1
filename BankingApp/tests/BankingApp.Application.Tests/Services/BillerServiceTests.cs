@@ -1,15 +1,11 @@
-﻿// <copyright file="BillerServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Application.Tests.Services;
 
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.Repositories.Interfaces;
+using DTOs.Billers;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Billers;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
+using Domain.Entities;
+using Domain.Errors;
 using ErrorOr;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="BillerService" />.
@@ -48,7 +44,7 @@ public class BillerServiceTests
         _billerRepository.Setup(repository => repository.GetAllBillers(true)).Returns(billers);
 
         // Act
-        ErrorOr<List<BillerDataTransferObject>> result = _service.GetBillerDirectory();
+        ErrorOr<List<BillerDto>> result = _service.GetBillerDirectory();
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -66,7 +62,7 @@ public class BillerServiceTests
         _billerRepository.Setup(repository => repository.GetAllBillers(true)).Returns(new List<Biller>());
 
         // Act
-        ErrorOr<List<BillerDataTransferObject>> result = _service.GetBillerDirectory();
+        ErrorOr<List<BillerDto>> result = _service.GetBillerDirectory();
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -89,7 +85,7 @@ public class BillerServiceTests
         _billerRepository.Setup(repository => repository.SearchBillers("Water", null, true)).Returns(billers);
 
         // Act
-        ErrorOr<List<BillerDataTransferObject>> result = _service.SearchBillers("Water");
+        ErrorOr<List<BillerDto>> result = _service.SearchBillers("Water");
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -108,7 +104,7 @@ public class BillerServiceTests
             .Returns(new List<Biller>());
 
         // Act
-        ErrorOr<List<BillerDataTransferObject>> result = _service.SearchBillers("Co", "Utilities");
+        ErrorOr<List<BillerDto>> result = _service.SearchBillers("Co", "Utilities");
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -132,7 +128,7 @@ public class BillerServiceTests
         _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(saved);
 
         // Act
-        ErrorOr<List<SavedBillerDataTransferObject>> result = _service.GetSavedBillers(DefaultUserId);
+        ErrorOr<List<SavedBillerDto>> result = _service.GetSavedBillers(DefaultUserId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -149,7 +145,7 @@ public class BillerServiceTests
         _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
 
         // Act
-        ErrorOr<List<SavedBillerDataTransferObject>> result = _service.GetSavedBillers(DefaultUserId);
+        ErrorOr<List<SavedBillerDto>> result = _service.GetSavedBillers(DefaultUserId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -174,7 +170,7 @@ public class BillerServiceTests
             .Returns((SavedBiller savedBiller) => savedBiller);
 
         // Act
-        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(DefaultUserId, request);
+        ErrorOr<SavedBillerDto> result = _service.SaveBiller(DefaultUserId, request);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -193,7 +189,7 @@ public class BillerServiceTests
         _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(BillerErrors.BillerNotFound);
 
         // Act
-        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(DefaultUserId, request);
+        ErrorOr<SavedBillerDto> result = _service.SaveBiller(DefaultUserId, request);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -217,7 +213,7 @@ public class BillerServiceTests
         _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(existingSavedBillers);
 
         // Act
-        ErrorOr<SavedBillerDataTransferObject> result = _service.SaveBiller(DefaultUserId, request);
+        ErrorOr<SavedBillerDto> result = _service.SaveBiller(DefaultUserId, request);
 
         // Assert
         result.IsError.Should().BeTrue();

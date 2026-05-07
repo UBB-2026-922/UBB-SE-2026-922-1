@@ -2,17 +2,16 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
+namespace BankingApp.Api.Tests.Integration;
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using BankingApp.Api.Tests.Integration.Infrastructure;
-using BankingApp.Application.DataTransferObjects.Beneficiary;
-using BankingApp.Domain.Entities;
+using Infrastructure;
+using Application.DTOs.Beneficiaries;
+using Domain.Entities;
 using ErrorOr;
 using FluentAssertions;
-using Moq;
-
-namespace BankingApp.Api.Tests.Integration;
 
 public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
@@ -21,22 +20,24 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
 
     private readonly HttpClient _client;
     private readonly BankingAppWebFactory _factory;
+    private readonly CancellationToken _cancellationToken;
 
     public BeneficiariesEndpointsTests(BankingAppWebFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
+        _cancellationToken = TestContext.Current.CancellationToken;
 
         // Reset mocks before each test to ensure isolated state
         _factory.BeneficiaryServiceMock.Invocations.Clear();
 
         // Ensure the token validation and session are bypassed
         _factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId(ValidToken))
+            .Setup(jwtService => jwtService.ExtractUserId(ValidToken))
             .Returns(ValidUserId);
 
         _factory.AuthRepositoryMock
-            .Setup(auth => auth.IsSessionActive(ValidToken))
+            .Setup(authRepository => authRepository.IsSessionActive(ValidToken))
             .Returns(true);
     }
 
@@ -60,18 +61,18 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
         };
 
         _factory.BeneficiaryServiceMock
-            .Setup(s => s.GetByUserId(ValidUserId))
+            .Setup(service => service.GetByUserId(ValidUserId))
             .Returns(beneficiaries);
 
         // Act
-        var response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<List<BeneficiaryDataTransferObject>>();
+        List<BeneficiaryDto>? result = await response.Content.ReadFromJsonAsync<List<BeneficiaryDto>>(_cancellationToken);
         result.Should().NotBeNull();
         result.Should().HaveCount(1);
-        result![0].Name.Should().Be("John Doe");
+        result[0].Name.Should().Be("John Doe");
     }
 
     [Fact]
@@ -99,17 +100,17 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
         };
 
         _factory.BeneficiaryServiceMock
-            .Setup(s => s.Create(ValidUserId, "Jane Doe", "RO49AAAA1B31007593840001", "Another Bank"))
+            .Setup(service => service.Create(ValidUserId, "Jane Doe", "RO49AAAA1B31007593840001", "Another Bank"))
             .Returns(createdBeneficiary);
 
         // Act
-        var response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<BeneficiaryDataTransferObject>();
+        BeneficiaryDto? result = await response.Content.ReadFromJsonAsync<BeneficiaryDto>(_cancellationToken);
         result.Should().NotBeNull();
-        result!.Name.Should().Be("Jane Doe");
+        result.Name.Should().Be("Jane Doe");
     }
 
     [Fact]
@@ -120,11 +121,11 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         _factory.BeneficiaryServiceMock
-            .Setup(s => s.Delete(999, ValidUserId))
+            .Setup(beneficiaryService => beneficiaryService.Delete(999, ValidUserId))
             .Returns(Error.NotFound("Beneficiary.NotFound", "Beneficiary not found."));
 
         // Act
-        var response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);

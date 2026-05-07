@@ -1,18 +1,12 @@
-﻿// <copyright file="PasswordRecoveryManager.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the PasswordRecoveryManager class.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Desktop.Enums;
+using Enums;
 using ErrorOr;
 
-namespace BankingApp.Desktop.Utilities;
+using Application.DTOs.Auth;
 
 /// <summary>
 ///     Implements <see cref="IPasswordRecoveryManager" /> by delegating network calls
@@ -65,7 +59,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
 
             double elapsed = (_clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds;
             double remaining = ResendCooldownSeconds - elapsed;
-            return remaining > default(double) ? (int)Math.Ceiling(remaining) : NoSecondsRemaining;
+            return remaining > 0 ? (int)Math.Ceiling(remaining) : NoSecondsRemaining;
         }
     }
 
@@ -132,7 +126,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
         var request = new ResetPasswordRequest
         {
             Token = token,
-            NewPassword = newPassword,
+            NewPassword = newPassword
         };
         ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.ResetPassword, request);
         return result.Match(
@@ -148,7 +142,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
         return PasswordValidator.IsStrong(password);
     }
 
-    private ForgotPasswordState MapError(Error error)
+    private static ForgotPasswordState MapError(Error error)
     {
         return error.Code switch
         {

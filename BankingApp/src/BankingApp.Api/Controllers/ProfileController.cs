@@ -1,16 +1,9 @@
-﻿// <copyright file="ProfileController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileController class.
-// </summary>
+namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Services.Profile;
+using Application.DTOs.Profile;
+using Application.Services.Profile;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for handling user profile-related operations.
@@ -36,14 +29,14 @@ public class ProfileController : ApiControllerBase
     ///     Retrieves the profile information of the currently authenticated user.
     /// </summary>
     /// <returns>
-    ///     200 OK with a <see cref="ProfileInfo" /> on success,
+    ///     200 OK with a <see cref="ProfileDto" /> on success,
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet]
     public IActionResult GetProfile()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetProfile(userId), info => Ok(info));
+        return ToActionResult(_profileService.GetProfile(userId), Ok);
     }
 
     /// <summary>
@@ -81,55 +74,17 @@ public class ProfileController : ApiControllerBase
     }
 
     /// <summary>
-    ///     Retrieves all OAuth provider links associated with the currently authenticated user.
-    /// </summary>
-    /// <returns>
-    ///     200 OK with a list of <see cref="OAuthLinkDataTransferObject" /> on success (may be empty),
-    ///     or 404 Not Found if the user does not exist.
-    /// </returns>
-    [HttpGet("oauth-links")]
-    public IActionResult GetOAuthLinks()
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetOAuthLinks(userId), links => Ok(links));
-    }
-
-    /// <summary>
-    ///     Links a supported OAuth provider to the currently authenticated user.
-    /// </summary>
-    /// <param name="request">The provider link request.</param>
-    /// <returns>204 No Content on success, or 400/404/409 if linking fails.</returns>
-    [HttpPost("oauth/link")]
-    public IActionResult LinkOAuth([FromBody] LinkOAuthRequest request)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.LinkOAuth(userId, request.Provider));
-    }
-
-    /// <summary>
-    ///     Unlinks a supported OAuth provider from the currently authenticated user.
-    /// </summary>
-    /// <param name="provider">The provider to unlink.</param>
-    /// <returns>204 No Content on success, or 400/404 if unlinking fails.</returns>
-    [HttpDelete("oauth/{provider}")]
-    public IActionResult UnlinkOAuth(string provider)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.UnlinkOAuth(userId, provider));
-    }
-
-    /// <summary>
     ///     Retrieves the notification preferences of the currently authenticated user.
     /// </summary>
     /// <returns>
-    ///     200 OK with a list of <see cref="NotificationPreferenceDataTransferObject" /> on success (may be empty),
+    ///     200 OK with a list of <see cref="NotificationPreferenceDto" /> on success (it may be empty),
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet("notifications/preferences")]
     public IActionResult GetNotificationPreferences()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetNotificationPreferences(userId), preferences => Ok(preferences));
+        return ToActionResult(_profileService.GetNotificationPreferences(userId), Ok);
     }
 
     /// <summary>
@@ -142,7 +97,7 @@ public class ProfileController : ApiControllerBase
     /// </returns>
     [HttpPut("notifications/preferences")]
     public IActionResult UpdateNotificationPreferences(
-        [FromBody] List<NotificationPreferenceDataTransferObject> preferences)
+        [FromBody] List<NotificationPreferenceDto> preferences)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(_profileService.UpdateNotificationPreferences(userId, preferences));
@@ -175,7 +130,7 @@ public class ProfileController : ApiControllerBase
     ///     or 400/404 if enabling 2FA fails.
     /// </returns>
     [HttpPut("2fa/enable")]
-    public IActionResult Enable2Fa([FromBody] Enable2FaRequest request)
+    public IActionResult Enable2Fa([FromBody] EnableTwoFaRequest request)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(_profileService.Enable2Fa(userId, request.Method));
@@ -206,7 +161,7 @@ public class ProfileController : ApiControllerBase
     public IActionResult GetSessions()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_profileService.GetActiveSessions(userId), sessions => Ok(sessions));
+        return ToActionResult(_profileService.GetActiveSessions(userId), Ok);
     }
 
     /// <summary>

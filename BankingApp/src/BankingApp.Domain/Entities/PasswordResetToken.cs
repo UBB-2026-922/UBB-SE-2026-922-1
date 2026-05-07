@@ -1,10 +1,3 @@
-﻿// <copyright file="PasswordResetToken.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the PasswordResetToken class.
-// </summary>
-
 namespace BankingApp.Domain.Entities;
 
 /// <summary>
@@ -27,6 +20,11 @@ public class PasswordResetToken
     ///     Gets or sets the current value.
     /// </value>
     public int UserId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the user this token belongs to.
+    /// </summary>
+    public User? User { get; set; }
 
     /// <summary>
     ///     Gets or sets the hashed value of the reset token.

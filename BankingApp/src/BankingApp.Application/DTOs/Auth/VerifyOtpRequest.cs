@@ -1,11 +1,4 @@
-﻿// <copyright file="VerifyOtpRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the VerifyOtpRequest class.
-// </summary>
-
-namespace BankingApp.Application.DataTransferObjects.Auth;
+﻿namespace BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Represents a request to verify an OTP during two-factor authentication.

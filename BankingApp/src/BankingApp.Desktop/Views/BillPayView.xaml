@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <Page
     x:Class="BankingApp.Desktop.Views.BillPayView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dto="using:BankingApp.Application.DTOs.BillPayment"
+    xmlns:billers="using:BankingApp.Application.DTOs.Billers"
+    xmlns:payments="using:BankingApp.Application.DTOs.BillPayments"
     xmlns:converters="using:BankingApp.Desktop.Converters"
     Background="#0F0F1A">
 
@@ -63,7 +65,7 @@
                                   SelectionMode="None"
                                   MaxHeight="180">
                             <ListView.ItemTemplate>
-                                <DataTemplate x:DataType="dto:SavedBillerDto">
+                                <DataTemplate x:DataType="billers:SavedBillerDto">
                                     <StackPanel Padding="6">
                                         <TextBlock Text="{Binding DisplayName}"
                                                    FontWeight="SemiBold"
@@ -90,7 +92,7 @@
                               SelectionMode="Single"
                               MaxHeight="320">
                         <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="dto:BillerDto">
+                            <DataTemplate x:DataType="billers:BillerDto">
                                 <StackPanel Padding="6">
                                     <TextBlock Text="{Binding Name}"
                                                FontWeight="SemiBold"
@@ -155,7 +157,7 @@
                               ItemsSource="{Binding Accounts}"
                               SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
                         <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="dto:AccountDto">
+                            <DataTemplate x:DataType="payments:AccountDto">
                                 <StackPanel Padding="4">
                                     <TextBlock Text="{Binding AccountName}"
                                                FontWeight="SemiBold"
@@ -202,7 +204,7 @@
                     <TextBlock Text="Step 3 - 2FA Confirmation"
                                FontSize="16" FontWeight="SemiBold"
                                Foreground="White"
-                               HorizontalAlignment="Center"/>
+                               HorizontalAlignment="Center" />
                     <CheckBox Content="I confirm this transaction"
                               IsChecked="{Binding Is2FaConfirmed, Mode=TwoWay}"
                               HorizontalAlignment="Center"
@@ -210,7 +212,7 @@
                     <Button Content="Next"
                             Command="{Binding NextStepCommand}"
                             IsEnabled="{Binding Is2FaConfirmed, Mode=OneWay}"
-                            HorizontalAlignment="Center" Width="150"/>
+                            HorizontalAlignment="Center" Width="150" />
                 </StackPanel>
             </Border>
 

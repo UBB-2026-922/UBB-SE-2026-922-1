@@ -1,15 +1,8 @@
-﻿// <copyright file="SessionDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SessionDataAccess class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using Interfaces;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides SQL Server data access for user session records.
@@ -72,12 +65,7 @@ public class SessionDataAccess : ISessionDataAccess
     public ErrorOr<Session> FindByToken(string token)
     {
         Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Token == token && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow);
-        if (session is null)
-                    {
-            return Error.NotFound(description: "Session not found.");
-        }
-
-        return session;
+        return session ?? (ErrorOr<Session>)Error.NotFound(description: "Session not found.");
     }
 
     /// <inheritdoc />
@@ -85,7 +73,7 @@ public class SessionDataAccess : ISessionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Session>> FindByUserId(int userId)
     {
-        List<Session> sessions = _databaseContext.Sessions.Where(session => session.UserId == userId && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow).ToList();
+        var sessions = _databaseContext.Sessions.Where(session => session.UserId == userId && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow).ToList();
         return sessions;
     }
 
@@ -120,16 +108,16 @@ public class SessionDataAccess : ISessionDataAccess
     {
         try
         {
-        Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Id == sessionId && session.UserId == userId && !session.IsRevoked);
-        if (session is null)
-        {
-            return Error.NotFound(description: "Session not found.");
-        }
-
-        session.IsRevoked = true;
-        _databaseContext.SaveChanges();
-        return Result.Success;
+            Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Id == sessionId && session.UserId == userId && !session.IsRevoked);
+            if (session is null)
+            {
+                return Error.NotFound(description: "Session not found.");
             }
+
+            session.IsRevoked = true;
+            _databaseContext.SaveChanges();
+            return Result.Success;
+        }
         catch (Exception ex)
         {
             return Error.Failure(description: ex.Message);

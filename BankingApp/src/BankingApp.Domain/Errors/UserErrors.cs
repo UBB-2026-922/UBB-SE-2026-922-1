@@ -1,13 +1,6 @@
-﻿// <copyright file="UserErrors.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the UserErrors class.
-// </summary>
+﻿namespace BankingApp.Domain.Errors;
 
 using ErrorOr;
-
-namespace BankingApp.Domain.Errors;
 
 /// <summary>
 ///     Canonical error definitions for user management, profile updates, and 2FA operations.
@@ -21,10 +14,6 @@ public static class UserErrors
     /// <summary>The newly created user could not be retrieved after creation.</summary>
     public static readonly Error UserRetrievalFailed =
         Error.Failure("user_retrieval_failed", "Failed to retrieve created user.");
-
-    /// <summary>The OAuth link record could not be persisted.</summary>
-    public static readonly Error OAuthLinkFailed =
-        Error.Failure("oauth_link_failed", "Failed to link OAuth account.");
 
     /// <summary>A login session could not be created for the user.</summary>
     public static readonly Error SessionCreationFailed =

@@ -1,36 +1,28 @@
-﻿// <copyright file="RateAlertViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RateAlertViewModel class.
-// </summary>
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.TeamB;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.RateAlerts;
+using Services;
+using Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.ViewModels;
-
 /// <summary>
-///     View model for the Rate Alerts page. Allows the user to create, view,
-///     and delete exchange-rate alerts via the API.
+///     Handles rate-alert listing, creation, and deletion for the desktop client.
 /// </summary>
 public partial class RateAlertViewModel : INotifyPropertyChanged
 {
     private const decimal MinimumRate = 0m;
+    private static readonly string[] _availableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
-    private readonly IApiClient _apiClient;
+    private readonly IRateAlertClientService _rateAlertClientService;
     private readonly ILogger<RateAlertViewModel> _logger;
-
-    private ObservableCollection<RateAlertDto> _alerts = new ObservableCollection<RateAlertDto>();
+    private ObservableCollection<RateAlertDto> _alerts = [];
     private string _baseCurrency = string.Empty;
     private string _targetCurrency = string.Empty;
     private string _targetRateText = string.Empty;
@@ -39,74 +31,80 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     private bool _isLoading;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="RateAlertViewModel"/> class.
+    ///     Initializes a new instance of the <see cref="RateAlertViewModel" /> class.
     /// </summary>
-    /// <param name="apiClient">The API client for backend communication.</param>
-    /// <param name="logger">Logger for rate alert errors.</param>
-    public RateAlertViewModel(IApiClient apiClient, ILogger<RateAlertViewModel> logger)
+    public RateAlertViewModel(IRateAlertClientService rateAlertClientService, ILogger<RateAlertViewModel> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _rateAlertClientService = rateAlertClientService ?? throw new ArgumentNullException(nameof(rateAlertClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        AvailableCurrencies = new ObservableCollection<string>(new[] { "EUR", "USD", "GBP", "RON", "CHF", "JPY" });
+        AvailableCurrencies = new ObservableCollection<string>(_availableCurrencyCodes);
     }
 
-    /// <inheritdoc/>
+    /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    /// <summary>Gets the available currencies for selection.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets the supported currency codes offered by the UI.
+    /// </summary>
     public ObservableCollection<string> AvailableCurrencies { get; }
 
-    /// <summary>Gets or sets the collection of the user's rate alerts.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets or sets the currently loaded alerts.
+    /// </summary>
     public ObservableCollection<RateAlertDto> Alerts
     {
         get => _alerts;
         set => SetProperty(ref _alerts, value);
     }
 
-    /// <summary>Gets or sets the ISO 4217 base currency code for a new alert.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets or sets the selected base currency for a new alert.
+    /// </summary>
     public string BaseCurrency
     {
         get => _baseCurrency;
         set => SetProperty(ref _baseCurrency, value);
     }
 
-    /// <summary>Gets or sets the ISO 4217 target currency code for a new alert.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets or sets the selected target currency for a new alert.
+    /// </summary>
     public string TargetCurrency
     {
         get => _targetCurrency;
         set => SetProperty(ref _targetCurrency, value);
     }
 
-    /// <summary>Gets or sets the raw text from the target rate input field.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets or sets the raw target-rate text entered by the user.
+    /// </summary>
     public string TargetRateText
     {
         get => _targetRateText;
         set => SetProperty(ref _targetRateText, value);
     }
 
-    /// <summary>Gets or sets the most recent error message to display.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets or sets the latest user-facing error message.
+    /// </summary>
     public string ErrorMessage
     {
         get => _errorMessage;
         set => SetProperty(ref _errorMessage, value);
     }
 
-    /// <summary>Gets or sets a value indicating whether this is a buy alert.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets or sets a value indicating whether the alert is a buy alert.
+    /// </summary>
     public bool IsBuyAlert
     {
         get => _isBuyAlert;
         set => SetProperty(ref _isBuyAlert, value);
     }
 
-    /// <summary>Gets or sets a value indicating whether an API call is in progress.</summary>
-    /// <value>Gets or sets the current value.</value>
+    /// <summary>
+    ///     Gets or sets a value indicating whether a rate-alert request is in progress.
+    /// </summary>
     public bool IsLoading
     {
         get => _isLoading;
@@ -114,23 +112,22 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Loads the current user's rate alerts from the API.
+    ///     Loads all alerts for the current user.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task LoadAlertsAsync()
     {
         ErrorMessage = string.Empty;
         IsLoading = true;
         try
         {
-            int userId = _apiClient.CurrentUserId ?? 0;
-            string endpoint = $"{ApiEndpoints.RateAlerts}?userId={userId}";
-            ErrorOr<List<RateAlertDto>> result = await _apiClient.GetAsync<List<RateAlertDto>>(endpoint);
+            int userId = _rateAlertClientService.CurrentUserId ?? 0;
+            ErrorOr<System.Collections.Generic.List<RateAlertDto>> result =
+                await _rateAlertClientService.GetAlertsAsync(userId);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.LoadFailed;
-                _logger.LogError("Load alerts failed: {Errors}", result.Errors);
+                _logger.LoadAlertsFailed(result.Errors);
                 return;
             }
 
@@ -139,7 +136,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Load alerts failed unexpectedly");
+            _logger.LoadAlertsFailedUnexpected(exception);
         }
         finally
         {
@@ -148,9 +145,8 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Validates inputs and creates a new rate alert via the API.
+    ///     Creates a new rate alert from the current form state.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task CreateAlertAsync()
     {
         ErrorMessage = string.Empty;
@@ -190,20 +186,19 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         {
             var newAlert = new RateAlertDto
             {
-                UserId = _apiClient.CurrentUserId ?? 0,
+                UserId = _rateAlertClientService.CurrentUserId ?? 0,
                 BaseCurrency = BaseCurrency,
                 TargetCurrency = TargetCurrency,
                 TargetRate = parsedRate,
                 IsBuyAlert = IsBuyAlert,
             };
 
-            ErrorOr<RateAlertDto> result =
-                await _apiClient.PostAsync<RateAlertDto, RateAlertDto>(ApiEndpoints.RateAlerts, newAlert);
+            ErrorOr<RateAlertDto> result = await _rateAlertClientService.CreateAlertAsync(newAlert);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.CreateFailed;
-                _logger.LogError("Create alert failed: {Errors}", result.Errors);
+                _logger.CreateAlertFailed(result.Errors);
                 return;
             }
 
@@ -216,7 +211,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Create alert failed unexpectedly");
+            _logger.CreateAlertFailedUnexpected(exception);
         }
         finally
         {
@@ -225,22 +220,19 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    ///     Deletes the specified rate alert via the API.
+    ///     Deletes the specified alert.
     /// </summary>
-    /// <param name="alertId">The identifier of the alert to delete.</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task DeleteAlertAsync(int alertId)
     {
         ErrorMessage = string.Empty;
         try
         {
-            string endpoint = $"{ApiEndpoints.RateAlerts}/{alertId}";
-            ErrorOr<Success> result = await _apiClient.DeleteAsync(endpoint);
+            ErrorOr<Success> result = await _rateAlertClientService.DeleteAlertAsync(alertId);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.DeleteFailed;
-                _logger.LogError("Delete alert failed: {Errors}", result.Errors);
+                _logger.DeleteAlertFailed(result.Errors);
                 return;
             }
 
@@ -253,23 +245,15 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LogError(exception, "Delete alert failed unexpectedly");
+            _logger.DeleteAlertFailedUnexpected(exception);
         }
     }
 
-    /// <summary>Raises PropertyChanged for the given property name.</summary>
-    /// <param name="propertyName">The name of the property that changed.</param>
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    /// <summary>Sets the backing field and raises PropertyChanged when the value differs.</summary>
-    /// <typeparam name="T">The property type.</typeparam>
-    /// <param name="field">The backing field reference.</param>
-    /// <param name="value">The new value.</param>
-    /// <param name="propertyName">The property name (auto-filled by the compiler).</param>
-    /// <returns><see langword="true"/> if the value changed; otherwise, <see langword="false"/>.</returns>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
         if (Equals(field, value))

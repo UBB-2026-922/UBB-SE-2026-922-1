@@ -1,41 +1,30 @@
-﻿// <copyright file="SecurityViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+namespace BankingApp.Desktop.Tests.ViewModels;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
-using BankingApp.Desktop.Enums;
+using Application.DTOs.Profile;
+using Enums;
+using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
+using BankingApp.Domain.Enums;
 using ErrorOr;
-using Microsoft.Extensions.Logging;
-using Moq;
-using Xunit;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
+using Microsoft.Extensions.Logging.Abstractions;
 
 public class SecurityViewModelTests
 {
-    private readonly Mock<IApiClient> _mockApiClient;
-    private readonly Mock<ILogger<SecurityViewModel>> _mockLogger;
+    private readonly Mock<IProfileClientService> _profileClientService;
     private readonly SecurityViewModel _viewModel;
 
     public SecurityViewModelTests()
     {
-        _mockApiClient = new Mock<IApiClient>();
-        _mockLogger = new Mock<ILogger<SecurityViewModel>>();
-        _viewModel = new SecurityViewModel(_mockApiClient.Object, _mockLogger.Object);
+        _profileClientService = new Mock<IProfileClientService>();
+        _viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
     }
 
     [Fact]
     public async Task ChangePassword_WhenPasswordTooShort_ReturnsFalseWithLengthError()
     {
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "Short1!", "Short1!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "Short1!", "Short1!");
 
         // Assert
         Assert.False(result.Success);
@@ -46,7 +35,7 @@ public class SecurityViewModelTests
     public async Task ChangePassword_WhenPasswordsDoNotMatch_ReturnsFalseWithMismatchError()
     {
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "Different123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "Different123!");
 
         // Assert
         Assert.False(result.Success);
@@ -57,12 +46,12 @@ public class SecurityViewModelTests
     public async Task ChangePassword_WhenDataIsValid_ReturnsSuccessAndUpdatesState()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
 
         // Assert
         Assert.True(result.Success);
@@ -74,12 +63,12 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Validation("incorrect_password", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
 
         // Assert
         Assert.False(result.Success);
@@ -92,12 +81,12 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Failure("server_error", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.ChangePassword, It.IsAny<ChangePasswordRequest>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.ChangePasswordAsync(It.IsAny<ChangePasswordRequest>()))
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
 
         // Assert
         Assert.False(result.Success);
@@ -109,12 +98,12 @@ public class SecurityViewModelTests
     public async Task SetTwoFactorEnabled_WhenTrue_CallsEnableTwoFactorAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.SetTwoFactorEnabled(true);
+        bool result = await _viewModel.SetTwoFactorEnabled(true);
 
         // Assert
         Assert.True(result);
@@ -125,12 +114,12 @@ public class SecurityViewModelTests
     public async Task SetTwoFactorEnabled_WhenFalse_CallsDisableTwoFactorAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.Disable2FaAsync())
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.SetTwoFactorEnabled(false);
+        bool result = await _viewModel.SetTwoFactorEnabled(false);
 
         // Assert
         Assert.True(result);
@@ -141,12 +130,12 @@ public class SecurityViewModelTests
     public async Task EnableTwoFactor_WhenApiSucceeds_UpdatesStateAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
+        bool result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
 
         // Assert
         Assert.True(result);
@@ -157,12 +146,12 @@ public class SecurityViewModelTests
     public async Task DisableTwoFactor_WhenApiSucceeds_UpdatesStateAndReturnsTrue()
     {
         // Arrange
-        _mockApiClient
-            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.Disable2FaAsync())
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.DisableTwoFactor();
+        bool result = await _viewModel.DisableTwoFactor();
 
         // Assert
         Assert.True(result);
@@ -174,12 +163,12 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Failure("server_error", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync(ApiEndpoints.Enable2Fa, It.IsAny<Enable2FaRequest>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
+        bool result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
 
         // Assert
         Assert.False(result);
@@ -191,12 +180,12 @@ public class SecurityViewModelTests
     {
         // Arrange
         var error = Error.Failure("server_error", "Description");
-        _mockApiClient
-            .Setup(c => c.PutAsync<object>(ApiEndpoints.Disable2Fa, It.IsAny<object>()))
+        _profileClientService
+            .Setup(profileClientService => profileClientService.Disable2FaAsync())
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.DisableTwoFactor();
+        bool result = await _viewModel.DisableTwoFactor();
 
         // Assert
         Assert.False(result);

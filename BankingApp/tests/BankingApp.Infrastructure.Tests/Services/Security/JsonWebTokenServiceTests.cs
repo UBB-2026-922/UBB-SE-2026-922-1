@@ -1,10 +1,11 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿namespace BankingApp.Infrastructure.Tests.Services.Security;
+
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BankingApp.Infrastructure.Services.Security;
+using ErrorOr;
 using Microsoft.IdentityModel.Tokens;
-
-namespace BankingApp.Infrastructure.Tests.Services.Security;
 
 public class JsonWebTokenServiceTests
 {
@@ -17,9 +18,9 @@ public class JsonWebTokenServiceTests
         var service = new JsonWebTokenService(Secret);
 
         // Act
-        var tokenResult = service.GenerateToken(42);
-        var validationResult = service.ValidateToken(tokenResult.Value);
-        var userIdResult = service.ExtractUserId(tokenResult.Value);
+        ErrorOr<string> tokenResult = service.GenerateToken(42);
+        ErrorOr<ClaimsPrincipal> validationResult = service.ValidateToken(tokenResult.Value);
+        ErrorOr<int> userIdResult = service.ExtractUserId(tokenResult.Value);
 
         // Assert
         tokenResult.IsError.Should().BeFalse();
@@ -37,7 +38,7 @@ public class JsonWebTokenServiceTests
         var service = new JsonWebTokenService(null!);
 
         // Act
-        var tokenResult = service.GenerateToken(42);
+        ErrorOr<string> tokenResult = service.GenerateToken(42);
 
         // Assert
         tokenResult.IsError.Should().BeTrue();
@@ -51,7 +52,7 @@ public class JsonWebTokenServiceTests
         var service = new JsonWebTokenService(Secret);
 
         // Act
-        var validationResult = service.ValidateToken("not-a-token");
+        ErrorOr<ClaimsPrincipal> validationResult = service.ValidateToken("not-a-token");
 
         // Assert
         validationResult.IsError.Should().BeTrue();
@@ -69,7 +70,7 @@ public class JsonWebTokenServiceTests
             DateTime.UtcNow.AddMinutes(-10));
 
         // Act
-        var validationResult = service.ValidateToken(token);
+        ErrorOr<ClaimsPrincipal> validationResult = service.ValidateToken(token);
 
         // Assert
         validationResult.IsError.Should().BeTrue();
@@ -87,7 +88,7 @@ public class JsonWebTokenServiceTests
             DateTime.UtcNow.AddMinutes(5));
 
         // Act
-        var userIdResult = service.ExtractUserId(token);
+        ErrorOr<int> userIdResult = service.ExtractUserId(token);
 
         // Assert
         userIdResult.IsError.Should().BeTrue();

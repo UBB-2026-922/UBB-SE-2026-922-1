@@ -1,41 +1,27 @@
-﻿// <copyright file="RecurringPaymentRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringPaymentRepository class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IRecurringPaymentRepository" /> backed by <see cref="AppDatabaseContext" />.
 /// </summary>
-public class RecurringPaymentRepository : IRecurringPaymentRepository
+/// <remarks>
+///     Initializes a new instance of the <see cref="RecurringPaymentRepository" /> class.
+/// </remarks>
+/// <param name="context">The EF Core database context.</param>
+public class RecurringPaymentRepository(AppDatabaseContext context) : IRecurringPaymentRepository
 {
-    private readonly AppDatabaseContext _context;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RecurringPaymentRepository" /> class.
-    /// </summary>
-    /// <param name="context">The EF Core database context.</param>
-    public RecurringPaymentRepository(AppDatabaseContext context)
-    {
-        _context = context;
-    }
-
     /// <inheritdoc />
     public ErrorOr<RecurringPayment> Create(RecurringPayment payment)
     {
         try
         {
-            _context.RecurringPayments.Add(payment);
-            _context.SaveChanges();
+            context.RecurringPayments.Add(payment);
+            context.SaveChanges();
             return payment;
         }
         catch (Exception ex)
@@ -47,13 +33,8 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
     /// <inheritdoc />
     public ErrorOr<RecurringPayment> GetById(int id)
     {
-        RecurringPayment? payment = _context.RecurringPayments.FirstOrDefault(recurringPayment => recurringPayment.Id == id);
-        if (payment is null)
-        {
-            return Error.NotFound(description: "Recurring payment not found.");
-        }
-
-        return payment;
+        RecurringPayment? payment = context.RecurringPayments.FirstOrDefault(recurringPayment => recurringPayment.Id == id);
+        return payment ?? (ErrorOr<RecurringPayment>)Error.NotFound(description: "Recurring payment not found.");
     }
 
     /// <inheritdoc />
@@ -61,7 +42,7 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
     {
         try
         {
-            return _context.RecurringPayments
+            return context.RecurringPayments
                 .Where(recurringPayment => recurringPayment.UserId == userId)
                 .ToList();
         }
@@ -76,8 +57,8 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
     {
         try
         {
-            return _context.RecurringPayments
-                .Where(recurringPayment => recurringPayment.Status == Domain.Enums.RecurringPaymentStatus.Active && recurringPayment.NextExecutionDate <= asOf)
+            return context.RecurringPayments
+                .Where(recurringPayment => recurringPayment.Status == RecurringPaymentStatus.Active && recurringPayment.NextExecutionDate <= asOf)
                 .ToList();
         }
         catch (Exception ex)
@@ -91,8 +72,8 @@ public class RecurringPaymentRepository : IRecurringPaymentRepository
     {
         try
         {
-            _context.RecurringPayments.Update(payment);
-            _context.SaveChanges();
+            context.RecurringPayments.Update(payment);
+            context.SaveChanges();
             return Result.Success;
         }
         catch (Exception ex)

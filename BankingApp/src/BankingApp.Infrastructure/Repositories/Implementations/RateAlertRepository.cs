@@ -1,16 +1,9 @@
-﻿// <copyright file="RateAlertRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RateAlertRepository class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
+using Domain.Entities;
+using DataAccess;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IRateAlertRepository" />.

@@ -1,29 +1,22 @@
-﻿// <copyright file="ServiceCollectionExtensions.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ServiceCollectionExtensions class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DependencyInjection;
 
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.BillPayments;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Application.Utilities;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Services;
-using BankingApp.Infrastructure.Services.Notifications;
-using BankingApp.Infrastructure.Services.Security;
+using Application.Utilities;
+using DataAccess;
+using DataAccess.Implementations;
+using DataAccess.Interfaces;
+using Repositories.Implementations;
+using Services;
+using Services.Notifications;
+using Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace BankingApp.Infrastructure.DependencyInjection;
 
 /// <summary>
 ///     Provides extension methods for registering infrastructure services with the dependency injection container.
@@ -57,7 +50,6 @@ public static class ServiceCollectionExtensions
                    .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
         services.AddScoped<IUserDataAccess, UserDataAccess>();
         services.AddScoped<ISessionDataAccess, SessionDataAccess>();
-        services.AddScoped<IOAuthLinkDataAccess, OAuthLinkDataAccess>();
         services.AddScoped<IPasswordResetTokenDataAccess, PasswordResetTokenDataAccess>();
         services.AddScoped<INotificationPreferenceDataAccess, NotificationPreferenceDataAccess>();
         services.AddScoped<IAccountDataAccess, AccountDataAccess>();
@@ -72,8 +64,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardRepository, DashboardRepository>();
         services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
         services.AddScoped<
-            BankingApp.Application.Services.BillPayments.IBillPaymentService,
-            BankingApp.Application.Services.BillPayments.BillPaymentService>();
+            IBillPaymentService,
+            BillPaymentService>();
         services.AddScoped<IBillerDataAccess, BillerDataAccess>();
         services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
         services.AddScoped<IBillerRepository, BillerRepository>();

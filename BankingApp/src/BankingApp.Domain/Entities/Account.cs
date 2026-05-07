@@ -1,13 +1,6 @@
-﻿// <copyright file="Account.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the Account class.
-// </summary>
+﻿namespace BankingApp.Domain.Entities;
 
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Domain.Entities;
+using Enums;
 
 /// <summary>
 ///     Represents a bank account belonging to a user.
@@ -29,6 +22,11 @@ public class Account
     ///     Gets or sets the current value.
     /// </value>
     public int UserId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the user who owns this account.
+    /// </summary>
+    public User? User { get; set; }
 
     /// <summary>
     ///     Gets or sets the display name of the account.
@@ -93,5 +91,15 @@ public class Account
     public bool IsActive()
     {
         return Status == AccountStatus.Active;
+    }
+
+    /// <summary>
+    ///     Returns true when the current balance can cover the requested amount.
+    /// </summary>
+    /// <param name="amount">The amount to compare against the current balance.</param>
+    /// <returns>The result of the operation.</returns>
+    public bool HasSufficientFunds(decimal amount)
+    {
+        return amount >= 0 && Balance >= amount;
     }
 }

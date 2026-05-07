@@ -1,17 +1,10 @@
-﻿// <copyright file="RegisterView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for RegisterView.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Enums;
+using Master;
+using Utilities;
+using ViewModels;
 using Microsoft.UI.Xaml;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.
@@ -112,11 +105,6 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
             PasswordBox.Password,
             ConfirmPasswordBox.Password,
             FullNameBox.Text);
-    }
-
-    private async void GoogleRegisterButton_Click(object sender, RoutedEventArgs e)
-    {
-        await _viewModel.OAuthRegister("Google");
     }
 
     private void BackToLoginButton_Click(object sender, RoutedEventArgs e)

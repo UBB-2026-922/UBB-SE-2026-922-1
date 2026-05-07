@@ -1,14 +1,7 @@
-﻿// <copyright file="MainWindow.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for MainWindow.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop;
 
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Views;
-
-namespace BankingApp.Desktop;
+using Master;
+using Views;
 
 /// <summary>
 ///     Hosts the application's root frame and initializes the first navigated view.

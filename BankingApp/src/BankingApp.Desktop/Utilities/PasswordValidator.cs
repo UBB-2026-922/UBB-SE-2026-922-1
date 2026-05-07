@@ -1,13 +1,6 @@
-﻿// <copyright file="PasswordValidator.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the PasswordValidator class.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System.Linq;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Provides password validation rules shared across all client registration and security flows.

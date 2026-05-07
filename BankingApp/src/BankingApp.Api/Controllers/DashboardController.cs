@@ -1,15 +1,8 @@
-﻿// <copyright file="DashboardController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Services.Dashboard;
+using Application.DTOs.Dashboard;
+using Application.Services.Dashboard;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for handling dashboard-related operations.
@@ -36,13 +29,13 @@ public class DashboardController : ApiControllerBase
     ///     The user ID is extracted from the HTTP context, set by the authentication middleware.
     /// </summary>
     /// <returns>
-    ///     200 OK with a <see cref="DashboardResponse" /> on success,
+    ///     200 OK with a <see cref="DashboardDto" /> on success,
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet]
     public IActionResult GetDashboard()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_dashboardService.GetDashboardData(userId), data => Ok(data));
+        return ToActionResult(_dashboardService.GetDashboardData(userId), Ok);
     }
 }

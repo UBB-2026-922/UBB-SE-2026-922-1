@@ -1,14 +1,7 @@
-﻿// <copyright file="ITransactionDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ITransactionDataAccess interface.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Interfaces;
 
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.DataAccess.Interfaces;
 
 /// <summary>
 ///     Defines data access operations for financial transactions.
@@ -22,10 +15,10 @@ public interface ITransactionDataAccess
     /// <param name="accountId">The account identifier.</param>
     /// <param name="limit">The maximum number of transactions to return.</param>
     /// <returns>A list of recent transactions ordered by creation date descending, or an error if the operation failed.</returns>
-    ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit);
+    public ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit);
 
     /// <summary>Adds a new transaction to the data store.</summary>
     /// <param name="transaction">The transaction to add.</param>
     /// <returns>The added transaction with any generated fields populated, or an error if the operation failed.</returns>
-    ErrorOr<Transaction> Add(Transaction transaction);
+    public ErrorOr<Transaction> Add(Transaction transaction);
 }

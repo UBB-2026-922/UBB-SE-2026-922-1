@@ -1,14 +1,7 @@
-﻿// <copyright file="IBeneficiaryService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IBeneficiaryService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Beneficiary;
 
 using ErrorOr;
-using DomainBeneficiary = BankingApp.Domain.Entities.Beneficiary;
-
-namespace BankingApp.Application.Services.Beneficiary;
+using Domain.Entities;
 
 /// <summary>
 ///     Defines business operations for managing beneficiaries.
@@ -22,7 +15,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     The user's beneficiaries, or an error otherwise.
     /// </returns>
-    ErrorOr<List<DomainBeneficiary>> GetByUserId(int userId);
+    public ErrorOr<List<Beneficiary>> GetByUserId(int userId);
 
     /// <summary>
     ///     Gets a beneficiary by its identifier.
@@ -32,7 +25,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     The beneficiary when found, or an error otherwise.
     /// </returns>
-    ErrorOr<DomainBeneficiary> GetById(int beneficiaryId, int userId);
+    public ErrorOr<Beneficiary> GetById(int beneficiaryId, int userId);
 
     /// <summary>
     ///     Creates a new beneficiary for the specified user.
@@ -44,7 +37,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     The created beneficiary, or an error otherwise.
     /// </returns>
-    ErrorOr<DomainBeneficiary> Create(int userId, string name, string iban, string? bankName);
+    public ErrorOr<Beneficiary> Create(int userId, string name, string iban, string? bankName);
 
     /// <summary>
     ///     Updates an existing beneficiary.
@@ -53,7 +46,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     A success result when the update succeeds, or an error otherwise.
     /// </returns>
-    ErrorOr<Success> Update(DomainBeneficiary beneficiary);
+    public ErrorOr<Success> Update(Beneficiary beneficiary);
 
     /// <summary>
     ///     Deletes a beneficiary by its identifier.
@@ -63,7 +56,7 @@ public interface IBeneficiaryService
     /// <returns>
     ///     A success result when the deletion succeeds, or an error otherwise.
     /// </returns>
-    ErrorOr<Success> Delete(int beneficiaryId, int userId);
+    public ErrorOr<Success> Delete(int beneficiaryId, int userId);
 
     /// <summary>
     ///     Validates whether the supplied IBAN has an acceptable format.
@@ -72,5 +65,5 @@ public interface IBeneficiaryService
     /// <returns>
     ///     True if the IBAN is valid; otherwise false.
     /// </returns>
-    bool ValidateIban(string iban);
+    public bool ValidateIban(string iban);
 }

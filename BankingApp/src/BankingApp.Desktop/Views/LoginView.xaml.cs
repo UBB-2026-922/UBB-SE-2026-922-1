@@ -1,18 +1,11 @@
-﻿// <copyright file="LoginView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for LoginView.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Enums;
+using Master;
+using Utilities;
+using ViewModels;
 using Microsoft.UI.Xaml;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Displays the login form and reacts to authentication state changes produced by <see cref="LoginViewModel" />.
@@ -110,7 +103,6 @@ public sealed partial class LoginView : IStateObserver<LoginState>
     private void EnableForm()
     {
         SignInButton.IsEnabled = true;
-        GoogleLoginButton.IsEnabled = true;
     }
 
     private void ShowLoading()
@@ -118,7 +110,6 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         LoadingRing.IsActive = true;
         LoadingRing.Visibility = Visibility.Visible;
         SignInButton.IsEnabled = false;
-        GoogleLoginButton.IsEnabled = false;
     }
 
     private void HideLoading()
@@ -131,18 +122,13 @@ public sealed partial class LoginView : IStateObserver<LoginState>
     {
         string? email = EmailBox.Text;
         string? password = PasswordBox.Password;
-        if (!_viewModel.CanLogin(email, password))
+        if (!LoginViewModel.CanLogin(email, password))
         {
             ShowError("Please enter email and password.");
             return;
         }
 
         await _viewModel.Login(email, password);
-    }
-
-    private async void GoogleLoginButton_Click(object sender, RoutedEventArgs e)
-    {
-        await _viewModel.OAuthLogin("Google");
     }
 
     private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)

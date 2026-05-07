@@ -1,10 +1,3 @@
-﻿// <copyright file="RecurringFrequency.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringFrequency enum.
-// </summary>
-
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
@@ -40,5 +33,5 @@ public enum RecurringFrequency
     /// <summary>
     ///     The payment executes once every year.
     /// </summary>
-    Yearly,
+    Yearly
 }

@@ -1,18 +1,12 @@
-﻿// <copyright file="JsonWebTokenService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the JsonWebTokenService class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Services.Security;
 
 using System.IdentityModel.Tokens.Jwt;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using BankingApp.Application.Services.Security;
 using ErrorOr;
 using Microsoft.IdentityModel.Tokens;
-
-namespace BankingApp.Infrastructure.Services.Security;
 
 /// <summary>
 ///     Provides JWT generation, validation, and claim extraction using HMAC-SHA256.
@@ -40,7 +34,7 @@ public class JsonWebTokenService : IJsonWebTokenService
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var claims = new[] { new Claim("userId", userId.ToString()) };
+            Claim[] claims = new[] { new Claim("userId", userId.ToString(CultureInfo.InvariantCulture)) };
             var token = new JwtSecurityToken(
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(TokenExpirationDays),
@@ -69,7 +63,7 @@ public class JsonWebTokenService : IJsonWebTokenService
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = true,
-                    IssuerSigningKey = key,
+                    IssuerSigningKey = key
                 },
                 out _);
             return principal;

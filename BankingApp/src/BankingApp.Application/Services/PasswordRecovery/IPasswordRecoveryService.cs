@@ -1,13 +1,6 @@
-﻿// <copyright file="IPasswordRecoveryService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IPasswordRecoveryService interface.
-// </summary>
+namespace BankingApp.Application.Services.PasswordRecovery;
 
 using ErrorOr;
-
-namespace BankingApp.Application.Services.PasswordRecovery;
 
 /// <summary>
 ///     Defines operations for password reset flow, including requesting, verifying, and completing a password reset.
@@ -22,7 +15,7 @@ public interface IPasswordRecoveryService
     ///     <see cref="Result.Success" /> on success,
     ///     or an error if no account exists for the given email or the token could not be saved.
     /// </returns>
-    ErrorOr<Success> RequestPasswordReset(string email);
+    public ErrorOr<Success> RequestPasswordReset(string email);
 
     /// <summary>
     ///     Resets the user's password using a valid reset token.
@@ -37,7 +30,7 @@ public interface IPasswordRecoveryService
     ///     or a failure error with code <c>reset_failed</c> if the password was updated but a post-reset
     ///     security step (marking the token as used or invalidating active sessions) failed.
     /// </returns>
-    ErrorOr<Success> ResetPassword(string token, string newPassword);
+    public ErrorOr<Success> ResetPassword(string token, string newPassword);
 
     /// <summary>
     ///     Validates a password reset token without consuming it.
@@ -49,5 +42,5 @@ public interface IPasswordRecoveryService
     ///     a validation error with code <c>token_already_used</c> if the token was already consumed,
     ///     or a validation error with code <c>token_invalid</c> if the token does not exist.
     /// </returns>
-    ErrorOr<Success> VerifyResetToken(string token);
+    public ErrorOr<Success> VerifyResetToken(string token);
 }

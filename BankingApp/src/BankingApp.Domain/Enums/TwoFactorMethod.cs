@@ -1,10 +1,3 @@
-﻿// <copyright file="TwoFactorMethod.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TwoFactorMethod values.
-// </summary>
-
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
@@ -25,5 +18,5 @@ public enum TwoFactorMethod
     /// <summary>
     ///     The OTP is delivered via SMS to the user's registered phone number.
     /// </summary>
-    Phone,
+    Phone
 }

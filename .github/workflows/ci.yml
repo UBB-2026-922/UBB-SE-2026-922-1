@@ -10,8 +10,50 @@ env:
   TEST_FLAGS: --configuration Release --no-restore --logger trx --results-directory TestResults
 
 jobs:
-  backend-tests:
+  build:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore BankingApp/src/BankingApp.Api/BankingApp.Api.csproj
+
+      - name: Build
+        run: dotnet build BankingApp/src/BankingApp.Api/BankingApp.Api.csproj --no-restore --configuration Release
+
+  backend-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Test@1234Pass
+          MSSQL_SA_PASSWORD: Test@1234Pass
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S 127.0.0.1 -U sa -P 'Test@1234Pass' -C -Q 'SELECT 1' -b"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 30s
+    env:
+      MSSQL_CONNECTION_STRING: "Server=localhost,1433;Database=BankingAppIntegrationTests;User Id=sa;Password=Test@1234Pass;TrustServerCertificate=True;"
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -1,10 +1,3 @@
-﻿// <copyright file="UserMessages.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the UserMessages class.
-// </summary>
-
 namespace BankingApp.Desktop.Utilities;
 
 /// <summary>

@@ -1,14 +1,7 @@
-﻿// <copyright file="ValidationUtilities.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ValidationUtilities class.
-// </summary>
+﻿namespace BankingApp.Application.Utilities;
 
 using EmailValidation;
 using PhoneNumbers;
-
-namespace BankingApp.Application.Utilities;
 
 /// <summary>
 ///     Provides common input validation helper methods.

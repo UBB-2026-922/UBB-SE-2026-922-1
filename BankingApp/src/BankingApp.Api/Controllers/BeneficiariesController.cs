@@ -1,16 +1,9 @@
-﻿// <copyright file="BeneficiariesController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiariesController class.
-// </summary>
-
-using BankingApp.Application.DataTransferObjects.Beneficiary;
-using BankingApp.Application.Services.Beneficiary;
-using BankingApp.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
-
 namespace BankingApp.Api.Controllers;
+
+using Application.DTOs.Beneficiaries;
+using Application.Services.Beneficiary;
+using Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
 ///     Controller responsible for managing beneficiaries for the authenticated user.
@@ -119,9 +112,9 @@ public class BeneficiariesController : ApiControllerBase
         return ToActionResult(_beneficiaryService.Delete(id, userId));
     }
 
-    private static BeneficiaryDataTransferObject MapToDto(Beneficiary beneficiary)
+    private static BeneficiaryDto MapToDto(Beneficiary beneficiary)
     {
-        return new BeneficiaryDataTransferObject
+        return new BeneficiaryDto
         {
             Id = beneficiary.Id,
             Name = beneficiary.Name,

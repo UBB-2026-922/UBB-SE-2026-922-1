@@ -1,22 +1,14 @@
-﻿// <copyright file="DashboardRepositoryTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
+using DataAccess.Implementations;
+using Repositories.Implementations;
+using Infrastructure;
 using Bogus;
 using ErrorOr;
 
-namespace BankingApp.Infrastructure.Tests.Integration;
-
-/// <summary>
-///     Integration tests for <see cref="DashboardRepository" /> verifying that
-///     aggregate and collection queries return correct, database-backed results.
-/// </summary>
 [Trait("Category", "Integration")]
 [Collection("Integration")]
 public sealed class DashboardRepositoryTests : IAsyncLifetime
@@ -37,20 +29,17 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
     }
 
     /// <inheritdoc />
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-        return _fixture.ResetAsync();
+        return new ValueTask(_fixture.ResetAsync());
     }
 
     /// <inheritdoc />
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    /// <summary>
-    ///     Verifies the GetAccountsByUser_WhenUserHasAccounts_ReturnsAllAccounts scenario.
-    /// </summary>
     [Fact]
     public void GetAccountsByUser_WhenUserHasAccounts_ReturnsAllAccounts()
     {
@@ -70,11 +59,8 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         result.Value.First().Currency.Should().Be("RON");
     }
 
-    /// <summary>
-    ///     Verifies the GetRecentTransactions_WhenInsertedMoreThanLimit_ReturnsAtMostLimitItems scenario.
-    /// </summary>
     [Fact]
-    public void GetRecentTransactions_WhenInsertedMoreThanLimit_ReturnsAtMostLimitItems()
+    public void GetRecentTransactions_WhenInsertedMoreThanLimit_ShouldReturnAtMostLimitItems()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -91,9 +77,6 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         result.Value.Should().HaveCount(TransactionQueryLimit);
     }
 
-    /// <summary>
-    ///     Verifies the GetUnreadNotificationCount_WhenNotificationsExist_ReturnsCorrectCount scenario.
-    /// </summary>
     [Fact]
     public void GetUnreadNotificationCount_WhenNotificationsExist_ReturnsCorrectCount()
     {
@@ -111,9 +94,6 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         result.Value.Should().Be(SeedNotificationCount);
     }
 
-    /// <summary>
-    ///     Verifies the GetCardsByUser_WhenUserHasCards_ReturnsCardsForThatUser scenario.
-    /// </summary>
     [Fact]
     public void GetCardsByUser_WhenUserHasCards_ReturnsCardsForThatUser()
     {
@@ -139,7 +119,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         return _fixture.CreateDatabaseContext();
     }
 
-    private User SeedUser(AppDatabaseContext databaseContext)
+    private static User SeedUser(AppDatabaseContext databaseContext)
     {
         var faker = new Faker();
         var dataAccess = new UserDataAccess(databaseContext);
@@ -148,7 +128,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             Email = faker.Internet.Email(),
             PasswordHash = faker.Internet.Password(),
             FullName = faker.Person.FullName,
-            PreferredLanguage = "en",
+            PreferredLanguage = "en"
         };
 
         dataAccess.Create(user).IsError.Should().BeFalse();
@@ -158,7 +138,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         return findResult.Value;
     }
 
-    private Account SeedAccount(AppDatabaseContext databaseContext, int userId, string? iban = null)
+    private static Account SeedAccount(AppDatabaseContext databaseContext, int userId, string? iban = null)
     {
         var faker = new Faker();
         iban ??= faker.Finance.Iban();
@@ -170,14 +150,14 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             Currency = "RON",
             Balance = 5000.00m,
             AccountType = AccountType.Checking,
-            Status = AccountStatus.Active,
+            Status = AccountStatus.Active
         };
         databaseContext.Accounts.Add(account);
         databaseContext.SaveChanges();
         return account;
     }
 
-    private void SeedCard(AppDatabaseContext databaseContext, int accountId, int userId)
+    private static void SeedCard(AppDatabaseContext databaseContext, int accountId, int userId)
     {
         var card = new Card
         {
@@ -188,15 +168,15 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
             ExpiryDate = new DateTime(2027, 12, 31),
             Cvv = "123",
             CardType = CardType.Debit,
-            Status = CardStatus.Active,
+            Status = CardStatus.Active
         };
         databaseContext.Cards.Add(card);
         databaseContext.SaveChanges();
     }
 
-    private void SeedTransactions(AppDatabaseContext databaseContext, int accountId, int count)
+    private static void SeedTransactions(AppDatabaseContext databaseContext, int accountId, int count)
     {
-        for (var index = 0; index < count; index++)
+        for (int index = 0; index < count; index++)
         {
             var transaction = new Transaction
             {
@@ -208,7 +188,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
                 Amount = 100.00m,
                 Currency = "RON",
                 BalanceAfter = 5100.00m,
-                Status = TransactionStatus.Completed,
+                Status = TransactionStatus.Completed
             };
             databaseContext.Transactions.Add(transaction);
         }
@@ -216,9 +196,9 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         databaseContext.SaveChanges();
     }
 
-    private void SeedNotifications(AppDatabaseContext databaseContext, int userId, int count)
+    private static void SeedNotifications(AppDatabaseContext databaseContext, int userId, int count)
     {
-        for (var index = 0; index < count; index++)
+        for (int index = 0; index < count; index++)
         {
             var notification = new Notification
             {
@@ -227,7 +207,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
                 Message = "You have a new notification.",
                 Type = "Alert",
                 Channel = "Push",
-                IsRead = false,
+                IsRead = false
             };
             databaseContext.Notifications.Add(notification);
         }
@@ -235,7 +215,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         databaseContext.SaveChanges();
     }
 
-    private DashboardRepository MakeDashboardRepository(AppDatabaseContext databaseContext)
+    private static DashboardRepository MakeDashboardRepository(AppDatabaseContext databaseContext)
     {
         return new DashboardRepository(
             new AccountDataAccess(databaseContext),

@@ -1,10 +1,3 @@
-﻿// <copyright file="TransactionDirection.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransactionDirection values.
-// </summary>
-
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
@@ -20,5 +13,5 @@ public enum TransactionDirection
     /// <summary>
     ///     The transaction is outbound. (Sending)
     /// </summary>
-    Out,
+    Out
 }

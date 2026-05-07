@@ -1,15 +1,11 @@
-﻿// <copyright file="DashboardControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests.Controller;
 
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Services.Dashboard;
+using Controllers;
+using Application.Services.Dashboard;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
+using Application.DTOs.Dashboard;
 
 /// <summary>
 ///     Unit tests for <see cref="DashboardController" /> verifying route contracts
@@ -28,7 +24,7 @@ public sealed class DashboardControllerTests
     {
         // Arrange
         const int validUserId = 1;
-        var response = new DashboardResponse();
+        var response = new DashboardDto();
         _dashboardService.Setup(getsDashboardData => getsDashboardData.GetDashboardData(validUserId)).Returns(response);
         DashboardController controller = CreateController(validUserId);
 
@@ -68,8 +64,8 @@ public sealed class DashboardControllerTests
         {
             Items =
             {
-                ["UserId"] = authenticatedUserId,
-            },
+                ["UserId"] = authenticatedUserId
+            }
         };
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return controller;

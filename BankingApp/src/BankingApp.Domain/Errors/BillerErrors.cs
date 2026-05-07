@@ -1,13 +1,6 @@
-﻿// <copyright file="BillerErrors.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillerErrors class.
-// </summary>
+﻿namespace BankingApp.Domain.Errors;
 
 using ErrorOr;
-
-namespace BankingApp.Domain.Errors;
 
 /// <summary>
 ///     Canonical error definitions for biller directory and saved-biller operations.

@@ -1,64 +1,43 @@
-﻿// Copyright (c) UBB-922. All rights reserved.
-// Licensed under the MIT license.
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+using Domain.Entities;
+using DataAccess;
+using DataAccess.Implementations;
+using Repositories.Implementations;
+using Infrastructure;
 using Bogus;
 using ErrorOr;
 
-namespace BankingApp.Infrastructure.Tests.Integration;
-
-/// <summary>
-///     Integration tests for <see cref="AuthRepository" /> verifying session management
-///     and password-reset token lifecycle are persisted correctly.
-/// </summary>
 [Trait("Category", "Integration")]
 [Collection("Integration")]
-public sealed class AuthRepositoryTests : IAsyncLifetime
+public sealed class AuthRepositoryTests(DatabaseFixture fixture) : IAsyncLifetime
 {
     private const int PasswordResetTokenExpiryHours = 1;
 
-    private readonly DatabaseFixture _fixture;
-    private readonly Faker<User> _userFaker;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="AuthRepositoryTests" /> class.
-    /// </summary>
-    public AuthRepositoryTests(DatabaseFixture fixture)
-    {
-        _fixture = fixture;
-
-        _userFaker = new Faker<User>()
+    private readonly Faker<User> _userFaker = new Faker<User>()
             .RuleFor(user => user.Email, faker => faker.Internet.Email())
             .RuleFor(user => user.PasswordHash, faker => faker.Internet.Password())
             .RuleFor(user => user.FullName, faker => faker.Person.FullName)
             .RuleFor(user => user.PreferredLanguage, _ => "en");
-    }
 
     /// <summary>
     ///     Initializes the test fixture.
     /// </summary>
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-        return _fixture.ResetAsync();
+        return new ValueTask(fixture.ResetAsync());
     }
 
     /// <summary>
     ///     Disposes the test fixture.
     /// </summary>
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    /// <summary>
-    ///     Verifies the CreateUser_WhenCalled_AutomaticallyCreatesNotificationPreferences scenario.
-    /// </summary>
     [Fact]
-    public void CreateUser_WhenCalled_AutomaticallyCreatesNotificationPreferences()
+    public void CreateUser_WhenCalled_ShouldAutomaticallyCreatesNotificationPreferences()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -76,11 +55,8 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         count.Should().BeGreaterThan(0, "Expected at least one notification preference to be created.");
     }
 
-    /// <summary>
-    ///     Verifies the CreateSession_WhenUserExists_ReturnsSessionWithPositiveId scenario.
-    /// </summary>
     [Fact]
-    public void CreateSession_WhenUserExists_ReturnsSessionWithPositiveId()
+    public void CreateSession_WhenUserExists_ShouldReturnSessionWithPositiveId()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -97,11 +73,8 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         result.Value.UserId.Should().Be(user.Id);
     }
 
-    /// <summary>
-    ///     Verifies the FindSessionByToken_WhenTokenIsActive_ReturnsSession scenario.
-    /// </summary>
     [Fact]
-    public void FindSessionByToken_WhenTokenIsActive_ReturnsSession()
+    public void FindSessionByToken_WhenTokenIsActive_ShouldReturnSession()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -117,11 +90,8 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         result.Value.Token.Should().Be("valid-token-123");
     }
 
-    /// <summary>
-    ///     Verifies the FindSessionByToken_WhenTokenIsRevoked_ReturnsNotFound scenario.
-    /// </summary>
     [Fact]
-    public void FindSessionByToken_WhenTokenIsRevoked_ReturnsNotFound()
+    public void FindSessionByToken_WhenTokenIsRevoked_ShouldReturnNotFound()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -138,11 +108,8 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         result.IsError.Should().BeTrue("A revoked session should not be retrievable.");
     }
 
-    /// <summary>
-    ///     Verifies the FindPasswordResetToken_AfterSavingToken_ReturnsPersistedToken scenario.
-    /// </summary>
     [Fact]
-    public void FindPasswordResetToken_AfterSavingToken_ReturnsPersistedToken()
+    public void FindPasswordResetToken_WhenSavingToken_ShouldReturnPersistedToken()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -152,7 +119,7 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         {
             UserId = user.Id,
             TokenHash = "sha256-hash-xyz",
-            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours),
+            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours)
         };
         repository.SavePasswordResetToken(token).IsError.Should().BeFalse();
 
@@ -166,11 +133,8 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         result.Value.UsedAt.Should().BeNull();
     }
 
-    /// <summary>
-    ///     Verifies the MarkPasswordResetTokenAsUsed_WhenTokenExists_SetsUsedAtTimestamp scenario.
-    /// </summary>
     [Fact]
-    public void MarkPasswordResetTokenAsUsed_WhenTokenExists_SetsUsedAtTimestamp()
+    public void MarkPasswordResetTokenAsUsed_WhenTokenExists_ShouldSetUsedAtTimestamp()
     {
         // Arrange
         using AppDatabaseContext databaseContext = MakeDatabaseContext();
@@ -180,7 +144,7 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         {
             UserId = user.Id,
             TokenHash = "mark-used-hash",
-            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours),
+            ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours)
         };
         repository.SavePasswordResetToken(token).IsError.Should().BeFalse();
         ErrorOr<PasswordResetToken> created = repository.FindPasswordResetToken("mark-used-hash");
@@ -198,7 +162,7 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
 
     private AppDatabaseContext MakeDatabaseContext()
     {
-        return _fixture.CreateDatabaseContext();
+        return fixture.CreateDatabaseContext();
     }
 
     private User SeedUser(AppDatabaseContext databaseContext)
@@ -212,17 +176,15 @@ public sealed class AuthRepositoryTests : IAsyncLifetime
         return findResult.Value;
     }
 
-    private AuthRepository MakeAuthenticationRepository(AppDatabaseContext databaseContext)
+    private static AuthRepository MakeAuthenticationRepository(AppDatabaseContext databaseContext)
     {
         var userDataAccess = new UserDataAccess(databaseContext);
         var sessionDataAccess = new SessionDataAccess(databaseContext);
-        var oauthLinkDataAccess = new OAuthLinkDataAccess(databaseContext);
         var passwordResetTokenDataAccess = new PasswordResetTokenDataAccess(databaseContext);
         var notificationPreferenceDataAccess = new NotificationPreferenceDataAccess(databaseContext);
         return new AuthRepository(
             userDataAccess,
             sessionDataAccess,
-            oauthLinkDataAccess,
             passwordResetTokenDataAccess,
             notificationPreferenceDataAccess);
     }

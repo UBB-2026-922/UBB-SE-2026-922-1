@@ -1,18 +1,10 @@
-﻿// <copyright file="TransferRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferRepository class.
-// </summary>
+namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 ///     EF Core implementation of <see cref="ITransferRepository" />.
@@ -54,7 +46,7 @@ public class TransferRepository : ITransferRepository
     {
         try
         {
-            List<Transfer> transfers = _context.Transfers
+            var transfers = _context.Transfers
                 .Where(t => t.UserId == userId)
                 .OrderByDescending(t => t.CreatedAt)
                 .ToList();

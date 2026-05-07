@@ -1,9 +1,4 @@
-﻿// <copyright file="TransferHistoryViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferHistoryViewModel class.
-// </summary>
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
@@ -12,36 +7,37 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Transfer;
+using Services.Transfers;
+using Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Provides data for the transfer history page.
 ///     Loads the authenticated user's past transfers from the API and exposes them
 ///     as pre-formatted <see cref="TransferHistoryDisplayItem" /> rows ready for binding.
 /// </summary>
-public class TransferHistoryViewModel : INotifyPropertyChanged
+public partial class TransferHistoryViewModel : INotifyPropertyChanged
 {
     private const string DateTimeFormat = "dd MMM yyyy, HH:mm";
     private const string FallbackReference = "—";
 
-    private readonly IApiClient _apiClient;
     private readonly ILogger<TransferHistoryViewModel> _logger;
+    private readonly ITransferClientService _transferClientService;
     private string _errorMessage = string.Empty;
     private bool _isLoading;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferHistoryViewModel" /> class.
     /// </summary>
-    /// <param name="apiClient">The API client used to retrieve transfers.</param>
+    /// <param name="transferClientService">The client service used to retrieve transfers.</param>
     /// <param name="logger">Logger for diagnostics.</param>
-    public TransferHistoryViewModel(IApiClient apiClient, ILogger<TransferHistoryViewModel> logger)
+    public TransferHistoryViewModel(
+        ITransferClientService transferClientService,
+        ILogger<TransferHistoryViewModel> logger)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Transfers = new ObservableCollection<TransferHistoryDisplayItem>();
     }
@@ -125,7 +121,7 @@ public class TransferHistoryViewModel : INotifyPropertyChanged
         try
         {
             ErrorOr<List<TransferResponse>> result =
-                await _apiClient.GetAsync<List<TransferResponse>>(ApiEndpoints.TransferHistory);
+                await _transferClientService.GetTransferHistoryAsync();
 
             if (result.IsError)
             {
@@ -142,7 +138,7 @@ public class TransferHistoryViewModel : INotifyPropertyChanged
         }
         catch (Exception loadException)
         {
-            _logger.LogError(loadException, "Unexpected error loading transfer history.");
+            _logger.LoadTransferHistoryFailedUnexpected(loadException);
             ErrorMessage = UserMessages.TransferHistory.LoadFailed;
         }
         finally

@@ -1,21 +1,13 @@
-﻿// <copyright file="AuthController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AuthController class.
-// </summary>
+namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DataTransferObjects;
-using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Application.DTOs;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Registration;
-using BankingApp.Application.Utilities;
+using Application.DTOs;
+using Application.DTOs.Auth;
+using Application.Services.Login;
+using Application.Services.PasswordRecovery;
+using Application.Services.Registration;
+using Application.Utilities;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for handling all authentication-related operations,
@@ -85,7 +77,7 @@ public class AuthController : ApiControllerBase
     }
 
     /// <summary>
-    ///     Verifies a OTP as part of the 2FA flow.
+    ///     Verifies an OTP as part of the 2FA flow.
     ///     Should be called after a successful login when <see cref="LoginSuccessResponse.Requires2Fa" /> is
     ///     <see langword="true" />.
     /// </summary>
@@ -192,28 +184,6 @@ public class AuthController : ApiControllerBase
     }
 
     /// <summary>
-    ///     Authenticates a user via an external OAuth provider (e.g. Google).
-    ///     If the user does not exist, a new account is created automatically.
-    /// </summary>
-    /// <param name="request">The OAuth login request containing the provider name and provider token.</param>
-    /// <returns>
-    ///     200 OK with a <see cref="LoginSuccessResponse" /> on success,
-    ///     400 Bad Request if the provider/token is missing or the provider is unsupported,
-    ///     or 403 Forbidden if the account is locked.
-    /// </returns>
-    [HttpPost("oauth-login")]
-    public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Provider) || string.IsNullOrWhiteSpace(request.ProviderToken))
-        {
-            return BadRequest(new ApplicationErrorResponse { Error = "Provider and ProviderToken are required." });
-        }
-
-        ErrorOr<LoginSuccess> result = await _loginService.OAuthLoginAsync(request, GetSessionMetadata());
-        return ToActionResult(result, MapLoginSuccess);
-    }
-
-    /// <summary>
     ///     Verifies whether a password reset token is valid before allowing the user to proceed.
     /// </summary>
     /// <param name="request">The request containing the reset token to validate.</param>
@@ -222,7 +192,7 @@ public class AuthController : ApiControllerBase
     ///     or 400 Bad Request with a specific error code if the token is expired, already used, or invalid.
     /// </returns>
     [HttpPost("verify-reset-token")]
-    public IActionResult VerifyResetToken([FromBody] VerifyTokenDataTransferObject request)
+    public IActionResult VerifyResetToken([FromBody] VerifyResetTokenRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Token))
         {
@@ -239,13 +209,8 @@ public class AuthController : ApiControllerBase
     /// <returns>The client IP address, if it can be determined.</returns>
     private static string? GetClientIpAddress(HttpContext context)
     {
-        var forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
-        if (!string.IsNullOrWhiteSpace(forwardedFor))
-        {
-            return forwardedFor.Split(',').First().Trim();
-        }
-
-        return context.Connection.RemoteIpAddress?.ToString();
+        string forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
+        return !string.IsNullOrWhiteSpace(forwardedFor) ? forwardedFor.Split(',').First().Trim() : context.Connection.RemoteIpAddress?.ToString();
     }
 
     private static string? GetBrowserName(string? userAgent)
@@ -302,7 +267,7 @@ public class AuthController : ApiControllerBase
 
     private SessionMetadata GetSessionMetadata()
     {
-        string? userAgent = TrimToMaxLength(Request.Headers["User-Agent"].ToString(), DeviceInfoMaxLength);
+        string? userAgent = TrimToMaxLength(Request.Headers.UserAgent.ToString(), DeviceInfoMaxLength);
         return new SessionMetadata
         {
             DeviceInfo = userAgent,

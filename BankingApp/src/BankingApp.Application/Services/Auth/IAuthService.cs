@@ -1,14 +1,8 @@
-﻿// <copyright file="IAuthService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IAuthService interface.
-// </summary>
+namespace BankingApp.Application.Services.Auth;
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.Auth;
+using BankingApp.Application.DTOs.Auth;
 
 /// <summary>
 ///     Defines operations for user authentication, registration, and password management.
@@ -26,20 +20,7 @@ public interface IAuthService
     ///     an unauthorized error with code <c>invalid_credentials</c> if the email/password is wrong,
     ///     or a forbidden error with code <c>account_locked</c> if the account is locked.
     /// </returns>
-    ErrorOr<LoginSuccess> Login(LoginRequest request);
-
-    /// <summary>
-    ///     Authenticates a user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth login details.</param>
-    /// <returns>
-    ///     A task that resolves to a <see cref="FullLogin" /> or <see cref="RequiresTwoFactor" /> on success,
-    ///     a validation error with code <c>unsupported_provider</c> if the provider is not supported,
-    ///     a validation error with code <c>invalid_google_token</c> if the Google token is rejected,
-    ///     a forbidden error with code <c>account_locked</c> if the account is locked,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    Task<ErrorOr<LoginSuccess>> OAuthLoginAsync(OAuthLoginRequest request);
+    public ErrorOr<LoginSuccess> Login(LoginRequest request);
 
     /// <summary>
     ///     Registers a new user with email and password.
@@ -53,22 +34,10 @@ public interface IAuthService
     ///     a conflict error with code <c>email_registered</c> if the email is already in use,
     ///     or a failure error if user creation fails.
     /// </returns>
-    ErrorOr<Success> Register(RegisterRequest request);
+    public ErrorOr<Success> Register(RegisterRequest request);
 
     /// <summary>
-    ///     Registers a new user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth registration details.</param>
-    /// <returns>
-    ///     <see cref="Result.Success" /> on success,
-    ///     a validation error if the email is invalid,
-    ///     a conflict error if the OAuth account is already registered,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    ErrorOr<Success> OAuthRegister(OAuthRegisterRequest request);
-
-    /// <summary>
-    ///     Verifies a OTP for 2FA.
+    ///     Verifies an OTP for 2FA.
     /// </summary>
     /// <param name="request">The OTP verification details.</param>
     /// <returns>
@@ -76,10 +45,10 @@ public interface IAuthService
     ///     a not-found error if the user does not exist,
     ///     or an unauthorized error with code <c>invalid_otp</c> if the code is invalid or expired.
     /// </returns>
-    ErrorOr<LoginSuccess> VerifyOtp(VerifyOtpRequest request);
+    public ErrorOr<LoginSuccess> VerifyOtp(VerifyOtpRequest request);
 
     /// <summary>
-    ///     Resends a OTP to the specified user.
+    ///     Resends an OTP to the specified user.
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <param name="method">The delivery method (e.g., "email").</param>
@@ -87,7 +56,7 @@ public interface IAuthService
     ///     <see cref="Result.Success" /> on success,
     ///     or an error if the user does not exist or OTP generation fails.
     /// </returns>
-    ErrorOr<Success> ResendOtp(int userId, string method);
+    public ErrorOr<Success> ResendOtp(int userId, string method);
 
     /// <summary>
     ///     Initiates a password reset flow for the given email address.
@@ -97,7 +66,7 @@ public interface IAuthService
     ///     <see cref="Result.Success" /> on success,
     ///     or an error if no account exists for the given email or the token could not be saved.
     /// </returns>
-    ErrorOr<Success> RequestPasswordReset(string email);
+    public ErrorOr<Success> RequestPasswordReset(string email);
 
     /// <summary>
     ///     Resets the user's password using a valid reset token.
@@ -112,7 +81,7 @@ public interface IAuthService
     ///     or a failure error with code <c>reset_failed</c> if the password was updated but a post-reset
     ///     security step (marking the token as used or invalidating active sessions) failed.
     /// </returns>
-    ErrorOr<Success> ResetPassword(string token, string newPassword);
+    public ErrorOr<Success> ResetPassword(string token, string newPassword);
 
     /// <summary>
     ///     Logs out the user by invalidating the specified session token.
@@ -122,7 +91,7 @@ public interface IAuthService
     ///     <see cref="Result.Success" /> on success,
     ///     or an error if no active session exists for the given token.
     /// </returns>
-    ErrorOr<Success> Logout(string token);
+    public ErrorOr<Success> Logout(string token);
 
     /// <summary>
     ///     Validates a password reset token without consuming it.
@@ -134,5 +103,5 @@ public interface IAuthService
     ///     a validation error with code <c>token_already_used</c> if the token was already consumed,
     ///     or a validation error with code <c>token_invalid</c> if the token does not exist.
     /// </returns>
-    ErrorOr<Success> VerifyResetToken(string token);
+    public ErrorOr<Success> VerifyResetToken(string token);
 }

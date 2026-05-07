@@ -41,32 +41,6 @@
                 <TextBlock Text="Welcome back" FontSize="28" FontWeight="SemiBold"
                            Margin="0,0,0,30" />
 
-                <!-- Google OAuth Button -->
-                <Button x:Name="GoogleLoginButton" Click="GoogleLoginButton_Click"
-                        HorizontalAlignment="Stretch" Height="42"
-                        Background="#F5F5F5" BorderBrush="#DDD" CornerRadius="6">
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <TextBlock Text="G" FontWeight="Bold" FontSize="16"
-                                   Foreground="#4285F4" />
-                        <TextBlock Text="Continue with Google" Foreground="#333" />
-                    </StackPanel>
-                </Button>
-
-                <!-- Divider -->
-                <Grid Margin="0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" BorderBrush="#DDD" BorderThickness="0,0,0,1"
-                            VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" Text="or" Foreground="#999"
-                               Margin="12,0" FontSize="13" />
-                    <Border Grid.Column="2" BorderBrush="#DDD" BorderThickness="0,0,0,1"
-                            VerticalAlignment="Center" />
-                </Grid>
-
                 <!-- Email -->
                 <TextBox x:Name="EmailBox" PlaceholderText="you@company.com"
                          Header="Email" Margin="0,0,0,14" CornerRadius="6" />

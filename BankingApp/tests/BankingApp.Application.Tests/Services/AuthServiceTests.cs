@@ -1,14 +1,15 @@
-﻿using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Application.Repositories.Interfaces;
+﻿namespace BankingApp.Application.Tests.Services;
+
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Auth;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace BankingApp.Application.Tests.Services;
+using DTOs.Auth;
 
 public sealed class AuthServiceTests
 {
@@ -76,7 +77,7 @@ public sealed class AuthServiceTests
         var user = new User
         {
             Id = 1, Email = request.Email, IsLocked = true,
-            LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutDurationMinutes),
+            LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutDurationMinutes)
         };
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
@@ -209,7 +210,7 @@ public sealed class AuthServiceTests
         var user = new User
         {
             Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email,
+            Preferred2FaMethod = TwoFactorMethod.Email
         };
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
@@ -233,7 +234,7 @@ public sealed class AuthServiceTests
         var user = new User
         {
             Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email,
+            Preferred2FaMethod = TwoFactorMethod.Email
         };
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
@@ -302,7 +303,7 @@ public sealed class AuthServiceTests
         // Arrange
         var request = new LoginRequest { Email = "ok@user.com", Password = "ValidPassword123!" };
         var user = new User { Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = false };
-        var token = "jwt-token";
+        string token = "jwt-token";
         _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
             .Returns((ErrorOr<User>)user);
         _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
@@ -441,216 +442,6 @@ public sealed class AuthServiceTests
             createsUser => createsUser.CreateUser(
                 It.Is<User>(user => user.Email == request.Email && user.FullName == request.FullName)),
             Times.Once);
-    }
-
-    [Fact]
-    public async Task OAuthLoginAsync_WhenProviderIsNotGoogle_ReturnsError()
-    {
-        // Arrange
-        var request = new OAuthLoginRequest { Provider = "Facebook", ProviderToken = "token" };
-
-        // Act
-        ErrorOr<LoginSuccess> result = await _authService.OAuthLoginAsync(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("unsupported_provider");
-    }
-
-    [Fact]
-    public async Task OAuthLoginAsync_WhenTokenIsInvalid_ReturnsError()
-    {
-        // Arrange
-        var request = new OAuthLoginRequest { Provider = "Google", ProviderToken = "invalid_token" };
-
-        // Act
-        ErrorOr<LoginSuccess> result = await _authService.OAuthLoginAsync(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_google_token");
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenEmailIsInvalid_ReturnsError()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "invalid", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_email");
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenOAuthLinkExists_ReturnsConflict()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns((ErrorOr<OAuthLink>)new OAuthLink());
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("oauth_already_registered");
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenUserExists_AndCreateLinkFails_ReturnsError()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        var user = new User { Id = 1, Email = request.Email };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockAuthRepository.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
-            .Returns(Error.Failure("link_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("oauth_link_failed");
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenUserExists_AndCreateLinkSucceeds_ReturnsSuccess()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        var user = new User { Id = 1, Email = request.Email };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockAuthRepository.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenUserDoesNotExist_AndCreateUserFails_ReturnsError()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>()))
-            .Returns(Error.Failure("create_user_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("user_creation_failed");
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenUserDoesNotExist_AndUserRetrievalFails_ReturnsError()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.SetupSequence(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound())
-            .Returns(Error.Failure("retrieval_failed"));
-        _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>())).Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("user_retrieval_failed");
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenUserDoesNotExist_AndCreateLinkSucceeds_ReturnsSuccess()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        var user = new User { Id = 1, Email = request.Email };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.SetupSequence(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound())
-            .Returns((ErrorOr<User>)user);
-        _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>())).Returns(Result.Success);
-        _mockAuthRepository.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-    }
-
-    [Fact]
-    public void OAuthRegister_WhenUserDoesNotExist_CreatesOAuthOnlyUser()
-    {
-        // Arrange
-        var request = new OAuthRegisterRequest
-            { Email = "test@test.com", Provider = "Google", ProviderToken = "token", FullName = "Name" };
-        var user = new User { Id = 1, Email = request.Email };
-        _mockAuthRepository
-            .Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(request.Provider, request.ProviderToken))
-            .Returns(Error.NotFound());
-        _mockAuthRepository.SetupSequence(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound())
-            .Returns((ErrorOr<User>)user);
-        _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>())).Returns(Result.Success);
-        _mockAuthRepository.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.OAuthRegister(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _mockAuthRepository.Verify(
-            createsUser => createsUser.CreateUser(
-                It.Is<User>(createdUser =>
-                    createdUser.Email == request.Email &&
-                    createdUser.FullName == request.FullName &&
-                    createdUser.PasswordHash == null &&
-                    createdUser.PreferredLanguage == "en" &&
-                    !createdUser.Is2FaEnabled &&
-                    !createdUser.IsLocked &&
-                    createdUser.FailedLoginAttempts == 0)),
-            Times.Once);
-        _mockHashService.Verify(getsHash => getsHash.GetHash(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -1013,7 +804,7 @@ public sealed class AuthServiceTests
         // Arrange
         var token = new PasswordResetToken
             { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes), UsedAt = null };
-        var newPassword = "NewValidPassword123!";
+        string newPassword = "NewValidPassword123!";
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
             .Returns((ErrorOr<PasswordResetToken>)token);

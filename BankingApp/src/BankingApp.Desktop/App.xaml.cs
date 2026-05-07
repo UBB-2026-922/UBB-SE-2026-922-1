@@ -1,20 +1,15 @@
-﻿// <copyright file="App.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the App class.
-// </summary>
+﻿namespace BankingApp.Desktop;
 
 using System;
+using System.Globalization;
 using System.IO;
-using BankingApp.Desktop.DependencyInjection;
-using BankingApp.Desktop.Master;
+using System.Threading.Tasks;
+using DependencyInjection;
+using Master;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
-
-namespace BankingApp.Desktop;
 
 /// <summary>
 ///     Composition root for the client application.
@@ -22,6 +17,7 @@ namespace BankingApp.Desktop;
 public partial class App
 {
     private const int RetainedLoggingFileCountLimit = 14;
+    private static string _logDirectory = string.Empty;
     private Window? _window;
 
     /// <summary>
@@ -32,6 +28,10 @@ public partial class App
     public App()
     {
         ConfigureLogging();
+        RegisterGlobalExceptionLogging();
+        Log.Information("Desktop app starting. BaseDirectory={BaseDirectory}, LogDirectory={LogDirectory}.",
+            AppContext.BaseDirectory,
+            _logDirectory);
         IConfigurationRoot configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", false)
@@ -66,35 +66,71 @@ public partial class App
     ///     Invoked when the application is launched. Resolves the navigation service,
     ///     creates the main window and activates it.
     /// </summary>
-    /// <param name="arguments">
+    /// <param name="args">
     ///     Contains information about the launch request and process, such as the
     ///     activation kind and previous execution state.
     /// </param>
-    protected override void OnLaunched(LaunchActivatedEventArgs arguments)
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
-        var navigationService = Services.GetRequiredService<IAppNavigationService>();
+        Log.Information("Desktop app launched.");
+        IAppNavigationService navigationService = Services.GetRequiredService<IAppNavigationService>();
         _window = new MainWindow(navigationService);
         _window.Activate();
     }
 
     private static void ConfigureLogging()
     {
-        string logDirectory = Path.Combine(
+        _logDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "BankingApp",
             "Logs");
+        Directory.CreateDirectory(_logDirectory);
         const string loggingFileFormat = "bankingapp-client-.log";
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .Enrich.FromLogContext()
             // Writes to the Visual Studio Output window during development.
-            .WriteTo.Debug()
+            .WriteTo.Debug(formatProvider: CultureInfo.InvariantCulture)
             // Writes to a daily rolling file outside the repository.
             // Log path: %LocalAppData%\BankingApp\Logs\bankingapp-client-YYYYMMDD.log
             .WriteTo.File(
-                Path.Combine(logDirectory, loggingFileFormat),
+                Path.Combine(_logDirectory, loggingFileFormat),
+                formatProvider: CultureInfo.InvariantCulture,
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: RetainedLoggingFileCountLimit)
             .CreateLogger();
+    }
+
+    private void RegisterGlobalExceptionLogging()
+    {
+        UnhandledException += OnUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+    }
+
+    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        Log.Fatal(e.Exception, "UI thread unhandled exception.");
+        Log.CloseAndFlush();
+    }
+
+    private static void OnCurrentDomainUnhandledException(object? sender, System.UnhandledExceptionEventArgs e)
+    {
+        if (e.ExceptionObject is Exception exception)
+        {
+            Log.Fatal(exception, "AppDomain unhandled exception. IsTerminating={IsTerminating}.", e.IsTerminating);
+        }
+        else
+        {
+            Log.Fatal("AppDomain unhandled non-exception object. IsTerminating={IsTerminating}.", e.IsTerminating);
+        }
+
+        Log.CloseAndFlush();
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        Log.Error(e.Exception, "Unobserved task exception.");
+        Log.CloseAndFlush();
     }
 }

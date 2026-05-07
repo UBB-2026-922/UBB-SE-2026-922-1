@@ -1,24 +1,17 @@
-﻿// <copyright file="RecurringPaymentsController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringPaymentsController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Application.Services.RecurringPayments;
+using Application.DTOs.RecurringPayments;
+using Application.Services.RecurringPayments;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BankingApp.Api.Controllers;
-
 /// <summary>
 ///     Controller responsible for managing recurring payment schedules.
-///     All endpoints are accessible under the /api/recurringpayments route
+///     All endpoints are accessible under the /api/recurring_payments route
 ///     and require an authenticated session.
 /// </summary>
 [ApiController]
-[Route("api/recurringpayments")]
+[Route("api/recurring_payments")]
 public class RecurringPaymentsController : ApiControllerBase
 {
     private readonly IRecurringPaymentService _recurringPaymentService;
@@ -42,7 +35,7 @@ public class RecurringPaymentsController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         ErrorOr<List<RecurringPaymentResponse>> result = _recurringPaymentService.GetByUser(userId);
-        return ToActionResult(result, payments => Ok(payments));
+        return ToActionResult(result, Ok);
     }
 
     /// <summary>
@@ -91,10 +84,10 @@ public class RecurringPaymentsController : ApiControllerBase
     ///     or an appropriate error response.
     /// </returns>
     [HttpPut("{id}/resume")]
-    public IActionResult Resume(int id)
+    public IActionResult ResumePayment(int id)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.Resume(userId, id);
+        ErrorOr<Success> result = _recurringPaymentService.ResumeRecurringPayment(userId, id);
         return ToActionResult(result);
     }
 

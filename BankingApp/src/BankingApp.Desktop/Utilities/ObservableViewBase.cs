@@ -1,11 +1,4 @@
-﻿// <copyright file="ObservableViewBase.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for ObservableViewBase.
-// </summary>
-
-namespace BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Observable view base class that implements the IStateObserver interface.
@@ -14,7 +7,7 @@ namespace BankingApp.Desktop.Utilities;
 public abstract class ObservableViewBase<T> : IStateObserver<T>
 {
     /// <inheritdoc />
-    /// <param name="value">The value value.</param>
+    /// <param name="value">The value 'value'.</param>
     public void Update(T value)
     {
         OnStateChanged(value);
@@ -25,7 +18,7 @@ public abstract class ObservableViewBase<T> : IStateObserver<T>
     ///     Implement this method to update the view based on the new state.
     /// </summary>
     /// <param name="state">The new state value.</param>
-    public abstract void OnStateChanged(T state);
+    protected abstract void OnStateChanged(T state);
 
     /// <summary>
     ///     Shows an error message to the user.
@@ -36,7 +29,7 @@ public abstract class ObservableViewBase<T> : IStateObserver<T>
     /// <summary>
     ///     Shows a loading indicator to the user, indicating that a background operation is in progress.
     /// </summary>
-    public abstract void ShowLoading();
+    protected abstract void ShowLoading();
 
     /// <summary>
     ///     Hides the loading indicator from the user interface.

@@ -1,13 +1,6 @@
-﻿// <copyright file="NotificationPreference.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the NotificationPreference class.
-// </summary>
+﻿namespace BankingApp.Domain.Entities;
 
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Domain.Entities;
+using Enums;
 
 /// <summary>
 ///     Represents a user's notification preferences for a specific category.
@@ -29,6 +22,11 @@ public class NotificationPreference
     ///     Gets or sets the current value.
     /// </value>
     public int UserId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the user this preference belongs to.
+    /// </summary>
+    public User? User { get; set; }
 
     /// <summary>
     ///     Gets or sets the notification category this preference applies to.

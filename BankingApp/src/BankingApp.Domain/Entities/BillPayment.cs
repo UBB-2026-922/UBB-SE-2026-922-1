@@ -1,14 +1,7 @@
-﻿// <copyright file="BillPayment.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPayment entity for the bill payment feature.
-// </summary>
+﻿namespace BankingApp.Domain.Entities;
 
 using System;
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Domain.Entities;
+using Enums;
 
 /// <summary>
 /// Represents a one-off bill payment made by a user to a registered biller.

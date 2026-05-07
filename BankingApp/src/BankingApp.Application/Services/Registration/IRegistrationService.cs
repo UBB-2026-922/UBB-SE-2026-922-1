@@ -1,17 +1,11 @@
-﻿// <copyright file="IRegistrationService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IRegistrationService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Registration;
 
-using BankingApp.Application.DataTransferObjects.Auth;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.Registration;
+using BankingApp.Application.DTOs.Auth;
 
 /// <summary>
-///     Defines operations for user registration, including standard and OAuth registration.
+///     Defines operations for user registration.
 /// </summary>
 public interface IRegistrationService
 {
@@ -27,17 +21,5 @@ public interface IRegistrationService
     ///     a conflict error with code <c>email_registered</c> if the email is already in use,
     ///     or a failure error if user creation fails.
     /// </returns>
-    ErrorOr<Success> Register(RegisterRequest request);
-
-    /// <summary>
-    ///     Registers a new user through an OAuth provider.
-    /// </summary>
-    /// <param name="request">The OAuth registration details.</param>
-    /// <returns>
-    ///     <see cref="Result.Success" /> on success,
-    ///     a validation error if the email is invalid,
-    ///     a conflict error if the OAuth account is already registered,
-    ///     or a failure error if user or link creation fails.
-    /// </returns>
-    ErrorOr<Success> OAuthRegister(OAuthRegisterRequest request);
+    public ErrorOr<Success> Register(RegisterRequest request);
 }

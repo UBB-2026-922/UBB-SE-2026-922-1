@@ -1,11 +1,4 @@
-﻿// <copyright file="IRegistrationContext.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IRegistrationContext interface.
-// </summary>
-
-namespace BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Carries transient state across the register → login navigation boundary.
@@ -19,5 +12,5 @@ public interface IRegistrationContext
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    bool JustRegistered { get; set; }
+    public bool JustRegistered { get; set; }
 }

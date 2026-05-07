@@ -1,12 +1,8 @@
-﻿// <copyright file="ForgotPasswordViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Desktop.Enums;
+using Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 /// <summary>
 ///     Tests for <see cref="ForgotPasswordViewModel" />.

@@ -1,13 +1,6 @@
-﻿// <copyright file="EnableTwoFaRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the EnableTwoFaRequest class.
-// </summary>
+﻿namespace BankingApp.Application.DTOs.Profile;
 
-using BankingApp.Application.Enums;
-
-namespace BankingApp.Application.DataTransferObjects.Profile;
+using Domain.Enums;
 
 /// <summary>
 ///     Represents a request to enable two-factor authentication.

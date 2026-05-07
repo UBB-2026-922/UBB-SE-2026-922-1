@@ -1,14 +1,7 @@
-﻿// <copyright file="IJsonWebTokenService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IJsonWebTokenService interface.
-// </summary>
+namespace BankingApp.Application.Services.Security;
 
 using System.Security.Claims;
 using ErrorOr;
-
-namespace BankingApp.Application.Services.Security;
 
 /// <summary>
 ///     Defines operations for generating, validating, and extracting data from JSON Web Tokens.
@@ -23,7 +16,7 @@ public interface IJsonWebTokenService
     ///     The signed JWT string on success,
     ///     or a failure error with code <c>jwt.generate_failed</c> if the underlying cryptographic operation throws.
     /// </returns>
-    ErrorOr<string> GenerateToken(int userId);
+    public ErrorOr<string> GenerateToken(int userId);
 
     /// <summary>
     ///     Validates a JWT and returns the associated claims principal.
@@ -34,7 +27,7 @@ public interface IJsonWebTokenService
     ///     or a validation error with code <c>token_expired</c> if the token has expired,
     ///     or <c>token_invalid</c> if the signature is invalid or the token is malformed.
     /// </returns>
-    ErrorOr<ClaimsPrincipal> ValidateToken(string token);
+    public ErrorOr<ClaimsPrincipal> ValidateToken(string token);
 
     /// <summary>
     ///     Extracts the user identifier from a JWT.
@@ -45,5 +38,5 @@ public interface IJsonWebTokenService
     ///     or a validation error propagated from <see cref="ValidateToken" /> if the token is invalid or expired,
     ///     or a validation error with code <c>token_missing_claim</c> if the token does not contain a valid user ID claim.
     /// </returns>
-    ErrorOr<int> ExtractUserId(string token);
+    public ErrorOr<int> ExtractUserId(string token);
 }

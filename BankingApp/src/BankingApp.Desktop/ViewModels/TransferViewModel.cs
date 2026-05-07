@@ -1,26 +1,21 @@
-﻿// <copyright file="TransferViewModel.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferViewModel class.
-// </summary>
+﻿namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BankingApp.Desktop.Models;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Transfer;
+using Services.Transfers;
+using Utilities;
 using ErrorOr;
-
-namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Drives the multi-step transfer wizard.
-///     Uses <see cref="IApiClient" /> for all server communication during the transfer flow.
+///     Uses <see cref="ITransferClientService" /> for all server communication during the transfer flow.
 /// </summary>
 public partial class TransferViewModel : INotifyPropertyChanged
 {
@@ -39,11 +34,11 @@ public partial class TransferViewModel : INotifyPropertyChanged
     private const string DefaultTransferCurrency = "EUR";
     private const int MinimumAccounts = 0;
     private const int FirstAccountIndex = 0;
-    private readonly IApiClient _apiClient;
+    private readonly ITransferClientService _transferClientService;
 
     private int _currentStep;
-    private ObservableCollection<TransferAccountDto> _accounts;
-    private TransferAccountDto? _selectedAccount;
+    private ObservableCollection<TransferAccountSelectionResponse> _accounts;
+    private TransferAccountSelectionResponse? _selectedAccount;
     private string _recipientName = string.Empty;
     private string _recipientIban = string.Empty;
     private bool _isIbanValid;
@@ -61,11 +56,11 @@ public partial class TransferViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferViewModel" /> class.
     /// </summary>
-    /// <param name="apiClient">The API client used for all transfer-related server calls.</param>
-    public TransferViewModel(IApiClient apiClient)
+    /// <param name="transferClientService">The client service used for all transfer-related server calls.</param>
+    public TransferViewModel(ITransferClientService transferClientService)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _accounts = new ObservableCollection<TransferAccountDto>();
+        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
+        _accounts = new ObservableCollection<TransferAccountSelectionResponse>();
         _currentStep = AccountSelectionStep;
 
         NextStepCommand = new RelayCommand(ExecuteNextStep);
@@ -103,7 +98,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public ObservableCollection<TransferAccountDto> Accounts
+    public ObservableCollection<TransferAccountSelectionResponse> Accounts
     {
         get => _accounts;
         set => SetProperty(ref _accounts, value);
@@ -115,7 +110,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public TransferAccountDto? SelectedAccount
+    public TransferAccountSelectionResponse? SelectedAccount
     {
         get => _selectedAccount;
         set
@@ -362,8 +357,8 @@ public partial class TransferViewModel : INotifyPropertyChanged
     {
         try
         {
-            ErrorOr<List<TransferAccountDto>> result =
-                await _apiClient.GetAsync<List<TransferAccountDto>>(ApiEndpoints.TransferAccounts);
+            ErrorOr<List<TransferAccountSelectionResponse>> result =
+                await _transferClientService.GetAccountsAsync();
 
             if (result.IsError)
             {
@@ -373,7 +368,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
 
             Accounts.Clear();
 
-            foreach (TransferAccountDto account in result.Value)
+            foreach (TransferAccountSelectionResponse account in result.Value)
             {
                 Accounts.Add(account);
             }
@@ -402,10 +397,11 @@ public partial class TransferViewModel : INotifyPropertyChanged
     ///     Generates a random six-digit 2FA token string for display to the user.
     /// </summary>
     /// <returns>A six-digit string token.</returns>
-    internal string GenerateTwoFaToken()
+    internal static string GenerateTwoFaToken()
     {
         var random = new Random();
-        return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive).ToString();
+        return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive)
+            .ToString(CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -473,20 +469,14 @@ public partial class TransferViewModel : INotifyPropertyChanged
                 throw new InvalidOperationException(UserMessages.Transfer.NoAccountSelected);
             }
 
-            var request = new TransferRequestDto
-            {
-                SourceAccountId = SelectedAccount.Id,
-                RecipientName = RecipientName,
-                RecipientIban = RecipientIban,
-                Amount = Amount,
-                Currency = Currency,
-                TwoFaToken = Requires2Fa ? TwoFaToken : null,
-            };
-
-            ErrorOr<TransferResultDto> result =
-                await _apiClient.PostAsync<TransferRequestDto, TransferResultDto>(
-                    ApiEndpoints.TransferExecute,
-                    request);
+            ErrorOr<TransferExecutionResponse> result =
+                await _transferClientService.ExecuteTransferAsync(
+                    SelectedAccount.Id,
+                    RecipientName,
+                    RecipientIban,
+                    Amount,
+                    Currency,
+                    Requires2Fa ? TwoFaToken : null);
 
             if (result.IsError)
             {
@@ -551,6 +541,8 @@ public partial class TransferViewModel : INotifyPropertyChanged
 
     private void ExecuteCancel()
     {
+        // TODO: implement.
+        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -562,10 +554,8 @@ public partial class TransferViewModel : INotifyPropertyChanged
     {
         try
         {
-            ErrorOr<ValidateIbanResponse> result =
-                await _apiClient.PostAsync<object, ValidateIbanResponse>(
-                    ApiEndpoints.TransferValidateIban,
-                    new { Iban = iban });
+            ErrorOr<TransferIbanValidationResponse> result =
+                await _transferClientService.ValidateIbanAsync(iban);
 
             if (result.IsError)
             {
@@ -599,10 +589,8 @@ public partial class TransferViewModel : INotifyPropertyChanged
                 return;
             }
 
-            string endpoint =
-                $"{ApiEndpoints.TransferFxPreview}?from={SelectedAccount.Currency}&to={Currency}&amount={Amount}";
-
-            ErrorOr<FxPreviewDto> result = await _apiClient.GetAsync<FxPreviewDto>(endpoint);
+            ErrorOr<TransferForexPreviewResponse> result =
+                await _transferClientService.GetFxPreviewAsync(SelectedAccount.Currency, Currency, Amount);
 
             if (result.IsError)
             {
@@ -610,7 +598,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
                 return;
             }
 
-            FxPreviewDto preview = result.Value;
+            TransferForexPreviewResponse preview = result.Value;
 
             if (preview.ExchangeRate == IdentityExchangeRate)
             {
@@ -659,10 +647,16 @@ public partial class TransferViewModel : INotifyPropertyChanged
 #pragma warning restore CS0067
 
         /// <inheritdoc />
-        public bool CanExecute(object? parameter) => true;
+        public bool CanExecute(object? parameter)
+        {
+            return true;
+        }
 
         /// <inheritdoc />
-        public void Execute(object? parameter) => _execute();
+        public void Execute(object? parameter)
+        {
+            _execute();
+        }
     }
 
     /// <summary>
@@ -686,7 +680,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
         public event EventHandler? CanExecuteChanged;
 
         /// <inheritdoc />
-        public bool CanExecute(object? parameter) => !_isExecuting;
+        public bool CanExecute(object? parameter)
+        {
+            return !_isExecuting;
+        }
 
         /// <inheritdoc />
         public void Execute(object? parameter)

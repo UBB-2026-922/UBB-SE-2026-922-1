@@ -1,13 +1,6 @@
-﻿// <copyright file="AuthErrors.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AuthErrors class.
-// </summary>
+﻿namespace BankingApp.Domain.Errors;
 
 using ErrorOr;
-
-namespace BankingApp.Domain.Errors;
 
 /// <summary>
 ///     Canonical error definitions for authentication and login flows.
@@ -42,14 +35,6 @@ public static class AuthErrors
     public static readonly Error OtpAttemptsExceeded =
         Error.Unauthorized("otp_attempts_exceeded", "Too many incorrect OTP entries. Please restart login.");
 
-    /// <summary>The requested OAuth provider is not supported.</summary>
-    public static readonly Error UnsupportedProvider =
-        Error.Validation("unsupported_provider", "Unsupported OAuth Provider.");
-
-    /// <summary>The Google ID token could not be validated.</summary>
-    public static readonly Error InvalidGoogleToken =
-        Error.Validation("invalid_google_token", "Invalid Google authentication token.");
-
     /// <summary>No user account exists for the given identifier.</summary>
     public static readonly Error UserNotFound =
         Error.NotFound("user_not_found", "User not found.");
@@ -57,17 +42,4 @@ public static class AuthErrors
     /// <summary>An account with the given email address already exists.</summary>
     public static readonly Error EmailAlreadyRegistered =
         Error.Conflict("email_registered", "Email is already registered.");
-
-    /// <summary>The OAuth account is already registered; the user should log in instead.</summary>
-    public static readonly Error OAuthAlreadyRegistered =
-        Error.Conflict("oauth_already_registered", "This OAuth account is already registered. Please login.");
-
-    /// <summary>The Google OAuth provider is already linked to this account.</summary>
-    public static readonly Error OAuthAlreadyLinked =
-        Error.Conflict("oauth_already_linked", "Google OAuth is already linked.");
-
-    /// <summary>No linked Google OAuth account was found for this user.</summary>
-    public static readonly Error OAuthLinkNotFound =
-        Error.NotFound("oauth_link_not_found", "Google OAuth is not linked.");
-
 }

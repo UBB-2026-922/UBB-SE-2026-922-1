@@ -1,15 +1,8 @@
-﻿// <copyright file="AsyncRelayCommand.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AsyncRelayCommand class.
-// </summary>
+namespace BankingApp.Desktop.Commands;
 
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
-
-namespace BankingApp.Desktop.Commands;
 
 /// <summary>
 ///     A command that executes an asynchronous action and prevents concurrent execution.
@@ -48,7 +41,7 @@ public partial class AsyncRelayCommand : ICommand
     /// </summary>
     /// <param name="parameter">The command parameter.</param>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
-    public async Task ExecuteAsync(object? parameter)
+    private async Task ExecuteAsync(object? parameter)
     {
         _isExecutionInProgress = true;
         RaiseCanExecuteChanged();
@@ -67,7 +60,7 @@ public partial class AsyncRelayCommand : ICommand
     /// <summary>
     ///     Raises the <see cref="CanExecuteChanged" /> event so the UI re-evaluates command availability.
     /// </summary>
-    public void RaiseCanExecuteChanged()
+    private void RaiseCanExecuteChanged()
     {
         CanExecuteChanged?.Invoke(this, EventArgs.Empty);
     }

@@ -1,23 +1,14 @@
-﻿// <copyright file="AccountDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AccountDataAccess class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using Interfaces;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides SQL Server data access for bank account records.
 /// </summary>
 public class AccountDataAccess : IAccountDataAccess
 {
-
     private readonly AppDatabaseContext _databaseContext;
 
     /// <summary>
@@ -35,8 +26,8 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Account> FindById(int id)
     {
-        Account? account = _databaseContext.Accounts.FirstOrDefault(account => account.Id == id);
-        if(account == null)
+        Account? account = _databaseContext.Accounts.FirstOrDefault(a => a.Id == id);
+        if (account == null)
         {
             return Error.NotFound(description: "Account not found.");
         }
@@ -49,7 +40,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Account>> FindByUserId(int userId)
     {
-        List<Account> accounts = _databaseContext.Accounts.Where(account => account.UserId == userId).ToList();
+        var accounts = _databaseContext.Accounts.Where(a => a.UserId == userId).ToList();
         return accounts;
     }
 

@@ -1,16 +1,12 @@
-﻿// <copyright file="PasswordRecoveryServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Application.Tests.Services;
 
-using BankingApp.Application.Repositories.Interfaces;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="PasswordRecoveryService" />.
@@ -144,7 +140,7 @@ public class PasswordRecoveryServiceTests
                     Id = 1,
                     UserId = 1,
                     ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes),
-                    UsedAt = DateTime.UtcNow,
+                    UsedAt = DateTime.UtcNow
                 });
 
         var service = new PasswordRecoveryService(
@@ -178,7 +174,7 @@ public class PasswordRecoveryServiceTests
                 {
                     Id = 1,
                     UserId = 1,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes),
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes)
                 });
 
         var service = new PasswordRecoveryService(

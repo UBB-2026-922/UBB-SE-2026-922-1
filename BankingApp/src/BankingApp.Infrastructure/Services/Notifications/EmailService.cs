@@ -1,17 +1,12 @@
-﻿// <copyright file="EmailService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the EmailService class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Services.Notifications;
 
 using System.Net;
 using System.Net.Mail;
+using System.Globalization;
 using BankingApp.Application.Services.Notifications;
+using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Infrastructure.Services.Notifications;
 
 /// <summary>
 ///     Sends transactional emails using SMTP _configuration from application settings.
@@ -72,7 +67,8 @@ public class EmailService : IEmailService
                           throw new InvalidOperationException("Email:SmtpHost is missing from _configuration.");
             int port = int.Parse(
                 _configuration["Email:SmtpPort"] ??
-                throw new InvalidOperationException("Email:SmtpPort is missing from _configuration."));
+                throw new InvalidOperationException("Email:SmtpPort is missing from _configuration."),
+                CultureInfo.InvariantCulture);
             string smtpUsername = _configuration["Email:SmtpUser"] ??
                                   throw new InvalidOperationException("Email:SmtpUser is missing from _configuration.");
             string smtpPassword = _configuration["Email:SmtpPass"] ??
@@ -87,11 +83,7 @@ public class EmailService : IEmailService
         }
         catch (Exception exception)
         {
-            _logger.LogError(
-                exception,
-                "Failed to send email to {ToEmail} with subject '{Subject}'.",
-                toEmail,
-                subject);
+            _logger.EmailSendFailed(exception, toEmail, subject);
         }
     }
 }

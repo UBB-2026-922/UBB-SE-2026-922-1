@@ -1,15 +1,11 @@
-﻿// <copyright file="RateAlertsControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests.Controller;
 
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.TeamB;
-using BankingApp.Application.Services.TeamB;
+using Controllers;
+using Application.DTOs.RateAlerts;
+using Application.Services.RateAlerts;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 [Trait("Category", "Unit")]
 public sealed class RateAlertsControllerTests

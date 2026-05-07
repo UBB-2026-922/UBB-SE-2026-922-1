@@ -1,17 +1,12 @@
-﻿// <copyright file="DashboardView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for DashboardView.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Enums;
+using Utilities;
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -20,12 +15,10 @@ using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
 
-namespace BankingApp.Desktop.Views;
-
 /// <summary>
 ///     Displays the authenticated user's account summary, card carousel, and recent transactions.
 /// </summary>
-public sealed partial class DashboardView : IStateObserver<DashboardState>
+public sealed partial class DashboardView : IStateObserver<DashboardState>, IDisposable
 {
     private const int ActiveCardDotSize = 18;
     private const int InactiveCardDotSize = 8;
@@ -50,6 +43,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
         DotBlueChannel);
 
     private readonly DashboardViewModel _viewModel;
+    private bool _disposed;
     private bool _isObserverAttached;
     private CancellationTokenSource? _loadCancellationTokenSource;
 
@@ -62,6 +56,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
         InitializeComponent();
         _viewModel = viewModel;
         Loaded += OnPageLoaded;
+        Unloaded += OnPageUnloaded;
     }
 
     /// <inheritdoc />
@@ -76,14 +71,31 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
+        Dispose();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
         CancelPendingLoad();
         DetachObserver();
+        _disposed = true;
     }
 
     private void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         AttachObserver();
         _ = RunUiTaskAsync(LoadDashboardAsync);
+    }
+
+    private void OnPageUnloaded(object sender, RoutedEventArgs e)
+    {
+        Dispose();
     }
 
     /// <summary>
@@ -179,7 +191,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
             {
                 Width = dotViewModel.IsActive ? ActiveCardDotSize : InactiveCardDotSize,
                 Height = InactiveCardDotSize,
-                Fill = new SolidColorBrush(dotViewModel.IsActive ? _activeDotColor : _inactiveDotColor),
+                Fill = new SolidColorBrush(dotViewModel.IsActive ? _activeDotColor : _inactiveDotColor)
             };
             CardDots.Children.Add(dot);
         }
@@ -287,7 +299,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>
             Title = title,
             Content = message,
             CloseButtonText = "OK",
-            XamlRoot = XamlRoot,
+            XamlRoot = XamlRoot
         };
         await dialog.ShowAsync();
     }

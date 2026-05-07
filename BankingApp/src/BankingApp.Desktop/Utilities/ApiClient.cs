@@ -1,9 +1,4 @@
-﻿// <copyright file="ApiClient.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ApiClient class.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Net;
@@ -12,23 +7,20 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects;
-using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Application.DTOs;
+using Application.DTOs;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.Utilities;
-
 /// <summary>
 ///     Provides a thin wrapper around <see cref="HttpClient" /> for the application's API calls.
 /// </summary>
-public class ApiClient : IApiClient
+public sealed partial class ApiClient : IApiClient, IDisposable
 {
     private readonly Error? _configurationError;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ApiClient> _logger;
+    private bool _disposed;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ApiClient" /> class.
@@ -48,7 +40,7 @@ public class ApiClient : IApiClient
             _configurationError = Error.Failure(
                 "ApiClient.MissingBaseUrl",
                 "ApiBaseUrl is missing from configuration.");
-            _logger.LogCritical("ApiBaseUrl is missing from configuration. The client cannot connect to the server.");
+            _logger.ApiBaseUrlMissing();
             // Dummy client — requests must not be issued when configurationError is set.
             _httpClient = new HttpClient();
         }
@@ -75,14 +67,18 @@ public class ApiClient : IApiClient
     public string? Token { get; private set; }
 
     /// <summary>
-    ///     Returns <see cref="Success" /> when the client is correctly configured,
-    ///     or a <see cref="Error.Failure" /> describing the missing configuration otherwise.
-    ///     Callers should check this before issuing any requests.
+    /// Check whether the configuration has any errors.
     /// </summary>
-    /// <returns>The result of the operation.</returns>
+    /// <remarks>
+    ///     Callers should check this before issuing any requests.
+    /// </remarks>
+    /// <returns>
+    ///     <see cref="Success" /> when the client is correctly configured,
+    ///     or a <see cref="Error.Failure" /> describing the missing configuration otherwise.
+    /// </returns>
     public ErrorOr<Success> EnsureConfigured()
     {
-        return _configurationError is null ? Result.Success : _configurationError.Value;
+        return _configurationError ?? ErrorOrFactory.From(Result.Success);
     }
 
     /// <summary>
@@ -132,7 +128,7 @@ public class ApiClient : IApiClient
     /// <param name="endpoint">The relative endpoint to call.</param>
     /// <param name="data">The request body to serialize.</param>
     /// <returns>The deserialized response body, or an <see cref="Error" /> if the request fails.</returns>
-    public virtual async Task<ErrorOr<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, object? data)
+    public async Task<ErrorOr<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, object? data)
     {
         try
         {
@@ -142,7 +138,7 @@ public class ApiClient : IApiClient
                 return await MapErrorAsync(response, endpoint, CancellationToken.None);
             }
 
-            var result = await response.Content.ReadFromJsonAsync<TResponse>();
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
             if (result is null)
             {
                 return Error.Failure(description: $"POST {endpoint} returned an empty response.");
@@ -168,7 +164,7 @@ public class ApiClient : IApiClient
     /// <param name="endpoint">The relative endpoint to call.</param>
     /// <param name="data">The request body to serialize.</param>
     /// <returns><see cref="Result.Success" /> on a 2xx response, or an <see cref="Error" /> otherwise.</returns>
-    public virtual async Task<ErrorOr<Success>> PostAsync<TRequest>(string endpoint, TRequest data)
+    public async Task<ErrorOr<Success>> PostAsync<TRequest>(string endpoint, TRequest data)
     {
         try
         {
@@ -196,7 +192,7 @@ public class ApiClient : IApiClient
     ///     Used to cancel the in-flight HTTP request. Defaults to <see cref="CancellationToken.None" />.
     /// </param>
     /// <returns>The deserialized response body, or an <see cref="Error" /> if the request fails.</returns>
-    public virtual async Task<ErrorOr<TResponse>> GetAsync<TResponse>(
+    public async Task<ErrorOr<TResponse>> GetAsync<TResponse>(
         string endpoint,
         CancellationToken cancellationToken = default)
     {
@@ -208,13 +204,9 @@ public class ApiClient : IApiClient
                 return await MapErrorAsync(response, endpoint, cancellationToken);
             }
 
-            var result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
-            if (result is null)
-            {
-                return Error.Failure(description: $"GET {endpoint} returned an empty response.");
-            }
-
-            return result;
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
+            return result ??
+                   (ErrorOr<TResponse>)Error.Failure(description: $"GET {endpoint} returned an empty response.");
         }
         catch (HttpRequestException exception)
         {
@@ -244,13 +236,9 @@ public class ApiClient : IApiClient
                 return await MapErrorAsync(response, endpoint, CancellationToken.None);
             }
 
-            var result = await response.Content.ReadFromJsonAsync<TResponse>();
-            if (result is null)
-            {
-                return Error.Failure(description: $"PUT {endpoint} returned an empty response.");
-            }
-
-            return result;
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
+            return result ??
+                   (ErrorOr<TResponse>)Error.Failure(description: $"PUT {endpoint} returned an empty response.");
         }
         catch (HttpRequestException exception)
         {
@@ -270,7 +258,7 @@ public class ApiClient : IApiClient
     /// <param name="endpoint">The relative endpoint to call.</param>
     /// <param name="data">The request body to serialize.</param>
     /// <returns><see cref="Result.Success" /> on a 2xx response, or an <see cref="Error" /> otherwise.</returns>
-    public virtual async Task<ErrorOr<Success>> PutAsync<TRequest>(string endpoint, TRequest data)
+    public async Task<ErrorOr<Success>> PutAsync<TRequest>(string endpoint, TRequest data)
     {
         try
         {
@@ -314,21 +302,34 @@ public class ApiClient : IApiClient
         }
     }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _httpClient.Dispose();
+        _disposed = true;
+        GC.SuppressFinalize(obj: this);
+    }
+
     private static async Task<Error> MapErrorAsync(
         HttpResponseMessage response,
         string endpoint,
         CancellationToken cancellationToken)
     {
-        var errorCode = string.Empty;
+        string errorCode = string.Empty;
         string description;
         try
         {
-            var errorBody = await response.Content
+            ApplicationErrorResponse? errorBody = await response.Content
                 .ReadFromJsonAsync<ApplicationErrorResponse>(cancellationToken);
             if (errorBody is not null && !string.IsNullOrWhiteSpace(errorBody.Error))
             {
                 description = errorBody.Error;
-                errorCode = errorBody.ErrorCode ?? string.Empty;
+                errorCode = errorBody.ErrorCode;
             }
             else
             {

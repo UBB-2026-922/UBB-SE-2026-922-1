@@ -1,13 +1,6 @@
-﻿// <copyright file="Beneficiary.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the Beneficiary entity for Team B's beneficiary management feature.
-// </summary>
+﻿namespace BankingApp.Domain.Entities;
 
 using System;
-
-namespace BankingApp.Domain.Entities;
 
 /// <summary>
 ///     Represents a beneficiary to whom a user can send money.
@@ -34,6 +27,11 @@ public class Beneficiary
     ///     Gets or sets the current value.
     /// </value>
     public int UserId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the user who owns this beneficiary.
+    /// </summary>
+    public User? User { get; set; }
 
     /// <summary>
     ///     Gets or sets the name of the beneficiary.

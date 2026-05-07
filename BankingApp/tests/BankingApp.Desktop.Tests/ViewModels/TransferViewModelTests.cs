@@ -1,14 +1,11 @@
-﻿// <copyright file="TransferViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Collections.Generic;
-using BankingApp.Desktop.Models;
+using Application.DTOs.Transfer;
+using Services.Transfers;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 /// <summary>
 ///     Tests for the <see cref="TransferViewModel" />.
@@ -23,7 +20,7 @@ public class TransferViewModelTests
     private const int TransferCompletedStep = 6;
     private const int TransferErrorStep = 7;
 
-    private readonly Mock<IApiClient> _apiClient;
+    private readonly Mock<ITransferClientService> _transferClientService;
     private readonly TransferViewModel _viewModel;
 
     /// <summary>
@@ -32,8 +29,8 @@ public class TransferViewModelTests
     /// </summary>
     public TransferViewModelTests()
     {
-        _apiClient = new Mock<IApiClient>(MockBehavior.Loose);
-        _viewModel = new TransferViewModel(_apiClient.Object);
+        _transferClientService = new Mock<ITransferClientService>(MockBehavior.Loose);
+        _viewModel = new TransferViewModel(_transferClientService.Object);
     }
 
     /// <summary>
@@ -45,15 +42,14 @@ public class TransferViewModelTests
     public async Task LoadAccountsAsync_WhenApiReturnsAccounts_PopulatesAccountsAndSelectsFirst()
     {
         // Arrange
-        var accounts = new List<TransferAccountDto>
+        var accounts = new List<TransferAccountSelectionResponse>
         {
-            new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR", Balance = 1000m },
-            new TransferAccountDto { Id = 2, AccountName = "Savings", Currency = "USD", Balance = 500m },
+            new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR", Balance = 1000m },
+            new TransferAccountSelectionResponse { Id = 2, AccountName = "Savings", Currency = "USD", Balance = 500m }
         };
 
-        _apiClient
-            .Setup(client => client.GetAsync<List<TransferAccountDto>>(
-                ApiEndpoints.TransferAccounts, default))
+        _transferClientService
+            .Setup(service => service.GetAccountsAsync(default))
             .ReturnsAsync(accounts);
 
         // Act
@@ -75,9 +71,8 @@ public class TransferViewModelTests
     public async Task LoadAccountsAsync_WhenApiFails_SetsErrorMessage()
     {
         // Arrange
-        _apiClient
-            .Setup(client => client.GetAsync<List<TransferAccountDto>>(
-                ApiEndpoints.TransferAccounts, default))
+        _transferClientService
+            .Setup(service => service.GetAccountsAsync(default))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -190,16 +185,20 @@ public class TransferViewModelTests
     {
         // Arrange
         const string expectedRef = "TXN-20260504-0001";
-        _viewModel.SelectedAccount = new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR" };
+        _viewModel.SelectedAccount = new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR" };
         _viewModel.RecipientName = "Jane Doe";
         _viewModel.Amount = 250m;
         _viewModel.Currency = "EUR";
 
-        _apiClient
-            .Setup(client => client.PostAsync<TransferRequestDto, TransferResultDto>(
-                ApiEndpoints.TransferExecute,
-                It.IsAny<object?>()))
-            .ReturnsAsync(new TransferResultDto { TransactionRef = expectedRef });
+        _transferClientService
+            .Setup(service => service.ExecuteTransferAsync(
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<decimal>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>()))
+            .ReturnsAsync(new TransferExecutionResponse { TransactionRef = expectedRef });
 
         // Act
         await _viewModel.ExecuteTransferAsync();
@@ -220,12 +219,16 @@ public class TransferViewModelTests
     {
         // Arrange
         const string errorDescription = "Insufficient funds.";
-        _viewModel.SelectedAccount = new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR" };
+        _viewModel.SelectedAccount = new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR" };
 
-        _apiClient
-            .Setup(client => client.PostAsync<TransferRequestDto, TransferResultDto>(
-                ApiEndpoints.TransferExecute,
-                It.IsAny<object?>()))
+        _transferClientService
+            .Setup(service => service.ExecuteTransferAsync(
+                It.IsAny<int>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<decimal>(),
+                It.IsAny<string>(),
+                It.IsAny<string?>()))
             .ReturnsAsync(Error.Failure(description: errorDescription));
 
         // Act
@@ -243,14 +246,13 @@ public class TransferViewModelTests
     public async Task ExecuteSendAgain_ResetsAllFieldsAndReturnsToStep1()
     {
         // Arrange - set up accounts and dirty state
-        var accounts = new List<TransferAccountDto>
+        var accounts = new List<TransferAccountSelectionResponse>
         {
-            new TransferAccountDto { Id = 1, AccountName = "Main", Currency = "EUR" },
+            new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR" }
         };
 
-        _apiClient
-            .Setup(client => client.GetAsync<List<TransferAccountDto>>(
-                ApiEndpoints.TransferAccounts, default))
+        _transferClientService
+            .Setup(service => service.GetAccountsAsync(default))
             .ReturnsAsync(accounts);
 
         await _viewModel.LoadAccountsAsync();

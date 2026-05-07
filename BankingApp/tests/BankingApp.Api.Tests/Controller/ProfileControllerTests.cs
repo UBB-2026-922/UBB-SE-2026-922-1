@@ -1,16 +1,12 @@
-﻿// <copyright file="ProfileControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests.Controller;
 
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
-using BankingApp.Application.Services.Profile;
+using Controllers;
+using Application.DTOs.Profile;
+using Application.Services.Profile;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 /// <summary>
 ///     Unit tests for <see cref="ProfileController" /> verifying route contracts
@@ -28,7 +24,7 @@ public sealed class ProfileControllerTests
     public void GetProfile_WhenSuccess_ReturnsOk()
     {
         // Arrange
-        var info = new ProfileInfo();
+        var info = new ProfileDto();
         _profileService.Setup(getsProfile => getsProfile.GetProfile(1)).Returns(info);
         ProfileController controller = CreateController(1);
 
@@ -122,7 +118,7 @@ public sealed class ProfileControllerTests
     public void GetSessions_WhenSuccess_ReturnsOk()
     {
         // Arrange
-        var sessions = new List<SessionDataTransferObject>();
+        var sessions = new List<SessionDto>();
         _profileService.Setup(getsActiveSessions => getsActiveSessions.GetActiveSessions(1)).Returns(sessions);
         ProfileController controller = CreateController(1);
 
@@ -151,31 +147,13 @@ public sealed class ProfileControllerTests
     }
 
     /// <summary>
-    ///     Verifies the GetOAuthLinks_WhenSuccess_ReturnsOk scenario.
-    /// </summary>
-    [Fact]
-    public void GetOAuthLinks_WhenSuccess_ReturnsOk()
-    {
-        // Arrange
-        var links = new List<OAuthLinkDataTransferObject>();
-        _profileService.Setup(getsOAuthLinks => getsOAuthLinks.GetOAuthLinks(1)).Returns(links);
-        ProfileController controller = CreateController(1);
-
-        // Act
-        IActionResult result = controller.GetOAuthLinks();
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    /// <summary>
     ///     Verifies the GetNotificationPreferences_WhenSuccess_ReturnsOk scenario.
     /// </summary>
     [Fact]
     public void GetNotificationPreferences_WhenSuccess_ReturnsOk()
     {
         // Arrange
-        var preferences = new List<NotificationPreferenceDataTransferObject>();
+        var preferences = new List<NotificationPreferenceDto>();
         _profileService.Setup(getsNotificationPreferences => getsNotificationPreferences.GetNotificationPreferences(1))
             .Returns(preferences);
         ProfileController controller = CreateController(1);
@@ -194,7 +172,7 @@ public sealed class ProfileControllerTests
     public void UpdateNotificationPreferences_WhenSuccess_ReturnsNoContent()
     {
         // Arrange
-        var preferences = new List<NotificationPreferenceDataTransferObject>();
+        var preferences = new List<NotificationPreferenceDto>();
         _profileService
             .Setup(updatesNotificationPreferences =>
                 updatesNotificationPreferences.UpdateNotificationPreferences(1, preferences)).Returns(Result.Success);
@@ -218,7 +196,7 @@ public sealed class ProfileControllerTests
         ProfileController controller = CreateController(1);
 
         // Act
-        IActionResult result = controller.Enable2Fa(new Enable2FaRequest { Method = TwoFactorMethod.Email });
+        IActionResult result = controller.Enable2Fa(new EnableTwoFaRequest { Method = TwoFactorMethod.Email });
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -248,8 +226,8 @@ public sealed class ProfileControllerTests
         {
             Items =
             {
-                ["UserId"] = authenticatedUserId,
-            },
+                ["UserId"] = authenticatedUserId
+            }
         };
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return controller;

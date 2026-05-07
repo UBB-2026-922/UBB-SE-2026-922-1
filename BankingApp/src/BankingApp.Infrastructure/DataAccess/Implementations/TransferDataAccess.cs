@@ -1,17 +1,9 @@
-﻿// <copyright file="TransferDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the TransferDataAccess class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
+using Interfaces;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides EF Core data access for transfer records.
@@ -52,12 +44,7 @@ public class TransferDataAccess : ITransferDataAccess
     public ErrorOr<Transfer> FindById(int transferId)
     {
         Transfer? transfer = _databaseContext.Transfers.FirstOrDefault(transfer => transfer.Id == transferId);
-        if (transfer is null)
-        {
-            return Error.NotFound(description: "Transfer not found.");
-        }
-
-        return transfer;
+        return transfer ?? (ErrorOr<Transfer>)Error.NotFound(description: "Transfer not found.");
     }
 
     /// <inheritdoc />
@@ -65,7 +52,7 @@ public class TransferDataAccess : ITransferDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Transfer>> FindByUserId(int userId)
     {
-        List<Transfer> transfers = _databaseContext.Transfers
+        var transfers = _databaseContext.Transfers
             .Where(transfer => transfer.UserId == userId)
             .OrderByDescending(transfer => transfer.CreatedAt)
             .ToList();

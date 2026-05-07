@@ -1,15 +1,8 @@
-﻿// <copyright file="BillersController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillersController class.
-// </summary>
-
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.Services.Billers;
-using Microsoft.AspNetCore.Mvc;
-
 namespace BankingApp.Api.Controllers;
+
+using Application.DTOs.Billers;
+using Application.Services.Billers;
+using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
 ///     Controller for biller directory lookup and saved-biller CRUD.
@@ -41,10 +34,10 @@ public class BillersController : ApiControllerBase
     {
         if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(category))
         {
-            return ToActionResult(_billerService.SearchBillers(search ?? string.Empty, category), data => Ok(data));
+            return ToActionResult(_billerService.SearchBillers(search ?? string.Empty, category), Ok);
         }
 
-        return ToActionResult(_billerService.GetBillerDirectory(), data => Ok(data));
+        return ToActionResult(_billerService.GetBillerDirectory(), Ok);
     }
 
     /// <summary>
@@ -55,7 +48,7 @@ public class BillersController : ApiControllerBase
     public IActionResult GetSavedBillers()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_billerService.GetSavedBillers(userId), data => Ok(data));
+        return ToActionResult(_billerService.GetSavedBillers(userId), Ok);
     }
 
     /// <summary>

@@ -1,29 +1,22 @@
-﻿// <copyright file="ProfileService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Profile;
 
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
-using BankingApp.Application.Mapping;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
+using Logging;
+using Repositories.Interfaces;
+using Security;
+using Utilities;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Application.Services.Profile;
+using BankingApp.Application.DTOs.Profile;
 
 /// <summary>
-///     Provides user profile management operations including personal info, passwords, 2FA, OAuth, and notifications.
+///     Provides user profile management operations including personal info, passwords, 2FA, and notifications.
 /// </summary>
 public class ProfileService : IProfileService
 {
-    private const string GoogleOAuthProvider = "Google";
     private readonly IHashService _hashService;
     private readonly ILogger<ProfileService> _logger;
     private readonly IUserRepository _userRepository;
@@ -45,16 +38,16 @@ public class ProfileService : IProfileService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<ProfileInfo> GetProfile(int userId)
+    public ErrorOr<ProfileDto> GetProfile(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Profile fetch failed: user {UserId} not found.", userId);
+            _logger.ProfileFetchUserNotFound(userId);
             return userResult.FirstError;
         }
 
-        return new ProfileInfo(userResult.Value);
+        return new ProfileDto(userResult.Value);
     }
 
     /// <inheritdoc />
@@ -71,7 +64,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Profile update failed: user {UserId} not found.", userId);
+            _logger.ProfileUpdateUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -121,13 +114,14 @@ public class ProfileService : IProfileService
             user.PreferredLanguage = request.PreferredLanguage.Trim();
         }
 
-        if (_userRepository.UpdateUser(user).IsError)
+        if (!_userRepository.UpdateUser(user).IsError)
         {
-            _logger.LogError("Profile update failed for user {UserId}.", userId);
-            return UserErrors.UpdateFailed;
+            return Result.Success;
         }
 
-        return Result.Success;
+        _logger.ProfileUpdateFailed(userId);
+        return UserErrors.UpdateFailed;
+
     }
 
     /// <inheritdoc />
@@ -138,7 +132,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(request.UserId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Password change failed: user {UserId} not found.", request.UserId);
+            _logger.PasswordChangeUserNotFound(request.UserId);
             return userResult.FirstError;
         }
 
@@ -150,7 +144,7 @@ public class ProfileService : IProfileService
 
         if (user.PasswordHash is null)
         {
-            _logger.LogWarning("Password change rejected for OAuth-only account {UserId}.", user.Id);
+            _logger.PasswordChangeOAuthOnlyRejected(user.Id);
             // Use the generic password failure so password checks do not reveal whether a local password exists.
             return ProfileErrors.IncorrectPassword;
         }
@@ -158,30 +152,30 @@ public class ProfileService : IProfileService
         ErrorOr<bool> verifyResult = _hashService.Verify(request.CurrentPassword, user.PasswordHash);
         if (verifyResult.IsError)
         {
-            _logger.LogError("Hash verification threw during password change for user {UserId}.", user.Id);
+            _logger.PasswordChangeHashVerificationFailed(user.Id);
             return verifyResult.FirstError;
         }
 
         if (!verifyResult.Value)
         {
-            _logger.LogWarning("Password change failed for user {UserId}: incorrect current password.", user.Id);
+            _logger.PasswordChangeIncorrectCurrentPassword(user.Id);
             return ProfileErrors.IncorrectPassword;
         }
 
         ErrorOr<string> newHashResult = _hashService.GetHash(request.NewPassword);
         if (newHashResult.IsError)
         {
-            _logger.LogError("Hash generation failed during password change for user {UserId}.", user.Id);
+            _logger.PasswordChangeHashGenerationFailed(user.Id);
             return newHashResult.FirstError;
         }
 
         if (_userRepository.UpdatePassword(user.Id, newHashResult.Value).IsError)
         {
-            _logger.LogError("Password update failed for user {UserId}.", user.Id);
+            _logger.PasswordUpdateFailed(user.Id);
             return UserErrors.PasswordUpdateFailed;
         }
 
-        _logger.LogInformation("Password changed successfully for user {UserId}.", user.Id);
+        _logger.PasswordChangedSuccessfully(user.Id);
         return Result.Success;
     }
 
@@ -194,19 +188,19 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Enable 2FA failed: user {UserId} not found.", userId);
+            _logger.EnableTwoFactorUserNotFound(userId);
             return userResult.FirstError;
         }
 
         User user = userResult.Value;
-        user.Enable2Fa(DomainEnumMapper.ToDomain(method));
+        user.Enable2Fa(method);
         if (_userRepository.UpdateUser(user).IsError)
         {
-            _logger.LogError("Failed to enable 2FA for user {UserId}.", userId);
+            _logger.EnableTwoFactorFailed(userId);
             return UserErrors.Enable2FaFailed;
         }
 
-        _logger.LogInformation("2FA enabled for user {UserId} via {Method}.", userId, method);
+        _logger.EnableTwoFactorSucceeded(userId, method);
         return Result.Success;
     }
 
@@ -218,7 +212,7 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Disable 2FA failed: user {UserId} not found.", userId);
+            _logger.DisableTwoFactorUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -226,181 +220,43 @@ public class ProfileService : IProfileService
         user.Disable2Fa();
         if (_userRepository.UpdateUser(user).IsError)
         {
-            _logger.LogError("Failed to disable 2FA for user {UserId}.", userId);
+            _logger.DisableTwoFactorFailed(userId);
             return UserErrors.Disable2FaFailed;
         }
 
-        _logger.LogInformation("2FA disabled for user {UserId}.", userId);
+        _logger.DisableTwoFactorSucceeded(userId);
         return Result.Success;
     }
 
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<OAuthLinkDataTransferObject>> GetOAuthLinks(int userId)
+    public ErrorOr<List<NotificationPreferenceDto>> GetNotificationPreferences(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("OAuth links fetch failed: user {UserId} not found.", userId);
-            return userResult.FirstError;
-        }
-
-        ErrorOr<List<OAuthLink>> linksResult = _userRepository.GetLinkedProviders(userId);
-        if (linksResult.IsError)
-        {
-            _logger.LogError(
-                "Failed to fetch OAuth links for user {UserId}: {Error}",
-                userId,
-                linksResult.FirstError.Description);
-            return linksResult.FirstError;
-        }
-
-        return linksResult.Value
-            .Select(oauthLink => new OAuthLinkDataTransferObject
-            {
-                Id = oauthLink.Id,
-                Provider = oauthLink.Provider,
-                ProviderEmail = oauthLink.ProviderEmail,
-                LinkedAt = oauthLink.LinkedAt,
-            })
-            .ToList();
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <param name="provider">The provider value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> LinkOAuth(int userId, string provider)
-    {
-        if (!IsSupportedOAuthProvider(provider))
-        {
-            return ProfileErrors.UnsupportedOAuthProvider;
-        }
-
-        ErrorOr<User> userResult = _userRepository.FindById(userId);
-        if (userResult.IsError)
-        {
-            _logger.LogWarning("OAuth link failed: user {UserId} not found.", userId);
-            return userResult.FirstError;
-        }
-
-        ErrorOr<List<OAuthLink>> linksResult = _userRepository.GetLinkedProviders(userId);
-        if (linksResult.IsError)
-        {
-            _logger.LogError(
-                "Failed to fetch OAuth links for user {UserId}: {Error}",
-                userId,
-                linksResult.FirstError.Description);
-            return linksResult.FirstError;
-        }
-
-        if (linksResult.Value.Any(link => string.Equals(
-                link.Provider,
-                GoogleOAuthProvider,
-                StringComparison.OrdinalIgnoreCase)))
-        {
-            return AuthErrors.OAuthAlreadyLinked;
-        }
-
-        var providerUserId = $"local:{userId}:{GoogleOAuthProvider}";
-        ErrorOr<Success> result = _userRepository.SaveOAuthLink(
-            userId,
-            GoogleOAuthProvider,
-            providerUserId,
-            userResult.Value.Email);
-        if (result.IsError)
-        {
-            _logger.LogError(
-                "Failed to link Google OAuth for user {UserId}: {Error}",
-                userId,
-                result.FirstError.Description);
-            return result.FirstError;
-        }
-
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <param name="provider">The provider value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> UnlinkOAuth(int userId, string provider)
-    {
-        if (!IsSupportedOAuthProvider(provider))
-        {
-            return ProfileErrors.UnsupportedOAuthProvider;
-        }
-
-        ErrorOr<User> userResult = _userRepository.FindById(userId);
-        if (userResult.IsError)
-        {
-            _logger.LogWarning("OAuth unlink failed: user {UserId} not found.", userId);
-            return userResult.FirstError;
-        }
-
-        ErrorOr<List<OAuthLink>> linksResult = _userRepository.GetLinkedProviders(userId);
-        if (linksResult.IsError)
-        {
-            _logger.LogError(
-                "Failed to fetch OAuth links for user {UserId}: {Error}",
-                userId,
-                linksResult.FirstError.Description);
-            return linksResult.FirstError;
-        }
-
-        OAuthLink? link = linksResult.Value.FirstOrDefault(oauthLink =>
-            string.Equals(oauthLink.Provider, GoogleOAuthProvider, StringComparison.OrdinalIgnoreCase));
-        if (link is null)
-        {
-            return AuthErrors.OAuthLinkNotFound;
-        }
-
-        ErrorOr<Success> result = _userRepository.DeleteOAuthLink(link.Id);
-        if (result.IsError)
-        {
-            _logger.LogError(
-                "Failed to unlink Google OAuth for user {UserId}: {Error}",
-                userId,
-                result.FirstError.Description);
-            return result.FirstError;
-        }
-
-        return Result.Success;
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<NotificationPreferenceDataTransferObject>> GetNotificationPreferences(int userId)
-    {
-        ErrorOr<User> userResult = _userRepository.FindById(userId);
-        if (userResult.IsError)
-        {
-            _logger.LogWarning("Notification preferences fetch failed: user {UserId} not found.", userId);
+            _logger.NotificationPreferencesFetchUserNotFound(userId);
             return userResult.FirstError;
         }
 
         ErrorOr<List<NotificationPreference>> preferencesResult = _userRepository.GetNotificationPreferences(userId);
         if (preferencesResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch notification preferences for user {UserId}: {Error}",
-                userId,
-                preferencesResult.FirstError.Description);
+            _logger.NotificationPreferencesFetchFailed(userId, preferencesResult.FirstError.Description);
             return preferencesResult.FirstError;
         }
 
         return preferencesResult.Value
-            .Select(preference => new NotificationPreferenceDataTransferObject
+            .Select(preference => new NotificationPreferenceDto
             {
                 Id = preference.Id,
                 UserId = preference.UserId,
-                Category = DomainEnumMapper.ToApplication(preference.Category),
+                Category = preference.Category,
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,
                 SmsEnabled = preference.SmsEnabled,
-                MinAmountThreshold = preference.MinAmountThreshold,
+                MinAmountThreshold = preference.MinAmountThreshold
             })
             .ToList();
     }
@@ -411,30 +267,30 @@ public class ProfileService : IProfileService
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> UpdateNotificationPreferences(
         int userId,
-        List<NotificationPreferenceDataTransferObject> preferences)
+        List<NotificationPreferenceDto> preferences)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Notification preferences update failed: user {UserId} not found.", userId);
+            _logger.NotificationPreferencesUpdateUserNotFound(userId);
             return userResult.FirstError;
         }
 
-        List<NotificationPreference> entities = preferences
+        var entities = preferences
             .Select(preference => new NotificationPreference
             {
                 Id = preference.Id,
                 UserId = preference.UserId,
-                Category = DomainEnumMapper.ToDomain(preference.Category),
+                Category = preference.Category,
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,
                 SmsEnabled = preference.SmsEnabled,
-                MinAmountThreshold = preference.MinAmountThreshold,
+                MinAmountThreshold = preference.MinAmountThreshold
             })
             .ToList();
         if (_userRepository.UpdateNotificationPreferences(userId, entities).IsError)
         {
-            _logger.LogError("Failed to update notification preferences for user {UserId}.", userId);
+            _logger.NotificationPreferencesUpdateFailed(userId);
             return UserErrors.NotificationPreferencesUpdateFailed;
         }
 
@@ -450,13 +306,13 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Password verification failed: user {UserId} not found.", userId);
+            _logger.PasswordVerificationUserNotFound(userId);
             return userResult.FirstError;
         }
 
         if (userResult.Value.PasswordHash is null)
         {
-            _logger.LogWarning("Password verification rejected for OAuth-only account {UserId}.", userId);
+            _logger.PasswordVerificationOAuthOnlyRejected(userId);
             // Return the same outcome as any other non-matching password for added security.
             return false;
         }
@@ -467,35 +323,30 @@ public class ProfileService : IProfileService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<SessionDataTransferObject>> GetActiveSessions(int userId)
+    public ErrorOr<List<SessionDto>> GetActiveSessions(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Get sessions failed: user {UserId} not found.", userId);
+            _logger.GetSessionsUserNotFound(userId);
             return userResult.FirstError;
         }
 
         ErrorOr<List<Session>> sessionsResult = _userRepository.GetActiveSessions(userId);
         if (sessionsResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch sessions for user {UserId}: {Error}",
-                userId,
-                sessionsResult.FirstError.Description);
+            _logger.GetSessionsFailed(userId, sessionsResult.FirstError.Description);
             return sessionsResult.FirstError;
         }
 
         return sessionsResult.Value
-            .Select(session => new SessionDataTransferObject
+            .Select(session => new SessionDto
             {
                 Id = session.Id,
                 DeviceInfo = session.DeviceInfo,
                 Browser = session.Browser,
                 IpAddress = session.IpAddress,
-                LastActiveAt = session.LastActiveAt,
-                ExpiresAt = session.ExpiresAt,
-                CreatedAt = session.CreatedAt,
+                LastActiveAt = session.LastActiveAt
             })
             .ToList();
     }
@@ -509,23 +360,18 @@ public class ProfileService : IProfileService
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Revoke session failed: user {UserId} not found.", userId);
+            _logger.RevokeSessionUserNotFound(userId);
             return userResult.FirstError;
         }
 
         ErrorOr<Success> result = _userRepository.RevokeSession(userId, sessionId);
         if (result.IsError)
         {
-            _logger.LogError("Failed to revoke session {SessionId} for user {UserId}.", sessionId, userId);
+            _logger.RevokeSessionFailed(sessionId, userId);
             return result.FirstError;
         }
 
-        _logger.LogInformation("Session {SessionId} revoked for user {UserId}.", sessionId, userId);
+        _logger.SessionRevoked(sessionId, userId);
         return Result.Success;
-    }
-
-    private static bool IsSupportedOAuthProvider(string provider)
-    {
-        return string.Equals(provider, GoogleOAuthProvider, StringComparison.OrdinalIgnoreCase);
     }
 }

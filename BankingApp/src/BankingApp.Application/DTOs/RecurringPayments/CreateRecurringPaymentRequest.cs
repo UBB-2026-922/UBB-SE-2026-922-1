@@ -1,13 +1,6 @@
-﻿// <copyright file="CreateRecurringPaymentRequest.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the CreateRecurringPaymentRequest class.
-// </summary>
+﻿namespace BankingApp.Application.DTOs.RecurringPayments;
 
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.DTOs.RecurringPayments;
+using Domain.Enums;
 
 /// <summary>
 ///     Request payload for creating a new recurring payment schedule.

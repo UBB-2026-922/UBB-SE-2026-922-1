@@ -1,15 +1,10 @@
-﻿// <copyright file="SessionValidationMiddleware.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the SessionValidationMiddleware class.
-// </summary>
+﻿namespace BankingApp.Api.Middleware;
 
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
+using Application.Repositories.Interfaces;
+using Application.Services.Security;
+using Logging;
 using ErrorOr;
-
-namespace BankingApp.Api.Middleware;
+using System.Globalization;
 
 /// <summary>
 ///     Middleware that validates bearer tokens and active sessions on non-public endpoints.
@@ -45,7 +40,8 @@ public class SessionValidationMiddleware
         IJsonWebTokenService jsonWebTokenService,
         ILogger<SessionValidationMiddleware> logger)
     {
-        string? path = context.Request.Path.Value?.ToLower();
+        string? path = context.Request.Path.Value?.ToLower(CultureInfo.InvariantCulture);
+
         // Public endpoints, no token needed
         if (IsPublicEndpoint(path))
         {
@@ -54,22 +50,21 @@ public class SessionValidationMiddleware
         }
 
         string? authHeader = context.Request.Headers.Authorization.FirstOrDefault();
+
         // No token provided
-        if (authHeader == null || !authHeader.StartsWith(BearerPrefix))
+        if (authHeader?.StartsWith(BearerPrefix, StringComparison.Ordinal) != true)
         {
             await RejectRequest(context, "No token provided.");
             return;
         }
 
         string token = authHeader[BearerPrefix.Length..];
+
         // Check if JWT valid
         ErrorOr<int> userIdResult = jsonWebTokenService.ExtractUserId(token);
         if (userIdResult.IsError)
         {
-            logger.LogWarning(
-                "Token validation failed [{Code}]: {Description}",
-                userIdResult.FirstError.Code,
-                userIdResult.FirstError.Description);
+            logger.TokenValidationFailed(userIdResult.FirstError.Code, userIdResult.FirstError.Description);
             await RejectRequest(context, "Invalid or expired token.");
             return;
         }
@@ -78,10 +73,7 @@ public class SessionValidationMiddleware
         ErrorOr<bool> sessionResult = authRepository.IsSessionActive(token);
         if (sessionResult.IsError)
         {
-            logger.LogWarning(
-                "Session lookup failed [{Code}]: {Description}",
-                sessionResult.FirstError.Code,
-                sessionResult.FirstError.Description);
+            logger.SessionLookupFailed(sessionResult.FirstError.Code, sessionResult.FirstError.Description);
             await RejectRequest(context, "Invalid or expired token.");
             return;
         }
@@ -93,7 +85,10 @@ public class SessionValidationMiddleware
 
     private static bool IsPublicEndpoint(string? path)
     {
-        return path is not null && Array.Exists(_publicEndpointPrefixes, path.StartsWith);
+        return path is not null &&
+               Array.Exists(
+                   _publicEndpointPrefixes,
+                   prefix => path.StartsWith(prefix, StringComparison.Ordinal));
     }
 
     private static async Task RejectRequest(HttpContext context, string error)

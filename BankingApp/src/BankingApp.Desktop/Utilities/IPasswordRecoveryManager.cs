@@ -1,14 +1,7 @@
-﻿// <copyright file="IPasswordRecoveryManager.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IPasswordRecoveryManager interface.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System.Threading.Tasks;
-using BankingApp.Desktop.Enums;
-
-namespace BankingApp.Desktop.Utilities;
+using Enums;
 
 /// <summary>
 ///     Manages the business logic for the password-recovery flow, including
@@ -23,7 +16,7 @@ public interface IPasswordRecoveryManager
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    bool CanResendCode { get; }
+    public bool CanResendCode { get; }
 
     /// <summary>
     ///     Gets the number of seconds remaining before the user is allowed to resend a recovery code.
@@ -32,7 +25,7 @@ public interface IPasswordRecoveryManager
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    int SecondsUntilResendAllowed { get; }
+    public int SecondsUntilResendAllowed { get; }
 
     /// <summary>
     ///     Requests a password-recovery code for the given email address.
@@ -41,14 +34,14 @@ public interface IPasswordRecoveryManager
     /// </summary>
     /// <param name="email">The email address to send the recovery code to.</param>
     /// <returns>The new <see cref="ForgotPasswordState" /> after the operation.</returns>
-    Task<ForgotPasswordState> RequestCodeAsync(string email);
+    public Task<ForgotPasswordState> RequestCodeAsync(string email);
 
     /// <summary>
     ///     Validates the supplied recovery token without consuming it.
     /// </summary>
     /// <param name="token">The token to validate.</param>
     /// <returns>The new <see cref="ForgotPasswordState" /> after the operation.</returns>
-    Task<ForgotPasswordState> VerifyTokenAsync(string token);
+    public Task<ForgotPasswordState> VerifyTokenAsync(string token);
 
     /// <summary>
     ///     Resets the user's password using a previously verified token.
@@ -56,12 +49,12 @@ public interface IPasswordRecoveryManager
     /// <param name="token">The validated reset token.</param>
     /// <param name="newPassword">The new password to apply.</param>
     /// <returns>The new <see cref="ForgotPasswordState" /> after the operation.</returns>
-    Task<ForgotPasswordState> ResetPasswordAsync(string token, string newPassword);
+    public Task<ForgotPasswordState> ResetPasswordAsync(string token, string newPassword);
 
     /// <summary>
     ///     Validates a plain-text password against the application's complexity rules.
     /// </summary>
     /// <param name="password">The password to validate.</param>
     /// <returns><see langword="true" /> if the password meets all requirements; otherwise <see langword="false" />.</returns>
-    bool IsPasswordValid(string password);
+    public bool IsPasswordValid(string password);
 }

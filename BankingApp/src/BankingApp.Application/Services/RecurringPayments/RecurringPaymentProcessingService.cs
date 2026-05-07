@@ -1,20 +1,14 @@
-﻿// <copyright file="RecurringPaymentProcessingService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RecurringPaymentProcessingService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.RecurringPayments;
 
 using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Logging;
+using Repositories.Interfaces;
+using BillPayments;
+using Utilities;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.RecurringPayments;
 
 /// <summary>
 ///     Processes recurring payments that have reached their next execution date.
@@ -56,7 +50,8 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
             return duePaymentsResult.FirstError;
         }
 
-        foreach (RecurringPayment payment in duePaymentsResult.Value.Where(payment => payment.Status == RecurringPaymentStatus.Active))
+        foreach (RecurringPayment payment in duePaymentsResult.Value.Where(payment =>
+                     payment.Status == RecurringPaymentStatus.Active))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -69,53 +64,25 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
                     BillerId = payment.BillerId,
                     BillerReference = string.Empty,
                     Amount = payment.Amount,
-                    IsPayInFull = payment.IsPayInFull,
+                    IsPayInFull = payment.IsPayInFull
                 });
 
-                DateTime nextExecutionDate = ComputeNextRunDate(payment.Frequency, payment.NextExecutionDate);
-                if (payment.EndDate.HasValue && nextExecutionDate > payment.EndDate.Value)
-                {
-                    payment.Status = RecurringPaymentStatus.Cancelled;
-                }
-                else
-                {
-                    payment.NextExecutionDate = nextExecutionDate;
-                }
+                payment.AdvanceAfterSuccessfulExecution();
 
                 ErrorOr<Success> updateResult = _recurringPaymentRepository.Update(payment);
                 if (updateResult.IsError)
                 {
-                    _logger.LogWarning(
-                        "Failed to update recurring payment {RecurringPaymentId} after execution: {Error}",
-                        payment.Id,
-                        updateResult.FirstError.Description);
+                    _logger.RecurringPaymentUpdateAfterExecutionFailed(payment.Id, updateResult.FirstError.Description);
                 }
             }
             catch (Exception exception)
             {
-                payment.Status = RecurringPaymentStatus.Paused;
+                payment.MarkExecutionFailed();
                 _recurringPaymentRepository.Update(payment);
-                _logger.LogWarning(
-                    exception,
-                    "Recurring payment {RecurringPaymentId} failed during background execution.",
-                    payment.Id);
+                _logger.RecurringPaymentBackgroundExecutionFailed(exception, payment.Id);
             }
         }
 
         return Result.Success;
-    }
-
-    private static DateTime ComputeNextRunDate(RecurringFrequency frequency, DateTime from)
-    {
-        return frequency switch
-        {
-            RecurringFrequency.Daily => from.AddDays(1),
-            RecurringFrequency.Weekly => from.AddDays(7),
-            RecurringFrequency.BiWeekly => from.AddDays(14),
-            RecurringFrequency.Monthly => from.AddMonths(1),
-            RecurringFrequency.Quarterly => from.AddMonths(3),
-            RecurringFrequency.Yearly => from.AddYears(1),
-            _ => throw new ArgumentOutOfRangeException(nameof(frequency), frequency, null),
-        };
     }
 }

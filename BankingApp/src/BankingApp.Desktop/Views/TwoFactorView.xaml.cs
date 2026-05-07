@@ -1,19 +1,12 @@
-﻿// <copyright file="TwoFactorView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for TwoFactorView.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Enums;
+using Master;
+using Utilities;
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Displays the OTP verification step of the login flow.

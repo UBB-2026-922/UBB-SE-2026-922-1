@@ -1,11 +1,4 @@
-﻿// <copyright file="ApiResponse.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ApiResponse class.
-// </summary>
-
-namespace BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Represents a simple API response containing either a success message or an error message.

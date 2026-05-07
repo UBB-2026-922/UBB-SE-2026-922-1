@@ -1,37 +1,26 @@
-﻿// <copyright file="TwoFactorViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Desktop.Enums;
+using Application.DTOs.Auth;
+using Enums;
+using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace BankingApp.Desktop.Tests.ViewModels;
-
-/// <summary>
-///     Tests for <see cref="TwoFactorViewModel" />.
-/// </summary>
 public class TwoFactorViewModelTests
 {
     private const int ExpectedResendCooldownSeconds = 30;
 
-    private readonly Mock<IApiClient> _apiClient = new();
+    private readonly Mock<IAuthClientService> _authClientService = new();
     private readonly Mock<ICountdownTimer> _countdownTimer = new();
 
-    /// <summary>
-    ///     When the OTP code is shorter than six digits, the view model stays in Idle and reports an error
-    ///     without making any API call.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task VerifyOtp_WhenCodeTooShort_SetsErrorAndDoesNotCallApi()
     {
         // Arrange
         var viewModel = new TwoFactorViewModel(
-            _apiClient.Object,
+            _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
 
@@ -42,27 +31,20 @@ public class TwoFactorViewModelTests
         // Assert
         viewModel.State.Value.Should().Be(TwoFactorState.Idle);
         viewModel.HasError.Should().BeTrue();
-        _apiClient.Verify(
-            postsAsync => postsAsync.PostAsync<VerifyOtpRequest, LoginSuccessResponse>(
-                It.IsAny<string>(),
-                It.IsAny<VerifyOtpRequest>()),
+        _authClientService.Verify(
+            s => s.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()),
             Times.Never);
     }
 
-    /// <summary>
-    ///     When <see cref="IApiClient.CurrentUserId" /> is null the session has expired;
-    ///     the view model transitions to <see cref="TwoFactorState.InvalidOtp" />.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task VerifyOtp_WhenUserIdIsNull_SetsInvalidOtpState()
     {
         // Arrange
         var viewModel = new TwoFactorViewModel(
-            _apiClient.Object,
+            _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _apiClient.Setup(getsCurrentUserId => getsCurrentUserId.CurrentUserId).Returns((int?)null);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns((int?)null);
 
         // Act
         viewModel.OtpCode = "123456";
@@ -73,28 +55,21 @@ public class TwoFactorViewModelTests
         viewModel.HasError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     When the API accepts the OTP, the view model transitions to <see cref="TwoFactorState.Success" />.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task VerifyOtp_WhenApiSucceeds_SetsSuccessState()
     {
         // Arrange
         var viewModel = new TwoFactorViewModel(
-            _apiClient.Object,
+            _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _apiClient.Setup(getsCurrentUserId => getsCurrentUserId.CurrentUserId).Returns(1);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
 
         var successResponse = new LoginSuccessResponse { Token = "token", UserId = 1 };
-        _apiClient
-            .Setup(postsAsync =>
-                postsAsync.PostAsync<VerifyOtpRequest, LoginSuccessResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<VerifyOtpRequest>()))
+        _authClientService
+            .Setup(authClientService => authClientService.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()))
             .ReturnsAsync(successResponse);
-        _apiClient.Setup(setsToken => setsToken.SetToken(It.IsAny<string>()));
+        _authClientService.Setup(authClientService => authClientService.SetToken(It.IsAny<string>()));
 
         // Act
         viewModel.OtpCode = "123456";
@@ -105,25 +80,18 @@ public class TwoFactorViewModelTests
         viewModel.HasError.Should().BeFalse();
     }
 
-    /// <summary>
-    ///     When the API rejects the OTP, the view model transitions to <see cref="TwoFactorState.InvalidOtp" />.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task VerifyOtp_WhenApiFails_SetsInvalidOtpState()
     {
         // Arrange
         var viewModel = new TwoFactorViewModel(
-            _apiClient.Object,
+            _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _apiClient.Setup(getsCurrentUserId => getsCurrentUserId.CurrentUserId).Returns(1);
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
 
-        _apiClient
-            .Setup(postsAsync =>
-                postsAsync.PostAsync<VerifyOtpRequest, LoginSuccessResponse>(
-                    It.IsAny<string>(),
-                    It.IsAny<VerifyOtpRequest>()))
+        _authClientService
+            .Setup(authClientService => authClientService.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()))
             .ReturnsAsync(Error.Validation("invalid_otp"));
 
         // Act
@@ -135,56 +103,48 @@ public class TwoFactorViewModelTests
         viewModel.HasError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     When resend is called a second time before the cooldown expires, no additional API call is made.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task ResendOtp_WhenInCooldown_DoesNotMakeSecondApiCall()
     {
         // Arrange
         var viewModel = new TwoFactorViewModel(
-            _apiClient.Object,
+            _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _apiClient.Setup(getsCurrentUserId => getsCurrentUserId.CurrentUserId).Returns(1);
-        _apiClient
-            .Setup(postsAsync => postsAsync.PostAsync<object?, object>(It.IsAny<string>(), It.IsAny<object?>()))
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
+        _authClientService
+            .Setup(authClientService => authClientService.ResendOtpAsync(It.IsAny<int>()))
             .ReturnsAsync(new object());
 
-        await viewModel.ResendOtp(); // first call succeeds and starts cooldown
+        await viewModel.ResendOtp();
 
         // Act
-        await viewModel.ResendOtp(); // second call is throttled
+        await viewModel.ResendOtp();
 
         // Assert
-        _apiClient.Verify(
-            postsAsync => postsAsync.PostAsync<object?, object>(It.IsAny<string>(), It.IsAny<object?>()),
+        _authClientService.Verify(
+            s => s.ResendOtpAsync(It.IsAny<int>()),
             Times.Once);
     }
 
-    /// <summary>
-    ///     When resend is allowed, the API is called and the countdown timer is started.
-    /// </summary>
-    /// <returns>A <see cref="Task" /> representing the result of the asynchronous operation.</returns>
     [Fact]
     public async Task ResendOtp_WhenCanResend_CallsApiAndStartsTimer()
     {
         // Arrange
         var viewModel = new TwoFactorViewModel(
-            _apiClient.Object,
+            _authClientService.Object,
             _countdownTimer.Object,
             NullLogger<TwoFactorViewModel>.Instance);
-        _apiClient.Setup(getsCurrentUserId => getsCurrentUserId.CurrentUserId).Returns(1);
-        _apiClient
-            .Setup(postsAsync => postsAsync.PostAsync<object?, object>(It.IsAny<string>(), It.IsAny<object?>()))
+        _authClientService.Setup(authClientService => authClientService.CurrentUserId).Returns(1);
+        _authClientService
+            .Setup(authClientService => authClientService.ResendOtpAsync(It.IsAny<int>()))
             .ReturnsAsync(new object());
 
         // Act
         await viewModel.ResendOtp();
 
         // Assert
-        _countdownTimer.Verify(starts => starts.Start(), Times.Once);
+        _countdownTimer.Verify(t => t.Start(), Times.Once);
         viewModel.SecondsRemaining.Should().Be(ExpectedResendCooldownSeconds);
     }
 }

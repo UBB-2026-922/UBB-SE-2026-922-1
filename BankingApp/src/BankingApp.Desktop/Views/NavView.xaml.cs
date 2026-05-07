@@ -1,20 +1,14 @@
-﻿// <copyright file="NavView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for NavView.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
+using Master;
+using Utilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Hosts the application shell after login: renders the sidebar and manages the inner content frame
@@ -27,7 +21,6 @@ public sealed partial class NavView
     private readonly IApiClient _apiClient;
     private readonly List<Button> _navButtons;
     private readonly IAppNavigationService _navigationService;
-    private Button? _activeNavButton;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="NavView" /> class.
@@ -75,7 +68,7 @@ public sealed partial class NavView
 
         NotificationBadgeText.Text = count > MaximumInlineNotificationBadgeCount
             ? OverflowNotificationBadgeText
-            : count.ToString();
+            : count.ToString(CultureInfo.InvariantCulture);
         NotificationBadge.Visibility = Visibility.Visible;
     }
 
@@ -92,7 +85,7 @@ public sealed partial class NavView
             Title = feature,
             Content = $"{feature} is coming soon.",
             CloseButtonText = "OK",
-            XamlRoot = XamlRoot,
+            XamlRoot = XamlRoot
         };
         await dialog.ShowAsync();
     }
@@ -105,7 +98,6 @@ public sealed partial class NavView
         }
 
         selected.Style = (Style)Resources["NavItemActiveStyle"];
-        _activeNavButton = selected;
     }
 
     private void NavDashboard_Click(object sender, RoutedEventArgs e)
@@ -217,7 +209,7 @@ public sealed partial class NavView
             Title = title,
             Content = message,
             CloseButtonText = "OK",
-            XamlRoot = XamlRoot,
+            XamlRoot = XamlRoot
         };
         await dialog.ShowAsync();
     }

@@ -1,17 +1,10 @@
-﻿// <copyright file="RateAlertsController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the RateAlertsController class.
-// </summary>
+﻿namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.DTOs.TeamB;
-using BankingApp.Application.Services.TeamB;
+using Application.DTOs.RateAlerts;
+using Application.Services.RateAlerts;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 ///     Controller for exchange rate-alert operations.
@@ -40,7 +33,7 @@ public class RateAlertsController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         ErrorOr<List<RateAlertDto>> result = _rateAlertService.GetAlerts(userId);
-        return ToActionResult(result, data => Ok(data));
+        return ToActionResult(result, Ok);
     }
 
     /// <summary>
@@ -53,7 +46,7 @@ public class RateAlertsController : ApiControllerBase
     {
         request.UserId = GetAuthenticatedUserId();
         ErrorOr<RateAlertDto> result = _rateAlertService.CreateAlert(request);
-        return ToActionResult(result, data => Ok(data));
+        return ToActionResult(result, Ok);
     }
 
     /// <summary>
@@ -71,7 +64,7 @@ public class RateAlertsController : ApiControllerBase
             return MapError(alertsResult.FirstError);
         }
 
-        if (!alertsResult.Value.Any(alert => alert.Id == id))
+        if (alertsResult.Value.All(alert => alert.Id != id))
         {
             return NotFound(new { error = "Rate alert not found." });
         }

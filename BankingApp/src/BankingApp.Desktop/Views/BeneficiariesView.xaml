@@ -22,7 +22,7 @@
 
         <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.Beneficiaries, Mode=OneWay}" SelectionMode="None">
             <ListView.ItemTemplate>
-                <DataTemplate x:DataType="local:BeneficiaryDataTransferObject">
+                <DataTemplate x:DataType="local:BeneficiaryDto">
                     <Grid Margin="0,5,0,5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -36,8 +36,8 @@
                         </StackPanel>
 
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <Button Content="Use" Click="Use_Click" />
-                            <Button Content="Delete" Click="Delete_Click" />
+                            <Button Content="Use" Click="Use_Click" Tag="{x:Bind}" />
+                            <Button Content="Delete" Click="Delete_Click" Tag="{x:Bind}" />
                         </StackPanel>
                     </Grid>
                 </DataTemplate>

@@ -2,17 +2,15 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
+namespace BankingApp.Api.Tests.Integration;
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using BankingApp.Api.Tests.Integration.Infrastructure;
-using BankingApp.Application.DataTransferObjects.Profile;
+using Infrastructure;
+using Application.DTOs.Profile;
 using ErrorOr;
 using FluentAssertions;
-using Moq;
-using Xunit;
-
-namespace BankingApp.Api.Tests.Integration;
 
 public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
@@ -21,22 +19,24 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
 
     private readonly HttpClient _client;
     private readonly BankingAppWebFactory _factory;
+    private readonly CancellationToken _cancellationToken;
 
     public ProfileEndpointsTests(BankingAppWebFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
+        _cancellationToken = TestContext.Current.CancellationToken;
 
         // Reset mocks before each test to ensure isolated state
         _factory.ProfileServiceMock.Invocations.Clear();
 
         // Ensure the token validation and session are bypassed
         _factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId(ValidToken))
+            .Setup(jwtService => jwtService.ExtractUserId(ValidToken))
             .Returns(ValidUserId);
 
         _factory.AuthRepositoryMock
-            .Setup(auth => auth.IsSessionActive(ValidToken))
+            .Setup(authRepository => authRepository.IsSessionActive(ValidToken))
             .Returns(true);
     }
 
@@ -47,22 +47,22 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/profile");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
-        var expectedProfile = new ProfileInfo
+        var expectedProfile = new ProfileDto
         {
             Email = "user@test.com",
             FullName = "Test User",
         };
 
         _factory.ProfileServiceMock
-            .Setup(s => s.GetProfile(ValidUserId))
+            .Setup(profileService => profileService.GetProfile(ValidUserId))
             .Returns(expectedProfile);
 
         // Act
-        var response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ProfileInfo>();
+        ProfileDto? result = await response.Content.ReadFromJsonAsync<ProfileDto>(_cancellationToken);
         result.Should().NotBeNull();
         result!.Email.Should().Be("user@test.com");
     }
@@ -71,18 +71,24 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
     public async Task UpdateProfile_WhenDataIsValid_ShouldReturnNoContent()
     {
         // Arrange
-        var requestData = new UpdateProfileRequest(ValidUserId, "1234567890", "123 Test St");
+        var requestData = new UpdateProfileRequest
+        {
+            UserId = ValidUserId,
+            PhoneNumber = "1234567890",
+            Address = "123 Test St",
+        };
 
         var request = new HttpRequestMessage(HttpMethod.Put, "/api/profile");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
         request.Content = JsonContent.Create(requestData);
 
         _factory.ProfileServiceMock
-            .Setup(s => s.UpdatePersonalInfo(It.Is<UpdateProfileRequest>(r => r.UserId == ValidUserId)))
+            .Setup(profileService => profileService.UpdatePersonalInfo(
+                It.Is<UpdateProfileRequest>(updateProfileRequest => updateProfileRequest.UserId == ValidUserId)))
             .Returns(Result.Success);
 
         // Act
-        var response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -103,11 +109,11 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Content = JsonContent.Create(requestData);
 
         _factory.ProfileServiceMock
-            .Setup(s => s.ChangePassword(It.IsAny<ChangePasswordRequest>()))
+            .Setup(profileService => profileService.ChangePassword(It.IsAny<ChangePasswordRequest>()))
             .Returns(Error.Validation("Password.Mismatch", "Old password does not match."));
 
         // Act
-        var response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

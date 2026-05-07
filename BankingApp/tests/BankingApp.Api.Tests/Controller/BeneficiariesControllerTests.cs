@@ -1,16 +1,13 @@
-﻿// <copyright file="BeneficiariesControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests.Controller;
 
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DataTransferObjects.Beneficiary;
-using BankingApp.Application.Services.Beneficiary;
-using BankingApp.Domain.Entities;
+using Controllers;
+using Application.Services.Beneficiary;
+using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BankingApp.Api.Tests.Controller;
+using Application.DTOs.Beneficiaries;
 
 [Trait("Category", "Unit")]
 public sealed class BeneficiariesControllerTests
@@ -37,7 +34,7 @@ public sealed class BeneficiariesControllerTests
 
         // Assert
         OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        var dtos = ok.Value.Should().BeAssignableTo<List<BeneficiaryDataTransferObject>>().Subject;
+        List<BeneficiaryDto>? dtos = ok.Value.Should().BeAssignableTo<List<BeneficiaryDto>>().Subject;
         dtos.Should().HaveCount(2);
         dtos[0].Id.Should().Be(DefaultBeneficiaryId);
         dtos[0].Name.Should().Be("Alice");
@@ -65,7 +62,7 @@ public sealed class BeneficiariesControllerTests
     public void GetBeneficiaryById_WhenBeneficiaryExists_ReturnsOkWithDto()
     {
         // Arrange
-        var beneficiary = BuildBeneficiary(DefaultBeneficiaryId, "Alice", "RO49AAAA1B31007593840000");
+        Beneficiary beneficiary = BuildBeneficiary(DefaultBeneficiaryId, "Alice", "RO49AAAA1B31007593840000");
         _beneficiaryService
             .Setup(service => service.GetById(DefaultBeneficiaryId, DefaultUserId))
             .Returns(beneficiary);
@@ -76,7 +73,7 @@ public sealed class BeneficiariesControllerTests
 
         // Assert
         OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        var dto = ok.Value.Should().BeOfType<BeneficiaryDataTransferObject>().Subject;
+        BeneficiaryDto? dto = ok.Value.Should().BeOfType<BeneficiaryDto>().Subject;
         dto.Id.Should().Be(DefaultBeneficiaryId);
         dto.Name.Should().Be("Alice");
     }
@@ -107,7 +104,7 @@ public sealed class BeneficiariesControllerTests
             Iban = "RO49AAAA1B31007593840000",
             BankName = "BRD",
         };
-        var created = BuildBeneficiary(DefaultBeneficiaryId, request.Name, request.Iban, request.BankName);
+        Beneficiary created = BuildBeneficiary(DefaultBeneficiaryId, request.Name, request.Iban, request.BankName);
         _beneficiaryService
             .Setup(service => service.Create(DefaultUserId, request.Name, request.Iban, request.BankName))
             .Returns(created);
@@ -118,7 +115,7 @@ public sealed class BeneficiariesControllerTests
 
         // Assert
         OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        var dto = ok.Value.Should().BeOfType<BeneficiaryDataTransferObject>().Subject;
+        BeneficiaryDto? dto = ok.Value.Should().BeOfType<BeneficiaryDto>().Subject;
         dto.Id.Should().Be(DefaultBeneficiaryId);
         dto.Name.Should().Be("Alice");
         dto.BankName.Should().Be("BRD");

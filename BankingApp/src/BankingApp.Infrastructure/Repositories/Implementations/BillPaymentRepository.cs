@@ -1,19 +1,12 @@
-﻿// <copyright file="BillPaymentRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentRepository class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
+using Domain.Entities;
+using DataAccess;
 using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 /// Implements the data access operations for bill payments.

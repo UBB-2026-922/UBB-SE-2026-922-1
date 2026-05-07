@@ -1,15 +1,9 @@
-﻿// <copyright file="FinanceBackgroundService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the FinanceBackgroundService class.
-// </summary>
+﻿namespace BankingApp.Api.HostedServices;
 
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Application.Services.TeamB;
+using Application.Services.RecurringPayments;
+using Application.Services.RateAlerts;
+using Logging;
 using ErrorOr;
-
-namespace BankingApp.Api.HostedServices;
 
 /// <summary>
 ///     Periodically processes due recurring payments and pending rate alerts.
@@ -40,24 +34,26 @@ public class FinanceBackgroundService : BackgroundService
             try
             {
                 using IServiceScope scope = _serviceProvider.CreateScope();
-                IRecurringPaymentProcessingService recurringPaymentProcessingService = scope.ServiceProvider.GetRequiredService<IRecurringPaymentProcessingService>();
+                IRecurringPaymentProcessingService recurringPaymentProcessingService =
+                    scope.ServiceProvider.GetRequiredService<IRecurringPaymentProcessingService>();
                 IRateAlertService rateAlertService = scope.ServiceProvider.GetRequiredService<IRateAlertService>();
 
-                var recurringResult = await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
+                ErrorOr<Success> recurringResult =
+                    await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
                 if (recurringResult.IsError)
                 {
-                    _logger.LogWarning("Recurring payment processing failed: {Error}", recurringResult.FirstError.Description);
+                    _logger.RecurringPaymentProcessingFailed(recurringResult.FirstError.Description);
                 }
 
-                var rateAlertResult = rateAlertService.ProcessAlerts();
+                ErrorOr<int> rateAlertResult = rateAlertService.ProcessAlerts();
                 if (rateAlertResult.IsError)
                 {
-                    _logger.LogWarning("Rate-alert processing failed: {Error}", rateAlertResult.FirstError.Description);
+                    _logger.RateAlertProcessingFailed(rateAlertResult.FirstError.Description);
                 }
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Background finance processing failed.");
+                _logger.BackgroundFinanceProcessingFailed(exception);
             }
 
             await Task.Delay(_pollInterval, stoppingToken);

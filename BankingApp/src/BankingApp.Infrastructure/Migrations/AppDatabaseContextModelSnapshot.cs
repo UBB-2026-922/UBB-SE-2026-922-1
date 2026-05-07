@@ -531,43 +531,6 @@ namespace BankingApp.Infrastructure.Migrations
                     b.ToTable("NotificationPreference", (string)null);
                 });
 
-            modelBuilder.Entity("BankingApp.Domain.Entities.OAuthLink", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("LinkedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("Provider")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("ProviderEmail")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("ProviderUserId")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("OAuthLink", (string)null);
-                });
-
             modelBuilder.Entity("BankingApp.Domain.Entities.PasswordResetToken", b =>
                 {
                     b.Property<int>("Id")
@@ -1225,7 +1188,7 @@ namespace BankingApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BankingApp.Domain.Entities.OAuthLink", b =>
+            modelBuilder.Entity("BankingApp.Domain.Entities.PasswordResetToken", b =>
                 {
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()
@@ -1234,7 +1197,7 @@ namespace BankingApp.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BankingApp.Domain.Entities.PasswordResetToken", b =>
+            modelBuilder.Entity("BankingApp.Domain.Entities.RateAlert", b =>
                 {
                     b.HasOne("BankingApp.Domain.Entities.User", null)
                         .WithMany()

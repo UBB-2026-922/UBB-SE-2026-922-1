@@ -1,6 +1,6 @@
-﻿using BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Tests.Utilities;
 
-namespace BankingApp.Desktop.Tests.Utilities;
+using BankingApp.Desktop.Utilities;
 
 public class PasswordValidatorTests
 {

@@ -1,11 +1,4 @@
-﻿// <copyright file="ProfileState.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ProfileState values.
-// </summary>
-
-namespace BankingApp.Desktop.Enums;
+﻿namespace BankingApp.Desktop.Enums;
 
 /// <summary>
 ///     Represents the possible states of the profile management flow.
@@ -40,5 +33,5 @@ public enum ProfileState
     /// <summary>
     ///     An unexpected error occurred during a profile operation.
     /// </summary>
-    Error,
+    Error
 }

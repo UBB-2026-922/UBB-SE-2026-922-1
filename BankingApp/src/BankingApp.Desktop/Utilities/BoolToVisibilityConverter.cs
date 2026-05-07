@@ -1,15 +1,8 @@
-﻿// <copyright file="BoolToVisibilityConverter.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BoolToVisibilityConverter class.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Maps <see langword="true" /> to <see cref="Visibility.Visible" /> and
@@ -45,6 +38,6 @@ public partial class BoolToVisibilityConverter : IValueConverter
     /// <returns><see langword="true" /> when <paramref name="value" /> is <see cref="Visibility.Visible" />.</returns>
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
-        return value is Visibility visibility && visibility == Visibility.Visible;
+        return value is Visibility.Visible;
     }
 }

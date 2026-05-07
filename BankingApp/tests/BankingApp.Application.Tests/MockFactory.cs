@@ -1,15 +1,11 @@
-﻿// <copyright file="MockFactory.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Application.Tests;
 
 using System.Security.Claims;
-using BankingApp.Application.Repositories.Interfaces;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using ErrorOr;
-
-namespace BankingApp.Application.Tests;
 
 /// <summary>
 ///     Factory methods for creating Moq mocks with sensible default return values.
@@ -27,10 +23,6 @@ internal static class MockFactory
         mock.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(It.IsAny<string>()))
             .Returns(Error.NotFound());
         mock.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>()))
-            .Returns(Result.Success);
-        mock.Setup(findsOAuthLink => findsOAuthLink.FindOAuthLink(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(Error.NotFound());
-        mock.Setup(createsOAuthLink => createsOAuthLink.CreateOAuthLink(It.IsAny<OAuthLink>()))
             .Returns(Result.Success);
         mock.Setup(createsSession => createsSession.CreateSession(
                 It.IsAny<int>(),

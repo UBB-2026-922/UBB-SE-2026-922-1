@@ -1,14 +1,7 @@
-﻿// <copyright file="INotificationPreferenceDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the INotificationPreferenceDataAccess interface.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Interfaces;
 
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.DataAccess.Interfaces;
 
 /// <summary>
 ///     Defines data access operations for notification preferences.
@@ -19,16 +12,16 @@ public interface INotificationPreferenceDataAccess
     /// <param name="userId">The identifier of the user.</param>
     /// <param name="category">The notification category name.</param>
     /// <returns>Success, or an error if the operation failed.</returns>
-    ErrorOr<Success> Create(int userId, string category);
+    public ErrorOr<Success> Create(int userId, string category);
 
     /// <summary>Finds all notification preferences for the specified user.</summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <returns>A list of notification preferences for the user, or an error if the operation failed.</returns>
-    ErrorOr<List<NotificationPreference>> FindByUserId(int userId);
+    public ErrorOr<List<NotificationPreference>> FindByUserId(int userId);
 
     /// <summary>Updates all notification preferences for the specified user.</summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <param name="preferences">The updated list of notification preferences.</param>
     /// <returns>Success, or an error if the operation failed.</returns>
-    ErrorOr<Success> Update(int userId, List<NotificationPreference> preferences);
+    public ErrorOr<Success> Update(int userId, List<NotificationPreference> preferences);
 }

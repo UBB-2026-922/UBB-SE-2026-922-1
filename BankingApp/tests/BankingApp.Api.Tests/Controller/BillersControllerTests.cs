@@ -1,15 +1,11 @@
-﻿// <copyright file="BillersControllerTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests.Controller;
 
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.Services.Billers;
+using Controllers;
+using Application.DTOs.Billers;
+using Application.Services.Billers;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 /// <summary>
 ///     Unit tests for <see cref="BillersController" />.
@@ -30,7 +26,7 @@ public sealed class BillersControllerTests
     public void GetBillers_WhenNoFilters_ReturnsDirectory()
     {
         // Arrange
-        var billers = new List<BillerDataTransferObject>
+        var billers = new List<BillerDto>
         {
             new() { Id = DefaultBillerId, Name = "Water Co", Category = "Utilities" },
         };
@@ -56,7 +52,7 @@ public sealed class BillersControllerTests
         const string category = "Utilities";
         _billerService
             .Setup(service => service.SearchBillers(string.Empty, category))
-            .Returns(new List<BillerDataTransferObject>());
+            .Returns(new List<BillerDto>());
         BillersController controller = CreateController();
 
         // Act
@@ -74,7 +70,7 @@ public sealed class BillersControllerTests
     public void GetSavedBillers_WhenAuthenticated_ReturnsSavedBillers()
     {
         // Arrange
-        var savedBillers = new List<SavedBillerDataTransferObject>
+        var savedBillers = new List<SavedBillerDto>
         {
             new() { Id = DefaultSavedBillerId, BillerId = DefaultBillerId, BillerName = "Water Co" },
         };
@@ -97,7 +93,7 @@ public sealed class BillersControllerTests
     {
         // Arrange
         var request = new SaveBillerRequest { BillerId = DefaultBillerId, Nickname = "Home Water" };
-        var savedBiller = new SavedBillerDataTransferObject
+        var savedBiller = new SavedBillerDto
         {
             Id = DefaultSavedBillerId,
             BillerId = DefaultBillerId,

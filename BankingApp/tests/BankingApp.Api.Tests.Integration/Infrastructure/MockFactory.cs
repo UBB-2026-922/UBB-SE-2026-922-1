@@ -1,17 +1,13 @@
-﻿// <copyright file="MockFactory.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Beneficiary;
-using BankingApp.Application.Services.Dashboard;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Profile;
-using BankingApp.Application.Services.Registration;
-using BankingApp.Application.Services.Security;
-
 namespace BankingApp.Api.Tests.Integration.Infrastructure;
+
+using Application.Repositories.Interfaces;
+using Application.Services.Beneficiary;
+using Application.Services.Dashboard;
+using Application.Services.Login;
+using Application.Services.PasswordRecovery;
+using Application.Services.Profile;
+using Application.Services.Registration;
+using Application.Services.Security;
 
 /// <summary>
 ///     Creates pre-configured Moq stubs for the service and repository interfaces

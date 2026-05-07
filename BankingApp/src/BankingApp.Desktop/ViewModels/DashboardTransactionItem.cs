@@ -1,11 +1,4 @@
-﻿// <copyright file="DashboardTransactionItem.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardTransactionItem class.
-// </summary>
-
-namespace BankingApp.Desktop.ViewModels;
+﻿namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Represents a formatted transaction row for dashboard display.

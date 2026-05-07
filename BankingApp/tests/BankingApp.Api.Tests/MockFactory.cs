@@ -1,23 +1,19 @@
-﻿// <copyright file="MockFactory.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Api.Tests;
 
-using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Dashboard;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Profile;
-using BankingApp.Application.Services.Registration;
-using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
+using Application.Repositories.Interfaces;
+using Application.Services.Dashboard;
+using Application.Services.Login;
+using Application.Services.Notifications;
+using Application.Services.PasswordRecovery;
+using Application.Services.Profile;
+using Application.Services.Registration;
+using Application.Services.Security;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
-
-namespace BankingApp.Api.Tests;
+using Application.DTOs.Auth;
+using Application.DTOs.Dashboard;
+using Application.DTOs.Profile;
 
 /// <summary>
 ///     Factory methods for creating Moq mocks with sensible default return values.
@@ -35,10 +31,6 @@ internal static class MockFactory
             .Returns((ErrorOr<LoginSuccess>)new FullLogin(0, string.Empty));
         mock.Setup(verifiesOtp => verifiesOtp.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata?>()))
             .Returns((ErrorOr<LoginSuccess>)new FullLogin(0, string.Empty));
-        mock.Setup(oauthLoginAsync => oauthLoginAsync.OAuthLoginAsync(
-                It.IsAny<OAuthLoginRequest>(),
-                It.IsAny<SessionMetadata?>()))
-            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(0, string.Empty));
         mock.Setup(logout => logout.Logout(It.IsAny<string>()))
             .Returns(Result.Success);
         mock.Setup(resendOtp => resendOtp.ResendOtp(It.IsAny<int>(), It.IsAny<string>()))
@@ -54,8 +46,6 @@ internal static class MockFactory
     {
         var mock = new Mock<IRegistrationService>(MockBehavior.Strict);
         mock.Setup(register => register.Register(It.IsAny<RegisterRequest>()))
-            .Returns(Result.Success);
-        mock.Setup(oauthRegister => oauthRegister.OAuthRegister(It.IsAny<OAuthRegisterRequest>()))
             .Returns(Result.Success);
         return mock;
     }
@@ -84,7 +74,7 @@ internal static class MockFactory
     {
         var mock = new Mock<IDashboardService>(MockBehavior.Strict);
         mock.Setup(getsDashboardData => getsDashboardData.GetDashboardData(It.IsAny<int>()))
-            .Returns(new DashboardResponse());
+            .Returns(new DashboardDto());
         return mock;
     }
 
@@ -96,7 +86,7 @@ internal static class MockFactory
     {
         var mock = new Mock<IProfileService>(MockBehavior.Strict);
         mock.Setup(getsProfile => getsProfile.GetProfile(It.IsAny<int>()))
-            .Returns(new ProfileInfo());
+            .Returns(new ProfileDto());
         mock.Setup(updatesPersonalInfo => updatesPersonalInfo.UpdatePersonalInfo(It.IsAny<UpdateProfileRequest>()))
             .Returns(Result.Success);
         mock.Setup(changesPassword => changesPassword.ChangePassword(It.IsAny<ChangePasswordRequest>()))
@@ -105,23 +95,17 @@ internal static class MockFactory
             .Returns(Result.Success);
         mock.Setup(disables2Fa => disables2Fa.Disable2Fa(It.IsAny<int>()))
             .Returns(Result.Success);
-        mock.Setup(getsOAuthLinks => getsOAuthLinks.GetOAuthLinks(It.IsAny<int>()))
-            .Returns(new List<OAuthLinkDataTransferObject>());
-        mock.Setup(linksOAuth => linksOAuth.LinkOAuth(It.IsAny<int>(), It.IsAny<string>()))
-            .Returns(Result.Success);
-        mock.Setup(unlinksOAuth => unlinksOAuth.UnlinkOAuth(It.IsAny<int>(), It.IsAny<string>()))
-            .Returns(Result.Success);
         mock.Setup(getsNotificationPreferences =>
                 getsNotificationPreferences.GetNotificationPreferences(It.IsAny<int>()))
-            .Returns(new List<NotificationPreferenceDataTransferObject>());
+            .Returns(new List<NotificationPreferenceDto>());
         mock.Setup(updatesNotificationPreferences => updatesNotificationPreferences.UpdateNotificationPreferences(
                 It.IsAny<int>(),
-                It.IsAny<List<NotificationPreferenceDataTransferObject>>()))
+                It.IsAny<List<NotificationPreferenceDto>>()))
             .Returns(Result.Success);
         mock.Setup(verifiesPassword => verifiesPassword.VerifyPassword(It.IsAny<int>(), It.IsAny<string>()))
             .Returns(true);
         mock.Setup(getsActiveSessions => getsActiveSessions.GetActiveSessions(It.IsAny<int>()))
-            .Returns(new List<SessionDataTransferObject>());
+            .Returns(new List<SessionDto>());
         mock.Setup(revokesSession => revokesSession.RevokeSession(It.IsAny<int>(), It.IsAny<int>()))
             .Returns(Result.Success);
         return mock;

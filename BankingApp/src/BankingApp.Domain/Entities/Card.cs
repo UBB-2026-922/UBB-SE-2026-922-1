@@ -1,13 +1,6 @@
-﻿// <copyright file="Card.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the Card class.
-// </summary>
+﻿namespace BankingApp.Domain.Entities;
 
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Domain.Entities;
+using Enums;
 
 /// <summary>
 ///     Represents a payment card linked to a bank account.
@@ -35,12 +28,22 @@ public class Card
     public int AccountId { get; set; }
 
     /// <summary>
+    ///     Gets or sets the account this card belongs to.
+    /// </summary>
+    public Account? Account { get; set; }
+
+    /// <summary>
     ///     Gets or sets the identifier of the user who owns this card.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
     public int UserId { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the user who owns this card.
+    /// </summary>
+    public User? User { get; set; }
 
     /// <summary>
     ///     Gets or sets the card number.

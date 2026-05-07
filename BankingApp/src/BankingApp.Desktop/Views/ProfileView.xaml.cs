@@ -1,27 +1,21 @@
-﻿// <copyright file="ProfileView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for ProfileView.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Enums;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Application.DTOs.Profile;
+using Enums;
+using Master;
+using Utilities;
+using ViewModels;
+using BankingApp.Domain.Enums;
+using Domain.Extensions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-
-namespace BankingApp.Desktop.Views;
+using Serilog;
 
 /// <summary>
 ///     Displays and manages the authenticated user's profile settings.
@@ -55,6 +49,9 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     private const byte SessionMutedTextRed = 148;
     private const byte SessionMutedTextGreen = 163;
     private const byte SessionMutedTextBlue = 184;
+    private const byte PrimaryTextRed = 30;
+    private const byte PrimaryTextGreen = 41;
+    private const byte PrimaryTextBlue = 59;
     private readonly IAppNavigationService _navigationService;
     private readonly ProfileViewModel _viewModel;
     private bool _isChangingPasswordFlow;
@@ -83,6 +80,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     {
         DispatcherQueue.TryEnqueue(() =>
         {
+            Log.Information("ProfileView state changed to {State}.", state);
             if (_isUpdatingToggle)
             {
                 if (state == ProfileState.Error)
@@ -100,7 +98,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     break;
                 case ProfileState.UpdateSuccess:
                     ShowLoading(false);
-                    PopulateUi();
+                    TryPopulateUi("state-update");
                     break;
                 case ProfileState.Error:
                     ShowLoading(false);
@@ -134,15 +132,60 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         ShowLoading(true);
-        await _viewModel.LoadProfile();
-        ShowLoading(false);
-        PopulateUi();
-        SetEditingEnabled(false);
+        try
+        {
+            Log.Information("ProfileView load started.");
+            bool loaded = await _viewModel.LoadProfile();
+            Log.Information(
+                "ProfileView load finished. Success={Loaded}, UserId={UserId}, PreferencesCount={PreferencesCount}.",
+                loaded,
+                _viewModel.ProfileDto.UserId,
+                _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
+            ShowLoading(false);
+            if (!loaded)
+            {
+                ShowError("Failed to load profile.");
+                return;
+            }
+
+            TryPopulateUi("page-load");
+            SetEditingEnabled(false);
+        }
+        catch (Exception exception)
+        {
+            Log.Error(exception, "ProfileView load crashed.");
+            ShowLoading(false);
+            ShowError($"Failed to load profile: {exception.Message}");
+        }
+    }
+
+    private void TryPopulateUi(string trigger)
+    {
+        try
+        {
+            PopulateUi();
+        }
+        catch (Exception exception)
+        {
+            Log.Error(
+                exception,
+                "ProfileView UI population failed. Trigger={Trigger}, UserId={UserId}, FullName={FullName}, PreferencesCount={PreferencesCount}.",
+                trigger,
+                _viewModel.ProfileDto.UserId,
+                _viewModel.ProfileDto.FullName,
+                _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
+            throw;
+        }
     }
 
     private void PopulateUi()
     {
-        ProfileInfo user = _viewModel.ProfileInfo;
+        ProfileDto user = _viewModel.ProfileDto;
+        Log.Information(
+            "ProfileView populating UI for UserId={UserId}, HasPhone={HasPhone}, Preferred2FaMethod={Preferred2FaMethod}.",
+            user.UserId,
+            !string.IsNullOrWhiteSpace(user.PhoneNumber),
+            user.Preferred2FaMethod);
         ProfileCardName.Text = user.FullName ?? string.Empty;
         ProfileCardEmail.Text = user.Email ?? string.Empty;
         ProfileCardPhone.Text = user.PhoneNumber ?? string.Empty;
@@ -156,7 +199,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         _viewModel.IsInitializingView = true;
         TwoFactorToggle.IsOn = user.Is2FaEnabled;
         _viewModel.IsInitializingView = false;
-        PopulateOAuthLinks(_viewModel.OAuth.OAuthLinks);
         PopulateNotificationPreferences(_viewModel.Notifications.NotificationPreferences);
         Update2FaVisuals();
     }
@@ -230,10 +272,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
         else if (_isTwoFactorFlow)
         {
-            DispatcherQueue.TryEnqueue(async void () =>
-            {
-                await Handle2FaActionAfterVerifyAsync();
-            });
+            DispatcherQueue.TryEnqueue(async void () => { await Handle2FaActionAfterVerifyAsync(); });
         }
         else
         {
@@ -302,7 +341,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         ContentDialogButtonClickDeferral? deferral = arguments.GetDeferral();
         string? newPassword = NewPasswordBox.Password;
         string? confirmPassword = ConfirmPasswordBox.Password;
-        int? userId = _viewModel.ProfileInfo.UserId;
+        int? userId = _viewModel.ProfileDto.UserId;
         if (userId == null)
         {
             NewPasswordErrorInfoBar.Message = "User not loaded.";
@@ -384,26 +423,6 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private async void RemoveConnectedAccount_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button { Tag: OAuthLinkDataTransferObject link })
-        {
-            bool success = await _viewModel.OAuth.UnlinkOAuth(link.Provider);
-            if (success)
-            {
-                PopulateOAuthLinks(_viewModel.OAuth.OAuthLinks);
-            }
-            else
-            {
-                ShowError("Failed to remove account.");
-            }
-        }
-    }
-
-    private void ManageDevicesButton_Click(object sender, RoutedEventArgs e)
-    {
-    }
-
     private async void NotificationToggle_Toggled(object sender, RoutedEventArgs e)
     {
         if (_viewModel.IsInitializingView)
@@ -411,7 +430,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             return;
         }
 
-        if (sender is ToggleSwitch { Tag: NotificationPreferenceDataTransferObject preference } toggle)
+        if (sender is ToggleSwitch { Tag: NotificationPreferenceDto preference } toggle)
         {
             _isUpdatingToggle = true;
             await _viewModel.ToggleNotificationPreference(preference, toggle.IsOn);
@@ -434,6 +453,11 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private void Update2FaVisuals()
     {
+        Log.Information(
+            "ProfileView updating 2FA visuals. PhoneActive={PhoneActive}, EmailActive={EmailActive}, PhoneDisplay={PhoneDisplay}.",
+            _viewModel.IsPhoneTwoFactorActive,
+            _viewModel.IsEmailTwoFactorActive,
+            _viewModel.PersonalInfo.TwoFactorPhoneDisplay);
         TwoFactorPhoneDisplay.Text = _viewModel.PersonalInfo.TwoFactorPhoneDisplay;
         if (!_viewModel.PersonalInfo.HasPhoneNumber)
         {
@@ -493,7 +517,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private void ConfigureActionButton(
+    private static void ConfigureActionButton(
         Button button,
         Border badge,
         TextBlock statusText,
@@ -564,27 +588,11 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
     }
 
-    private void PopulateOAuthLinks(List<OAuthLinkDataTransferObject>? links)
+    private void PopulateNotificationPreferences(List<NotificationPreferenceDto>? preferences)
     {
-        OAuthLinksPanel.Children.Clear();
-        if (links == null)
-        {
-            return;
-        }
-
-        foreach (Button button in links.Select(link => new Button
-                 {
-                     Content = link.ProviderEmail ?? link.Provider,
-                     Tag = link,
-                 }))
-        {
-            button.Click += RemoveConnectedAccount_Click;
-            OAuthLinksPanel.Children.Add(button);
-        }
-    }
-
-    private void PopulateNotificationPreferences(List<NotificationPreferenceDataTransferObject>? preferences)
-    {
+        Log.Information(
+            "ProfileView populating notification preferences. Count={Count}.",
+            preferences?.Count ?? 0);
         _viewModel.IsInitializingView = true;
         NotificationPreferencesPanel.Children.Clear();
         if (preferences == null)
@@ -593,7 +601,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             return;
         }
 
-        foreach (NotificationPreferenceDataTransferObject preference in preferences)
+        foreach (NotificationPreferenceDto preference in preferences)
         {
             var row = new Grid
             {
@@ -601,7 +609,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     0,
                     NotificationPreferenceVerticalMargin,
                     0,
-                    NotificationPreferenceVerticalMargin),
+                    NotificationPreferenceVerticalMargin)
             };
             row.ColumnDefinitions.Add(
                 new ColumnDefinition { Width = new GridLength(SecondGridColumnIndex, GridUnitType.Star) });
@@ -611,13 +619,13 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 Text = preference.Category.ToDisplayName(),
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = NotificationPreferenceFontSize,
-                Foreground = (Brush)Resources["TextPrimary"],
+                Foreground = GetPrimaryTextBrush()
             };
             var toggle = new ToggleSwitch
             {
                 IsOn = preference.EmailEnabled,
                 Tag = preference,
-                VerticalAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
             };
             toggle.Toggled += NotificationToggle_Toggled;
             Grid.SetColumn(text, FirstGridColumnIndex);
@@ -628,6 +636,21 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
 
         _viewModel.IsInitializingView = false;
+    }
+
+    private Brush GetPrimaryTextBrush()
+    {
+        if (Resources.TryGetValue("TextPrimary", out object resource) && resource is Brush brush)
+        {
+            return brush;
+        }
+
+        return new SolidColorBrush(
+            ColorHelper.FromArgb(
+                OpaqueColorAlpha,
+                PrimaryTextRed,
+                PrimaryTextGreen,
+                PrimaryTextBlue));
     }
 
     private async void TabSessionsBtn_Click(object sender, RoutedEventArgs e)
@@ -661,7 +684,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         return true;
     }
 
-    private Border BuildSessionCard(SessionDataTransferObject session)
+    private Border BuildSessionCard(SessionDto session)
     {
         var card = new Border
         {
@@ -678,7 +701,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 SessionCardHorizontalPadding,
                 SessionCardVerticalPadding,
                 SessionCardHorizontalPadding,
-                SessionCardVerticalPadding),
+                SessionCardVerticalPadding)
         };
         var grid = new Grid();
         grid.ColumnDefinitions.Add(
@@ -694,7 +717,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionPrimaryTextRed,
                     SessionPrimaryTextGreen,
-                    SessionPrimaryTextBlue)),
+                    SessionPrimaryTextBlue))
         };
         var browserText = new TextBlock
         {
@@ -705,7 +728,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionSecondaryTextRed,
                     SessionSecondaryTextGreen,
-                    SessionSecondaryTextBlue)),
+                    SessionSecondaryTextBlue))
         };
         var networkAddressText = new TextBlock
         {
@@ -716,7 +739,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionSecondaryTextRed,
                     SessionSecondaryTextGreen,
-                    SessionSecondaryTextBlue)),
+                    SessionSecondaryTextBlue))
         };
         var lastActiveText = new TextBlock
         {
@@ -729,7 +752,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                     OpaqueColorAlpha,
                     SessionMutedTextRed,
                     SessionMutedTextGreen,
-                    SessionMutedTextBlue)),
+                    SessionMutedTextBlue))
         };
         infoStack.Children.Add(deviceText);
         infoStack.Children.Add(browserText);
@@ -740,7 +763,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             Content = "Revoke",
             Tag = session.Id,
             VerticalAlignment = VerticalAlignment.Center,
-            Style = (Style)Resources["DangerButtonStyle"],
+            Style = (Style)Resources["DangerButtonStyle"]
         };
         revokeButton.Click += RevokeSessionButton_Click;
         Grid.SetColumn(infoStack, FirstGridColumnIndex);
@@ -782,7 +805,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             return;
         }
 
-        foreach (SessionDataTransferObject session in _viewModel.Sessions.ActiveSessions)
+        foreach (SessionDto session in _viewModel.Sessions.ActiveSessions)
         {
             SessionsListPanel.Children.Add(BuildSessionCard(session));
         }

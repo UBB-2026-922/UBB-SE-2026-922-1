@@ -1,15 +1,12 @@
-﻿// Copyright (c) UBB-922. All rights reserved.
-// Licensed under the MIT license.
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+using Domain.Entities;
+using DataAccess;
+using DataAccess.Implementations;
+using Repositories.Implementations;
+using Infrastructure;
 using Bogus;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Tests.Integration;
 
 /// <summary>
 ///     Integration tests for <see cref="BeneficiaryRepository" /> verifying repository
@@ -46,14 +43,14 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
             .RuleFor(user => user.PreferredLanguage, _ => "en");
     }
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-        return _fixture.ResetAsync();
+        return new ValueTask(_fixture.ResetAsync());
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
     [Fact]
@@ -68,7 +65,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
             UserId = beneficiaryOwner.Id,
             Name = "Ava Recipient",
             Iban = "RO49AAAA1B31007593840000",
-            BankName = "Transilvania Bank",
+            BankName = "Transylvania Bank",
             LastTransferDate = DateTime.UtcNow.AddDays(InitialLastTransferDaysOffset),
             TotalAmountSent = DefaultTotalAmountSent,
             TransferCount = DefaultTransferCount,
@@ -86,7 +83,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         Beneficiary? persistedBeneficiary = verificationContext.Beneficiaries
             .FirstOrDefault(beneficiary => beneficiary.Id == createResult.Value.Id);
         persistedBeneficiary.Should().NotBeNull();
-        persistedBeneficiary!.Name.Should().Be(newBeneficiary.Name);
+        persistedBeneficiary.Name.Should().Be(newBeneficiary.Name);
         persistedBeneficiary.Iban.Should().Be(newBeneficiary.Iban);
     }
 
@@ -103,7 +100,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
             UserId = beneficiaryOwner.Id,
             Name = "Sam Original",
             Iban = beneficiaryIban,
-            BankName = "Transilvania Bank",
+            BankName = "Transylvania Bank",
             CreatedAt = DateTime.UtcNow,
         };
         beneficiaryRepository.Create(firstBeneficiary).IsError.Should().BeFalse();
@@ -113,7 +110,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
             UserId = beneficiaryOwner.Id,
             Name = "Sam Duplicate",
             Iban = beneficiaryIban,
-            BankName = "Transilvania Bank",
+            BankName = "Transylvania Bank",
             CreatedAt = DateTime.UtcNow,
         };
 
@@ -246,7 +243,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         Beneficiary? updatedBeneficiary = verificationContext.Beneficiaries
             .FirstOrDefault(beneficiary => beneficiary.Id == existingBeneficiaryId);
         updatedBeneficiary.Should().NotBeNull();
-        updatedBeneficiary!.Name.Should().Be("Noah Updated");
+        updatedBeneficiary.Name.Should().Be("Noah Updated");
         updatedBeneficiary.BankName.Should().Be("Updated Bank");
         updatedBeneficiary.LastTransferDate.Should().Be(updatedTransferDate);
         updatedBeneficiary.TotalAmountSent.Should().Be(UpdatedTotalAmountSent);

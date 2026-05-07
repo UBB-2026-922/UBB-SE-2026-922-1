@@ -1,21 +1,14 @@
-﻿// <copyright file="DispatcherCountdownTimer.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for DispatcherCountdownTimer.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System;
 using Microsoft.UI.Xaml;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Production implementation of <see cref="ICountdownTimer" /> backed by
 ///     <see cref="DispatcherTimer" />. Because <see cref="DispatcherTimer" /> runs on the
 ///     UI thread, <see cref="Tick" /> events are always raised on the UI thread, which
 ///     makes it safe for ViewModels to update observable properties from the handler
-///     without extra marshalling.
+///     without extra marshaling.
 /// </summary>
 public sealed class DispatcherCountdownTimer : ICountdownTimer
 {
@@ -31,7 +24,7 @@ public sealed class DispatcherCountdownTimer : ICountdownTimer
     {
         _inner = new DispatcherTimer
         {
-            Interval = TimeSpan.FromSeconds(TimerIntervalSeconds),
+            Interval = TimeSpan.FromSeconds(TimerIntervalSeconds)
         };
         _inner.Tick += (_, _) => Tick?.Invoke(this, EventArgs.Empty);
     }
@@ -46,7 +39,7 @@ public sealed class DispatcherCountdownTimer : ICountdownTimer
     }
 
     /// <inheritdoc />
-    public void Stop()
+    public void StopTimer()
     {
         _inner.Stop();
     }

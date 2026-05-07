@@ -1,19 +1,10 @@
-﻿// <copyright file="BillPaymentService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.BillPayments;
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Globalization;
 using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-
-namespace BankingApp.Application.Services.BillPayments;
+using Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
 
 /// <summary>
 /// Implements the business logic for bill payments.
@@ -38,31 +29,29 @@ public class BillPaymentService : IBillPaymentService
     }
 
     /// <inheritdoc/>
-    public bool Requires2Fa(decimal amount) => amount >= TwoFaAmountThreshold;
+    public bool Requires2Fa(decimal amount)
+    {
+        return amount >= TwoFaAmountThreshold;
+    }
 
     /// <inheritdoc/>
     public async Task<BillPayment> ProcessPaymentAsync(BillPaymentDto request)
     {
-        var biller = await _billRepository.GetBillerByIdAsync(request.BillerId);
-        if (biller == null)
-        {
-            throw new Exception("Biller not found.");
-        }
+        Biller biller = await _billRepository.GetBillerByIdAsync(request.BillerId) ??
+                        throw new KeyNotFoundException("Biller not found.");
 
-        var account = await _billRepository.GetAccountByIdAsync(request.SourceAccountId);
-        if (account == null)
-        {
-            throw new Exception("Source account not found.");
-        }
+        Account account = await _billRepository.GetAccountByIdAsync(request.SourceAccountId) ??
+                           throw new KeyNotFoundException("Source account not found.");
 
         if (account.UserId != request.UserId)
         {
-            throw new Exception("Source account does not belong to the authenticated user.");
+            throw new InvalidOperationException("Source account does not belong to the authenticated user.");
         }
 
         if (request.Amount <= 0)
         {
-            throw new Exception("Payment amount must be greater than zero.");
+            throw new ArgumentOutOfRangeException(nameof(request), request.Amount,
+                "Payment amount must be greater than zero.");
         }
 
         decimal fee = CalculateFee(request.Amount);
@@ -70,7 +59,7 @@ public class BillPaymentService : IBillPaymentService
 
         if (account.Balance < totalAmount)
         {
-            throw new Exception("Insufficient funds to pay this bill (including fees).");
+            throw new InvalidOperationException("Insufficient funds to pay this bill (including fees).");
         }
 
         account.Balance -= totalAmount;
@@ -86,10 +75,12 @@ public class BillPaymentService : IBillPaymentService
             CreatedAt = DateTime.UtcNow,
             Direction = TransactionDirection.Out,
             Status = TransactionStatus.Completed,
-            TransactionRef = $"TXN-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}",
+            TransactionRef = string.Create(
+                CultureInfo.InvariantCulture,
+                $"TXN-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)[..8].ToUpperInvariant()}"),
             Type = "BillPayment",
-            Currency = account.Currency ?? "RON",
-            BalanceAfter = account.Balance,
+            Currency = account.Currency,
+            BalanceAfter = account.Balance
         };
 
         await _billRepository.AddTransactionAsync(globalTransaction);
@@ -105,7 +96,7 @@ public class BillPaymentService : IBillPaymentService
             Fee = fee,
             ReceiptNumber = GenerateReceiptNumber(),
             Status = BillPaymentStatus.Completed,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         await _billRepository.AddPaymentAsync(payment);
@@ -133,7 +124,7 @@ public class BillPaymentService : IBillPaymentService
             UserId = userId,
             BillerId = billerId,
             Nickname = nickname,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         await _billRepository.AddSavedBillerAsync(saved);
@@ -151,9 +142,10 @@ public class BillPaymentService : IBillPaymentService
     /// <summary>
     /// Creates a unique receipt number like RCP-20260421-ABC123.
     /// </summary>
-    private string GenerateReceiptNumber()
+    private static string GenerateReceiptNumber()
     {
-        string uniqueSuffix = Guid.NewGuid().ToString("N")[..ReceiptUniqueSuffixLength].ToUpper();
+        string uniqueSuffix = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)[..ReceiptUniqueSuffixLength]
+            .ToUpperInvariant();
         return $"RCP-{DateTime.UtcNow:yyyyMMdd}-{uniqueSuffix}";
     }
 }

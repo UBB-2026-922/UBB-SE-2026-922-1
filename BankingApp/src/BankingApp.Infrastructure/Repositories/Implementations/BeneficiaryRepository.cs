@@ -1,19 +1,12 @@
-﻿// <copyright file="BeneficiaryRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BeneficiaryRepository class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using System.Collections.Generic;
 using System.Linq;
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
+using Domain.Entities;
+using DataAccess;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 ///     Provides repository operations for managing beneficiaries.
@@ -41,8 +34,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         if (beneficiary is null)
         {
             return Error.NotFound(
-                code: "Beneficiary.NotFound",
-                description: $"Beneficiary with id '{beneficiaryId}' was not found.");
+                "Beneficiary.NotFound",
+                $"Beneficiary with id '{beneficiaryId}' was not found.");
         }
 
         return beneficiary;
@@ -51,7 +44,7 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     /// <inheritdoc />
     public ErrorOr<List<Beneficiary>> FindByUserId(int userId)
     {
-        List<Beneficiary> beneficiaries = _databaseContext.Beneficiaries
+        var beneficiaries = _databaseContext.Beneficiaries
             .AsNoTracking()
             .Where(beneficiary => beneficiary.UserId == userId)
             .OrderBy(beneficiary => beneficiary.Name)
@@ -85,8 +78,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         catch (DbUpdateException databaseUpdateException)
         {
             return Error.Failure(
-                code: "Beneficiary.CreateFailed",
-                description: $"Failed to create beneficiary: {databaseUpdateException.Message}");
+                "Beneficiary.CreateFailed",
+                $"Failed to create beneficiary: {databaseUpdateException.Message}");
         }
     }
 
@@ -102,8 +95,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         if (!exists)
         {
             return Error.NotFound(
-                code: "Beneficiary.NotFound",
-                description: $"Beneficiary with id '{beneficiary.Id}' was not found.");
+                "Beneficiary.NotFound",
+                $"Beneficiary with id '{beneficiary.Id}' was not found.");
         }
 
         try
@@ -115,8 +108,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         catch (DbUpdateException databaseUpdateException)
         {
             return Error.Failure(
-                code: "Beneficiary.UpdateFailed",
-                description: $"Failed to update beneficiary: {databaseUpdateException.Message}");
+                "Beneficiary.UpdateFailed",
+                $"Failed to update beneficiary: {databaseUpdateException.Message}");
         }
     }
 
@@ -131,8 +124,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         if (beneficiary is null)
         {
             return Error.NotFound(
-                code: "Beneficiary.NotFound",
-                description: $"Beneficiary with id '{beneficiaryId}' was not found.");
+                "Beneficiary.NotFound",
+                $"Beneficiary with id '{beneficiaryId}' was not found.");
         }
 
         try
@@ -144,8 +137,8 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         catch (DbUpdateException databaseUpdateException)
         {
             return Error.Failure(
-                code: "Beneficiary.DeleteFailed",
-                description: $"Failed to delete beneficiary: {databaseUpdateException.Message}");
+                "Beneficiary.DeleteFailed",
+                $"Failed to delete beneficiary: {databaseUpdateException.Message}");
         }
     }
 }

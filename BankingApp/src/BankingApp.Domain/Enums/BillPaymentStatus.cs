@@ -1,10 +1,3 @@
-﻿// <copyright file="BillPaymentStatus.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentStatus enum.
-// </summary>
-
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
@@ -25,5 +18,5 @@ public enum BillPaymentStatus
     /// <summary>
     ///     The payment failed due to insufficient funds or a biller error.
     /// </summary>
-    Failed,
+    Failed
 }

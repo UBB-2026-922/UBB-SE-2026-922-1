@@ -1,9 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+
 <Page
     x:Class="BankingApp.Desktop.Views.RecurringPaymentView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:billPayment="using:BankingApp.Application.DTOs.BillPayment"
+    xmlns:billers="using:BankingApp.Application.DTOs.Billers"
+    xmlns:billPayments="using:BankingApp.Application.DTOs.BillPayments"
     xmlns:recurringPayments="using:BankingApp.Application.DTOs.RecurringPayments"
     Background="#F4F6FA">
 
@@ -12,12 +14,12 @@
 
             <TextBlock Text="Recurring Payments"
                        FontSize="24"
-                       FontWeight="SemiBold"/>
+                       FontWeight="SemiBold" />
 
             <TextBlock Text="Existing Payments"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Margin="0,12,0,0"/>
+                       Margin="0,12,0,0" />
 
             <ListView x:Name="PaymentsList"
                       ItemsSource="{Binding Payments}"
@@ -31,33 +33,33 @@
                                 Padding="12"
                                 Margin="0,0,0,10">
                             <StackPanel Spacing="6">
-                                <TextBlock Text="{x:Bind BillerId, Mode=OneWay}" FontWeight="Bold"/>
-                                <TextBlock Text="{x:Bind Amount, Mode=OneWay}"/>
-                                <TextBlock Text="{x:Bind Frequency, Mode=OneWay}"/>
-                                <TextBlock Text="{x:Bind Status, Mode=OneWay}"/>
+                                <TextBlock Text="{x:Bind BillerId, Mode=OneWay}" FontWeight="Bold" />
+                                <TextBlock Text="{x:Bind Amount, Mode=OneWay}" />
+                                <TextBlock Text="{x:Bind Frequency, Mode=OneWay}" />
+                                <TextBlock Text="{x:Bind Status, Mode=OneWay}" />
 
                                 <TextBlock>
-                                    <Run Text="Start Date: "/>
-                                    <Run Text="{x:Bind StartDate, Mode=OneWay}"/>
+                                    <Run Text="Start Date: " />
+                                    <Run Text="{x:Bind StartDate, Mode=OneWay}" />
                                 </TextBlock>
 
                                 <TextBlock>
-                                    <Run Text="End Date: "/>
-                                    <Run Text="{x:Bind EndDate, Mode=OneWay, TargetNullValue=No end date}"/>
+                                    <Run Text="End Date: " />
+                                    <Run Text="{x:Bind EndDate, Mode=OneWay, TargetNullValue=No end date}" />
                                 </TextBlock>
 
                                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
                                     <Button Content="Pause"
                                             Click="PauseButton_Click"
-                                            Tag="{Binding}"/>
+                                            Tag="{Binding}" />
 
                                     <Button Content="Resume"
                                             Click="ResumeButton_Click"
-                                            Tag="{Binding}"/>
+                                            Tag="{Binding}" />
 
                                     <Button Content="Cancel"
                                             Click="CancelButton_Click"
-                                            Tag="{Binding}"/>
+                                            Tag="{Binding}" />
                                 </StackPanel>
                             </StackPanel>
                         </Border>
@@ -68,16 +70,16 @@
             <TextBlock Text="Create Recurring Payment"
                        FontSize="20"
                        FontWeight="SemiBold"
-                       Margin="0,12,0,0"/>
+                       Margin="0,12,0,0" />
 
             <ComboBox Header="Source Account"
                       ItemsSource="{Binding Accounts}"
                       SelectedItem="{Binding SelectedAccount, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="billPayment:AccountDto">
+                    <DataTemplate x:DataType="billPayments:AccountDto">
                         <StackPanel>
-                            <TextBlock Text="{x:Bind AccountName}"/>
-                            <TextBlock Text="{x:Bind Balance}" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="{x:Bind AccountName}" />
+                            <TextBlock Text="{x:Bind Balance}" FontSize="12" Opacity="0.7" />
                         </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
@@ -87,10 +89,10 @@
                       ItemsSource="{Binding Billers}"
                       SelectedItem="{Binding SelectedBiller, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="billPayment:BillerDto">
+                    <DataTemplate x:DataType="billers:BillerDto">
                         <StackPanel>
-                            <TextBlock Text="{x:Bind Name}"/>
-                            <TextBlock Text="{x:Bind Category}" FontSize="12" Opacity="0.7"/>
+                            <TextBlock Text="{x:Bind Name}" />
+                            <TextBlock Text="{x:Bind Category}" FontSize="12" Opacity="0.7" />
                         </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
@@ -98,28 +100,28 @@
 
             <NumberBox x:Name="AmountNumberBox"
                        Header="Amount"
-                       ValueChanged="AmountNumberBox_ValueChanged"/>
+                       ValueChanged="AmountNumberBox_ValueChanged" />
 
             <ComboBox Header="Frequency"
                       ItemsSource="{Binding Frequencies}"
-                      SelectedItem="{Binding Frequency, Mode=TwoWay}"/>
+                      SelectedItem="{Binding Frequency, Mode=TwoWay}" />
 
             <DatePicker x:Name="StartDatePicker"
                         Header="Start Date"
-                        DateChanged="StartDatePicker_DateChanged"/>
+                        DateChanged="StartDatePicker_DateChanged" />
 
             <DatePicker x:Name="EndDatePicker"
                         Header="End Date"
-                        DateChanged="EndDatePicker_DateChanged"/>
+                        DateChanged="EndDatePicker_DateChanged" />
 
             <TextBlock x:Name="ErrorMessageTextBlock"
                        Foreground="Red"
                        TextWrapping="Wrap"
                        Text="{Binding ErrorMessage}"
-                       Visibility="{Binding ErrorMessageVisibility}"/>
+                       Visibility="{Binding ErrorMessageVisibility}" />
 
             <Button Content="Create"
-                    Click="CreateButton_Click"/>
+                    Click="CreateButton_Click" />
 
         </StackPanel>
     </ScrollViewer>

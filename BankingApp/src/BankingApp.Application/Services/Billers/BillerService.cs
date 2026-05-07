@@ -1,17 +1,10 @@
-﻿// <copyright file="BillerService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillerService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Billers;
 
 using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
+using Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Errors;
 using ErrorOr;
-
-namespace BankingApp.Application.Services.Billers;
 
 /// <summary>
 ///     Provides biller directory and saved-biller management use cases.
@@ -30,31 +23,31 @@ public class BillerService : IBillerService
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<BillerDataTransferObject>> GetBillerDirectory()
+    public ErrorOr<List<BillerDto>> GetBillerDirectory()
     {
-        ErrorOr<List<Biller>> result = _billerRepository.GetAllBillers(activeOnly: true);
+        ErrorOr<List<Biller>> result = _billerRepository.GetAllBillers();
         if (result.IsError)
         {
             return result.Errors;
         }
 
-        return result.Value.Select(ToDto).ToList();
+        return result.Value.ConvertAll(ToDto);
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<BillerDataTransferObject>> SearchBillers(string searchTerm, string? category = null)
+    public ErrorOr<List<BillerDto>> SearchBillers(string searchTerm, string? category = null)
     {
-        ErrorOr<List<Biller>> result = _billerRepository.SearchBillers(searchTerm, category, activeOnly: true);
+        ErrorOr<List<Biller>> result = _billerRepository.SearchBillers(searchTerm, category);
         if (result.IsError)
         {
             return result.Errors;
         }
 
-        return result.Value.Select(ToDto).ToList();
+        return result.Value.ConvertAll(ToDto);
     }
 
     /// <inheritdoc />
-    public ErrorOr<List<SavedBillerDataTransferObject>> GetSavedBillers(int userId)
+    public ErrorOr<List<SavedBillerDto>> GetSavedBillers(int userId)
     {
         ErrorOr<List<SavedBiller>> result = _billerRepository.GetSavedBillers(userId);
         if (result.IsError)
@@ -62,11 +55,11 @@ public class BillerService : IBillerService
             return result.Errors;
         }
 
-        return result.Value.Select(ToSavedDto).ToList();
+        return result.Value.ConvertAll(ToSavedDto);
     }
 
     /// <inheritdoc />
-    public ErrorOr<SavedBillerDataTransferObject> SaveBiller(int userId, SaveBillerRequest request)
+    public ErrorOr<SavedBillerDto> SaveBiller(int userId, SaveBillerRequest request)
     {
         ErrorOr<Biller> billerResult = _billerRepository.GetBillerById(request.BillerId);
         if (billerResult.IsError)
@@ -75,7 +68,8 @@ public class BillerService : IBillerService
         }
 
         ErrorOr<List<SavedBiller>> existingResult = _billerRepository.GetSavedBillers(userId);
-        if (!existingResult.IsError && existingResult.Value.Any(savedBiller => savedBiller.BillerId == request.BillerId))
+        if (!existingResult.IsError &&
+            existingResult.Value.Any(savedBiller => savedBiller.BillerId == request.BillerId))
         {
             return BillerErrors.BillerAlreadySaved;
         }
@@ -86,7 +80,7 @@ public class BillerService : IBillerService
             BillerId = request.BillerId,
             Nickname = request.Nickname,
             DefaultReference = request.DefaultReference,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow
         };
 
         ErrorOr<SavedBiller> saveResult = _billerRepository.SaveBiller(savedBiller);
@@ -117,20 +111,24 @@ public class BillerService : IBillerService
         return _billerRepository.DeleteSavedBiller(savedBillerId);
     }
 
-    private static BillerDataTransferObject ToDto(Biller biller) =>
-        new()
+    private static BillerDto ToDto(Biller biller)
+    {
+        return new BillerDto
         {
             Id = biller.Id,
             Name = biller.Name,
             Category = biller.Category,
             LogoUrl = biller.LogoUrl,
-            IsActive = biller.IsActive,
+            IsActive = biller.IsActive
         };
+    }
 
-    private static SavedBillerDataTransferObject ToSavedDto(SavedBiller savedBiller) =>
-        new()
+    private static SavedBillerDto ToSavedDto(SavedBiller savedBiller)
+    {
+        return new SavedBillerDto
         {
             Id = savedBiller.Id,
+            UserId = savedBiller.UserId,
             BillerId = savedBiller.BillerId,
             BillerName = savedBiller.Biller?.Name ?? string.Empty,
             BillerCategory = savedBiller.Biller?.Category ?? string.Empty,
@@ -138,5 +136,7 @@ public class BillerService : IBillerService
             Nickname = savedBiller.Nickname,
             DefaultReference = savedBiller.DefaultReference,
             CreatedAt = savedBiller.CreatedAt,
+            Biller = savedBiller.Biller is null ? null : ToDto(savedBiller.Biller)
         };
+    }
 }

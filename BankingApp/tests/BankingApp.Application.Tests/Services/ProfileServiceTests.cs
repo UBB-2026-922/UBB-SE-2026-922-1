@@ -1,18 +1,13 @@
-﻿// <copyright file="ProfileServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Application.Tests.Services;
 
-using BankingApp.Application.DataTransferObjects.Profile;
-using BankingApp.Application.Repositories.Interfaces;
+using DTOs.Profile;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-using ApplicationTwoFactorMethod = BankingApp.Application.Enums.TwoFactorMethod;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="ProfileService" />.
@@ -36,7 +31,7 @@ public class ProfileServiceTests
     }
 
     [Fact]
-    public void GetProfile_WhenUserExists_ReturnsProfileInfo()
+    public void GetProfile_WhenUserExists_ReturnsProfileDto()
     {
         // Arrange
         const int userId = 1;
@@ -52,11 +47,11 @@ public class ProfileServiceTests
                     FullName = fullName,
                     Email = email,
                     DateOfBirth = dateOfBirth,
-                    PreferredLanguage = "ro",
+                    PreferredLanguage = "ro"
                 });
 
         // Act
-        ErrorOr<ProfileInfo> result = _service.GetProfile(userId);
+        ErrorOr<ProfileDto> result = _service.GetProfile(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -76,7 +71,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<ProfileInfo> result = _service.GetProfile(NonExistentUserId);
+        ErrorOr<ProfileDto> result = _service.GetProfile(NonExistentUserId);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -87,7 +82,12 @@ public class ProfileServiceTests
     public void UpdatePersonalInfo_WhenUserIdIsNull_ReturnsValidationError()
     {
         // Arrange
-        var request = new UpdateProfileRequest(null, "0712345678", "123 Main St");
+        var request = new UpdateProfileRequest
+        {
+            UserId = null,
+            PhoneNumber = "0712345678",
+            Address = "123 Main St"
+        };
 
         // Act
         ErrorOr<Success> result = _service.UpdatePersonalInfo(request);
@@ -104,7 +104,12 @@ public class ProfileServiceTests
         _userRepository
             .Setup(findsById => findsById.FindById(NonExistentUserId))
             .Returns(Error.NotFound());
-        var request = new UpdateProfileRequest(NonExistentUserId, "0712345678", "123 Main St");
+        var request = new UpdateProfileRequest
+        {
+            UserId = NonExistentUserId,
+            PhoneNumber = "0712345678",
+            Address = "123 Main St"
+        };
 
         // Act
         ErrorOr<Success> result = _service.UpdatePersonalInfo(request);
@@ -122,7 +127,12 @@ public class ProfileServiceTests
         _userRepository
             .Setup(findsById => findsById.FindById(userId))
             .Returns(new User { Id = userId, Email = "ada@test.com", FullName = "Ada" });
-        var request = new UpdateProfileRequest(userId, "not-a-phone", "123 Main St");
+        var request = new UpdateProfileRequest
+        {
+            UserId = userId,
+            PhoneNumber = "not-a-phone",
+            Address = "123 Main St"
+        };
 
         // Act
         ErrorOr<Success> result = _service.UpdatePersonalInfo(request);
@@ -150,12 +160,15 @@ public class ProfileServiceTests
         _userRepository
             .Setup(updatesUser => updatesUser.UpdateUser(It.IsAny<User>()))
             .Returns(Result.Success);
-        var request = new UpdateProfileRequest(userId, validPhone, address)
+        var request = new UpdateProfileRequest
         {
+            UserId = userId,
+            PhoneNumber = validPhone,
+            Address = address,
             FullName = fullName,
             DateOfBirth = dateOfBirth,
             Nationality = nationality,
-            PreferredLanguage = preferredLanguage,
+            PreferredLanguage = preferredLanguage
         };
 
         // Act
@@ -173,66 +186,6 @@ public class ProfileServiceTests
                     user.Nationality == nationality &&
                     user.PreferredLanguage == preferredLanguage)),
             Times.Once);
-    }
-
-    [Fact]
-    public void LinkOAuth_WhenGoogleIsNotLinked_SavesGoogleLink()
-    {
-        // Arrange
-        const int userId = 1;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, Email = "ada@test.com" });
-        _userRepository
-            .Setup(getsLinkedProviders => getsLinkedProviders.GetLinkedProviders(userId))
-            .Returns(new List<OAuthLink>());
-        _userRepository
-            .Setup(savesOAuthLink => savesOAuthLink.SaveOAuthLink(userId, "Google", It.IsAny<string>(), "ada@test.com"))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _service.LinkOAuth(userId, "Google");
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _userRepository.Verify(
-            savesOAuthLink => savesOAuthLink.SaveOAuthLink(userId, "Google", It.IsAny<string>(), "ada@test.com"),
-            Times.Once);
-    }
-
-    [Fact]
-    public void LinkOAuth_WhenProviderIsUnsupported_ReturnsValidationError()
-    {
-        // Act
-        ErrorOr<Success> result = _service.LinkOAuth(1, "Facebook");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("unsupported_provider");
-    }
-
-    [Fact]
-    public void UnlinkOAuth_WhenGoogleIsLinked_DeletesLink()
-    {
-        // Arrange
-        const int userId = 1;
-        const int linkId = 7;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId });
-        _userRepository
-            .Setup(getsLinkedProviders => getsLinkedProviders.GetLinkedProviders(userId))
-            .Returns(new List<OAuthLink> { new() { Id = linkId, Provider = "Google" } });
-        _userRepository
-            .Setup(deletesOAuthLink => deletesOAuthLink.DeleteOAuthLink(linkId))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _service.UnlinkOAuth(userId, "Google");
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _userRepository.Verify(deletesOAuthLink => deletesOAuthLink.DeleteOAuthLink(linkId), Times.Once);
     }
 
     [Fact]
@@ -348,7 +301,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<Success> result = _service.Enable2Fa(NonExistentUserId, ApplicationTwoFactorMethod.Email);
+        ErrorOr<Success> result = _service.Enable2Fa(NonExistentUserId, TwoFactorMethod.Email);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -368,7 +321,7 @@ public class ProfileServiceTests
             .Returns(Result.Success);
 
         // Act
-        ErrorOr<Success> result = _service.Enable2Fa(userId, ApplicationTwoFactorMethod.Email);
+        ErrorOr<Success> result = _service.Enable2Fa(userId, TwoFactorMethod.Email);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -486,7 +439,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<List<NotificationPreferenceDataTransferObject>> result =
+        ErrorOr<List<NotificationPreferenceDto>> result =
             _service.GetNotificationPreferences(NonExistentUserId);
 
         // Assert
@@ -507,11 +460,11 @@ public class ProfileServiceTests
             .Returns(
                 new List<NotificationPreference>
                 {
-                    new() { Id = 1, UserId = userId, Category = NotificationType.Payment, EmailEnabled = true },
+                    new() { Id = 1, UserId = userId, Category = NotificationType.Payment, EmailEnabled = true }
                 });
 
         // Act
-        ErrorOr<List<NotificationPreferenceDataTransferObject>> result = _service.GetNotificationPreferences(userId);
+        ErrorOr<List<NotificationPreferenceDto>> result = _service.GetNotificationPreferences(userId);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -528,7 +481,7 @@ public class ProfileServiceTests
             .Returns(Error.NotFound());
 
         // Act
-        ErrorOr<List<SessionDataTransferObject>> result = _service.GetActiveSessions(NonExistentUserId);
+        ErrorOr<List<SessionDto>> result = _service.GetActiveSessions(NonExistentUserId);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -548,11 +501,11 @@ public class ProfileServiceTests
             .Returns(
                 new List<Session>
                 {
-                    new() { Id = 1, UserId = userId, Token = "token1", DeviceInfo = "Chrome/Windows" },
+                    new() { Id = 1, UserId = userId, Token = "token1", DeviceInfo = "Chrome/Windows" }
                 });
 
         // Act
-        ErrorOr<List<SessionDataTransferObject>> result = _service.GetActiveSessions(userId);
+        ErrorOr<List<SessionDto>> result = _service.GetActiveSessions(userId);
 
         // Assert
         result.IsError.Should().BeFalse();

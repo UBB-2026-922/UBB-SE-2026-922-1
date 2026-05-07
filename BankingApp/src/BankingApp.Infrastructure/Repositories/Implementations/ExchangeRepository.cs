@@ -1,18 +1,11 @@
-﻿// <copyright file="ExchangeRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ExchangeRepository class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
 using ErrorOr;
-using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
+using Microsoft.EntityFrameworkCore.Storage;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IExchangeRepository" />.
@@ -34,7 +27,8 @@ public class ExchangeRepository : IExchangeRepository
     /// <inheritdoc />
     public ErrorOr<ExchangeTransaction> GetById(int id)
     {
-        ExchangeTransaction? exchange = _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == id);
+        ExchangeTransaction? exchange =
+            _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == id);
         if (exchange is null)
         {
             return Error.NotFound(description: "Exchange transaction not found.");
@@ -62,17 +56,19 @@ public class ExchangeRepository : IExchangeRepository
     /// <inheritdoc />
     public ErrorOr<ExchangeTransaction> Create(ExchangeTransaction exchange)
     {
-        using var databaseTransaction = _databaseContext.Database.BeginTransaction();
+        using IDbContextTransaction databaseTransaction = _databaseContext.Database.BeginTransaction();
 
         try
         {
-            Account? sourceAccount = _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.SourceAccountId);
+            Account? sourceAccount =
+                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.SourceAccountId);
             if (sourceAccount is null)
             {
                 return Error.NotFound(description: "Source account not found.");
             }
 
-            Account? targetAccount = _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.TargetAccountId);
+            Account? targetAccount =
+                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.TargetAccountId);
             if (targetAccount is null)
             {
                 return Error.NotFound(description: "Target account not found.");
@@ -101,7 +97,7 @@ public class ExchangeRepository : IExchangeRepository
                 ExchangeRate = exchange.ExchangeRate,
                 Status = TransactionStatus.Completed,
                 RelatedEntityType = ExchangeRelatedEntityType,
-                CreatedAt = exchange.CreatedAt,
+                CreatedAt = exchange.CreatedAt
             };
 
             _databaseContext.Transactions.Add(ledgerTransaction);
@@ -125,7 +121,8 @@ public class ExchangeRepository : IExchangeRepository
     {
         try
         {
-            ExchangeTransaction? exchange = _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == exchangeId);
+            ExchangeTransaction? exchange =
+                _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == exchangeId);
             if (exchange is null)
             {
                 return Error.NotFound(description: "Exchange transaction not found.");

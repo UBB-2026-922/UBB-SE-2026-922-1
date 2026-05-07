@@ -1,16 +1,9 @@
-﻿// <copyright file="UserRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the UserRepository class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using DataAccess.Interfaces;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 ///     Provides repository operations for user profile management, sessions, OAuth links, and notification preferences.
@@ -18,7 +11,6 @@ namespace BankingApp.Infrastructure.Repositories.Implementations;
 public class UserRepository : IUserRepository
 {
     private readonly INotificationPreferenceDataAccess _notificationPreferenceDataAccess;
-    private readonly IOAuthLinkDataAccess _oauthLinkDataAccess;
     private readonly ISessionDataAccess _sessionDataAccess;
     private readonly IUserDataAccess _userDataAccess;
 
@@ -27,26 +19,23 @@ public class UserRepository : IUserRepository
     /// </summary>
     /// <param name="userDataAccess">The user data access component.</param>
     /// <param name="sessionDataAccess">The session data access component.</param>
-    /// <param name="oauthLinkDataAccess">The OAuth link data access component.</param>
     /// <param name="notificationPreferenceDataAccess">The notification preference data access component.</param>
     public UserRepository(
         IUserDataAccess userDataAccess,
         ISessionDataAccess sessionDataAccess,
-        IOAuthLinkDataAccess oauthLinkDataAccess,
         INotificationPreferenceDataAccess notificationPreferenceDataAccess)
     {
         _userDataAccess = userDataAccess;
         _sessionDataAccess = sessionDataAccess;
         _notificationPreferenceDataAccess = notificationPreferenceDataAccess;
-        _oauthLinkDataAccess = oauthLinkDataAccess;
     }
 
     /// <inheritdoc />
     /// <returns>The result of the operation.</returns>
-    /// <param name="id">The id value.</param>
-    public ErrorOr<User> FindById(int id)
+    /// <param name="userId">The userId value.</param>
+    public ErrorOr<User> FindById(int userId)
     {
-        return _userDataAccess.FindById(id);
+        return _userDataAccess.FindById(userId);
     }
 
     /// <inheritdoc />
@@ -81,33 +70,6 @@ public class UserRepository : IUserRepository
     public ErrorOr<Success> RevokeSession(int userId, int sessionId)
     {
         return _sessionDataAccess.RevokeForUser(userId, sessionId);
-    }
-
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    /// <param name="userId">The userId value.</param>
-    public ErrorOr<List<OAuthLink>> GetLinkedProviders(int userId)
-    {
-        return _oauthLinkDataAccess.FindByUserId(userId);
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <param name="provider">The provider value.</param>
-    /// <param name="providerUserId">The providerUserId value.</param>
-    /// <param name="email">The email value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Success> SaveOAuthLink(int userId, string provider, string providerUserId, string? email)
-    {
-        return _oauthLinkDataAccess.Create(userId, provider, providerUserId, email);
-    }
-
-    /// <inheritdoc />
-    /// <returns>The result of the operation.</returns>
-    /// <param name="linkId">The linkId value.</param>
-    public ErrorOr<Success> DeleteOAuthLink(int linkId)
-    {
-        return _oauthLinkDataAccess.Delete(linkId);
     }
 
     /// <inheritdoc />

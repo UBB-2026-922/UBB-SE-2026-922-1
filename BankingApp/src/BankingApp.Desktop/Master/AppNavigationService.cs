@@ -1,15 +1,8 @@
-﻿// <copyright file="AppNavigationService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the AppNavigationService class.
-// </summary>
+﻿namespace BankingApp.Desktop.Master;
 
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
-
-namespace BankingApp.Desktop.Master;
 
 /// <summary>
 ///     Provides navigation services for the application, enabling switching between pages and managing navigation
@@ -40,24 +33,24 @@ public class AppNavigationService : IAppNavigationService
     }
 
     /// <inheritdoc />
-    /// <param name="newFrame">The newFrame value.</param>
-    public void SetFrame(Frame newFrame)
+    /// <param name="frame">The newFrame value.</param>
+    public void SetFrame(Frame frame)
     {
-        _frame = newFrame;
+        _frame = frame;
     }
 
     /// <inheritdoc />
-    /// <param name="newFrame">The newFrame value.</param>
-    public void SetContentFrame(Frame newFrame)
+    /// <param name="frame">The newFrame value.</param>
+    public void SetContentFrame(Frame frame)
     {
-        _contentFrame = newFrame;
+        _contentFrame = frame;
     }
 
     /// <inheritdoc />
     public void NavigateTo<TPage>()
         where TPage : class
     {
-        var page = _serviceProvider.GetRequiredService<TPage>();
+        TPage page = _serviceProvider.GetRequiredService<TPage>();
         _frame!.Content = page;
     }
 
@@ -65,7 +58,7 @@ public class AppNavigationService : IAppNavigationService
     public void NavigateToContent<TPage>()
         where TPage : class
     {
-        var page = _serviceProvider.GetRequiredService<TPage>();
+        TPage page = _serviceProvider.GetRequiredService<TPage>();
         _contentFrame!.Content = page;
     }
 }

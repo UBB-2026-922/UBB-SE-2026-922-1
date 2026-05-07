@@ -1,13 +1,12 @@
-﻿// <copyright file="RecurringPaymentViewModelTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.BillPayment;
-using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Billers;
+using Application.DTOs.BillPayments;
+using Application.DTOs.RecurringPayments;
+using Services;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
@@ -16,29 +15,17 @@ using Microsoft.UI.Xaml;
 using Moq;
 using Xunit;
 
-namespace BankingApp.Desktop.Tests.ViewModels;
-
-/// <summary>
-///     Tests for the <see cref="RecurringPaymentViewModel" />.
-/// </summary>
 public class RecurringPaymentViewModelTests
 {
-    private readonly Mock<IApiClient> _apiClient;
+    private readonly Mock<IBillPaymentClientService> _billPaymentClientService;
     private readonly RecurringPaymentViewModel _viewModel;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RecurringPaymentViewModelTests" /> class.
-    ///     Creates a fresh mock and view model for each test.
-    /// </summary>
     public RecurringPaymentViewModelTests()
     {
-        _apiClient = new Mock<IApiClient>(MockBehavior.Strict);
-        _viewModel = new RecurringPaymentViewModel(_apiClient.Object);
+        _billPaymentClientService = new Mock<IBillPaymentClientService>(MockBehavior.Strict);
+        _viewModel = new RecurringPaymentViewModel(_billPaymentClientService.Object);
     }
 
-    /// <summary>
-    ///     In LoadAsync, when all API responses are valid, the view model collections should be populated.
-    /// </summary>
     [Fact]
     public async Task LoadAsync_WhenResponsesAreValid_PopulatesCollections()
     {
@@ -53,14 +40,14 @@ public class RecurringPaymentViewModelTests
         };
         var billers = new List<BillerDto>
         {
-            new BillerDto { Id = 1, Name = "Electric Co" },
+            new() { Id = 1, Name = "Electric Co" },
         };
 
-        _apiClient.Setup(apiClient => apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts))
+        _billPaymentClientService.Setup(service => service.GetAccountsAsync())
             .ReturnsAsync(accounts);
-        _apiClient.Setup(apiClient => apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments))
+        _billPaymentClientService.Setup(service => service.GetRecurringPaymentsAsync())
             .ReturnsAsync(payments);
-        _apiClient.Setup(apiClient => apiClient.GetAsync<List<BillerDto>>(ApiEndpoints.BillPayBillers))
+        _billPaymentClientService.Setup(service => service.GetBillersAsync(null, null))
             .ReturnsAsync(billers);
 
         // Act
@@ -73,17 +60,14 @@ public class RecurringPaymentViewModelTests
         _viewModel.ErrorMessage.Should().BeEmpty();
     }
 
-    /// <summary>
-    ///     In CreateAsync, when the inputs are valid, the payment should be created via the API and added to the collection.
-    /// </summary>
     [Fact]
     public async Task CreateAsync_WhenInputsAreValid_CreatesPaymentAndClearsForm()
     {
         // Arrange
         var biller = new BillerDto { Id = 1, Name = "Water Co" };
         var account = new AccountDto { Id = 1, AccountName = "Checking" };
-        var startDate = DateTime.Today;
-        var amount = 100m;
+        DateTime startDate = DateTime.Today;
+        const decimal amount = 100m;
 
         _viewModel.SelectedBiller = biller;
         _viewModel.SelectedAccount = account;
@@ -101,8 +85,7 @@ public class RecurringPaymentViewModelTests
             StartDate = startDate,
         };
 
-        _apiClient.Setup(apiClient => apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
-                ApiEndpoints.RecurringPayments,
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CreateRecurringPaymentAsync(
                 It.Is<CreateRecurringPaymentRequest>(dto =>
                     dto.BillerId == biller.Id &&
                     dto.SourceAccountId == account.Id &&
@@ -122,9 +105,6 @@ public class RecurringPaymentViewModelTests
         _viewModel.Amount.Should().Be(0m);
     }
 
-    /// <summary>
-    ///     In PauseAsync, when a payment is selected, it should be paused via the API and its status updated in the collection.
-    /// </summary>
     [Fact]
     public async Task PauseAsync_WhenPaymentIsSelected_PausesPayment()
     {
@@ -132,9 +112,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(apiClient => apiClient.PutAsync<object>(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}/pause",
-                It.IsAny<object>()))
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.PauseRecurringPaymentAsync(payment.Id))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -145,9 +123,6 @@ public class RecurringPaymentViewModelTests
         _viewModel.Payments[0].Status.Should().Be(RecurringPaymentStatus.Paused);
     }
 
-    /// <summary>
-    ///     In ResumeAsync, when a payment is selected, it should be resumed via the API and its status updated in the collection.
-    /// </summary>
     [Fact]
     public async Task ResumeAsync_WhenPaymentIsSelected_ResumesPayment()
     {
@@ -155,9 +130,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Paused };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(apiClient => apiClient.PutAsync<object>(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}/resume",
-                It.IsAny<object>()))
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.ResumeRecurringPaymentAsync(payment.Id))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -168,9 +141,6 @@ public class RecurringPaymentViewModelTests
         _viewModel.Payments[0].Status.Should().Be(RecurringPaymentStatus.Active);
     }
 
-    /// <summary>
-    ///     In CancelAsync, when a payment is selected, it should be cancelled via the API and its status updated in the collection.
-    /// </summary>
     [Fact]
     public async Task CancelAsync_WhenPaymentIsSelected_CancelsPayment()
     {
@@ -178,8 +148,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _apiClient.Setup(apiClient => apiClient.DeleteAsync(
-                $"{ApiEndpoints.RecurringPayments}/{payment.Id}"))
+        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CancelRecurringPaymentAsync(payment.Id))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -190,9 +159,6 @@ public class RecurringPaymentViewModelTests
         _viewModel.Payments[0].Status.Should().Be(RecurringPaymentStatus.Cancelled);
     }
 
-    /// <summary>
-    ///     In ErrorMessage, when a message exists, the visibility should be visible.
-    /// </summary>
     [Fact]
     public void ErrorMessage_WhenSet_ShouldExposeVisibleErrorState()
     {

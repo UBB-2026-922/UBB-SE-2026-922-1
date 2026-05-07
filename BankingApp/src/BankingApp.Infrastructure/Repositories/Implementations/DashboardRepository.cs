@@ -1,16 +1,9 @@
-﻿// <copyright file="DashboardRepository.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardRepository class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using DataAccess.Interfaces;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 ///     Provides repository operations for retrieving dashboard data.
@@ -43,7 +36,6 @@ public class DashboardRepository : IDashboardRepository
         _transactionDataAccess = transactionDataAccess;
         _notificationDataAccess = notificationDataAccess;
         _transferDataAccess = transferDataAccess;
-
     }
 
     /// <inheritdoc />

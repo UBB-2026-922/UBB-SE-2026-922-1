@@ -1,18 +1,11 @@
-﻿// <copyright file="DashboardService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the DashboardService class.
-// </summary>
+﻿namespace BankingApp.Application.Services.Dashboard;
 
-using BankingApp.Application.DataTransferObjects.Dashboard;
-using BankingApp.Application.Mapping;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
+using Logging;
+using Repositories.Interfaces;
+using Domain.Entities;
+using DTOs.Dashboard;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Services.Dashboard;
 
 /// <summary>
 ///     Provides aggregated dashboard data for users.
@@ -44,12 +37,12 @@ public class DashboardService : IDashboardService
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<DashboardResponse> GetDashboardData(int userId)
+    public ErrorOr<DashboardDto> GetDashboardData(int userId)
     {
         ErrorOr<User> userResult = _userRepository.FindById(userId);
         if (userResult.IsError)
         {
-            _logger.LogWarning("Dashboard fetch failed: user {UserId} not found.", userId);
+            _logger.DashboardUserNotFound(userId);
             return userResult.FirstError;
         }
 
@@ -57,18 +50,12 @@ public class DashboardService : IDashboardService
         ErrorOr<int> notifCountResult = _dashboardRepository.GetUnreadNotificationCount(userId);
         if (cardsResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch cards for user {UserId}: {Error}",
-                userId,
-                cardsResult.FirstError.Description);
+            _logger.DashboardFetchCardsFailed(userId, cardsResult.FirstError.Description);
         }
 
         if (notifCountResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch notification count for user {UserId}: {Error}",
-                userId,
-                notifCountResult.FirstError.Description);
+            _logger.DashboardFetchNotificationCountFailed(userId, notifCountResult.FirstError.Description);
         }
 
         var allTransactions = new List<Transaction>();
@@ -76,10 +63,7 @@ public class DashboardService : IDashboardService
         var accountsById = new Dictionary<int, Account>();
         if (accountsResult.IsError)
         {
-            _logger.LogError(
-                "Failed to fetch accounts for user {UserId}: {Error}",
-                userId,
-                accountsResult.FirstError.Description);
+            _logger.DashboardFetchAccountsFailed(userId, accountsResult.FirstError.Description);
         }
         else
         {
@@ -90,10 +74,7 @@ public class DashboardService : IDashboardService
                     _dashboardRepository.GetRecentTransactions(account.Id, DefaultRecentTransactionLimit);
                 if (transactionsResult.IsError)
                 {
-                    _logger.LogError(
-                        "Failed to fetch transactions for account {AccountId}: {Error}",
-                        account.Id,
-                        transactionsResult.FirstError.Description);
+                    _logger.DashboardFetchTransactionsFailed(account.Id, transactionsResult.FirstError.Description);
                     continue;
                 }
 
@@ -106,50 +87,49 @@ public class DashboardService : IDashboardService
                 .ToList();
         }
 
-        return new DashboardResponse
+        return new DashboardDto
         {
-            CurrentUser = new UserSummaryDataTransferObject
+            CurrentUser = new UserSummaryDto
             {
                 FullName = userResult.Value.FullName,
                 Email = userResult.Value.Email,
                 PhoneNumber = userResult.Value.PhoneNumber,
-                Is2FaEnabled = userResult.Value.Is2FaEnabled,
+                Is2FaEnabled = userResult.Value.Is2FaEnabled
             },
             Cards = cardsResult.IsError
-                ? new List<CardDataTransferObject>()
+                ? new List<CardDto>()
                 : cardsResult.Value
-                    .Select(card => new CardDataTransferObject
+                    .Select(card => new CardDto
                     {
-                        Id = card.Id,
                         CardNumber = card.GetMaskedNumber(),
                         CardholderName = card.CardholderName,
-                        CardType = DomainEnumMapper.ToApplication(card.CardType),
+                        CardType = card.CardType,
                         CardBrand = card.CardBrand,
                         ExpiryDate = card.ExpiryDate,
-                        Status = DomainEnumMapper.ToApplication(card.Status),
+                        Status = card.Status,
                         IsContactlessEnabled = card.IsContactlessEnabled,
                         IsOnlineEnabled = card.IsOnlineEnabled,
                         AccountName = accountsById.TryGetValue(card.AccountId, out Account? account)
                             ? account.AccountName
                             : null,
-                        AccountBalance = account?.Balance,
+                        AccountBalance = account?.Balance
                     })
                     .ToList(),
             RecentTransactions = allTransactions
-                .Select(transaction => new TransactionDataTransferObject
+                .Select(transaction => new TransactionDto
                 {
                     Id = transaction.Id,
-                    Direction = DomainEnumMapper.ToApplication(transaction.Direction),
+                    Direction = transaction.Direction,
                     Amount = transaction.Amount,
                     Currency = transaction.Currency,
                     Description = transaction.Description,
                     MerchantName = transaction.MerchantName,
                     CounterpartyName = transaction.CounterpartyName,
-                    Status = DomainEnumMapper.ToApplication(transaction.Status),
-                    CreatedAt = transaction.CreatedAt,
+                    Status = transaction.Status,
+                    CreatedAt = transaction.CreatedAt
                 })
                 .ToList(),
-            UnreadNotificationCount = notifCountResult.IsError ? default : notifCountResult.Value,
+            UnreadNotificationCount = notifCountResult.IsError ? 0 : notifCountResult.Value
         };
     }
 }

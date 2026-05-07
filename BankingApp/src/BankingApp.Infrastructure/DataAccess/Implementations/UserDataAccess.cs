@@ -1,15 +1,8 @@
-﻿// <copyright file="UserDataAccess.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the UserDataAccess class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using Interfaces;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides SQL Server data access for user account records.
@@ -34,12 +27,7 @@ public class UserDataAccess : IUserDataAccess
     public ErrorOr<User> FindByEmail(string email)
     {
         User? user = _databaseContext.Users.FirstOrDefault(user => user.Email == email);
-        if (user is null)
-        {
-            return Error.NotFound(description: "User not found.");
-        }
-
-        return user;
+        return user ?? (ErrorOr<User>)Error.NotFound(description: "User not found.");
     }
 
     /// <inheritdoc />
@@ -48,12 +36,7 @@ public class UserDataAccess : IUserDataAccess
     public ErrorOr<User> FindById(int id)
     {
         User? user = _databaseContext.Users.FirstOrDefault(user => user.Id == id);
-        if (user is null)
-        {
-            return Error.NotFound(description: "User not found.");
-        }
-
-        return user;
+        return user ?? (ErrorOr<User>)Error.NotFound(description: "User not found.");
     }
 
     /// <inheritdoc />

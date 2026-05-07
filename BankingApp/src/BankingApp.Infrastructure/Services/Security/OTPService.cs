@@ -1,17 +1,11 @@
-﻿// <copyright file="OTPService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the OTPService class.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Services.Security;
 
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using BankingApp.Application.Services.Security;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Services.Security;
 
 /// <summary>
 ///     Provides HMAC-based TOTP and in-memory SMS OTP generation and verification.
@@ -59,7 +53,8 @@ public class OtpService : IOtpService
     {
         try
         {
-            var code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpRangeMaximum).ToString();
+            string code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpRangeMaximum)
+                .ToString(CultureInfo.InvariantCulture);
             DateTime expiryTime = DateTime.UtcNow.AddMinutes(SmsOtpExpiryMinutes);
             _temporarySmsStorage[userId] = (code, expiryTime);
             return code;
@@ -127,7 +122,6 @@ public class OtpService : IOtpService
 
             InvalidateOtp(userId);
             return true;
-
         }
         catch (Exception exception)
         {
@@ -164,8 +158,8 @@ public class OtpService : IOtpService
 
     private string GenerateHmacCode(int userId, long timeWindow)
     {
-        var secret = $"{_otpServerSecret}_{userId}";
-        using var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(secret));
+        string secret = $"{_otpServerSecret}_{userId}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         byte[] hash = hmac.ComputeHash(BitConverter.GetBytes(timeWindow));
         int offset = hash.Last() & TruncationOffsetMask;
         int binary = ((hash.ElementAt(offset + FirstDynamicTruncationByteOffset) & SignBitMask) <<
@@ -175,6 +169,6 @@ public class OtpService : IOtpService
                      ((hash.ElementAt(offset + ThirdDynamicTruncationByteOffset) & ByteMask) <<
                       ThirdDynamicTruncationByteShift) |
                      (hash.ElementAt(offset + FourthDynamicTruncationByteOffset) & ByteMask);
-        return (binary % OtpModulus).ToString($"D{OtpDigitCount}");
+        return (binary % OtpModulus).ToString($"D{OtpDigitCount}", CultureInfo.InvariantCulture);
     }
 }

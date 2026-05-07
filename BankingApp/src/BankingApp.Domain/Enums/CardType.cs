@@ -1,10 +1,3 @@
-﻿// <copyright file="CardType.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the CardType values.
-// </summary>
-
 namespace BankingApp.Domain.Enums;
 
 /// <summary>
@@ -25,5 +18,5 @@ public enum CardType
     /// <summary>
     ///     A prepaid card loaded with a fixed amount.
     /// </summary>
-    Prepaid,
+    Prepaid
 }

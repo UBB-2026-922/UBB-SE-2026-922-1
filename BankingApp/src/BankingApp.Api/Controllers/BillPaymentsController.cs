@@ -1,22 +1,15 @@
-﻿// <copyright file="BillPaymentsController.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentsController class.
-// </summary>
+namespace BankingApp.Api.Controllers;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.BillPayment;
-using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Domain.Entities;
+using Application.DTOs.Billers;
+using Application.DTOs.BillPayments;
+using Application.Services.BillPayments;
+using Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Controllers;
 
 /// <summary>
 /// Controller for managing and processing bill payments.
@@ -46,7 +39,7 @@ public class BillPaymentsController : ApiControllerBase
     {
         try
         {
-            var billers = await _billPaymentService.GetAllBillersAsync();
+            IEnumerable<Biller> billers = await _billPaymentService.GetAllBillersAsync();
             return Ok(billers);
         }
         catch (Exception ex)
@@ -82,7 +75,7 @@ public class BillPaymentsController : ApiControllerBase
     [HttpGet("fee")]
     public IActionResult CalculateFee([FromQuery] decimal amount)
     {
-        return Ok(new FeeResponseDto { Fee = _billPaymentService.CalculateFee(amount) });
+        return Ok(new FeeResponse { Fee = _billPaymentService.CalculateFee(amount) });
     }
 
     /// <summary>
@@ -93,7 +86,7 @@ public class BillPaymentsController : ApiControllerBase
     [HttpGet("requires-2fa")]
     public IActionResult Requires2Fa([FromQuery] decimal amount)
     {
-        return Ok(new Requires2FaResponseDto { Required = _billPaymentService.Requires2Fa(amount) });
+        return Ok(new RequiresTwoFaResponse { Required = _billPaymentService.Requires2Fa(amount) });
     }
 
     /// <summary>
@@ -102,7 +95,7 @@ public class BillPaymentsController : ApiControllerBase
     /// <param name="request">The payment request details.</param>
     /// <returns>The processed bill payment record.</returns>
     [HttpPost("pay")]
-    public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequestDto request)
+    public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequest request)
     {
         try
         {
@@ -115,10 +108,9 @@ public class BillPaymentsController : ApiControllerBase
                 BillerReference = request.BillerReference,
                 Amount = request.Amount,
                 IsPayInFull = request.IsPayInFull,
-                TwoFaToken = request.TwoFaToken,
             });
 
-            return Ok(new BillPayResponseDto
+            return Ok(new BillPayResponse
             {
                 Id = payment.Id,
                 ReceiptNumber = payment.ReceiptNumber,
@@ -139,7 +131,7 @@ public class BillPaymentsController : ApiControllerBase
     /// <param name="request">The save biller request details.</param>
     /// <returns>A success message.</returns>
     [HttpPost("save-biller")]
-    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerDto request)
+    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerRequest request)
     {
         try
         {
@@ -147,7 +139,7 @@ public class BillPaymentsController : ApiControllerBase
             bool success = await _billPaymentService.SaveBillerForUserAsync(
                 userId,
                 request.BillerId,
-                request.Nickname);
+                request.Nickname ?? string.Empty);
 
             if (success)
             {
@@ -171,7 +163,6 @@ public class BillPaymentsController : ApiControllerBase
             Currency = account.Currency,
             Balance = account.Balance,
             AccountName = account.AccountName ?? string.Empty,
-            Status = account.Status.ToString(),
         };
     }
 }

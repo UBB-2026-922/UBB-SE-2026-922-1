@@ -1,17 +1,13 @@
-﻿// <copyright file="TransferServiceTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
+﻿namespace BankingApp.Application.Tests.Services;
 
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Repositories.Interfaces;
+using DTOs.Transfer;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using BankingApp.Application.Services.Transfers;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="TransferService" />.
@@ -48,8 +44,8 @@ public class TransferServiceTests
                     UserId = DefaultUserId,
                     Balance = DefaultBalance,
                     Status = AccountStatus.Active,
-                    Currency = DefaultCurrency,
-                },
+                    Currency = DefaultCurrency
+                }
             });
         _dashboardRepository
             .Setup(debitsAccount => debitsAccount.DebitAccount(It.IsAny<int>(), It.IsAny<decimal>()))
@@ -87,7 +83,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = InvalidIban,
             Amount = SmallAmount,
-            Currency = DefaultCurrency,
+            Currency = DefaultCurrency
         };
 
         // Act
@@ -112,7 +108,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = DefaultIban,
             Amount = 0m,
-            Currency = DefaultCurrency,
+            Currency = DefaultCurrency
         };
 
         // Act
@@ -137,7 +133,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = DefaultIban,
             Amount = SmallAmount,
-            Currency = "INVALID",
+            Currency = "INVALID"
         };
 
         // Act
@@ -166,7 +162,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = DefaultIban,
             Amount = SmallAmount,
-            Currency = DefaultCurrency,
+            Currency = DefaultCurrency
         };
 
         // Act
@@ -195,8 +191,8 @@ public class TransferServiceTests
                     UserId = DefaultUserId,
                     Balance = DefaultBalance,
                     Status = AccountStatus.Suspended,
-                    Currency = DefaultCurrency,
-                },
+                    Currency = DefaultCurrency
+                }
             });
 
         var request = new CreateTransferRequest
@@ -205,7 +201,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = DefaultIban,
             Amount = SmallAmount,
-            Currency = DefaultCurrency,
+            Currency = DefaultCurrency
         };
 
         // Act
@@ -234,8 +230,8 @@ public class TransferServiceTests
                     UserId = DefaultUserId,
                     Balance = 10m,
                     Status = AccountStatus.Active,
-                    Currency = DefaultCurrency,
-                },
+                    Currency = DefaultCurrency
+                }
             });
 
         var request = new CreateTransferRequest
@@ -244,7 +240,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = DefaultIban,
             Amount = SmallAmount,
-            Currency = DefaultCurrency,
+            Currency = DefaultCurrency
         };
 
         // Act
@@ -270,7 +266,7 @@ public class TransferServiceTests
             RecipientIban = DefaultIban,
             Amount = LargeAmount,
             Currency = DefaultCurrency,
-            TwoFaToken = null,
+            TwoFaToken = null
         };
 
         // Act
@@ -300,7 +296,7 @@ public class TransferServiceTests
             RecipientIban = DefaultIban,
             Amount = LargeAmount,
             Currency = DefaultCurrency,
-            TwoFaToken = "wrong",
+            TwoFaToken = "wrong"
         };
 
         // Act
@@ -325,7 +321,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = DefaultIban,
             Amount = SmallAmount,
-            Currency = DefaultCurrency,
+            Currency = DefaultCurrency
         };
 
         // Act
@@ -353,7 +349,7 @@ public class TransferServiceTests
             RecipientIban = DefaultIban,
             Amount = LargeAmount,
             Currency = DefaultCurrency,
-            TwoFaToken = ValidTwoFaToken,
+            TwoFaToken = ValidTwoFaToken
         };
 
         // Act
@@ -399,8 +395,8 @@ public class TransferServiceTests
                     Amount = SmallAmount,
                     Currency = DefaultCurrency,
                     Status = TransferStatus.Completed,
-                    CreatedAt = DateTime.UtcNow,
-                },
+                    CreatedAt = DateTime.UtcNow
+                }
             });
 
         // Act
@@ -448,7 +444,7 @@ public class TransferServiceTests
             RecipientName = DefaultRecipientName,
             RecipientIban = DefaultIban,
             Amount = SmallAmount,
-            Currency = DefaultCurrency,
+            Currency = DefaultCurrency
         };
 
         // Act

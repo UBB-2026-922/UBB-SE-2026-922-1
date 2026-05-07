@@ -1,14 +1,8 @@
-﻿// <copyright file="IDashboardService.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the IDashboardService interface.
-// </summary>
+﻿namespace BankingApp.Application.Services.Dashboard;
 
-using BankingApp.Application.DataTransferObjects.Dashboard;
 using ErrorOr;
 
-namespace BankingApp.Application.Services.Dashboard;
+using BankingApp.Application.DTOs.Dashboard;
 
 /// <summary>
 ///     Defines operations for aggregating dashboard data for a user.
@@ -20,11 +14,11 @@ public interface IDashboardService
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
     /// <returns>
-    ///     A <see cref="DashboardResponse" /> containing the user summary, cards, recent transactions,
+    ///     A <see cref="DashboardDto" /> containing the user summary, cards, recent transactions,
     ///     and unread notification count on success,
     ///     or a not-found error if the user does not exist.
     ///     Individual sub-queries (cards, transactions, notification count) that fail are logged
     ///     and degraded to empty lists or zero rather than propagated as errors.
     /// </returns>
-    ErrorOr<DashboardResponse> GetDashboardData(int userId);
+    public ErrorOr<DashboardDto> GetDashboardData(int userId);
 }

@@ -1,13 +1,4 @@
-﻿// <copyright file="BillPaymentDto.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the BillPaymentDto class.
-// </summary>
-
-using System;
-
-namespace BankingApp.Application.DTOs.BillPayments;
+﻿namespace BankingApp.Application.DTOs.BillPayments;
 
 /// <summary>
 /// Data transfer object used for initiating a new bill payment request.
@@ -32,7 +23,7 @@ public class BillPaymentDto
     /// <summary>
     /// Gets or sets the customer reference or invoice number.
     /// </summary>
-    required public string BillerReference { get; set; }
+    public required string BillerReference { get; set; }
 
     /// <summary>
     /// Gets or sets the amount to be paid.
@@ -43,9 +34,4 @@ public class BillPaymentDto
     /// Gets or sets a value indicating whether the bill is being paid in full.
     /// </summary>
     public bool IsPayInFull { get; set; }
-
-    /// <summary>
-    /// Gets or sets the optional Two-Factor Authentication token required for the transaction.
-    /// </summary>
-    public string? TwoFaToken { get; set; }
 }

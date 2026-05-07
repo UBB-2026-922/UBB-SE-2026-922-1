@@ -1,13 +1,6 @@
-﻿// <copyright file="ObservableState.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains the ObservableState class.
-// </summary>
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System.Collections.Generic;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Simple observable state class that allows observers to

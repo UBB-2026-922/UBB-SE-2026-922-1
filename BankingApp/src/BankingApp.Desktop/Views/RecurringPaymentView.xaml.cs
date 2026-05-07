@@ -1,17 +1,10 @@
-﻿// <copyright file="RecurringPaymentView.xaml.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains code for RecurringPaymentView.xaml.
-// </summary>
+﻿namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Desktop.ViewModels;
+using Application.DTOs.RecurringPayments;
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Displays the recurring payment management screen.
