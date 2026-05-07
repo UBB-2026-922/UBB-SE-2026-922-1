@@ -1,10 +1,7 @@
 ﻿FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Solution-level files needed for StyleCop during compilation.
 COPY Directory.Build.props .
-COPY StyleCop.ruleset .
-COPY stylecop.json .
 
 # Restore dependencies in a separate layer for cache efficiency.
 COPY src/BankingApp.Domain/BankingApp.Domain.csproj          src/BankingApp.Domain/
