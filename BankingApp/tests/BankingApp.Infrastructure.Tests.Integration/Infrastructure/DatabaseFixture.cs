@@ -16,20 +16,39 @@ using Testcontainers.MsSql;
 // ReSharper disable once ClassNeverInstantiated.Global - xUnit instantiates fixtures via reflection.
 public sealed class DatabaseFixture : IAsyncLifetime
 {
-    private readonly MsSqlContainer _databaseContainer =
-        new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
-            .Build();
+    private readonly MsSqlContainer? _databaseContainer;
+    private readonly string? _externalConnectionString =
+        Environment.GetEnvironmentVariable("MSSQL_CONNECTION_STRING");
 
     private string _connectionString = string.Empty;
     private SqlConnection? _connection;
     private Respawner? _respawner;
 
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="DatabaseFixture" /> class.
+    /// </summary>
+    public DatabaseFixture()
+    {
+        if (_externalConnectionString is null)
+        {
+            _databaseContainer = new MsSqlBuilder("mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04")
+                .Build();
+        }
+    }
+
     /// <inheritdoc />
     public async ValueTask InitializeAsync()
     {
-        await _databaseContainer.StartAsync();
+        if (_databaseContainer is not null)
+        {
+            await _databaseContainer.StartAsync();
+            _connectionString = _databaseContainer.GetConnectionString();
+        }
+        else
+        {
+            _connectionString = _externalConnectionString!;
+        }
 
-        _connectionString = _databaseContainer.GetConnectionString();
         await using AppDatabaseContext databaseContext = CreateDatabaseContext();
         await databaseContext.Database.MigrateAsync();
 
@@ -56,7 +75,10 @@ public sealed class DatabaseFixture : IAsyncLifetime
             await _connection.DisposeAsync();
         }
 
-        await _databaseContainer.DisposeAsync();
+        if (_databaseContainer is not null)
+        {
+            await _databaseContainer.DisposeAsync();
+        }
     }
 
     /// <summary>
