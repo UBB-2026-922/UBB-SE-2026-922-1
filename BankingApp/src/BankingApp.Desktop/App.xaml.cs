@@ -1,15 +1,15 @@
+﻿namespace BankingApp.Desktop;
+
 using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
-using BankingApp.Desktop.DependencyInjection;
-using BankingApp.Desktop.Master;
+using DependencyInjection;
+using Master;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Serilog;
-
-namespace BankingApp.Desktop;
 
 /// <summary>
 ///     Composition root for the client application.
@@ -117,9 +117,13 @@ public partial class App
     private static void OnCurrentDomainUnhandledException(object? sender, System.UnhandledExceptionEventArgs e)
     {
         if (e.ExceptionObject is Exception exception)
+        {
             Log.Fatal(exception, "AppDomain unhandled exception. IsTerminating={IsTerminating}.", e.IsTerminating);
+        }
         else
+        {
             Log.Fatal("AppDomain unhandled non-exception object. IsTerminating={IsTerminating}.", e.IsTerminating);
+        }
 
         Log.CloseAndFlush();
     }

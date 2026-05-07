@@ -1,12 +1,12 @@
-using BankingApp.Api.Controllers;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Registration;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.Services.Login;
+using Application.Services.PasswordRecovery;
+using Application.Services.Registration;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 using Application.DTOs.Auth;
 

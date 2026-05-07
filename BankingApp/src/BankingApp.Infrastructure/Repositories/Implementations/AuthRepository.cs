@@ -1,11 +1,11 @@
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Extensions;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
-namespace BankingApp.Infrastructure.Repositories.Implementations;
+using BankingApp.Application.Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Extensions;
+using DataAccess.Interfaces;
+using ErrorOr;
 
 /// <summary>
 ///     Provides repository operations for authentication, session management, and account security.
@@ -58,16 +58,25 @@ public class AuthRepository : IAuthRepository
     public ErrorOr<Success> CreateUser(User user)
     {
         ErrorOr<Success> createResult = _userDataAccess.Create(user);
-        if (createResult.IsError) return createResult.FirstError;
+        if (createResult.IsError)
+        {
+            return createResult.FirstError;
+        }
 
         ErrorOr<User> createdUser = _userDataAccess.FindByEmail(user.Email);
-        if (createdUser.IsError) return createdUser.FirstError;
+        if (createdUser.IsError)
+        {
+            return createdUser.FirstError;
+        }
 
         foreach (NotificationType type in Enum.GetValues<NotificationType>())
         {
             ErrorOr<Success> preferenceResult =
                 _notificationPreferenceDataAccess.Create(createdUser.Value.Id, type.ToDisplayName());
-            if (preferenceResult.IsError) return preferenceResult.FirstError;
+            if (preferenceResult.IsError)
+            {
+                return preferenceResult.FirstError;
+            }
         }
 
         return Result.Success;

@@ -1,14 +1,14 @@
+namespace BankingApp.Desktop.Tests.ViewModels;
+
 using System.Globalization;
-using BankingApp.Application.DTOs.Dashboard;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
+using Application.DTOs.Dashboard;
+using Enums;
+using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class DashboardViewModelTests
 {
@@ -136,7 +136,7 @@ public class DashboardViewModelTests
     {
         // Arrange
         _dashboardClientService
-            .Setup(s => s.GetDashboardAsync(It.IsAny<CancellationToken>()))
+            .Setup(service => service.GetDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Unauthorized());
 
         // Act

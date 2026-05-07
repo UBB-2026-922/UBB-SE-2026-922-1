@@ -1,17 +1,17 @@
+namespace BankingApp.Desktop.Services.Transfers;
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Beneficiaries;
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Beneficiaries;
+using Application.DTOs.Transfer;
+using Utilities;
 using ErrorOr;
-
-namespace BankingApp.Desktop.Services.Transfers;
 
 /// <summary>
 ///     Encapsulates transfer-related HTTP orchestration for the desktop client.
 /// </summary>
-public sealed class TransferClientService : ITransferClientService
+internal sealed class TransferClientService : ITransferClientService
 {
     private readonly IApiClient _apiClient;
 

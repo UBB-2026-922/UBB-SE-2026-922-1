@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Simple observer interface for observing changes in a state of type T.
@@ -11,5 +11,5 @@ public interface IStateObserver<in T>
     ///     allowing it to react to changes in the observed state.
     /// </summary>
     /// <param name="value">The new state value.</param>
-    void Update(T value);
+    public void Update(T value);
 }

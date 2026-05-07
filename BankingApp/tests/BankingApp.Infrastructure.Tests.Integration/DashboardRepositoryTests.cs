@@ -1,13 +1,13 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
+
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
+using DataAccess.Implementations;
+using Repositories.Implementations;
+using Infrastructure;
 using Bogus;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Tests.Integration;
 
 [Trait("Category", "Integration")]
 [Collection("Integration")]

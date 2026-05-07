@@ -1,19 +1,19 @@
+﻿#nullable disable
+
+namespace BankingApp.Infrastructure.Migrations;
+
 using Microsoft.EntityFrameworkCore.Migrations;
 
-#nullable disable
-
-namespace BankingApp.Infrastructure.Migrations
+/// <inheritdoc />
+public partial class AddTransactionType : Migration
 {
     /// <inheritdoc />
-    public partial class AddTransactionType : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            // The column already exists in databases created from the SQL schema scripts.
-            // The IF NOT EXISTS guard makes this migration idempotent so it is safe to
-            // apply to both freshly-seeded and script-initialised databases.
-            migrationBuilder.Sql(@"
+        // The column already exists in databases created from the SQL schema scripts.
+        // The IF NOT EXISTS guard makes this migration idempotent so it is safe to
+        // apply to both freshly-seeded and script-initialised databases.
+        migrationBuilder.Sql(@"
                 IF NOT EXISTS (
                     SELECT 1
                     FROM   sys.columns
@@ -25,12 +25,12 @@ namespace BankingApp.Infrastructure.Migrations
                         ADD [Type] nvarchar(30) NOT NULL CONSTRAINT DF_Transaction_Type DEFAULT '';
                 END
             ");
-        }
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.Sql(@"
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.Sql(@"
                 IF EXISTS (
                     SELECT 1
                     FROM   sys.columns
@@ -42,6 +42,5 @@ namespace BankingApp.Infrastructure.Migrations
                     ALTER TABLE [Transaction] DROP COLUMN [Type];
                 END
             ");
-        }
     }
 }

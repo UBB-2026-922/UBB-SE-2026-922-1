@@ -1,11 +1,11 @@
+﻿namespace BankingApp.Infrastructure.Services.Security;
+
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using BankingApp.Application.Services.Security;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Services.Security;
 
 /// <summary>
 ///     Provides HMAC-based TOTP and in-memory SMS OTP generation and verification.
@@ -105,7 +105,9 @@ public class OtpService : IOtpService
         try
         {
             if (!_temporarySmsStorage.TryGetValue(userId, out (string Code, DateTime ExpiryTime) storedOtpData))
+            {
                 return false;
+            }
 
             if (DateTime.UtcNow > storedOtpData.ExpiryTime)
             {
@@ -113,7 +115,10 @@ public class OtpService : IOtpService
                 return false;
             }
 
-            if (storedOtpData.Code != code) return false;
+            if (storedOtpData.Code != code)
+            {
+                return false;
+            }
 
             InvalidateOtp(userId);
             return true;
@@ -133,9 +138,15 @@ public class OtpService : IOtpService
         try
         {
             long currentWindow = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / TotpWindowSeconds;
-            if (code == GenerateHmacCode(userId, currentWindow)) return true;
+            if (code == GenerateHmacCode(userId, currentWindow))
+            {
+                return true;
+            }
 
-            if (code == GenerateHmacCode(userId, currentWindow - PreviousTotpWindowOffset)) return true;
+            if (code == GenerateHmacCode(userId, currentWindow - PreviousTotpWindowOffset))
+            {
+                return true;
+            }
 
             return false;
         }

@@ -1,11 +1,10 @@
-using BankingApp.Api.Controllers;
-using BankingApp.Application.Services.Dashboard;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.Services.Dashboard;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
-
 using Application.DTOs.Dashboard;
 
 /// <summary>

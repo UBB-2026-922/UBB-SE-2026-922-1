@@ -1,9 +1,9 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Infrastructure.DataAccess.Configurations;
+
+using Domain.Entities;
+using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace BankingApp.Infrastructure.DataAccess.Configurations;
 
 /// <summary>
 ///     Configures the EF Core mapping for the <see cref="RecurringPayment" /> entity

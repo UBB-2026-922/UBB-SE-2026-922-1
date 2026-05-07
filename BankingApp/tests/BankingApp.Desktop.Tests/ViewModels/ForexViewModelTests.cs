@@ -1,11 +1,11 @@
-using BankingApp.Application.DTOs.Exchange;
-using BankingApp.Desktop.Services;
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Exchange;
+using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class ForexViewModelTests
 {
@@ -81,7 +81,7 @@ public class ForexViewModelTests
         };
 
         _forexClientService
-            .Setup(s => s.GetPreviewAsync(
+            .Setup(service => service.GetPreviewAsync(
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()))
             .ReturnsAsync(response);
 

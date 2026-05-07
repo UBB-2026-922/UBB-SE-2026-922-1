@@ -1,12 +1,11 @@
+﻿namespace BankingApp.Api.Tests.Middleware;
+
 using BankingApp.Api.Middleware;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
+using Application.Repositories.Interfaces;
+using Application.Services.Security;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Api.Tests.Middleware;
 
 /// <summary>
 ///     Unit tests for <see cref="SessionValidationMiddleware" /> verifying
@@ -155,7 +154,10 @@ public sealed class SessionValidationMiddlewareTests
                 Path = path
             }
         };
-        if (authorizationHeader != null) context.Request.Headers.Authorization = authorizationHeader;
+        if (authorizationHeader != null)
+        {
+            context.Request.Headers.Authorization = authorizationHeader;
+        }
 
         return context;
     }

@@ -1,14 +1,13 @@
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Profile;
+using Enums;
+using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class SecurityViewModelTests
 {
@@ -25,7 +24,7 @@ public class SecurityViewModelTests
     public async Task ChangePassword_WhenPasswordTooShort_ReturnsFalseWithLengthError()
     {
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "Short1!", "Short1!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "Short1!", "Short1!");
 
         // Assert
         Assert.False(result.Success);
@@ -36,7 +35,7 @@ public class SecurityViewModelTests
     public async Task ChangePassword_WhenPasswordsDoNotMatch_ReturnsFalseWithMismatchError()
     {
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "Different123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "Different123!");
 
         // Assert
         Assert.False(result.Success);
@@ -52,7 +51,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
 
         // Assert
         Assert.True(result.Success);
@@ -69,7 +68,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
 
         // Assert
         Assert.False(result.Success);
@@ -87,7 +86,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
+        (bool Success, string ErrorMessage) result = await _viewModel.ChangePassword(1, "OldPass123!", "NewPass123!", "NewPass123!");
 
         // Assert
         Assert.False(result.Success);
@@ -104,7 +103,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.SetTwoFactorEnabled(true);
+        bool result = await _viewModel.SetTwoFactorEnabled(true);
 
         // Assert
         Assert.True(result);
@@ -120,7 +119,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.SetTwoFactorEnabled(false);
+        bool result = await _viewModel.SetTwoFactorEnabled(false);
 
         // Assert
         Assert.True(result);
@@ -136,7 +135,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
+        bool result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
 
         // Assert
         Assert.True(result);
@@ -152,7 +151,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(Result.Success);
 
         // Act
-        var result = await _viewModel.DisableTwoFactor();
+        bool result = await _viewModel.DisableTwoFactor();
 
         // Assert
         Assert.True(result);
@@ -169,7 +168,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
+        bool result = await _viewModel.EnableTwoFactor(TwoFactorMethod.Email);
 
         // Assert
         Assert.False(result);
@@ -186,7 +185,7 @@ public class SecurityViewModelTests
             .ReturnsAsync(error);
 
         // Act
-        var result = await _viewModel.DisableTwoFactor();
+        bool result = await _viewModel.DisableTwoFactor();
 
         // Assert
         Assert.False(result);

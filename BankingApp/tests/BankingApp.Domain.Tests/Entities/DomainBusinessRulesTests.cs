@@ -1,8 +1,8 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using ErrorOr;
-
 namespace BankingApp.Domain.Tests.Entities;
+
+using BankingApp.Domain.Entities;
+using Enums;
+using ErrorOr;
 
 /// <summary>
 ///     Tests the business rules that are owned by domain entities.

@@ -1,6 +1,6 @@
-using System;
+﻿namespace BankingApp.Desktop.Utilities;
 
-namespace BankingApp.Desktop.Utilities;
+using System;
 
 /// <summary>
 ///     Abstracts the system clock to allow deterministic time-based testing.
@@ -13,5 +13,5 @@ public interface ISystemClock
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    DateTime UtcNow { get; }
+    public DateTime UtcNow { get; }
 }

@@ -1,16 +1,19 @@
+namespace BankingApp.Desktop.ViewModels;
+
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Exchange;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Exchange;
+using Services;
+using Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.ViewModels;
-
+/// <summary>
+/// Manages exchange-rate preview and foreign-exchange execution for the desktop client.
+/// </summary>
 public partial class ForexViewModel : INotifyPropertyChanged
 {
     private const int InitialStep = 1;
@@ -36,6 +39,11 @@ public partial class ForexViewModel : INotifyPropertyChanged
     private string _errorMessage = string.Empty;
     private bool _isLoading;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ForexViewModel"/> class.
+    /// </summary>
+    /// <param name="forexClientService">Provides exchange preview and execution operations.</param>
+    /// <param name="logger">Writes operational diagnostics for the exchange flow.</param>
     public ForexViewModel(IForexClientService forexClientService, ILogger<ForexViewModel> logger)
     {
         _forexClientService = forexClientService ?? throw new ArgumentNullException(nameof(forexClientService));
@@ -44,76 +52,119 @@ public partial class ForexViewModel : INotifyPropertyChanged
         AvailableCurrencies = new ObservableCollection<string>(_collection);
     }
 
+    /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// Gets the currencies available for exchange.
+    /// </summary>
     public ObservableCollection<string> AvailableCurrencies { get; }
 
+    /// <summary>
+    /// Gets or sets the current step in the exchange flow.
+    /// </summary>
     public int CurrentStep
     {
         get => _currentStep;
-        set => SetProperty(ref _currentStep, value);
+        private set => SetProperty(ref _currentStep, value);
     }
 
+    /// <summary>
+    /// Gets or sets the currency being sold.
+    /// </summary>
     public string SourceCurrency
     {
         get => _sourceCurrency;
         set => SetProperty(ref _sourceCurrency, value);
     }
 
+    /// <summary>
+    /// Gets or sets the currency being bought.
+    /// </summary>
     public string TargetCurrency
     {
         get => _targetCurrency;
         set => SetProperty(ref _targetCurrency, value);
     }
 
+    /// <summary>
+    /// Gets or sets the source amount as entered by the user.
+    /// </summary>
     public string AmountText
     {
         get => _amountText;
         set
         {
             if (SetProperty(ref _amountText, value))
+            {
                 _amount = decimal.TryParse(value, out decimal parsed) ? parsed : MinimumAmount;
+            }
         }
     }
 
+    /// <summary>
+    /// Gets the parsed source amount.
+    /// </summary>
     public decimal Amount => _amount;
 
+    /// <summary>
+    /// Gets or sets the live exchange rate shown in the preview.
+    /// </summary>
     public decimal LiveRate
     {
         get => _liveRate;
-        set => SetProperty(ref _liveRate, value);
+        private set => SetProperty(ref _liveRate, value);
     }
 
+    /// <summary>
+    /// Gets or sets the commission shown in the preview.
+    /// </summary>
     public decimal Commission
     {
         get => _commission;
-        set => SetProperty(ref _commission, value);
+        private set => SetProperty(ref _commission, value);
     }
 
+    /// <summary>
+    /// Gets or sets the target amount shown in the preview.
+    /// </summary>
     public decimal TargetAmount
     {
         get => _targetAmount;
-        set => SetProperty(ref _targetAmount, value);
+        private set => SetProperty(ref _targetAmount, value);
     }
 
+    /// <summary>
+    /// Gets or sets the reference of the completed exchange transaction.
+    /// </summary>
     public string TransactionReference
     {
         get => _transactionReference;
-        set => SetProperty(ref _transactionReference, value);
+        private set => SetProperty(ref _transactionReference, value);
     }
 
+    /// <summary>
+    /// Gets or sets the current user-facing error message.
+    /// </summary>
     public string ErrorMessage
     {
         get => _errorMessage;
-        set => SetProperty(ref _errorMessage, value);
+        private set => SetProperty(ref _errorMessage, value);
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the exchange flow is busy.
+    /// </summary>
     public bool IsLoading
     {
         get => _isLoading;
         set => SetProperty(ref _isLoading, value);
     }
 
+    /// <summary>
+    /// Loads an exchange preview for the current currencies and amount.
+    /// </summary>
+    /// <returns>A task that completes when the preview request finishes.</returns>
     public async Task LoadPreviewAsync()
     {
         ErrorMessage = string.Empty;
@@ -160,6 +211,10 @@ public partial class ForexViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Executes the exchange using the values currently shown in the flow.
+    /// </summary>
+    /// <returns>A task that completes when the exchange request finishes.</returns>
     public async Task ExecuteExchangeAsync()
     {
         ErrorMessage = string.Empty;
@@ -205,6 +260,9 @@ public partial class ForexViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Resets the exchange flow back to its initial state.
+    /// </summary>
     public void Reset()
     {
         SourceCurrency = string.Empty;
@@ -218,14 +276,21 @@ public partial class ForexViewModel : INotifyPropertyChanged
         CurrentStep = InitialStep;
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    /// <summary>
+    /// Raises the <see cref="PropertyChanged"/> event.
+    /// </summary>
+    /// <param name="propertyName">The name of the property that changed.</param>
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value)) return false;
+        if (Equals(field, value))
+        {
+            return false;
+        }
 
         field = value;
         OnPropertyChanged(propertyName);

@@ -1,18 +1,16 @@
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Dashboard;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Profile;
-using BankingApp.Application.Services.Registration;
-using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Api.Tests;
+
+using Application.Repositories.Interfaces;
+using Application.Services.Dashboard;
+using Application.Services.Login;
+using Application.Services.Notifications;
+using Application.Services.PasswordRecovery;
+using Application.Services.Profile;
+using Application.Services.Registration;
+using Application.Services.Security;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
-
-namespace BankingApp.Api.Tests;
-
 using Application.DTOs.Auth;
 using Application.DTOs.Dashboard;
 using Application.DTOs.Profile;

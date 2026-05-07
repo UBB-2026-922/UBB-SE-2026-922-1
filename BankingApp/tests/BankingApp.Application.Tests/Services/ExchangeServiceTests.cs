@@ -1,11 +1,11 @@
-using BankingApp.Application.DTOs.Exchange;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Exchange;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using ErrorOr;
+﻿namespace BankingApp.Application.Tests.Services;
 
-namespace BankingApp.Application.Tests.Services;
+using DTOs.Exchange;
+using Repositories.Interfaces;
+using BankingApp.Application.Services.Exchange;
+using Domain.Entities;
+using Domain.Enums;
+using ErrorOr;
 
 /// <summary>
 ///     Unit tests for <see cref="ExchangeService" />.

@@ -1,12 +1,12 @@
+﻿namespace BankingApp.Infrastructure.Services.Notifications;
+
 using System.Net;
 using System.Net.Mail;
 using System.Globalization;
 using BankingApp.Application.Services.Notifications;
-using BankingApp.Infrastructure.Logging;
+using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Infrastructure.Services.Notifications;
 
 /// <summary>
 ///     Sends transactional emails using SMTP _configuration from application settings.

@@ -1,12 +1,12 @@
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.DTOs.RecurringPayments;
+using Application.Services.RecurringPayments;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 [Trait("Category", "Unit")]
 public sealed class RecurringPaymentsControllerTests

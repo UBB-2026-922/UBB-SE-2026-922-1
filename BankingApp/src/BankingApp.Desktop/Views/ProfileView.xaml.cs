@@ -1,22 +1,21 @@
+﻿namespace BankingApp.Desktop.Views;
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Application.DTOs.Profile;
+using Enums;
+using Master;
+using Utilities;
+using ViewModels;
 using BankingApp.Domain.Enums;
-using BankingApp.Domain.Extensions;
+using Domain.Extensions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Serilog;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Displays and manages the authenticated user's profile settings.
@@ -84,7 +83,10 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             Log.Information("ProfileView state changed to {State}.", state);
             if (_isUpdatingToggle)
             {
-                if (state == ProfileState.Error) ShowError("Failed to save notification preferences.");
+                if (state == ProfileState.Error)
+                {
+                    ShowError("Failed to save notification preferences.");
+                }
 
                 return;
             }
@@ -213,7 +215,10 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         FullNameBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         PhoneBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         AddressBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
-        if (!enabled) return;
+        if (!enabled)
+        {
+            return;
+        }
 
         PhoneBox.Focus(FocusState.Programmatic);
         AddressBox.Focus(FocusState.Programmatic);
@@ -399,7 +404,10 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private async void TwoFactorToggle_Toggled(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.IsInitializingView) return;
+        if (_viewModel.IsInitializingView)
+        {
+            return;
+        }
 
         bool success = await _viewModel.SetEmailTwoFactorEnabled(TwoFactorToggle.IsOn);
         if (!success)
@@ -417,7 +425,10 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private async void NotificationToggle_Toggled(object sender, RoutedEventArgs e)
     {
-        if (_viewModel.IsInitializingView) return;
+        if (_viewModel.IsInitializingView)
+        {
+            return;
+        }
 
         if (sender is ToggleSwitch { Tag: NotificationPreferenceDto preference } toggle)
         {
@@ -449,6 +460,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
             _viewModel.PersonalInfo.TwoFactorPhoneDisplay);
         TwoFactorPhoneDisplay.Text = _viewModel.PersonalInfo.TwoFactorPhoneDisplay;
         if (!_viewModel.PersonalInfo.HasPhoneNumber)
+        {
             ConfigureActionButton(
                 ActionPhoneBtn,
                 PhoneStatusBadge,
@@ -457,7 +469,9 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#F1F5F9",
                 "#64748B",
                 "Not configured");
+        }
         else if (_viewModel.IsPhoneTwoFactorActive)
+        {
             ConfigureActionButton(
                 ActionPhoneBtn,
                 PhoneStatusBadge,
@@ -466,7 +480,9 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#DCFCE7",
                 "#16A34A",
                 "Active");
+        }
         else
+        {
             ConfigureActionButton(
                 ActionPhoneBtn,
                 PhoneStatusBadge,
@@ -475,8 +491,10 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#FFF7ED",
                 "#C2410C",
                 "Unverified");
+        }
 
         if (_viewModel.IsEmailTwoFactorActive)
+        {
             ConfigureActionButton(
                 ActionEmailBtn,
                 EmailStatusBadge,
@@ -485,7 +503,9 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#DCFCE7",
                 "#16A34A",
                 "Active");
+        }
         else
+        {
             ConfigureActionButton(
                 ActionEmailBtn,
                 EmailStatusBadge,
@@ -494,6 +514,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 "#FFF7ED",
                 "#C2410C",
                 "Unverified");
+        }
     }
 
     private void ConfigureActionButton(
@@ -620,7 +641,9 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     private Brush GetPrimaryTextBrush()
     {
         if (Resources.TryGetValue("TextPrimary", out object resource) && resource is Brush brush)
+        {
             return brush;
+        }
 
         return new SolidColorBrush(
             ColorHelper.FromArgb(
@@ -753,7 +776,10 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
 
     private async void RevokeSessionButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { Tag: int sessionId }) return;
+        if (sender is not Button { Tag: int sessionId })
+        {
+            return;
+        }
 
         (bool success, string? errorMessage) = await _viewModel.RevokeSessionAndReload(sessionId);
         if (success)
@@ -780,6 +806,8 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
 
         foreach (SessionDto session in _viewModel.Sessions.ActiveSessions)
+        {
             SessionsListPanel.Children.Add(BuildSessionCard(session));
+        }
     }
 }

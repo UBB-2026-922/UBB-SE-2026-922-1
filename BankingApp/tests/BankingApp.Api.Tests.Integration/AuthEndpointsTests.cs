@@ -2,29 +2,29 @@
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
+namespace BankingApp.Api.Tests.Integration;
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using BankingApp.Api.Tests.Integration.Infrastructure;
-using BankingApp.Application.DataTransferObjects;
-using BankingApp.Application.DataTransferObjects.Auth;
-using BankingApp.Application.DTOs;
-using BankingApp.Application.Services.Login;
+using Infrastructure;
+using Application.DTOs.Auth;
+using Application.Services.Login;
 using ErrorOr;
 using FluentAssertions;
 using Moq;
-
-namespace BankingApp.Api.Tests.Integration;
 
 public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
     private readonly HttpClient _client;
     private readonly BankingAppWebFactory _factory;
+    private readonly CancellationToken _cancellationToken;
 
     public AuthEndpointsTests(BankingAppWebFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
+        _cancellationToken = TestContext.Current.CancellationToken;
 
         // Reset mocks before each test to ensure isolated state
         _factory.LoginServiceMock.Invocations.Clear();
@@ -38,15 +38,15 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         // Arrange
         var request = new { Email = "test@example.com", Password = "Password1!" };
         _factory.LoginServiceMock
-            .Setup(s => s.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
+            .Setup(service => service.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
             .Returns(new FullLogin(1, "fake-jwt-token"));
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>();
+        LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
         result.Should().NotBeNull();
         result!.UserId.Should().Be(1);
         result.Token.Should().Be("fake-jwt-token");
@@ -63,11 +63,11 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(new RequiresTwoFactor(1));
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>();
+        LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
         result.Should().NotBeNull();
         result!.UserId.Should().Be(1);
         result.Requires2Fa.Should().BeTrue();
@@ -82,7 +82,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Setup(s => s.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
             .Returns(Error.Unauthorized("invalid_credentials", "Invalid credentials."));
 
-        var response = await _client.PostAsJsonAsync("/api/auth/login", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -98,7 +98,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(Result.Success);
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/register", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -114,7 +114,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(Error.Conflict("email_taken", "Email is already registered."));
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/register", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
@@ -130,11 +130,11 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(new FullLogin(1, "fake-jwt-token"));
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/verify-otp", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-otp", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>();
+        LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
         result.Should().NotBeNull();
         result!.Token.Should().Be("fake-jwt-token");
     }
@@ -149,7 +149,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(Error.Unauthorized("invalid_otp", "Invalid or expired code."));
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/verify-otp", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-otp", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -165,7 +165,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(Result.Success);
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/forgot-password", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/forgot-password", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -177,7 +177,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         var request = new { Email = string.Empty };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/forgot-password", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/forgot-password", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -193,7 +193,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(Result.Success);
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/reset-password", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/reset-password", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -206,7 +206,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         var request = new { Token = "valid-token", NewPassword = "weak" };
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/reset-password", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/reset-password", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -224,7 +224,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "valid-token");
 
         // Act
-        var response = await _client.SendAsync(request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
@@ -237,38 +237,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
 
         // Act
-        var response = await _client.SendAsync(request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
-    public async Task OAuthLogin_WhenValid_ShouldReturnOkWithToken()
-    {
-        // Arrange
-        var request = new { Provider = "Google", ProviderToken = "valid-oauth-token" };
-        _factory.LoginServiceMock
-            .Setup(s => s.OAuthLoginAsync(It.IsAny<OAuthLoginRequest>(), It.IsAny<SessionMetadata>()))
-            .ReturnsAsync(new FullLogin(1, "fake-jwt-token"));
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/oauth-login", request);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>();
-        result.Should().NotBeNull();
-        result!.Token.Should().Be("fake-jwt-token");
-    }
-
-    [Fact]
-    public async Task OAuthLogin_WhenMissingProviderOrToken_ShouldReturnBadRequest()
-    {
-        var request = new { Provider = string.Empty, ProviderToken = string.Empty };
-
-        // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/oauth-login", request);
+        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -284,10 +253,10 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(Result.Success);
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/verify-reset-token", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-reset-token", request, _cancellationToken);
 
         // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync());
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(_cancellationToken));
     }
 
     [Fact]
@@ -300,7 +269,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Returns(Error.Validation("invalid_token", "Token is invalid or expired."));
 
         // Act
-        var response = await _client.PostAsJsonAsync("/api/auth/verify-reset-token", request);
+        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-reset-token", request, _cancellationToken);
 
         // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);

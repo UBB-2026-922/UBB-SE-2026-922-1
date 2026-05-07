@@ -1,6 +1,6 @@
-using System.Collections.Generic;
+﻿namespace BankingApp.Desktop.Utilities;
 
-namespace BankingApp.Desktop.Utilities;
+using System.Collections.Generic;
 
 /// <summary>
 ///     Simple observable state class that allows observers to
@@ -8,7 +8,7 @@ namespace BankingApp.Desktop.Utilities;
 /// </summary>
 /// <typeparam name="T">The type of the observable state value.</typeparam>
 /// <param name="value">The initial state value.</param>
-public partial class ObservableState<T>(T value)
+public class ObservableState<T>(T value)
 {
     private readonly List<IStateObserver<T>> _observers =
     [
@@ -54,6 +54,9 @@ public partial class ObservableState<T>(T value)
 
     private void NotifyObservers()
     {
-        foreach (IStateObserver<T> observer in _observers) observer.Update(Value);
+        foreach (IStateObserver<T> observer in _observers)
+        {
+            observer.Update(Value);
+        }
     }
 }

@@ -1,12 +1,12 @@
-using BankingApp.Application.DTOs.Exchange;
-using BankingApp.Application.DTOs.RateAlerts;
-using BankingApp.Application.Repositories.Interfaces;
+﻿namespace BankingApp.Application.Tests.Services;
+
+using DTOs.Exchange;
+using DTOs.RateAlerts;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Exchange;
 using BankingApp.Application.Services.RateAlerts;
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using ErrorOr;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="RateAlertService" />.

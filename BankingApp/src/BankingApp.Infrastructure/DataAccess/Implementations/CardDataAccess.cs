@@ -1,8 +1,8 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+using Domain.Entities;
+using Interfaces;
+using ErrorOr;
 
 /// <summary>
 ///     Provides SQL Server data access for payment card records.
@@ -27,7 +27,10 @@ public class CardDataAccess : ICardDataAccess
     public ErrorOr<Card> FindById(int id)
     {
         Card? card = _databaseContext.Cards.FirstOrDefault(c => c.Id == id);
-        if (card == null) return Error.NotFound(description: "Card not found.");
+        if (card == null)
+        {
+            return Error.NotFound(description: "Card not found.");
+        }
 
         return card;
     }

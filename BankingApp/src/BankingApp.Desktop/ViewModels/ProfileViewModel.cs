@@ -1,11 +1,11 @@
+﻿namespace BankingApp.Desktop.ViewModels;
+
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Profile;
+using Enums;
+using Utilities;
 using BankingApp.Domain.Enums;
-
-namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Coordinates profile-related operations by delegating to specialized sub-ViewModels
@@ -142,7 +142,10 @@ public partial class ProfileViewModel : IDisposable
     public async Task<bool> EnableTwoFactor(TwoFactorMethod method)
     {
         bool success = await Security.EnableTwoFactor(method);
-        if (!success) return false;
+        if (!success)
+        {
+            return false;
+        }
 
         ProfileDto.Is2FaEnabled = true;
         ProfileDto.Preferred2FaMethod = method;
@@ -156,7 +159,10 @@ public partial class ProfileViewModel : IDisposable
     public async Task<bool> DisableTwoFactor()
     {
         bool success = await Security.DisableTwoFactor();
-        if (!success) return false;
+        if (!success)
+        {
+            return false;
+        }
 
         ProfileDto.Is2FaEnabled = false;
         ProfileDto.Preferred2FaMethod = null;
@@ -171,7 +177,10 @@ public partial class ProfileViewModel : IDisposable
     public async Task<bool> SetEmailTwoFactorEnabled(bool enabled)
     {
         bool success = await Security.SetTwoFactorEnabled(enabled);
-        if (!success) return false;
+        if (!success)
+        {
+            return false;
+        }
 
         ProfileDto.Is2FaEnabled = enabled;
         ProfileDto.Preferred2FaMethod = enabled ? TwoFactorMethod.Email : null;
@@ -196,7 +205,10 @@ public partial class ProfileViewModel : IDisposable
     public async Task<(bool Success, string? ErrorMessage)> LoadSessionsForCurrentUser()
     {
         int? userId = ProfileDto.UserId;
-        if (userId == null) return (false, "User not loaded.");
+        if (userId == null)
+        {
+            return (false, "User not loaded.");
+        }
 
         bool loaded = await Sessions.LoadSessionsAsync(userId.Value);
         return loaded ? (true, null) : (false, "Failed to load active sessions.");
@@ -210,7 +222,10 @@ public partial class ProfileViewModel : IDisposable
     public async Task<(bool Success, string? ErrorMessage)> RevokeSessionAndReload(int sessionId)
     {
         bool revoked = await Sessions.RevokeSessionAsync(sessionId);
-        if (!revoked) return (false, "Failed to revoke session.");
+        if (!revoked)
+        {
+            return (false, "Failed to revoke session.");
+        }
 
         (bool loaded, string? errorMessage) = await LoadSessionsForCurrentUser();
         return loaded ? (true, null) : (false, errorMessage);
@@ -221,7 +236,10 @@ public partial class ProfileViewModel : IDisposable
     /// </summary>
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         _disposed = true;
         GC.SuppressFinalize(this);

@@ -1,11 +1,11 @@
-﻿using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
+
+using Domain.Entities;
+using DataAccess;
+using DataAccess.Implementations;
+using Infrastructure;
 using Bogus;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Tests.Integration;
 
 /// <summary>
 ///     Initializes a new instance of the <see cref="UserRepositoryTests" /> class.

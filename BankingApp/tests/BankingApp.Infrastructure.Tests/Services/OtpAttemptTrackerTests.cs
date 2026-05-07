@@ -1,6 +1,6 @@
-using BankingApp.Infrastructure.Services;
+﻿namespace BankingApp.Infrastructure.Tests.Services;
 
-namespace BankingApp.Infrastructure.Tests.Services;
+using BankingApp.Infrastructure.Services;
 
 /// <summary>
 ///     Tests for <see cref="OtpAttemptTracker" /> state tracking behavior.

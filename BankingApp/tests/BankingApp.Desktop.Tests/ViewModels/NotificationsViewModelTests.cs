@@ -1,12 +1,12 @@
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Profile;
+using Enums;
+using Services;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class NotificationsViewModelTests
 {
@@ -27,7 +27,7 @@ public class NotificationsViewModelTests
         viewModel.NotificationPreferences.Add(preference);
 
         _profileClientService
-            .Setup(s => s.UpdateNotificationPreferencesAsync(viewModel.NotificationPreferences))
+            .Setup(service => service.UpdateNotificationPreferencesAsync(viewModel.NotificationPreferences))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -79,7 +79,7 @@ public class NotificationsViewModelTests
         var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetNotificationPreferencesAsync())
+            .Setup(service => service.GetNotificationPreferencesAsync())
             .ReturnsAsync(preferences);
 
         // Act
@@ -130,7 +130,7 @@ public class NotificationsViewModelTests
         var viewModel = new NotificationsViewModel(_profileClientService.Object, NullLogger<NotificationsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.UpdateNotificationPreferencesAsync(updatedPreferences))
+            .Setup(service => service.UpdateNotificationPreferencesAsync(updatedPreferences))
             .ReturnsAsync(Result.Success);
 
         // Act

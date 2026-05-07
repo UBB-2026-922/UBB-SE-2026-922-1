@@ -1,15 +1,13 @@
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Profile;
-using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using ErrorOr;
-using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Application.Tests.Services;
+﻿namespace BankingApp.Application.Tests.Services;
 
 using DTOs.Profile;
+using Repositories.Interfaces;
+using BankingApp.Application.Services.Profile;
+using BankingApp.Application.Services.Security;
+using Domain.Entities;
+using Domain.Enums;
+using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
 ///     Unit tests for <see cref="ProfileService" />.

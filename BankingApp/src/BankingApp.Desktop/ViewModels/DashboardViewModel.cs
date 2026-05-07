@@ -1,20 +1,23 @@
+namespace BankingApp.Desktop.ViewModels;
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Dashboard;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Dashboard;
+using Enums;
+using Services;
+using Utilities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.ViewModels;
-
-public partial class DashboardViewModel
+/// <summary>
+///     Loads and exposes the data needed by the dashboard view.
+/// </summary>
+public class DashboardViewModel
 {
     private const string CardAtStartErrorCode = "dashboard.card_at_start";
     private const string CardAtStartErrorDescription = "Already at the first card.";
@@ -29,9 +32,12 @@ public partial class DashboardViewModel
     private readonly ILogger<DashboardViewModel> _logger;
     private int _currentCardIndex;
 
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="DashboardViewModel" /> class.
+    /// </summary>
     public DashboardViewModel(IDashboardClientService dashboardClientService, ILogger<DashboardViewModel> logger)
     {
-        _dashboardClientService = dashboardClientService;
+        _dashboardClientService = dashboardClientService ?? throw new ArgumentNullException(nameof(dashboardClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         CurrentUser = null;
         State = new ObservableState<DashboardState>(DashboardState.Idle);
@@ -43,16 +49,34 @@ public partial class DashboardViewModel
         _currentCardIndex = FirstCardIndex;
     }
 
+    /// <summary>
+    ///     Gets the current dashboard workflow state.
+    /// </summary>
     public ObservableState<DashboardState> State { get; }
 
+    /// <summary>
+    ///     Gets the current user summary shown on the dashboard.
+    /// </summary>
     public UserSummaryDto? CurrentUser { get; private set; }
 
+    /// <summary>
+    ///     Gets the formatted recent-transaction items shown on the dashboard.
+    /// </summary>
     public List<DashboardTransactionItem> RecentTransactionItems { get; private set; }
 
+    /// <summary>
+    ///     Gets the unread-notification count shown on the dashboard.
+    /// </summary>
     public int UnreadNotificationCount { get; private set; }
 
+    /// <summary>
+    ///     Gets the latest user-facing dashboard error message.
+    /// </summary>
     public string ErrorMessage { get; private set; }
 
+    /// <summary>
+    ///     Gets the index of the currently selected payment card.
+    /// </summary>
     public int CurrentCardIndex
     {
         get => _currentCardIndex;
@@ -62,12 +86,24 @@ public partial class DashboardViewModel
             Math.Max(FirstCardIndex, Cards.Count - LastCardIndexOffset));
     }
 
+    /// <summary>
+    ///     Gets a value indicating whether the previous-card action is available.
+    /// </summary>
     public bool CanNavigatePrevious => Cards.Count > 0 && CurrentCardIndex > FirstCardIndex;
 
+    /// <summary>
+    ///     Gets a value indicating whether the next-card action is available.
+    /// </summary>
     public bool CanNavigateNext => Cards.Count > 0 && CurrentCardIndex < Cards.Count - LastCardIndexOffset;
 
+    /// <summary>
+    ///     Gets a value indicating whether any cards are available for display.
+    /// </summary>
     public bool HasCards => Cards.Count > 0;
 
+    /// <summary>
+    ///     Gets the card-page indicator state for the card carousel.
+    /// </summary>
     public IReadOnlyList<CardPageIndicatorViewModel> CardDots
     {
         get
@@ -77,13 +113,22 @@ public partial class DashboardViewModel
         }
     }
 
+    /// <summary>
+    ///     Gets a value indicating whether recent transactions are available.
+    /// </summary>
     public bool HasTransactions => RecentTransactionItems.Count > 0;
 
+    /// <summary>
+    ///     Gets the selected card brand display text.
+    /// </summary>
     public string SelectedCardBrandDisplay =>
         SelectedCard is { } card
             ? string.IsNullOrWhiteSpace(card.CardBrand) ? card.CardType.ToString() : card.CardBrand
             : string.Empty;
 
+    /// <summary>
+    ///     Gets the selected cardholder display text.
+    /// </summary>
     public string SelectedCardHolderDisplay =>
         SelectedCard is { } card
             ? string.IsNullOrWhiteSpace(card.CardholderName)
@@ -91,9 +136,15 @@ public partial class DashboardViewModel
                 : card.CardholderName.ToUpperInvariant()
             : string.Empty;
 
+    /// <summary>
+    ///     Gets the selected card expiry display text.
+    /// </summary>
     public string SelectedCardExpiryDisplay =>
         SelectedCard?.ExpiryDate.ToString("MM/yy", CultureInfo.InvariantCulture) ?? string.Empty;
 
+    /// <summary>
+    ///     Gets the masked number of the selected card.
+    /// </summary>
     public string SelectedCardNumberMasked =>
         SelectedCard is { } card ? MaskCardNumber(card.CardNumber) : FullyMaskedCardNumber;
 
@@ -103,25 +154,43 @@ public partial class DashboardViewModel
 
     private List<TransactionDto> RecentTransactions { get; set; }
 
+    /// <summary>
+    ///     Moves the card carousel to the previous card.
+    /// </summary>
     public ErrorOr<Success> NavigatePrevious()
     {
-        if (!CanNavigatePrevious) return Error.Failure(CardAtStartErrorCode, CardAtStartErrorDescription);
+        if (!CanNavigatePrevious)
+        {
+            return Error.Failure(CardAtStartErrorCode, CardAtStartErrorDescription);
+        }
 
         CurrentCardIndex--;
         return Result.Success;
     }
 
+    /// <summary>
+    ///     Moves the card carousel to the next card.
+    /// </summary>
     public ErrorOr<Success> NavigateNext()
     {
-        if (!CanNavigateNext) return Error.Failure(CardAtEndErrorCode, CardAtEndErrorDescription);
+        if (!CanNavigateNext)
+        {
+            return Error.Failure(CardAtEndErrorCode, CardAtEndErrorDescription);
+        }
 
         CurrentCardIndex++;
         return Result.Success;
     }
 
+    /// <summary>
+    ///     Builds the details string for the currently selected card.
+    /// </summary>
     public string GetSelectedCardDetails()
     {
-        if (SelectedCard is not { } card) return string.Empty;
+        if (SelectedCard is not { } card)
+        {
+            return string.Empty;
+        }
 
         return
             $"Card Type:       {card.CardType}\n" +
@@ -134,6 +203,9 @@ public partial class DashboardViewModel
             $"Online Payments: {(card.IsOnlineEnabled ? "Enabled" : "Disabled")}";
     }
 
+    /// <summary>
+    ///     Loads dashboard data for the current user.
+    /// </summary>
     public async Task<ErrorOr<Success>> LoadDashboard(CancellationToken cancellationToken = default)
     {
         State.SetValue(DashboardState.Loading);
@@ -174,15 +246,17 @@ public partial class DashboardViewModel
 
     private static string MaskCardNumber(string? cardNumber)
     {
-        if (string.IsNullOrWhiteSpace(cardNumber)) return FullyMaskedCardNumber;
+        if (string.IsNullOrWhiteSpace(cardNumber))
+        {
+            return FullyMaskedCardNumber;
+        }
 
         return cardNumber.Length >= CardNumberVisibleSuffixLength
             ? $"{CardNumberMaskPrefix} {cardNumber[^CardNumberVisibleSuffixLength..]}"
             : FullyMaskedCardNumber;
     }
 
-    private static List<DashboardTransactionItem> BuildTransactionItems(
-        IEnumerable<TransactionDto> transactions)
+    private static List<DashboardTransactionItem> BuildTransactionItems(IEnumerable<TransactionDto> transactions)
     {
         return transactions
             .Select(transaction => new DashboardTransactionItem

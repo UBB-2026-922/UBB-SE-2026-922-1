@@ -1,6 +1,6 @@
-using System;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using System;
 
 /// <summary>
 ///     Represents a beneficiary to whom a user can send money.

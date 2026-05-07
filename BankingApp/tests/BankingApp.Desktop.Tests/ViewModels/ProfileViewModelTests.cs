@@ -1,13 +1,12 @@
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Profile;
+using Enums;
+using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
-using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class ProfileViewModelTests
 {
@@ -24,7 +23,7 @@ public class ProfileViewModelTests
         var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetProfileAsync())
+            .Setup(service => service.GetProfileAsync())
             .ReturnsAsync(new ProfileDto
             {
                 UserId = userId,

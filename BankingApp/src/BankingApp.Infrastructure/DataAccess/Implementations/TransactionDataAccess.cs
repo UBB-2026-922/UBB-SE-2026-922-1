@@ -1,11 +1,8 @@
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using ErrorOr;
-using Microsoft.EntityFrameworkCore;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+using Domain.Entities;
+using Interfaces;
+using ErrorOr;
 
 /// <summary>
 ///     Provides SQL Server data access for financial transaction records.

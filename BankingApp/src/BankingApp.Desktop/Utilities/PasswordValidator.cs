@@ -1,6 +1,6 @@
-using System.Linq;
+﻿namespace BankingApp.Desktop.Utilities;
 
-namespace BankingApp.Desktop.Utilities;
+using System.Linq;
 
 /// <summary>
 ///     Provides password validation rules shared across all client registration and security flows.

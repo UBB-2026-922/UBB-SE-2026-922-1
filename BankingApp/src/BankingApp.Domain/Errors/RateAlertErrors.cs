@@ -1,6 +1,6 @@
-using ErrorOr;
-
 namespace BankingApp.Domain.Errors;
+
+using ErrorOr;
 
 /// <summary>
 ///     Canonical error definitions for FX rate alert validation.

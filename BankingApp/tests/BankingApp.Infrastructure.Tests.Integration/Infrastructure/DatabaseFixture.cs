@@ -1,11 +1,11 @@
-using BankingApp.Infrastructure.DataAccess;
+﻿namespace BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+
+using DataAccess;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Respawn;
 using Testcontainers.MsSql;
-
-namespace BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 
 /// <summary>
 ///     Provides a repeatable SQL Server database via Testcontainers for integration tests.
@@ -79,6 +79,9 @@ public sealed class DatabaseFixture : IAsyncLifetime
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task ResetAsync()
     {
-        if (_respawner != null && _connection != null) await _respawner.ResetAsync(_connection);
+        if (_respawner != null && _connection != null)
+        {
+            await _respawner.ResetAsync(_connection);
+        }
     }
 }

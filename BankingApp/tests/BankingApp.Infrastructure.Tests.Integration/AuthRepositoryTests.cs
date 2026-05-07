@@ -1,14 +1,12 @@
-// Licensed under the MIT license.
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+using Domain.Entities;
+using DataAccess;
+using DataAccess.Implementations;
+using Repositories.Implementations;
+using Infrastructure;
 using Bogus;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Tests.Integration;
 
 [Trait("Category", "Integration")]
 [Collection("Integration")]

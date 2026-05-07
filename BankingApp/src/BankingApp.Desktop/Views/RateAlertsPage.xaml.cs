@@ -1,9 +1,8 @@
-using BankingApp.Desktop.ViewModels;
+﻿namespace BankingApp.Desktop.Views;
+
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Code-behind for the Rate Alerts management page.
@@ -41,6 +40,9 @@ public sealed partial class RateAlertsPage : Page
 
     private async void DeleteAlertButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is int alertId) await _viewModel.DeleteAlertAsync(alertId);
+        if (sender is Button button && button.Tag is int alertId)
+        {
+            await _viewModel.DeleteAlertAsync(alertId);
+        }
     }
 }

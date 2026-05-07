@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Net;
@@ -133,10 +133,16 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         try
         {
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(endpoint, data);
-            if (!response.IsSuccessStatusCode) return await MapErrorAsync(response, endpoint, CancellationToken.None);
+            if (!response.IsSuccessStatusCode)
+            {
+                return await MapErrorAsync(response, endpoint, CancellationToken.None);
+            }
 
             TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
-            if (result is null) return Error.Failure(description: $"POST {endpoint} returned an empty response.");
+            if (result is null)
+            {
+                return Error.Failure(description: $"POST {endpoint} returned an empty response.");
+            }
 
             return result;
         }
@@ -299,11 +305,14 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         _httpClient.Dispose();
         _disposed = true;
-        GC.SuppressFinalize(this);
+        GC.SuppressFinalize(obj: this);
     }
 
     private static async Task<Error> MapErrorAsync(

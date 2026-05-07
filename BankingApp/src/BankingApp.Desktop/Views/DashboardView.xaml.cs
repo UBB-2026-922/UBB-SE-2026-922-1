@@ -1,10 +1,12 @@
+﻿namespace BankingApp.Desktop.Views;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Enums;
+using Utilities;
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -12,8 +14,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Microsoft.UI.Xaml.Shapes;
 using Windows.UI;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Displays the authenticated user's account summary, card carousel, and recent transactions.
@@ -77,7 +77,10 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
     /// <inheritdoc />
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         CancelPendingLoad();
         DetachObserver();
@@ -199,7 +202,10 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         IReadOnlyList<CardPageIndicatorViewModel> dots = _viewModel.CardDots;
         for (int index = FirstCardDotIndex; index < CardDots.Children.Count; index++)
         {
-            if (CardDots.Children[index] is not Ellipse dot || index >= dots.Count) continue;
+            if (CardDots.Children[index] is not Ellipse dot || index >= dots.Count)
+            {
+                continue;
+            }
 
             dot.Width = dots[index].IsActive ? ActiveCardDotSize : InactiveCardDotSize;
             dot.Fill = new SolidColorBrush(dots[index].IsActive ? _activeDotColor : _inactiveDotColor);
@@ -226,12 +232,18 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
 
     private void PrevCardButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!_viewModel.NavigatePrevious().IsError) ShowCard();
+        if (!_viewModel.NavigatePrevious().IsError)
+        {
+            ShowCard();
+        }
     }
 
     private void NextCardButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!_viewModel.NavigateNext().IsError) ShowCard();
+        if (!_viewModel.NavigateNext().IsError)
+        {
+            ShowCard();
+        }
     }
 
     private void TransferButton_Click(object sender, RoutedEventArgs e)
@@ -272,7 +284,10 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
     private async Task ShowCurrentCardDetailsAsync()
     {
         string details = _viewModel.GetSelectedCardDetails();
-        if (string.IsNullOrEmpty(details)) return;
+        if (string.IsNullOrEmpty(details))
+        {
+            return;
+        }
 
         await ShowAlertAsync("Card Details", details);
     }
@@ -320,7 +335,10 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
 
     private void AttachObserver()
     {
-        if (_isObserverAttached) return;
+        if (_isObserverAttached)
+        {
+            return;
+        }
 
         _viewModel.State.AddObserver(this);
         _isObserverAttached = true;
@@ -328,7 +346,10 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
 
     private void DetachObserver()
     {
-        if (!_isObserverAttached) return;
+        if (!_isObserverAttached)
+        {
+            return;
+        }
 
         _viewModel.State.RemoveObserver(this);
         _isObserverAttached = false;
@@ -336,7 +357,10 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
 
     private void CancelPendingLoad()
     {
-        if (_loadCancellationTokenSource is null) return;
+        if (_loadCancellationTokenSource is null)
+        {
+            return;
+        }
 
         _loadCancellationTokenSource.Cancel();
         _loadCancellationTokenSource.Dispose();

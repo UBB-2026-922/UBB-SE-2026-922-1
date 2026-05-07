@@ -1,11 +1,11 @@
-﻿using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Services.Transfers;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.DTOs.Transfer;
+using Application.Services.Transfers;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 [Trait("Category", "Unit")]
 public sealed class TransferControllerTests

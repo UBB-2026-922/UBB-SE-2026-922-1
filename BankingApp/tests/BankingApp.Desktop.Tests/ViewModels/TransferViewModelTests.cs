@@ -1,11 +1,11 @@
+namespace BankingApp.Desktop.Tests.ViewModels;
+
 using System.Collections.Generic;
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Desktop.Services.Transfers;
+using Application.DTOs.Transfer;
+using Services.Transfers;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 /// <summary>
 ///     Tests for the <see cref="TransferViewModel" />.

@@ -1,4 +1,6 @@
-﻿using System;
+﻿namespace BankingApp.Desktop.ViewModels;
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -6,12 +8,10 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Desktop.Services.Transfers;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Transfer;
+using Services.Transfers;
+using Utilities;
 using ErrorOr;
-
-namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Drives the multi-step transfer wizard.
@@ -277,7 +277,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
         get => _errorMessage;
         set
         {
-            if (SetProperty(ref _errorMessage, value)) OnPropertyChanged(nameof(HasError));
+            if (SetProperty(ref _errorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasError));
+            }
         }
     }
 
@@ -304,9 +307,13 @@ public partial class TransferViewModel : INotifyPropertyChanged
             SetProperty(ref _amountText, value);
 
             if (decimal.TryParse(value, out decimal parsed))
+            {
                 Amount = parsed;
+            }
             else
+            {
                 Amount = default;
+            }
         }
     }
 
@@ -361,9 +368,15 @@ public partial class TransferViewModel : INotifyPropertyChanged
 
             Accounts.Clear();
 
-            foreach (TransferAccountSelectionResponse account in result.Value) Accounts.Add(account);
+            foreach (TransferAccountSelectionResponse account in result.Value)
+            {
+                Accounts.Add(account);
+            }
 
-            if (Accounts.Count > MinimumAccounts) SelectedAccount = Accounts[FirstAccountIndex];
+            if (Accounts.Count > MinimumAccounts)
+            {
+                SelectedAccount = Accounts[FirstAccountIndex];
+            }
         }
         catch (Exception loadAccountsException)
         {
@@ -428,7 +441,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
                 return;
             }
 
-            if (Requires2Fa && string.IsNullOrWhiteSpace(TwoFaToken)) TwoFaToken = GenerateTwoFaToken();
+            if (Requires2Fa && string.IsNullOrWhiteSpace(TwoFaToken))
+            {
+                TwoFaToken = GenerateTwoFaToken();
+            }
 
             CurrentStep = ReviewAndConfirmationStep;
             return;
@@ -448,7 +464,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
         {
             ErrorMessage = string.Empty;
 
-            if (SelectedAccount == null) throw new InvalidOperationException(UserMessages.Transfer.NoAccountSelected);
+            if (SelectedAccount == null)
+            {
+                throw new InvalidOperationException(UserMessages.Transfer.NoAccountSelected);
+            }
 
             ErrorOr<TransferExecutionResponse> result =
                 await _transferClientService.ExecuteTransferAsync(
@@ -510,7 +529,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
     /// <returns><see langword="true" /> if the value changed; otherwise <see langword="false" />.</returns>
     private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (Equals(field, value)) return false;
+        if (Equals(field, value))
+        {
+            return false;
+        }
 
         field = value;
         OnPropertyChanged(propertyName);
@@ -579,10 +601,14 @@ public partial class TransferViewModel : INotifyPropertyChanged
             TransferForexPreviewResponse preview = result.Value;
 
             if (preview.ExchangeRate == IdentityExchangeRate)
+            {
                 FxPreviewText = $"{Amount:F2} {Currency}";
+            }
             else
+            {
                 FxPreviewText =
                     $"{Amount:F2} {SelectedAccount.Currency} -> {preview.ConvertedAmount:F2} {Currency} (rate: {preview.ExchangeRate:F4})";
+            }
         }
         catch
         {

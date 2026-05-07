@@ -1,10 +1,10 @@
+﻿namespace BankingApp.Api.Tests.Integration;
+
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using BankingApp.Api.Tests.Integration.Infrastructure;
+using Infrastructure;
 using ErrorOr;
-
-namespace BankingApp.Api.Tests.Integration;
 
 /// <summary>
 ///     Integration tests that verify route contracts, middleware auth enforcement,
@@ -46,7 +46,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("POST", "/api/auth/reset-password")]
     [InlineData("POST", "/api/auth/logout")]
     [InlineData("POST", "/api/auth/resend-otp")]
-    [InlineData("POST", "/api/auth/oauth-login")]
     [InlineData("POST", "/api/auth/verify-reset-token")]
     public async Task SendAsync_WhenAuthEndpointIsPublicAndTokenIsMissing_ShouldNotReturnUnauthorized(
         string method,
@@ -73,7 +72,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("GET", "/api/profile")]
     [InlineData("PUT", "/api/profile")]
     [InlineData("PUT", "/api/profile/password")]
-    [InlineData("GET", "/api/profile/oauth-links")]
     [InlineData("GET", "/api/profile/notifications/preferences")]
     [InlineData("PUT", "/api/profile/notifications/preferences")]
     [InlineData("POST", "/api/profile/verify-password")]
@@ -100,7 +98,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("GET", "/api/profile")]
     [InlineData("PUT", "/api/profile")]
     [InlineData("PUT", "/api/profile/password")]
-    [InlineData("GET", "/api/profile/oauth-links")]
     [InlineData("GET", "/api/profile/notifications/preferences")]
     [InlineData("PUT", "/api/profile/notifications/preferences")]
     [InlineData("POST", "/api/profile/verify-password")]
@@ -117,7 +114,10 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         // Provide minimal JSON body for endpoints that expect one.
-        if (method is "POST" or "PUT") request.Content = JsonContent.Create(new { });
+        if (method is "POST" or "PUT")
+        {
+            request.Content = JsonContent.Create(new { });
+        }
 
         // Act
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);

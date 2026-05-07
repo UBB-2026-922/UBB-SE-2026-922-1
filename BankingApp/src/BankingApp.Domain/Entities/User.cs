@@ -1,6 +1,6 @@
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using Enums;
 
 /// <summary>
 ///     Represents a user of the banking application.

@@ -1,7 +1,7 @@
-using BankingApp.Desktop.ViewModels;
-using Microsoft.UI.Xaml;
+﻿namespace BankingApp.Desktop.Views;
 
-namespace BankingApp.Desktop.Views;
+using ViewModels;
+using Microsoft.UI.Xaml;
 
 /// <summary>
 ///     Code-behind for the FX currency exchange page.

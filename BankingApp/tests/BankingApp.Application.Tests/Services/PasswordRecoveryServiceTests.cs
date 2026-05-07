@@ -1,12 +1,12 @@
-using BankingApp.Application.Repositories.Interfaces;
+﻿namespace BankingApp.Application.Tests.Services;
+
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="PasswordRecoveryService" />.

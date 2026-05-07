@@ -1,6 +1,6 @@
-using ErrorOr;
-
 namespace BankingApp.Domain.Errors;
+
+using ErrorOr;
 
 /// <summary>
 ///     Canonical error definitions for recurring payment validation and lifecycle transitions.

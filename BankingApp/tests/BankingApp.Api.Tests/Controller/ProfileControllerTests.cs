@@ -1,14 +1,12 @@
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Application.Services.Profile;
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.DTOs.Profile;
+using Application.Services.Profile;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
-
-using Application.DTOs.Profile;
 
 /// <summary>
 ///     Unit tests for <see cref="ProfileController" /> verifying route contracts

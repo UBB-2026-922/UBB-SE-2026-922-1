@@ -1,7 +1,7 @@
+namespace BankingApp.Infrastructure.Logging;
+
 using System;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Infrastructure.Logging;
 
 internal static partial class InfrastructureLogMessages
 {

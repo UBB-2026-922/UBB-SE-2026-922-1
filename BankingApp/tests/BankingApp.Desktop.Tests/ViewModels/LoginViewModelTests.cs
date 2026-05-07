@@ -1,12 +1,11 @@
-using BankingApp.Application.DTOs.Auth;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Auth;
+using Enums;
+using Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class LoginViewModelTests
 {

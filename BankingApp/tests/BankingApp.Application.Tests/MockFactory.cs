@@ -1,11 +1,11 @@
+﻿namespace BankingApp.Application.Tests;
+
 using System.Security.Claims;
-using BankingApp.Application.Repositories.Interfaces;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using ErrorOr;
-
-namespace BankingApp.Application.Tests;
 
 /// <summary>
 ///     Factory methods for creating Moq mocks with sensible default return values.

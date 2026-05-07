@@ -1,11 +1,11 @@
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.RateAlerts;
-using BankingApp.Application.Services.RateAlerts;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.DTOs.RateAlerts;
+using Application.Services.RateAlerts;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 [Trait("Category", "Unit")]
 public sealed class RateAlertsControllerTests

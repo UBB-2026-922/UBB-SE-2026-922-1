@@ -1,9 +1,9 @@
-using BankingApp.Application.DTOs.Beneficiaries;
-using BankingApp.Desktop.ViewModels;
+﻿namespace BankingApp.Desktop.Views;
+
+using Application.DTOs.Beneficiaries;
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Page that displays beneficiaries and basic CRUD interactions for the desktop app.
@@ -49,7 +49,10 @@ public sealed partial class BeneficiariesView
     private async void Delete_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         BeneficiaryDto? beneficiary = TryGetBeneficiaryFromSender(sender);
-        if (beneficiary is null) return;
+        if (beneficiary is null)
+        {
+            return;
+        }
 
         await ViewModel.DeleteBeneficiaryAsync(beneficiary.Id);
     }
@@ -57,7 +60,10 @@ public sealed partial class BeneficiariesView
     private void Use_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         BeneficiaryDto? beneficiary = TryGetBeneficiaryFromSender(sender);
-        if (beneficiary is null) return;
+        if (beneficiary is null)
+        {
+            return;
+        }
 
         ViewModel.UseForTransfer(beneficiary);
     }

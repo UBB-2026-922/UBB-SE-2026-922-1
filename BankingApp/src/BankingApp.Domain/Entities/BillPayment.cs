@@ -1,7 +1,7 @@
-using System;
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using System;
+using Enums;
 
 /// <summary>
 /// Represents a one-off bill payment made by a user to a registered biller.

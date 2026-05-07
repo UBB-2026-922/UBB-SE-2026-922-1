@@ -1,10 +1,10 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
+
+using Domain.Entities;
+using Domain.Errors;
+using Interfaces;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
 /// <summary>
 ///     Provides EF Core data access for saved billers.
@@ -44,7 +44,10 @@ public class SavedBillerDataAccess : ISavedBillerDataAccess
     public ErrorOr<Success> Delete(int id)
     {
         SavedBiller? entry = _databaseContext.SavedBillers.FirstOrDefault(savedBiller => savedBiller.Id == id);
-        if (entry is null) return BillerErrors.SavedBillerNotFound;
+        if (entry is null)
+        {
+            return BillerErrors.SavedBillerNotFound;
+        }
 
         _databaseContext.SavedBillers.Remove(entry);
         _databaseContext.SaveChanges();

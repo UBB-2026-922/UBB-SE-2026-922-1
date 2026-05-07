@@ -1,11 +1,11 @@
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.Services.Billers;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.DTOs.Billers;
+using Application.Services.Billers;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-namespace BankingApp.Api.Tests.Controller;
 
 /// <summary>
 ///     Unit tests for <see cref="BillersController" />.

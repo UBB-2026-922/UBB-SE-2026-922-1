@@ -1,13 +1,13 @@
-using BankingApp.Application.Repositories.Interfaces;
+﻿namespace BankingApp.Application.Tests.Services;
+
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Application.Tests.Services;
 
 using DTOs.Auth;
 

@@ -1,10 +1,7 @@
-// Defines generated logging delegates for the Desktop project.
-// </summary>
+namespace BankingApp.Desktop.Utilities;
 
 using System;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Centralized <see cref="LoggerMessageAttribute"/> definitions for Desktop logging.

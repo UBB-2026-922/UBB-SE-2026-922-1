@@ -1,18 +1,18 @@
+﻿namespace BankingApp.Application.Tests.Services;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Repositories.Interfaces;
+using DTOs.BillPayments;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.BillPayments;
 using BankingApp.Application.Services.RecurringPayments;
 using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Application.Tests.Services;
 
 public class RecurringPaymentProcessingServiceTests
 {
@@ -44,13 +44,13 @@ public class RecurringPaymentProcessingServiceTests
     public async Task ProcessDuePaymentsAsync_WhenRepositoryReturnsDuePaymentsError_ReturnsError()
     {
         // Arrange
-        Error repositoryError = Error.Failure("repo.error", "DB failure");
+        var repositoryError = Error.Failure("repo.error", "DB failure");
         _recurringPaymentRepository
             .Setup(repo => repo.GetDuePayments(_fixedUtcNow))
             .Returns(repositoryError);
 
         // Act
-        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -66,7 +66,7 @@ public class RecurringPaymentProcessingServiceTests
             .Returns(new List<RecurringPayment>());
 
         // Act
-        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -85,7 +85,7 @@ public class RecurringPaymentProcessingServiceTests
             .Returns(new List<RecurringPayment> { pausedPayment });
 
         // Act
-        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -113,7 +113,7 @@ public class RecurringPaymentProcessingServiceTests
             .Returns(Result.Success);
 
         // Act
-        await _service.ProcessDuePaymentsAsync();
+        await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         payment.NextExecutionDate.Should().Be(_fixedUtcNow.AddDays(-1).AddMonths(1));
@@ -143,7 +143,7 @@ public class RecurringPaymentProcessingServiceTests
             .Returns(Result.Success);
 
         // Act
-        await _service.ProcessDuePaymentsAsync();
+        await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         payment.Status.Should().Be(RecurringPaymentStatus.Cancelled);
@@ -166,7 +166,7 @@ public class RecurringPaymentProcessingServiceTests
             .Returns(Result.Success);
 
         // Act
-        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -196,7 +196,7 @@ public class RecurringPaymentProcessingServiceTests
             .ReturnsAsync(new BillPayment());
 
         // Act
-        await _service.ProcessDuePaymentsAsync();
+        await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         capturedBillPaymentDto.Should().NotBeNull();
@@ -238,7 +238,7 @@ public class RecurringPaymentProcessingServiceTests
             .Returns(Error.Failure("update.failed", "DB write failed"));
 
         // Act
-        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync();
+        ErrorOr<Success> result = await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -273,7 +273,7 @@ public class RecurringPaymentProcessingServiceTests
             .Returns(Result.Success);
 
         // Act
-        await _service.ProcessDuePaymentsAsync();
+        await _service.ProcessDuePaymentsAsync(TestContext.Current.CancellationToken);
 
         // Assert
         payment.NextExecutionDate.Should().Be(expectedNext);

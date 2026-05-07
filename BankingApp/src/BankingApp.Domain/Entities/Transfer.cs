@@ -1,8 +1,8 @@
-﻿using BankingApp.Domain.Enums;
-using ErrorOr;
-using BankingApp.Domain.Errors;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using Enums;
+using ErrorOr;
+using Errors;
 
 /// <summary>
 /// Represents a transfer initiated by a user between accounts or to an external recipient.

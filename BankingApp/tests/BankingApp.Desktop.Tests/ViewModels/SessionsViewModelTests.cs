@@ -1,11 +1,11 @@
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Profile;
+using Enums;
+using Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class SessionsViewModelTests
 {
@@ -25,7 +25,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetSessionsAsync())
+            .Setup(service => service.GetSessionsAsync())
             .ReturnsAsync(sessions);
 
         // Act
@@ -45,7 +45,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetSessionsAsync())
+            .Setup(service => service.GetSessionsAsync())
             .ReturnsAsync(Error.Failure(description: "server error"));
 
         // Act
@@ -123,7 +123,7 @@ public class SessionsViewModelTests
         var viewModel = new SessionsViewModel(_profileClientService.Object, NullLogger<SessionsViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.RevokeSessionAsync(sessionId))
+            .Setup(service => service.RevokeSessionAsync(sessionId))
             .ThrowsAsync(new InvalidOperationException("boom"));
 
         // Act

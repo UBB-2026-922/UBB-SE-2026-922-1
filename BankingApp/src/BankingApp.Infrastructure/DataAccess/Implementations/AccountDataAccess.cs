@@ -1,9 +1,8 @@
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+using Domain.Entities;
+using Interfaces;
+using ErrorOr;
 
 /// <summary>
 ///     Provides SQL Server data access for bank account records.
@@ -28,7 +27,10 @@ public class AccountDataAccess : IAccountDataAccess
     public ErrorOr<Account> FindById(int id)
     {
         Account? account = _databaseContext.Accounts.FirstOrDefault(a => a.Id == id);
-        if (account == null) return Error.NotFound(description: "Account not found.");
+        if (account == null)
+        {
+            return Error.NotFound(description: "Account not found.");
+        }
 
         return account;
     }
@@ -51,7 +53,10 @@ public class AccountDataAccess : IAccountDataAccess
         try
         {
             Account? account = _databaseContext.Accounts.Find(accountId);
-            if (account is null) return Error.NotFound(description: "Account not found.");
+            if (account is null)
+            {
+                return Error.NotFound(description: "Account not found.");
+            }
 
             account.Balance -= amount;
             _databaseContext.SaveChanges();

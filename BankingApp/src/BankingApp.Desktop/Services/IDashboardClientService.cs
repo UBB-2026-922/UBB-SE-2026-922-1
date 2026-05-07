@@ -1,11 +1,17 @@
-using System.Threading;
-using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Dashboard;
-using ErrorOr;
-
 namespace BankingApp.Desktop.Services;
 
+using System.Threading;
+using System.Threading.Tasks;
+using Application.DTOs.Dashboard;
+using ErrorOr;
+
+/// <summary>
+///     Defines the desktop client boundary for loading dashboard data.
+/// </summary>
 public interface IDashboardClientService
 {
-    Task<ErrorOr<DashboardDto>> GetDashboardAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    ///     Loads the authenticated user's dashboard payload.
+    /// </summary>
+    public Task<ErrorOr<DashboardDto>> GetDashboardAsync(CancellationToken cancellationToken = default);
 }

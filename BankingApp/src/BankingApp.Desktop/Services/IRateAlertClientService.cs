@@ -1,17 +1,32 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using BankingApp.Application.DTOs.RateAlerts;
-using ErrorOr;
-
 namespace BankingApp.Desktop.Services;
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Application.DTOs.RateAlerts;
+using ErrorOr;
+
+/// <summary>
+///     Defines the desktop client boundary for rate-alert management.
+/// </summary>
 public interface IRateAlertClientService
 {
-    int? CurrentUserId { get; }
+    /// <summary>
+    ///     Gets the authenticated user identifier cached by the client.
+    /// </summary>
+    public int? CurrentUserId { get; }
 
-    Task<ErrorOr<List<RateAlertDto>>> GetAlertsAsync(int userId);
+    /// <summary>
+    ///     Loads all rate alerts for the specified user.
+    /// </summary>
+    public Task<ErrorOr<List<RateAlertDto>>> GetAlertsAsync(int userId);
 
-    Task<ErrorOr<RateAlertDto>> CreateAlertAsync(RateAlertDto alert);
+    /// <summary>
+    ///     Creates a new rate alert.
+    /// </summary>
+    public Task<ErrorOr<RateAlertDto>> CreateAlertAsync(RateAlertDto alert);
 
-    Task<ErrorOr<Success>> DeleteAlertAsync(int alertId);
+    /// <summary>
+    ///     Deletes an existing rate alert.
+    /// </summary>
+    public Task<ErrorOr<Success>> DeleteAlertAsync(int alertId);
 }

@@ -1,18 +1,11 @@
-﻿// <copyright file="TransferRepositoryTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-// <summary>
-// Contains integration tests for TransferRepository.
-// </summary>
+﻿namespace BankingApp.Infrastructure.Tests.Integration;
 
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
+using Repositories.Implementations;
+using Infrastructure;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Tests.Integration;
 
 /// <summary>
 ///     Integration tests for <see cref="TransferRepository" /> against a real database.
@@ -31,11 +24,13 @@ public class TransferRepositoryTests : IAsyncLifetime
         _fixture = fixture;
     }
 
-    /// <inheritdoc />
-    public async Task InitializeAsync() => await _fixture.ResetAsync();
+    public async ValueTask InitializeAsync() => await _fixture.ResetAsync();
 
-    /// <inheritdoc />
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync()
+    {
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
+    }
 
     [Fact]
     public void Create_WhenTransferIsValid_ReturnsPersistedTransferWithId()

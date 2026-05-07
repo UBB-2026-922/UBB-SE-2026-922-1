@@ -1,7 +1,7 @@
-using BankingApp.Domain.Entities;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.DataAccess.Interfaces;
 
-namespace BankingApp.Infrastructure.DataAccess.Interfaces;
+using Domain.Entities;
+using ErrorOr;
 
 /// <summary>
 ///     Defines data access operations for password reset tokens.
@@ -13,19 +13,19 @@ public interface IPasswordResetTokenDataAccess
     /// <param name="tokenHash">The hashed token value.</param>
     /// <param name="expiresAt">The UTC expiration time of the token.</param>
     /// <returns>The newly created <see cref="PasswordResetToken" />, or an error if the operation failed.</returns>
-    ErrorOr<PasswordResetToken> Create(int userId, string tokenHash, DateTime expiresAt);
+    public ErrorOr<PasswordResetToken> Create(int userId, string tokenHash, DateTime expiresAt);
 
     /// <summary>Finds a password reset token by its hash.</summary>
     /// <param name="tokenHash">The hashed token value to search for.</param>
     /// <returns>The matching <see cref="PasswordResetToken" />, or <see cref="Error.NotFound" /> if not found.</returns>
-    ErrorOr<PasswordResetToken> FindByToken(string tokenHash);
+    public ErrorOr<PasswordResetToken> FindByToken(string tokenHash);
 
     /// <summary>Marks a password reset token as used.</summary>
     /// <param name="tokenId">The identifier of the token.</param>
     /// <returns>Success, or an error if the operation failed.</returns>
-    ErrorOr<Success> MarkAsUsed(int tokenId);
+    public ErrorOr<Success> MarkAsUsed(int tokenId);
 
     /// <summary>Deletes all expired password reset tokens.</summary>
     /// <returns>Success, or an error if the operation failed.</returns>
-    ErrorOr<Success> DeleteExpired();
+    public ErrorOr<Success> DeleteExpired();
 }

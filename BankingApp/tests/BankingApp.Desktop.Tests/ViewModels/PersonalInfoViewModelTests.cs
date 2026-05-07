@@ -1,12 +1,12 @@
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
+namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Application.DTOs.Profile;
+using Enums;
+using Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class PersonalInfoViewModelTests
 {
@@ -30,7 +30,7 @@ public class PersonalInfoViewModelTests
         var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
 
         _profileClientService
-            .Setup(s => s.GetProfileAsync())
+            .Setup(service => service.GetProfileAsync())
             .ReturnsAsync(profile);
 
         // Act
@@ -96,7 +96,7 @@ public class PersonalInfoViewModelTests
         viewModel.ProfileInfo.PreferredLanguage = "ro";
 
         _profileClientService
-            .Setup(s => s.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
+            .Setup(service => service.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
             .Callback<UpdateProfileRequest>(request => sentRequest = request)
             .ReturnsAsync(Result.Success);
 

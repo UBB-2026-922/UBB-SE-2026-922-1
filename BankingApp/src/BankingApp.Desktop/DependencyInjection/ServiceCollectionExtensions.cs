@@ -9,11 +9,20 @@ using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+/// <summary>
+/// TODO: add docs.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="services"></param>
+    /// <param name="configuration"></param>
+    /// <returns></returns>
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton(configuration);
         services.AddSingleton<IApiClient, ApiClient>();
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
@@ -28,7 +37,7 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<IPasswordRecoveryManager>(provider =>
         {
-            var apiClient = provider.GetRequiredService<IApiClient>();
+            IApiClient apiClient = provider.GetRequiredService<IApiClient>();
             return new PasswordRecoveryManager(apiClient, new SystemClock());
         });
 

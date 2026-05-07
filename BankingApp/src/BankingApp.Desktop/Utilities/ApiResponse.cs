@@ -1,9 +1,9 @@
-namespace BankingApp.Desktop.Utilities;
+﻿namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Represents a simple API response containing either a success message or an error message.
 /// </summary>
-public partial class ApiResponse
+public class ApiResponse
 {
     /// <summary>
     ///     Gets or sets the success message returned by the API.

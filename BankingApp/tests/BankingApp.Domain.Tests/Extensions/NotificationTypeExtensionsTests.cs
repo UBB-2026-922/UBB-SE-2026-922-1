@@ -2,10 +2,10 @@
 // Copyright (c) CtrlC CtrlV. All rights reserved.
 // </copyright>
 
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Extensions;
-
 namespace BankingApp.Domain.Tests.Extensions;
+
+using Enums;
+using BankingApp.Domain.Extensions;
 
 /// <summary>
 ///     Unit tests for <see cref="NotificationTypeExtensions" />.

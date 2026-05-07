@@ -1,9 +1,9 @@
-namespace BankingApp.Desktop.ViewModels;
+﻿namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Represents the display state of a single card-navigation dot in the dashboard carousel.
 /// </summary>
-public partial class CardPageIndicatorViewModel
+public class CardPageIndicatorViewModel
 {
     /// <summary>
     ///     Gets a value indicating whether this dot corresponds to the currently displayed card.

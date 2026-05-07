@@ -1,3 +1,5 @@
+namespace BankingApp.Desktop.ViewModels;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -5,20 +7,18 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Desktop.Services.Transfers;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Transfer;
+using Services.Transfers;
+using Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     Provides data for the transfer history page.
 ///     Loads the authenticated user's past transfers from the API and exposes them
 ///     as pre-formatted <see cref="TransferHistoryDisplayItem" /> rows ready for binding.
 /// </summary>
-public class TransferHistoryViewModel : INotifyPropertyChanged
+public partial class TransferHistoryViewModel : INotifyPropertyChanged
 {
     private const string DateTimeFormat = "dd MMM yyyy, HH:mm";
     private const string FallbackReference = "—";

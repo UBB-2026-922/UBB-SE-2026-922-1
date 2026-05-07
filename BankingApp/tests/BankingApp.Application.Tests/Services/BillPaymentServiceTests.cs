@@ -1,14 +1,13 @@
-using System;
+﻿namespace BankingApp.Application.Tests.Services;
+
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Repositories.Interfaces;
+using DTOs.BillPayments;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.BillPayments;
-using BankingApp.Domain.Entities;
+using Domain.Entities;
 using FluentAssertions;
 using Moq;
 using Xunit;
-
-namespace BankingApp.Application.Tests.Services;
 
 public class BillPaymentServiceTests
 {
@@ -67,7 +66,7 @@ public class BillPaymentServiceTests
         _repositoryMock.Verify(r => r.AddPaymentAsync(It.IsAny<BillPayment>()), Times.Once);
     }
 
-    private BillPaymentDto CreateValidRequest(decimal amount)
+    private static BillPaymentDto CreateValidRequest(decimal amount)
     {
         return new BillPaymentDto
         {

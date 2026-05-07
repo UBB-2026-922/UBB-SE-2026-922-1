@@ -1,14 +1,14 @@
+﻿namespace BankingApp.Desktop.Views;
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
+using Master;
+using Utilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Hosts the application shell after login: renders the sidebar and manages the inner content frame
@@ -92,7 +92,10 @@ public sealed partial class NavView
 
     private void SetActiveNav(Button selected)
     {
-        foreach (Button button in _navButtons) button.Style = (Style)Resources["NavItemStyle"];
+        foreach (Button button in _navButtons)
+        {
+            button.Style = (Style)Resources["NavItemStyle"];
+        }
 
         selected.Style = (Style)Resources["NavItemActiveStyle"];
     }

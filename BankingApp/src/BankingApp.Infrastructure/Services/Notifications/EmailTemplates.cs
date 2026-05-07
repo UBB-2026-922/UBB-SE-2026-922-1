@@ -1,6 +1,6 @@
-using BankingApp.Infrastructure.Services.Security;
+﻿namespace BankingApp.Infrastructure.Services.Notifications;
 
-namespace BankingApp.Infrastructure.Services.Notifications;
+using Security;
 
 /// <summary>
 ///     Defines the subjects and body templates for all transactional emails sent by the application.

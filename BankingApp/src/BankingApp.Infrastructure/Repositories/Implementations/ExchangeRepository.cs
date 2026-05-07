@@ -1,12 +1,11 @@
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
-using ErrorOr;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
-namespace BankingApp.Infrastructure.Repositories.Implementations;
+using BankingApp.Application.Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
+using ErrorOr;
+using Microsoft.EntityFrameworkCore.Storage;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IExchangeRepository" />.
@@ -30,7 +29,10 @@ public class ExchangeRepository : IExchangeRepository
     {
         ExchangeTransaction? exchange =
             _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == id);
-        if (exchange is null) return Error.NotFound(description: "Exchange transaction not found.");
+        if (exchange is null)
+        {
+            return Error.NotFound(description: "Exchange transaction not found.");
+        }
 
         return exchange;
     }
@@ -60,15 +62,23 @@ public class ExchangeRepository : IExchangeRepository
         {
             Account? sourceAccount =
                 _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.SourceAccountId);
-            if (sourceAccount is null) return Error.NotFound(description: "Source account not found.");
+            if (sourceAccount is null)
+            {
+                return Error.NotFound(description: "Source account not found.");
+            }
 
             Account? targetAccount =
                 _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.TargetAccountId);
-            if (targetAccount is null) return Error.NotFound(description: "Target account not found.");
+            if (targetAccount is null)
+            {
+                return Error.NotFound(description: "Target account not found.");
+            }
 
             decimal totalDebit = exchange.SourceAmount;
             if (sourceAccount.Balance < totalDebit)
+            {
                 return Error.Forbidden(description: "Insufficient funds for exchange.");
+            }
 
             sourceAccount.Balance -= totalDebit;
             targetAccount.Balance += exchange.TargetAmount;
@@ -113,7 +123,10 @@ public class ExchangeRepository : IExchangeRepository
         {
             ExchangeTransaction? exchange =
                 _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == exchangeId);
-            if (exchange is null) return Error.NotFound(description: "Exchange transaction not found.");
+            if (exchange is null)
+            {
+                return Error.NotFound(description: "Exchange transaction not found.");
+            }
 
             exchange.Status = status;
             _databaseContext.SaveChanges();

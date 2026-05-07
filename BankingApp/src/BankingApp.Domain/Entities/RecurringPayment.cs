@@ -1,8 +1,8 @@
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Errors;
-using ErrorOr;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using Enums;
+using Errors;
+using ErrorOr;
 
 /// <summary>
 ///     Represents a scheduled recurring payment from a user's account to a biller.

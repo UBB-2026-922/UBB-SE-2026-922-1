@@ -24,3 +24,6 @@ coverage.cobertura.xml
 
 # Cache
 **/__pycache__/
+
+# .NET CLI home (machine-specific runtime artifacts)
+.dotnet-cli-home/

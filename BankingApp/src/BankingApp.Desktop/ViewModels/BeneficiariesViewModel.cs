@@ -1,15 +1,15 @@
+namespace BankingApp.Desktop.ViewModels;
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Beneficiaries;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Services.Transfers;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.Views;
+using Application.DTOs.Beneficiaries;
+using Master;
+using Services.Transfers;
+using Utilities;
+using Views;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-
-namespace BankingApp.Desktop.ViewModels;
 
 /// <summary>
 ///     View model for the beneficiaries page in the desktop application.
@@ -148,7 +148,10 @@ public class BeneficiariesViewModel
     /// <param name="beneficiary">The beneficiary to use for a transfer.</param>
     public void UseForTransfer(BeneficiaryDto? beneficiary)
     {
-        if (beneficiary == null) return;
+        if (beneficiary == null)
+        {
+            return;
+        }
 
         // navigate to the main nav view as a placeholder for transfer navigation.
         _navigationService.NavigateTo<NavView>();

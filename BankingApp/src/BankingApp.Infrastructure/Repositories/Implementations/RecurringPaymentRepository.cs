@@ -1,10 +1,10 @@
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Infrastructure.DataAccess;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
-namespace BankingApp.Infrastructure.Repositories.Implementations;
+using BankingApp.Application.Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
+using DataAccess;
+using ErrorOr;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IRecurringPaymentRepository" /> backed by <see cref="AppDatabaseContext" />.
@@ -58,7 +58,7 @@ public class RecurringPaymentRepository(AppDatabaseContext context) : IRecurring
         try
         {
             return context.RecurringPayments
-                .Where(recurringPayment => recurringPayment.Status == Domain.Enums.RecurringPaymentStatus.Active && recurringPayment.NextExecutionDate <= asOf)
+                .Where(recurringPayment => recurringPayment.Status == RecurringPaymentStatus.Active && recurringPayment.NextExecutionDate <= asOf)
                 .ToList();
         }
         catch (Exception ex)

@@ -1,8 +1,8 @@
-using BankingApp.Desktop.Enums;
+﻿namespace BankingApp.Desktop.Tests.ViewModels;
+
+using Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 /// <summary>
 ///     Tests for <see cref="ForgotPasswordViewModel" />.

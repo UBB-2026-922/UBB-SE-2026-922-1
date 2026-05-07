@@ -1,11 +1,11 @@
+namespace BankingApp.Desktop.Services.Transfers;
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Beneficiaries;
-using BankingApp.Application.DTOs.Transfer;
+using Application.DTOs.Beneficiaries;
+using Application.DTOs.Transfer;
 using ErrorOr;
-
-namespace BankingApp.Desktop.Services.Transfers;
 
 /// <summary>
 ///     Defines the desktop client-service boundary for transfer and beneficiary workflows.
@@ -15,12 +15,12 @@ public interface ITransferClientService
     /// <summary>
     ///     Loads the authenticated user's selectable source accounts.
     /// </summary>
-    Task<ErrorOr<List<TransferAccountSelectionResponse>>> GetAccountsAsync(CancellationToken cancellationToken = default);
+    public Task<ErrorOr<List<TransferAccountSelectionResponse>>> GetAccountsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Submits a transfer for execution.
     /// </summary>
-    Task<ErrorOr<TransferExecutionResponse>> ExecuteTransferAsync(
+    public Task<ErrorOr<TransferExecutionResponse>> ExecuteTransferAsync(
         int sourceAccountId,
         string recipientName,
         string recipientIban,
@@ -31,12 +31,12 @@ public interface ITransferClientService
     /// <summary>
     ///     Validates a recipient IBAN and returns the inferred bank details.
     /// </summary>
-    Task<ErrorOr<TransferIbanValidationResponse>> ValidateIbanAsync(string iban);
+    public Task<ErrorOr<TransferIbanValidationResponse>> ValidateIbanAsync(string iban);
 
     /// <summary>
     ///     Loads a transfer FX preview for the given currencies and amount.
     /// </summary>
-    Task<ErrorOr<TransferForexPreviewResponse>> GetFxPreviewAsync(
+    public Task<ErrorOr<TransferForexPreviewResponse>> GetFxPreviewAsync(
         string fromCurrency,
         string toCurrency,
         decimal amount,
@@ -45,20 +45,20 @@ public interface ITransferClientService
     /// <summary>
     ///     Loads the authenticated user's transfer history.
     /// </summary>
-    Task<ErrorOr<List<TransferResponse>>> GetTransferHistoryAsync(CancellationToken cancellationToken = default);
+    public Task<ErrorOr<List<TransferResponse>>> GetTransferHistoryAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Loads the authenticated user's saved beneficiaries.
     /// </summary>
-    Task<ErrorOr<List<BeneficiaryDto>>> GetBeneficiariesAsync(CancellationToken cancellationToken = default);
+    public Task<ErrorOr<List<BeneficiaryDto>>> GetBeneficiariesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Creates a new beneficiary.
     /// </summary>
-    Task<ErrorOr<Success>> AddBeneficiaryAsync(string name, string iban, string bankName);
+    public Task<ErrorOr<Success>> AddBeneficiaryAsync(string name, string iban, string bankName);
 
     /// <summary>
     ///     Deletes an existing beneficiary.
     /// </summary>
-    Task<ErrorOr<Success>> DeleteBeneficiaryAsync(int beneficiaryId);
+    public Task<ErrorOr<Success>> DeleteBeneficiaryAsync(int beneficiaryId);
 }

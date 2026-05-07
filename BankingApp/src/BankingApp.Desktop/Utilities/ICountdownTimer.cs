@@ -1,6 +1,6 @@
-using System;
+﻿namespace BankingApp.Desktop.Utilities;
 
-namespace BankingApp.Desktop.Utilities;
+using System;
 
 /// <summary>
 ///     Abstracts a repeating one-second timer used for countdown logic.
@@ -13,17 +13,17 @@ public interface ICountdownTimer
     /// <summary>
     ///     Raised approximately once per second while the timer is running.
     /// </summary>
-    event EventHandler? Tick;
+    public event EventHandler? Tick;
 
     /// <summary>
     ///     Starts the countdown. Subsequent <see cref="Tick" /> events begin firing
     ///     at one-second intervals until <see cref="StopTimer" /> is called.
     /// </summary>
-    void Start();
+    public void Start();
 
     /// <summary>
     ///     Stops the countdown. No further <see cref="Tick" /> events are raised
     ///     until <see cref="Start" /> is called again.
     /// </summary>
-    void StopTimer();
+    public void StopTimer();
 }

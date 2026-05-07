@@ -1,7 +1,7 @@
-using BankingApp.Domain.Errors;
-using ErrorOr;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using Errors;
+using ErrorOr;
 
 /// <summary>
 ///     Represents a user-defined alert that triggers when a currency pair reaches a target rate.

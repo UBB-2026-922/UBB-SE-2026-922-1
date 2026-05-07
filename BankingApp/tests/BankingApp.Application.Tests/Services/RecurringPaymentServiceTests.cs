@@ -1,13 +1,13 @@
-﻿using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Application.Repositories.Interfaces;
+﻿namespace BankingApp.Application.Tests.Services;
+
+using DTOs.RecurringPayments;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.RecurringPayments;
 using BankingApp.Application.Utilities;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="RecurringPaymentService" />.

@@ -1,8 +1,8 @@
-using BankingApp.Desktop.ViewModels;
+﻿namespace BankingApp.Desktop.Views;
+
+using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-
-namespace BankingApp.Desktop.Views;
 
 /// <summary>
 ///     Displays the authenticated user's past transfers as a scrollable list.

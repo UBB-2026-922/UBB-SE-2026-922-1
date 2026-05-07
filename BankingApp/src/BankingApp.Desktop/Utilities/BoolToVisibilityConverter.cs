@@ -1,8 +1,8 @@
+﻿namespace BankingApp.Desktop.Utilities;
+
 using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-
-namespace BankingApp.Desktop.Utilities;
 
 /// <summary>
 ///     Maps <see langword="true" /> to <see cref="Visibility.Visible" /> and
@@ -20,7 +20,10 @@ public partial class BoolToVisibilityConverter : IValueConverter
     /// <returns><see cref="Visibility.Visible" /> when <paramref name="value" /> is true; otherwise <see cref="Visibility.Collapsed" />.</returns>
     public object Convert(object value, Type targetType, object parameter, string language)
     {
-        if (value is bool isVisible) return isVisible ? Visibility.Visible : Visibility.Collapsed;
+        if (value is bool isVisible)
+        {
+            return isVisible ? Visibility.Visible : Visibility.Collapsed;
+        }
 
         return Visibility.Collapsed;
     }
@@ -35,6 +38,6 @@ public partial class BoolToVisibilityConverter : IValueConverter
     /// <returns><see langword="true" /> when <paramref name="value" /> is <see cref="Visibility.Visible" />.</returns>
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
-        return value is Visibility visibility && visibility == Visibility.Visible;
+        return value is Visibility.Visible;
     }
 }

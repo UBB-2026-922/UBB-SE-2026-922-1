@@ -1,12 +1,12 @@
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
+
 using System.Collections.Generic;
 using System.Linq;
 using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
+using Domain.Entities;
+using DataAccess;
 using ErrorOr;
 using Microsoft.EntityFrameworkCore;
-
-namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 /// <summary>
 ///     Provides repository operations for managing beneficiaries.
@@ -32,9 +32,11 @@ public class BeneficiaryRepository : IBeneficiaryRepository
             .FirstOrDefault(beneficiary => beneficiary.Id == beneficiaryId && beneficiary.UserId == userId);
 
         if (beneficiary is null)
+        {
             return Error.NotFound(
                 "Beneficiary.NotFound",
                 $"Beneficiary with id '{beneficiaryId}' was not found.");
+        }
 
         return beneficiary;
     }
@@ -91,9 +93,11 @@ public class BeneficiaryRepository : IBeneficiaryRepository
                 existingBeneficiary.UserId == beneficiary.UserId);
 
         if (!exists)
+        {
             return Error.NotFound(
                 "Beneficiary.NotFound",
                 $"Beneficiary with id '{beneficiary.Id}' was not found.");
+        }
 
         try
         {
@@ -118,9 +122,11 @@ public class BeneficiaryRepository : IBeneficiaryRepository
                 existingBeneficiary.UserId == userId);
 
         if (beneficiary is null)
+        {
             return Error.NotFound(
                 "Beneficiary.NotFound",
                 $"Beneficiary with id '{beneficiaryId}' was not found.");
+        }
 
         try
         {

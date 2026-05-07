@@ -1,3 +1,5 @@
+﻿namespace BankingApp.Infrastructure.Services.Security;
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Globalization;
 using System.Security.Claims;
@@ -5,8 +7,6 @@ using System.Text;
 using BankingApp.Application.Services.Security;
 using ErrorOr;
 using Microsoft.IdentityModel.Tokens;
-
-namespace BankingApp.Infrastructure.Services.Security;
 
 /// <summary>
 ///     Provides JWT generation, validation, and claim extraction using HMAC-SHA256.
@@ -84,10 +84,16 @@ public class JsonWebTokenService : IJsonWebTokenService
     public ErrorOr<int> ExtractUserId(string token)
     {
         ErrorOr<ClaimsPrincipal> principalResult = ValidateToken(token);
-        if (principalResult.IsError) return principalResult.FirstError;
+        if (principalResult.IsError)
+        {
+            return principalResult.FirstError;
+        }
 
         Claim? claim = principalResult.Value.FindFirst("userId");
-        if (claim is not null && int.TryParse(claim.Value, out int userId)) return userId;
+        if (claim is not null && int.TryParse(claim.Value, out int userId))
+        {
+            return userId;
+        }
 
         return Error.Validation("token_missing_claim", "The token does not contain a valid user ID claim.");
     }

@@ -1,19 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using BankingApp.Api.Controllers;
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Api.Tests.Controller;
+
+using Controllers;
+using Application.DTOs.Billers;
+using Application.DTOs.BillPayments;
+using Application.Services.BillPayments;
+using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
-using Xunit;
-
-namespace BankingApp.Api.Tests.Controller;
 
 public class BillPaymentsControllerTests
 {
@@ -25,8 +19,13 @@ public class BillPaymentsControllerTests
         _mockBillPaymentService = new Mock<IBillPaymentService>();
         _controller = new BillPaymentsController(_mockBillPaymentService.Object);
 
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items["UserId"] = 1;
+        var httpContext = new DefaultHttpContext
+        {
+            Items =
+            {
+                ["UserId"] = 1
+            }
+        };
 
         _controller.ControllerContext = new ControllerContext
         {
@@ -43,14 +42,14 @@ public class BillPaymentsControllerTests
             new Biller { Id = 1, Name = "Biller1" },
             new Biller { Id = 2, Name = "Biller2" },
         };
-        _mockBillPaymentService.Setup(s => s.GetAllBillersAsync()).ReturnsAsync(expectedBillers);
+        _mockBillPaymentService.Setup(service => service.GetAllBillersAsync()).ReturnsAsync(expectedBillers);
 
         // Act
-        var result = await _controller.GetBillers();
+        IActionResult result = await _controller.GetBillers();
 
         // Assert
-        var actionResult = Assert.IsType<OkObjectResult>(result);
-        var actualBillers = Assert.IsAssignableFrom<IEnumerable<Biller>>(actionResult.Value);
+        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<Biller> actualBillers = Assert.IsType<IEnumerable<Biller>>(actionResult.Value, exactMatch: false);
         Assert.Equal(expectedBillers, actualBillers);
     }
 
@@ -58,13 +57,14 @@ public class BillPaymentsControllerTests
     public async Task GetBillers_WhenServiceThrowsException_ReturnsBadRequest()
     {
         // Arrange
-        _mockBillPaymentService.Setup(s => s.GetAllBillersAsync()).ThrowsAsync(new Exception("Service error"));
+        _mockBillPaymentService.Setup(service => service.GetAllBillersAsync())
+            .ThrowsAsync(new InvalidOperationException("Service error"));
 
         // Act
-        var result = await _controller.GetBillers();
+        IActionResult result = await _controller.GetBillers();
 
         // Assert
-        var errorResult = Assert.IsType<BadRequestObjectResult>(result);
+        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.NotNull(errorResult.Value);
     }
 
@@ -74,16 +74,21 @@ public class BillPaymentsControllerTests
         // Arrange
         var accounts = new List<Account>
         {
-            new Account { Id = 1, Iban = "RO123", Currency = "RON", Balance = 100, AccountName = "Test", Status = AccountStatus.Active },
+            new Account
+            {
+                Id = 1, Iban = "RO123", Currency = "RON", Balance = 100, AccountName = "Test",
+                Status = AccountStatus.Active
+            },
         };
-        _mockBillPaymentService.Setup(s => s.GetAccountsForUserAsync(1)).ReturnsAsync(accounts);
+        _mockBillPaymentService.Setup(service => service.GetAccountsForUserAsync(1)).ReturnsAsync(accounts);
 
         // Act
-        var result = await _controller.GetAccounts();
+        IActionResult result = await _controller.GetAccounts();
 
         // Assert
-        var actionResult = Assert.IsType<OkObjectResult>(result);
-        var actualAccounts = Assert.IsAssignableFrom<IEnumerable<AccountDto>>(actionResult.Value);
+        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
+        IEnumerable<AccountDto> actualAccounts =
+            Assert.IsType<IEnumerable<AccountDto>>(actionResult.Value, exactMatch: false);
         Assert.Single(actualAccounts);
     }
 
@@ -91,13 +96,14 @@ public class BillPaymentsControllerTests
     public async Task GetAccounts_WhenServiceThrowsException_ReturnsBadRequest()
     {
         // Arrange
-        _mockBillPaymentService.Setup(s => s.GetAccountsForUserAsync(1)).ThrowsAsync(new Exception("Service error"));
+        _mockBillPaymentService.Setup(service => service.GetAccountsForUserAsync(1))
+            .ThrowsAsync(new InvalidOperationException("Service error"));
 
         // Act
-        var result = await _controller.GetAccounts();
+        IActionResult result = await _controller.GetAccounts();
 
         // Assert
-        var errorResult = Assert.IsType<BadRequestObjectResult>(result);
+        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.NotNull(errorResult.Value);
     }
 
@@ -105,16 +111,16 @@ public class BillPaymentsControllerTests
     public void CalculateFee_WhenValidAmount_ReturnsOkResultWithFee()
     {
         // Arrange
-        decimal amount = 100m;
-        decimal expectedFee = 2.5m;
-        _mockBillPaymentService.Setup(s => s.CalculateFee(amount)).Returns(expectedFee);
+        const decimal amount = 100m;
+        const decimal expectedFee = 2.5m;
+        _mockBillPaymentService.Setup(service => service.CalculateFee(amount)).Returns(expectedFee);
 
         // Act
-        var result = _controller.CalculateFee(amount);
+        IActionResult result = _controller.CalculateFee(amount);
 
         // Assert
-        var actionResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<FeeResponse>(actionResult.Value);
+        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
+        FeeResponse response = Assert.IsType<FeeResponse>(actionResult.Value);
         Assert.Equal(expectedFee, response.Fee);
     }
 
@@ -122,15 +128,15 @@ public class BillPaymentsControllerTests
     public void Requires2Fa_WhenAmountRequires_ReturnsOkResultWithExpectedValue()
     {
         // Arrange
-        decimal amount = 5000m;
-        _mockBillPaymentService.Setup(s => s.Requires2Fa(amount)).Returns(true);
+        const decimal amount = 5000m;
+        _mockBillPaymentService.Setup(service => service.Requires2Fa(amount)).Returns(true);
 
         // Act
-        var result = _controller.Requires2Fa(amount);
+        IActionResult result = _controller.Requires2Fa(amount);
 
         // Assert
-        var actionResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<RequiresTwoFaResponse>(actionResult.Value);
+        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
+        RequiresTwoFaResponse response = Assert.IsType<RequiresTwoFaResponse>(actionResult.Value);
         Assert.True(response.Required);
     }
 
@@ -158,15 +164,15 @@ public class BillPaymentsControllerTests
         };
 
         _mockBillPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .Setup(service => service.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
             .ReturnsAsync(expectedPayment);
 
         // Act
-        var result = await _controller.ProcessPayment(request);
+        IActionResult result = await _controller.ProcessPayment(request);
 
         // Assert
-        var actionResult = Assert.IsType<OkObjectResult>(result);
-        var response = Assert.IsType<BillPayResponse>(actionResult.Value);
+        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
+        BillPayResponse response = Assert.IsType<BillPayResponse>(actionResult.Value);
         Assert.Equal(expectedPayment.Id, response.Id);
         Assert.Equal(expectedPayment.ReceiptNumber, response.ReceiptNumber);
         Assert.Equal(expectedPayment.Fee, response.Fee);
@@ -180,14 +186,14 @@ public class BillPaymentsControllerTests
         // Arrange
         var request = new BillPayRequest();
         _mockBillPaymentService
-            .Setup(s => s.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
-            .ThrowsAsync(new Exception("Insufficient funds"));
+            .Setup(service => service.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
+            .ThrowsAsync(new InvalidOperationException("Insufficient funds"));
 
         // Act
-        var result = await _controller.ProcessPayment(request);
+        IActionResult result = await _controller.ProcessPayment(request);
 
         // Assert
-        var errorResult = Assert.IsType<BadRequestObjectResult>(result);
+        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.NotNull(errorResult.Value);
     }
 
@@ -201,14 +207,14 @@ public class BillPaymentsControllerTests
             Nickname = "My Biller",
         };
         _mockBillPaymentService
-            .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
+            .Setup(service => service.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
             .ReturnsAsync(true);
 
         // Act
-        var result = await _controller.SaveBiller(request);
+        IActionResult result = await _controller.SaveBiller(request);
 
         // Assert
-        var actionResult = Assert.IsType<OkObjectResult>(result);
+        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
         Assert.NotNull(actionResult.Value);
     }
 
@@ -222,14 +228,14 @@ public class BillPaymentsControllerTests
             Nickname = "My Biller",
         };
         _mockBillPaymentService
-            .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
+            .Setup(service => service.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
             .ReturnsAsync(false);
 
         // Act
-        var result = await _controller.SaveBiller(request);
+        IActionResult result = await _controller.SaveBiller(request);
 
         // Assert
-        var errorResult = Assert.IsType<BadRequestObjectResult>(result);
+        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.NotNull(errorResult.Value);
     }
 
@@ -239,14 +245,14 @@ public class BillPaymentsControllerTests
         // Arrange
         var request = new SaveBillerRequest { Nickname = "test" };
         _mockBillPaymentService
-            .Setup(s => s.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
-            .ThrowsAsync(new Exception("Service error"));
+            .Setup(service => service.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
+            .ThrowsAsync(new InvalidOperationException("Service error"));
 
         // Act
-        var result = await _controller.SaveBiller(request);
+        IActionResult result = await _controller.SaveBiller(request);
 
         // Assert
-        var errorResult = Assert.IsType<BadRequestObjectResult>(result);
+        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.NotNull(errorResult.Value);
     }
 }

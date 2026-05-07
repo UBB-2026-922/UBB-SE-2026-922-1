@@ -1,21 +1,27 @@
+namespace BankingApp.Desktop.ViewModels;
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Profile;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Profile;
+using Enums;
+using Services;
+using Utilities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.ViewModels;
-
-public partial class SecurityViewModel
+/// <summary>
+///     Handles password changes and two-factor authentication settings for the profile area.
+/// </summary>
+public class SecurityViewModel
 {
     private readonly IProfileClientService _profileClientService;
     private readonly ILogger<SecurityViewModel> _logger;
 
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="SecurityViewModel" /> class.
+    /// </summary>
     public SecurityViewModel(IProfileClientService profileClientService, ILogger<SecurityViewModel> logger)
     {
         _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
@@ -23,15 +29,22 @@ public partial class SecurityViewModel
         State = new ObservableState<ProfileState>(ProfileState.Idle);
     }
 
+    /// <summary>
+    ///     Gets the current security workflow state.
+    /// </summary>
     public ObservableState<ProfileState> State { get; }
 
+    /// <summary>
+    ///     Enables or disables two-factor authentication using the default email flow.
+    /// </summary>
     public async Task<bool> SetTwoFactorEnabled(bool enabled)
     {
-        return enabled
-            ? await EnableTwoFactor(TwoFactorMethod.Email)
-            : await DisableTwoFactor();
+        return enabled ? await EnableTwoFactor(TwoFactorMethod.Email) : await DisableTwoFactor();
     }
 
+    /// <summary>
+    ///     Changes the user's password.
+    /// </summary>
     public async Task<(bool Success, string ErrorMessage)> ChangePassword(
         int userId,
         string currentPassword,
@@ -39,9 +52,14 @@ public partial class SecurityViewModel
         string confirmPassword)
     {
         if (!PasswordValidator.MeetsMinimumLength(newPassword))
+        {
             return (false, UserMessages.Security.MinimumLengthRequired);
+        }
 
-        if (newPassword != confirmPassword) return (false, UserMessages.Security.PasswordMismatch);
+        if (newPassword != confirmPassword)
+        {
+            return (false, UserMessages.Security.PasswordMismatch);
+        }
 
         State.SetValue(ProfileState.Loading);
         var request = new ChangePasswordRequest(userId, currentPassword, newPassword);
@@ -63,6 +81,9 @@ public partial class SecurityViewModel
             });
     }
 
+    /// <summary>
+    ///     Enables two-factor authentication using the specified method.
+    /// </summary>
     public async Task<bool> EnableTwoFactor(TwoFactorMethod method)
     {
         State.SetValue(ProfileState.Loading);
@@ -82,6 +103,9 @@ public partial class SecurityViewModel
             });
     }
 
+    /// <summary>
+    ///     Disables two-factor authentication.
+    /// </summary>
     public async Task<bool> DisableTwoFactor()
     {
         State.SetValue(ProfileState.Loading);

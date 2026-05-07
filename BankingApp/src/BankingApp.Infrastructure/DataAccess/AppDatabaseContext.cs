@@ -1,11 +1,11 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.Extensions;
-using BankingApp.Infrastructure.DataAccess.Configurations;
+﻿namespace BankingApp.Infrastructure.DataAccess;
+
+using Domain.Entities;
+using Domain.Enums;
+using Domain.Extensions;
+using Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-
-namespace BankingApp.Infrastructure.DataAccess;
 
 /// <summary>
 ///     Provides the EF Core database context for the BankingApp.

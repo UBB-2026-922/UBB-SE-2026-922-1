@@ -1,22 +1,22 @@
+﻿namespace BankingApp.Infrastructure.DependencyInjection;
+
 using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.BillPayments;
 using BankingApp.Application.Services.Login;
 using BankingApp.Application.Services.Notifications;
 using BankingApp.Application.Services.Security;
-using BankingApp.Application.Utilities;
-using BankingApp.Infrastructure.DataAccess;
-using BankingApp.Infrastructure.DataAccess.Implementations;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using BankingApp.Infrastructure.Repositories.Implementations;
-using BankingApp.Infrastructure.Services;
-using BankingApp.Infrastructure.Services.Notifications;
-using BankingApp.Infrastructure.Services.Security;
+using Application.Utilities;
+using DataAccess;
+using DataAccess.Implementations;
+using DataAccess.Interfaces;
+using Repositories.Implementations;
+using Services;
+using Services.Notifications;
+using Services.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
-namespace BankingApp.Infrastructure.DependencyInjection;
 
 /// <summary>
 ///     Provides extension methods for registering infrastructure services with the dependency injection container.

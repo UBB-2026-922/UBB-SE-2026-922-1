@@ -1,11 +1,11 @@
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Billers;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
-using ErrorOr;
+﻿namespace BankingApp.Application.Tests.Services;
 
-namespace BankingApp.Application.Tests.Services;
+using DTOs.Billers;
+using Repositories.Interfaces;
+using BankingApp.Application.Services.Billers;
+using Domain.Entities;
+using Domain.Errors;
+using ErrorOr;
 
 /// <summary>
 ///     Unit tests for <see cref="BillerService" />.

@@ -1,10 +1,10 @@
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
-using Microsoft.UI.Xaml;
+﻿namespace BankingApp.Desktop.Views;
 
-namespace BankingApp.Desktop.Views;
+using Enums;
+using Master;
+using Utilities;
+using ViewModels;
+using Microsoft.UI.Xaml;
 
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.

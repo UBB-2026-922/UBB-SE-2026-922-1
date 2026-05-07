@@ -1,13 +1,12 @@
+namespace BankingApp.Desktop.Tests.ViewModels;
+
 using System.Collections.Generic;
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Billers;
+using Application.DTOs.BillPayments;
+using Master;
+using Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class BillPayViewModelTests
 {
@@ -36,22 +35,22 @@ public class BillPayViewModelTests
     {
         // Arrange
         _billPaymentClientService
-            .Setup(s => s.GetBillersAsync(null, null))
+            .Setup(service => service.GetBillersAsync(null, null))
             .ReturnsAsync(Error.Failure(description: "Server error"));
         _billPaymentClientService
-            .Setup(s => s.GetSavedBillersAsync())
+            .Setup(service => service.GetSavedBillersAsync())
             .ReturnsAsync(CreateMockSavedBillers());
         _billPaymentClientService
-            .Setup(s => s.GetAccountsAsync())
+            .Setup(service => service.GetAccountsAsync())
             .ReturnsAsync(CreateMockAccounts());
-        BillPayViewModel vm = CreateViewModel();
+        BillPayViewModel viewModel = CreateViewModel();
 
         // Act
-        await vm.LoadAsync();
+        await viewModel.LoadAsync();
 
         // Assert
-        vm.Billers.Should().BeEmpty();
-        vm.SavedBillers.Should().HaveCount(1);
+        viewModel.Billers.Should().BeEmpty();
+        viewModel.SavedBillers.Should().HaveCount(1);
     }
 
     [Fact]
@@ -159,10 +158,10 @@ public class BillPayViewModelTests
     public void ExecuteNextStep_WhenOnStep2AndValidLowAmount_ShouldSkipTwoFactorAuthenticationAndGoToStep4()
     {
         _billPaymentClientService
-            .Setup(s => s.GetFeeAsync(It.IsAny<decimal>()))
+            .Setup(service => service.GetFeeAsync(It.IsAny<decimal>()))
             .ReturnsAsync(new FeeResponse { Fee = 0.50m });
         _billPaymentClientService
-            .Setup(s => s.GetRequires2FaAsync(It.IsAny<decimal>()))
+            .Setup(service => service.GetRequires2FaAsync(It.IsAny<decimal>()))
             .ReturnsAsync(new RequiresTwoFaResponse { Required = false });
 
         BillPayViewModel vm = CreateViewModel();

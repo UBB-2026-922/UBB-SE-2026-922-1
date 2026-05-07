@@ -1,13 +1,13 @@
-using BankingApp.Application.DTOs.Transfer;
-using BankingApp.Application.Repositories.Interfaces;
+﻿namespace BankingApp.Application.Tests.Services;
+
+using DTOs.Transfer;
+using Repositories.Interfaces;
 using BankingApp.Application.Services.Security;
 using BankingApp.Application.Services.Transfers;
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-
-namespace BankingApp.Application.Tests.Services;
 
 /// <summary>
 ///     Unit tests for <see cref="TransferService" />.

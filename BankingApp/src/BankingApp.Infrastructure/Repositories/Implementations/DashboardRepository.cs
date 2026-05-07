@@ -1,9 +1,9 @@
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
-namespace BankingApp.Infrastructure.Repositories.Implementations;
+using BankingApp.Application.Repositories.Interfaces;
+using Domain.Entities;
+using DataAccess.Interfaces;
+using ErrorOr;
 
 /// <summary>
 ///     Provides repository operations for retrieving dashboard data.

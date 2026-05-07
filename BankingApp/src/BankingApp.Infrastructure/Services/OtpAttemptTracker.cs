@@ -1,7 +1,7 @@
+﻿namespace BankingApp.Infrastructure.Services;
+
 using System.Collections.Concurrent;
 using BankingApp.Application.Services.Login;
-
-namespace BankingApp.Infrastructure.Services;
 
 /// <summary>
 ///     In-process, thread-safe implementation of <see cref="IOtpAttemptTracker" />.

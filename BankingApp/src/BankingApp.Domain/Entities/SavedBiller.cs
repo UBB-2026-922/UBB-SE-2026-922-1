@@ -1,6 +1,6 @@
-using System;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using System;
 
 /// <summary>
 /// Represents a biller that a user has saved to their personal quick-pay list.

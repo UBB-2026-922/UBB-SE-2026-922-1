@@ -1,7 +1,7 @@
+﻿namespace BankingApp.Infrastructure.Services.Security;
+
 using BankingApp.Application.Services.Security;
 using ErrorOr;
-
-namespace BankingApp.Infrastructure.Services.Security;
 
 /// <summary>
 ///     Provides BCrypt-based password hashing and verification.

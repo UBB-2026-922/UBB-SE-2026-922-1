@@ -1,22 +1,47 @@
-using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Auth;
-using ErrorOr;
-
 namespace BankingApp.Desktop.Services;
 
+using System.Threading.Tasks;
+using Application.DTOs.Auth;
+using ErrorOr;
+
+/// <summary>
+///     Defines the desktop authentication client boundary used by login, registration,
+///     and two-factor workflows.
+/// </summary>
 public interface IAuthClientService
 {
-    int? CurrentUserId { get; set; }
+    /// <summary>
+    ///     Gets or sets the authenticated user identifier cached by the client.
+    /// </summary>
+    public int? CurrentUserId { get; set; }
 
-    ErrorOr<Success> EnsureConfigured();
+    /// <summary>
+    ///     Verifies whether the underlying API client is configured well enough to issue requests.
+    /// </summary>
+    public ErrorOr<Success> EnsureConfigured();
 
-    Task<ErrorOr<LoginSuccessResponse>> LoginAsync(string email, string password);
+    /// <summary>
+    ///     Authenticates a user with email and password credentials.
+    /// </summary>
+    public Task<ErrorOr<LoginSuccessResponse>> LoginAsync(string email, string password);
 
-    void SetToken(string token);
+    /// <summary>
+    ///     Stores the bearer token returned by the API.
+    /// </summary>
+    public void SetToken(string token);
 
-    Task<ErrorOr<Success>> RegisterAsync(string email, string password, string fullName);
+    /// <summary>
+    ///     Registers a new user account.
+    /// </summary>
+    public Task<ErrorOr<Success>> RegisterAsync(string email, string password, string fullName);
 
-    Task<ErrorOr<LoginSuccessResponse>> VerifyOtpAsync(int userId, string otpCode);
+    /// <summary>
+    ///     Verifies an OTP during the two-factor flow.
+    /// </summary>
+    public Task<ErrorOr<LoginSuccessResponse>> VerifyOtpAsync(int userId, string otpCode);
 
-    Task<ErrorOr<object>> ResendOtpAsync(int userId);
+    /// <summary>
+    ///     Requests a new OTP for the specified user.
+    /// </summary>
+    public Task<ErrorOr<object>> ResendOtpAsync(int userId);
 }

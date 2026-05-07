@@ -1,6 +1,6 @@
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using Enums;
 
 /// <summary>
 ///     Represents a payment card linked to a bank account.

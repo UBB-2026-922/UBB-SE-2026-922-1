@@ -1,4 +1,4 @@
-using BankingApp.Application.Repositories.Interfaces;
+﻿using BankingApp.Application.Repositories.Interfaces;
 using BankingApp.Application.Services.Beneficiary;
 using BankingApp.Application.Services.Dashboard;
 using BankingApp.Application.Services.Login;
@@ -7,11 +7,9 @@ using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Security;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -120,7 +118,7 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
         where TService : class
     {
         var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
-        foreach (var descriptor in descriptors)
+        foreach (ServiceDescriptor descriptor in descriptors)
         {
             services.Remove(descriptor);
         }

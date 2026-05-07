@@ -1,29 +1,63 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Profile;
-using ErrorOr;
-
 namespace BankingApp.Desktop.Services;
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Application.DTOs.Profile;
+using ErrorOr;
+
+/// <summary>
+///     Defines the desktop client boundary for profile, security, notification,
+///     and session-management operations.
+/// </summary>
 public interface IProfileClientService
 {
-    Task<ErrorOr<ProfileDto>> GetProfileAsync();
+    /// <summary>
+    ///     Loads the current user's profile.
+    /// </summary>
+    public Task<ErrorOr<ProfileDto>> GetProfileAsync();
 
-    Task<ErrorOr<Success>> UpdateProfileAsync(UpdateProfileRequest request);
+    /// <summary>
+    ///     Persists profile changes for the current user.
+    /// </summary>
+    public Task<ErrorOr<Success>> UpdateProfileAsync(UpdateProfileRequest request);
 
-    Task<ErrorOr<bool>> VerifyPasswordAsync(string password);
+    /// <summary>
+    ///     Verifies the current password against the server.
+    /// </summary>
+    public Task<ErrorOr<bool>> VerifyPasswordAsync(string password);
 
-    Task<ErrorOr<Success>> ChangePasswordAsync(ChangePasswordRequest request);
+    /// <summary>
+    ///     Changes the current user's password.
+    /// </summary>
+    public Task<ErrorOr<Success>> ChangePasswordAsync(ChangePasswordRequest request);
 
-    Task<ErrorOr<Success>> Enable2FaAsync(EnableTwoFaRequest request);
+    /// <summary>
+    ///     Enables two-factor authentication for the current user.
+    /// </summary>
+    public Task<ErrorOr<Success>> Enable2FaAsync(EnableTwoFaRequest request);
 
-    Task<ErrorOr<Success>> Disable2FaAsync();
+    /// <summary>
+    ///     Disables two-factor authentication for the current user.
+    /// </summary>
+    public Task<ErrorOr<Success>> Disable2FaAsync();
 
-    Task<ErrorOr<List<NotificationPreferenceDto>>> GetNotificationPreferencesAsync();
+    /// <summary>
+    ///     Loads the current user's notification preferences.
+    /// </summary>
+    public Task<ErrorOr<List<NotificationPreferenceDto>>> GetNotificationPreferencesAsync();
 
-    Task<ErrorOr<Success>> UpdateNotificationPreferencesAsync(List<NotificationPreferenceDto> preferences);
+    /// <summary>
+    ///     Persists notification preferences for the current user.
+    /// </summary>
+    public Task<ErrorOr<Success>> UpdateNotificationPreferencesAsync(List<NotificationPreferenceDto> preferences);
 
-    Task<ErrorOr<List<SessionDto>>> GetSessionsAsync();
+    /// <summary>
+    ///     Loads the current user's active sessions.
+    /// </summary>
+    public Task<ErrorOr<List<SessionDto>>> GetSessionsAsync();
 
-    Task<ErrorOr<Success>> RevokeSessionAsync(int sessionId);
+    /// <summary>
+    ///     Revokes a specific active session.
+    /// </summary>
+    public Task<ErrorOr<Success>> RevokeSessionAsync(int sessionId);
 }

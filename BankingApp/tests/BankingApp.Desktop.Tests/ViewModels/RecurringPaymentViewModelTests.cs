@@ -1,11 +1,12 @@
+namespace BankingApp.Desktop.Tests.ViewModels;
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Billers;
-using BankingApp.Application.DTOs.BillPayments;
-using BankingApp.Application.DTOs.RecurringPayments;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
+using Application.DTOs.Billers;
+using Application.DTOs.BillPayments;
+using Application.DTOs.RecurringPayments;
+using Services;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;
@@ -13,8 +14,6 @@ using FluentAssertions;
 using Microsoft.UI.Xaml;
 using Moq;
 using Xunit;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class RecurringPaymentViewModelTests
 {

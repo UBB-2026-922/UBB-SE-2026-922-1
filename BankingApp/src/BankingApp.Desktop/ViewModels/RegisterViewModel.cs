@@ -1,19 +1,25 @@
+namespace BankingApp.Desktop.ViewModels;
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
+using Enums;
+using Services;
+using Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-namespace BankingApp.Desktop.ViewModels;
-
-public partial class RegisterViewModel
+/// <summary>
+///     Coordinates user-registration requests for the register view.
+/// </summary>
+public class RegisterViewModel
 {
     private readonly IAuthClientService _authClientService;
     private readonly ILogger<RegisterViewModel> _logger;
 
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="RegisterViewModel" /> class.
+    /// </summary>
     public RegisterViewModel(IAuthClientService authClientService, ILogger<RegisterViewModel> logger)
     {
         _authClientService = authClientService ?? throw new ArgumentNullException(nameof(authClientService));
@@ -21,12 +27,18 @@ public partial class RegisterViewModel
         State = new ObservableState<RegisterState>(RegisterState.Idle);
     }
 
+    /// <summary>
+    ///     Gets the current registration workflow state.
+    /// </summary>
     public ObservableState<RegisterState> State { get; }
 
+    /// <summary>
+    ///     Registers a new account using the supplied email, password, and full name.
+    /// </summary>
     public async Task Register(string email, string password, string confirmPassword, string fullName)
     {
-        email = email?.Trim() ?? string.Empty;
-        fullName = fullName?.Trim() ?? string.Empty;
+        email = email.Trim();
+        fullName = fullName.Trim();
         RegisterState? validationError = ValidateLocally(email, password, confirmPassword, fullName);
         if (validationError != null)
         {
@@ -67,14 +79,24 @@ public partial class RegisterViewModel
             || string.IsNullOrWhiteSpace(email)
             || string.IsNullOrWhiteSpace(password)
             || string.IsNullOrWhiteSpace(confirmPassword))
+        {
             return RegisterState.Error;
+        }
 
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@', StringComparison.Ordinal))
+        if (!email.Contains('@', StringComparison.Ordinal))
+        {
             return RegisterState.InvalidEmail;
+        }
 
-        if (!PasswordValidator.IsStrong(password)) return RegisterState.WeakPassword;
+        if (!PasswordValidator.IsStrong(password))
+        {
+            return RegisterState.WeakPassword;
+        }
 
-        if (password != confirmPassword) return RegisterState.PasswordMismatch;
+        if (password != confirmPassword)
+        {
+            return RegisterState.PasswordMismatch;
+        }
 
         return null;
     }

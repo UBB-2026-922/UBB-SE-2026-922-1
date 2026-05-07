@@ -1,9 +1,9 @@
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
 
-namespace BankingApp.Infrastructure.Repositories.Implementations;
+using BankingApp.Application.Repositories.Interfaces;
+using Domain.Entities;
+using DataAccess;
+using ErrorOr;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IRateAlertRepository" />.
@@ -25,7 +25,10 @@ public class RateAlertRepository : IRateAlertRepository
     public ErrorOr<RateAlert> GetById(int id)
     {
         RateAlert? alert = _databaseContext.RateAlerts.FirstOrDefault(rateAlert => rateAlert.Id == id);
-        if (alert is null) return Error.NotFound(description: "Rate alert not found.");
+        if (alert is null)
+        {
+            return Error.NotFound(description: "Rate alert not found.");
+        }
 
         return alert;
     }
@@ -83,7 +86,10 @@ public class RateAlertRepository : IRateAlertRepository
         try
         {
             RateAlert? alert = _databaseContext.RateAlerts.FirstOrDefault(rateAlert => rateAlert.Id == alertId);
-            if (alert is null) return Error.NotFound(description: "Rate alert not found.");
+            if (alert is null)
+            {
+                return Error.NotFound(description: "Rate alert not found.");
+            }
 
             alert.IsTriggered = true;
             _databaseContext.SaveChanges();
@@ -101,7 +107,10 @@ public class RateAlertRepository : IRateAlertRepository
         try
         {
             RateAlert? alert = _databaseContext.RateAlerts.FirstOrDefault(rateAlert => rateAlert.Id == id);
-            if (alert is null) return Error.NotFound(description: "Rate alert not found.");
+            if (alert is null)
+            {
+                return Error.NotFound(description: "Rate alert not found.");
+            }
 
             _databaseContext.RateAlerts.Remove(alert);
             _databaseContext.SaveChanges();

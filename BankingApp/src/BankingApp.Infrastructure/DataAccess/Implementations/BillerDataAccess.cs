@@ -1,9 +1,9 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Domain.Errors;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+using Domain.Entities;
+using Domain.Errors;
+using Interfaces;
+using ErrorOr;
 
 /// <summary>
 ///     Provides EF Core data access for billers.
@@ -25,7 +25,10 @@ public class BillerDataAccess : IBillerDataAccess
     public ErrorOr<List<Biller>> GetAll(bool activeOnly)
     {
         IQueryable<Biller> query = _databaseContext.Billers;
-        if (activeOnly) query = query.Where(biller => biller.IsActive);
+        if (activeOnly)
+        {
+            query = query.Where(biller => biller.IsActive);
+        }
 
         return query.OrderBy(biller => biller.Name).ToList();
     }
@@ -34,10 +37,16 @@ public class BillerDataAccess : IBillerDataAccess
     public ErrorOr<List<Biller>> Search(string searchTerm, string? category, bool activeOnly)
     {
         IQueryable<Biller> query = _databaseContext.Billers;
-        if (activeOnly) query = query.Where(biller => biller.IsActive);
+        if (activeOnly)
+        {
+            query = query.Where(biller => biller.IsActive);
+        }
 
         query = query.Where(biller => biller.Name.Contains(searchTerm));
-        if (!string.IsNullOrWhiteSpace(category)) query = query.Where(biller => biller.Category == category);
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query = query.Where(biller => biller.Category == category);
+        }
 
         return query.OrderBy(biller => biller.Name).ToList();
     }
@@ -46,7 +55,10 @@ public class BillerDataAccess : IBillerDataAccess
     public ErrorOr<Biller> FindById(int id)
     {
         Biller? biller = _databaseContext.Billers.FirstOrDefault(candidateBiller => candidateBiller.Id == id);
-        if (biller is null) return BillerErrors.BillerNotFound;
+        if (biller is null)
+        {
+            return BillerErrors.BillerNotFound;
+        }
 
         return biller;
     }

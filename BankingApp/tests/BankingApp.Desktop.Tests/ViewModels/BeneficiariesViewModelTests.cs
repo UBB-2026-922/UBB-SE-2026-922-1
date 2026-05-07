@@ -1,16 +1,16 @@
+namespace BankingApp.Desktop.Tests.ViewModels;
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.DTOs.Beneficiaries;
-using BankingApp.Desktop.Master;
-using BankingApp.Desktop.Services.Transfers;
+using Application.DTOs.Beneficiaries;
+using Master;
+using Services.Transfers;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
-
-namespace BankingApp.Desktop.Tests.ViewModels;
 
 public class BeneficiariesViewModelTests
 {

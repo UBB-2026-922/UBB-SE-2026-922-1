@@ -1,6 +1,6 @@
-using ErrorOr;
+﻿namespace BankingApp.Domain.Errors;
 
-namespace BankingApp.Domain.Errors;
+using ErrorOr;
 
 /// <summary>
 ///     Canonical error definitions for authentication and login flows.

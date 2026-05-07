@@ -1,8 +1,8 @@
-using BankingApp.Domain.Entities;
-using BankingApp.Infrastructure.DataAccess.Interfaces;
-using ErrorOr;
+﻿namespace BankingApp.Infrastructure.DataAccess.Implementations;
 
-namespace BankingApp.Infrastructure.DataAccess.Implementations;
+using Domain.Entities;
+using Interfaces;
+using ErrorOr;
 
 /// <summary>
 ///     Provides SQL Server data access for user session records.

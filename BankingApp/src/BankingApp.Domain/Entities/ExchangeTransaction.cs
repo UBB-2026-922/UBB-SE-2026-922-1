@@ -1,6 +1,6 @@
-using BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Entities;
 
-namespace BankingApp.Domain.Entities;
+using Enums;
 
 /// <summary>
 ///     Represents a foreign-exchange conversion between two of a user's accounts.
