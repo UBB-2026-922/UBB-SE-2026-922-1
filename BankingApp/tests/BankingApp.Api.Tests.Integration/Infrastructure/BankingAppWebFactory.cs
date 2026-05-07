@@ -7,10 +7,14 @@ using BankingApp.Application.Services.PasswordRecovery;
 using BankingApp.Application.Services.Profile;
 using BankingApp.Application.Services.Registration;
 using BankingApp.Application.Services.Security;
+using BankingApp.Infrastructure.DataAccess;
+using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -25,18 +29,22 @@ namespace BankingApp.Api.Tests.Integration.Infrastructure;
 /// </summary>
 public class BankingAppWebFactory : WebApplicationFactory<Program>
 {
-    private const string TestConnectionString =
+    private const string FallbackConnectionString =
         "Server=(localdb)\\MSSQLLocalDB;Database=BankingAppApiTests;Trusted_Connection=True;TrustServerCertificate=True;";
+    private readonly string _testConnectionString;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BankingAppWebFactory" /> class.
     /// </summary>
     public BankingAppWebFactory()
     {
+        _testConnectionString = Environment.GetEnvironmentVariable("MSSQL_CONNECTION_STRING")
+            ?? FallbackConnectionString;
+
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("Database__ApplyMigrations", "false");
-        Environment.SetEnvironmentVariable("ConnectionStrings__BankingAppDb", TestConnectionString);
+        Environment.SetEnvironmentVariable("ConnectionStrings__BankingAppDb", _testConnectionString);
         Environment.SetEnvironmentVariable("Jwt__Secret", "integration-test-secret-that-is-long-enough-for-hmac");
         Environment.SetEnvironmentVariable("Otp__Secret", "integration-test-otp-secret-placeholder");
     }
@@ -117,6 +125,41 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
             ReplaceService<IBeneficiaryService>(services, BeneficiaryServiceMock.Object);
             ReplaceService<IBillerService>(services, BillerServiceMock.Object);
         });
+    }
+
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        EnsureDatabaseExists(_testConnectionString);
+
+        IHost host = base.CreateHost(builder);
+
+        using IServiceScope scope = host.Services.CreateScope();
+        AppDatabaseContext databaseContext = scope.ServiceProvider.GetRequiredService<AppDatabaseContext>();
+        databaseContext.Database.Migrate();
+
+        return host;
+    }
+
+    private static void EnsureDatabaseExists(string connectionString)
+    {
+        var connectionBuilder = new SqlConnectionStringBuilder(connectionString);
+        string? databaseName = connectionBuilder.InitialCatalog;
+        if (string.IsNullOrWhiteSpace(databaseName) ||
+            string.Equals(databaseName, "master", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        string escapedDatabaseName = databaseName.Replace("]", "]]", StringComparison.Ordinal);
+        connectionBuilder.InitialCatalog = "master";
+
+        using var masterConnection = new SqlConnection(connectionBuilder.ConnectionString);
+        masterConnection.Open();
+
+        using SqlCommand createDatabaseCommand = masterConnection.CreateCommand();
+        createDatabaseCommand.CommandText = $"IF DB_ID(@databaseName) IS NULL CREATE DATABASE [{escapedDatabaseName}]";
+        createDatabaseCommand.Parameters.AddWithValue("@databaseName", databaseName);
+        createDatabaseCommand.ExecuteNonQuery();
     }
 
     private static void ReplaceService<TService>(IServiceCollection services, TService implementation)

@@ -3,11 +3,10 @@ namespace BankingApp.Api.Tests.Integration;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Infrastructure;
 using Application.DTOs.Billers;
-using Domain.Entities;
 using ErrorOr;
 using FluentAssertions;
+using Infrastructure;
 
 public class BillersEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
@@ -310,7 +309,12 @@ public class BillersEndpointsTests : IClassFixture<BankingAppWebFactory>
         };
 
         _factory.BillerServiceMock
-            .Setup(service => service.SaveBiller(ValidUserId, requestData))
+            .Setup(service => service.SaveBiller(
+                ValidUserId,
+                It.Is<SaveBillerRequest>(request =>
+                    request.BillerId == requestData.BillerId &&
+                    request.Nickname == requestData.Nickname &&
+                    request.DefaultReference == requestData.DefaultReference)))
             .Returns(savedBillerDto);
 
         // Act
@@ -340,7 +344,12 @@ public class BillersEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Content = JsonContent.Create(requestData);
 
         _factory.BillerServiceMock
-            .Setup(service => service.SaveBiller(ValidUserId, requestData))
+            .Setup(service => service.SaveBiller(
+                ValidUserId,
+                It.Is<SaveBillerRequest>(request =>
+                    request.BillerId == requestData.BillerId &&
+                    request.Nickname == requestData.Nickname &&
+                    request.DefaultReference == requestData.DefaultReference)))
             .Returns(Error.NotFound("Biller.NotFound", "Biller not found."));
 
         // Act
@@ -365,7 +374,12 @@ public class BillersEndpointsTests : IClassFixture<BankingAppWebFactory>
         request.Content = JsonContent.Create(requestData);
 
         _factory.BillerServiceMock
-            .Setup(service => service.SaveBiller(ValidUserId, requestData))
+            .Setup(service => service.SaveBiller(
+                ValidUserId,
+                It.Is<SaveBillerRequest>(request =>
+                    request.BillerId == requestData.BillerId &&
+                    request.Nickname == requestData.Nickname &&
+                    request.DefaultReference == requestData.DefaultReference)))
             .Returns(Error.Conflict("Biller.AlreadySaved", "Biller already saved."));
 
         // Act
