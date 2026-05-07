@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Services;
 
 using System.Threading.Tasks;
-using Application.DTOs.Exchange;
+using BankingApp.Application.Features.Forex.Dtos;
 using ErrorOr;
 
 /// <summary>
@@ -17,7 +17,7 @@ public interface IForexClientService
     /// <summary>
     ///     Loads an exchange preview for the specified currencies and amount.
     /// </summary>
-    public Task<ErrorOr<ExchangeTransactionResponse>> GetPreviewAsync(
+    public Task<ErrorOr<ForexTransactionResponse>> GetPreviewAsync(
         string sourceCurrency,
         string targetCurrency,
         decimal amount);
@@ -25,5 +25,5 @@ public interface IForexClientService
     /// <summary>
     ///     Executes a foreign-exchange transaction.
     /// </summary>
-    public Task<ErrorOr<ExchangeTransactionResponse>> ExecuteExchangeAsync(ExchangeTransactionRequest request);
+    public Task<ErrorOr<ForexTransactionResponse>> ExecuteExchangeAsync(ForexTransactionRequest request);
 }

@@ -1,6 +1,6 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
-using Application.DTOs;
+using BankingApp.Application.Common.Dtos;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 

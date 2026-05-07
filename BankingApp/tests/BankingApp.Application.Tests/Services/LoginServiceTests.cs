@@ -1,15 +1,15 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.Security;
+
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Common.Notifications;
+using BankingApp.Application.Common.Security;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-using DTOs.Auth;
+using BankingApp.Application.Features.Authentication.Dtos;
 
 /// <summary>
 ///     Unit tests for <see cref="LoginService" />.
@@ -19,7 +19,7 @@ public class LoginServiceTests
     private const int AttemptsBeforeLockout = 4;
     private const int LockoutLowerBoundMinutes = 14;
     private const int LockoutUpperBoundMinutes = 16;
-    private readonly Mock<IAuthRepository> _authRepository = MockFactory.CreateAuthRepository();
+    private readonly Mock<IAuthenticationRepository> _authRepository = MockFactory.CreateAuthRepository();
     private readonly Mock<IEmailService> _emailService = MockFactory.CreateEmailService();
     private readonly Mock<IHashService> _hashService = MockFactory.CreateHashService();
     private readonly Mock<IJsonWebTokenService> _jwtService = MockFactory.CreateJwtService();

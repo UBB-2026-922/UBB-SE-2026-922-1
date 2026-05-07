@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs.RateAlerts;
-using Application.Services.RateAlerts;
+using BankingApp.Application.Features.ForexRateAlerts.Dtos;
+using BankingApp.Application.Features.ForexRateAlerts.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +13,13 @@ public sealed class RateAlertsControllerTests
     private const int DefaultUserId = 1;
     private const int DefaultAlertId = 42;
 
-    private readonly Mock<IRateAlertService> _rateAlertService = new(MockBehavior.Strict);
+    private readonly Mock<IForexRateAlertService> _rateAlertService = new(MockBehavior.Strict);
 
     [Fact]
     public void GetAlerts_WhenServiceReturnsAlerts_ReturnsOkWithAlerts()
     {
         // Arrange
-        var alerts = new List<RateAlertDto>
+        var alerts = new List<ForexRateAlertDto>
         {
             new() { Id = DefaultAlertId, UserId = DefaultUserId, BaseCurrency = "EUR", TargetCurrency = "USD", TargetRate = 1.10m },
         };
@@ -55,14 +55,14 @@ public sealed class RateAlertsControllerTests
     public void CreateAlert_WhenRequestIsValid_ReturnsOkWithCreatedAlert()
     {
         // Arrange
-        var request = new RateAlertDto
+        var request = new ForexRateAlertDto
         {
             BaseCurrency = "EUR",
             TargetCurrency = "USD",
             TargetRate = 1.15m,
             IsBuyAlert = true,
         };
-        var createdAlert = new RateAlertDto
+        var createdAlert = new ForexRateAlertDto
         {
             Id = DefaultAlertId,
             UserId = DefaultUserId,
@@ -72,7 +72,7 @@ public sealed class RateAlertsControllerTests
             IsBuyAlert = true,
         };
         _rateAlertService
-            .Setup(service => service.CreateAlert(It.Is<RateAlertDto>(dto => dto.UserId == DefaultUserId)))
+            .Setup(service => service.CreateAlert(It.Is<ForexRateAlertDto>(dto => dto.UserId == DefaultUserId)))
             .Returns(createdAlert);
         RateAlertsController controller = CreateController();
 
@@ -88,7 +88,7 @@ public sealed class RateAlertsControllerTests
     public void CreateAlert_WhenCalled_OverwritesUserIdFromAuth()
     {
         // Arrange
-        var request = new RateAlertDto
+        var request = new ForexRateAlertDto
         {
             UserId = 999,
             BaseCurrency = "GBP",
@@ -96,8 +96,8 @@ public sealed class RateAlertsControllerTests
             TargetRate = 6.0m,
         };
         _rateAlertService
-            .Setup(service => service.CreateAlert(It.Is<RateAlertDto>(dto => dto.UserId == DefaultUserId)))
-            .Returns(new RateAlertDto { Id = DefaultAlertId, UserId = DefaultUserId });
+            .Setup(service => service.CreateAlert(It.Is<ForexRateAlertDto>(dto => dto.UserId == DefaultUserId)))
+            .Returns(new ForexRateAlertDto { Id = DefaultAlertId, UserId = DefaultUserId });
         RateAlertsController controller = CreateController();
 
         // Act
@@ -105,7 +105,7 @@ public sealed class RateAlertsControllerTests
 
         // Assert
         _rateAlertService.Verify(
-            service => service.CreateAlert(It.Is<RateAlertDto>(dto => dto.UserId == DefaultUserId)),
+            service => service.CreateAlert(It.Is<ForexRateAlertDto>(dto => dto.UserId == DefaultUserId)),
             Times.Once);
     }
 
@@ -113,9 +113,9 @@ public sealed class RateAlertsControllerTests
     public void CreateAlert_WhenServiceReturnsError_ReturnsMatchingError()
     {
         // Arrange
-        var request = new RateAlertDto { BaseCurrency = "EUR", TargetCurrency = "USD", TargetRate = 1.15m };
+        var request = new ForexRateAlertDto { BaseCurrency = "EUR", TargetCurrency = "USD", TargetRate = 1.15m };
         _rateAlertService
-            .Setup(service => service.CreateAlert(It.IsAny<RateAlertDto>()))
+            .Setup(service => service.CreateAlert(It.IsAny<ForexRateAlertDto>()))
             .Returns(Error.Validation("invalid_alert", "Invalid alert configuration."));
         RateAlertsController controller = CreateController();
 
@@ -130,7 +130,7 @@ public sealed class RateAlertsControllerTests
     public void DeleteAlert_WhenAlertBelongsToUser_ReturnsNoContent()
     {
         // Arrange
-        var alerts = new List<RateAlertDto>
+        var alerts = new List<ForexRateAlertDto>
         {
             new() { Id = DefaultAlertId, UserId = DefaultUserId },
         };
@@ -151,7 +151,7 @@ public sealed class RateAlertsControllerTests
     {
         // Arrange
         const int otherAlertId = 99;
-        var alerts = new List<RateAlertDto>
+        var alerts = new List<ForexRateAlertDto>
         {
             new() { Id = DefaultAlertId, UserId = DefaultUserId },
         };
@@ -186,7 +186,7 @@ public sealed class RateAlertsControllerTests
     public void DeleteAlert_WhenDeleteServiceFails_ReturnsMatchingError()
     {
         // Arrange
-        var alerts = new List<RateAlertDto>
+        var alerts = new List<ForexRateAlertDto>
         {
             new() { Id = DefaultAlertId, UserId = DefaultUserId },
         };
@@ -209,7 +209,7 @@ public sealed class RateAlertsControllerTests
         // Arrange
         _rateAlertService
             .Setup(service => service.GetAlerts(DefaultUserId))
-            .Returns(new List<RateAlertDto>());
+            .Returns(new List<ForexRateAlertDto>());
         RateAlertsController controller = CreateController();
 
         // Act

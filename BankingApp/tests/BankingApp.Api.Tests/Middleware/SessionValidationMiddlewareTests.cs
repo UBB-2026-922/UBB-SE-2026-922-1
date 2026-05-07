@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Api.Tests.Middleware;
+namespace BankingApp.Api.Tests.Middleware;
 
 using BankingApp.Api.Middleware;
-using Application.Repositories.Interfaces;
-using Application.Services.Security;
+using BankingApp.Application.Features.UserProfile.Repositories;
+using BankingApp.Application.Common.Security;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 [Trait("Category", "Unit")]
 public sealed class SessionValidationMiddlewareTests
 {
-    private readonly Mock<IAuthRepository> _authenticationRepository = MockFactory.CreateAuthRepository();
+    private readonly Mock<IAuthenticationRepository> _authenticationRepository = MockFactory.CreateAuthRepository();
     private readonly Mock<IJsonWebTokenService> _jwtService = MockFactory.CreateJwtService();
     private readonly Mock<ILogger<SessionValidationMiddleware>> _logger = new();
 

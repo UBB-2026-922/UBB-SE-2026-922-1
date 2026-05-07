@@ -2,8 +2,8 @@ namespace BankingApp.Desktop.Services;
 
 using System;
 using System.Threading.Tasks;
-using Application.DTOs.Exchange;
-using Utilities;
+using BankingApp.Application.Features.Forex.Dtos;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 
 /// <summary>
@@ -25,20 +25,20 @@ internal sealed class ForexClientService : IForexClientService
     public int? CurrentUserId => _apiClient.CurrentUserId;
 
     /// <inheritdoc />
-    public Task<ErrorOr<ExchangeTransactionResponse>> GetPreviewAsync(
+    public Task<ErrorOr<ForexTransactionResponse>> GetPreviewAsync(
         string sourceCurrency,
         string targetCurrency,
         decimal amount)
     {
         string endpoint =
             $"{ApiEndpoints.ExchangePreview}?sourceCurrency={sourceCurrency}&targetCurrency={targetCurrency}&amount={amount}";
-        return _apiClient.GetAsync<ExchangeTransactionResponse>(endpoint);
+        return _apiClient.GetAsync<ForexTransactionResponse>(endpoint);
     }
 
     /// <inheritdoc />
-    public Task<ErrorOr<ExchangeTransactionResponse>> ExecuteExchangeAsync(ExchangeTransactionRequest request)
+    public Task<ErrorOr<ForexTransactionResponse>> ExecuteExchangeAsync(ForexTransactionRequest request)
     {
-        return _apiClient.PostAsync<ExchangeTransactionRequest, ExchangeTransactionResponse>(
+        return _apiClient.PostAsync<ForexTransactionRequest, ForexTransactionResponse>(
             ApiEndpoints.ExchangeExecute, request);
     }
 }

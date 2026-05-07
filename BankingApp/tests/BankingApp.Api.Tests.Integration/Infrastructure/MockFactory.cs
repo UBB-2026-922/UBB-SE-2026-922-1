@@ -1,13 +1,13 @@
 namespace BankingApp.Api.Tests.Integration.Infrastructure;
 
-using Application.Repositories.Interfaces;
-using Application.Services.Beneficiary;
-using Application.Services.Dashboard;
-using Application.Services.Login;
-using Application.Services.PasswordRecovery;
-using Application.Services.Profile;
-using Application.Services.Registration;
-using Application.Services.Security;
+using BankingApp.Application.Features.UserProfile.Repositories;
+using BankingApp.Application.Features.Beneficiaries.Services;
+using BankingApp.Application.Features.AccountOverview.Services;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Features.PasswordReset.Services;
+using BankingApp.Application.Features.UserProfile.Services;
+using BankingApp.Application.Features.UserRegistration.Services;
+using BankingApp.Application.Common.Security;
 
 /// <summary>
 ///     Creates pre-configured Moq stubs for the service and repository interfaces
@@ -23,11 +23,11 @@ public static class MockFactory
         return new Mock<IJsonWebTokenService>();
     }
 
-    /// <summary>Creates a loose mock for <see cref="IAuthRepository" />.</summary>
-    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IAuthRepository" />.</returns>
-    public static Mock<IAuthRepository> CreateAuthRepository()
+    /// <summary>Creates a loose mock for <see cref="IAuthenticationRepository" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IAuthenticationRepository" />.</returns>
+    public static Mock<IAuthenticationRepository> CreateAuthRepository()
     {
-        return new Mock<IAuthRepository>();
+        return new Mock<IAuthenticationRepository>();
     }
 
     /// <summary>Creates a loose mock for <see cref="ILoginService" />.</summary>
@@ -37,32 +37,32 @@ public static class MockFactory
         return new Mock<ILoginService>();
     }
 
-    /// <summary>Creates a loose mock for <see cref="IRegistrationService" />.</summary>
-    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IRegistrationService" />.</returns>
-    public static Mock<IRegistrationService> CreateRegistrationService()
+    /// <summary>Creates a loose mock for <see cref="IUserRegistrationService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IUserRegistrationService" />.</returns>
+    public static Mock<IUserRegistrationService> CreateUserRegistrationService()
     {
-        return new Mock<IRegistrationService>();
+        return new Mock<IUserRegistrationService>();
     }
 
-    /// <summary>Creates a loose mock for <see cref="IPasswordRecoveryService" />.</summary>
-    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IPasswordRecoveryService" />.</returns>
-    public static Mock<IPasswordRecoveryService> CreatePasswordRecoveryService()
+    /// <summary>Creates a loose mock for <see cref="IPasswordResetService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IPasswordResetService" />.</returns>
+    public static Mock<IPasswordResetService> CreatePasswordResetService()
     {
-        return new Mock<IPasswordRecoveryService>();
+        return new Mock<IPasswordResetService>();
     }
 
-    /// <summary>Creates a loose mock for <see cref="IDashboardService" />.</summary>
-    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IDashboardService" />.</returns>
-    public static Mock<IDashboardService> CreateDashboardService()
+    /// <summary>Creates a loose mock for <see cref="IAccountOverviewService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IAccountOverviewService" />.</returns>
+    public static Mock<IAccountOverviewService> CreateAccountOverviewService()
     {
-        return new Mock<IDashboardService>();
+        return new Mock<IAccountOverviewService>();
     }
 
-    /// <summary>Creates a loose mock for <see cref="IProfileService" />.</summary>
-    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IProfileService" />.</returns>
-    public static Mock<IProfileService> CreateProfileService()
+    /// <summary>Creates a loose mock for <see cref="IUserProfileService" />.</summary>
+    /// <returns>A new <see cref="Mock{T}" /> of <see cref="IUserProfileService" />.</returns>
+    public static Mock<IUserProfileService> CreateUserProfileService()
     {
-        return new Mock<IProfileService>();
+        return new Mock<IUserProfileService>();
     }
 
     /// <summary>Creates a loose mock for <see cref="IBeneficiaryService" />.</summary>

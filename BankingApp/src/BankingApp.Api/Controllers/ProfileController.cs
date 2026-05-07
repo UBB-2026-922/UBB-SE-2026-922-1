@@ -1,7 +1,7 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.Profile;
-using Application.Services.Profile;
+using BankingApp.Application.Features.UserProfile.Dtos;
+using BankingApp.Application.Features.UserProfile.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,14 +13,14 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public class ProfileController : ApiControllerBase
 {
-    private readonly IProfileService _profileService;
+    private readonly IUserProfileService _profileService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ProfileController" /> class.
     /// </summary>
     /// <param name="profileService">The profile service used to handle business logic.</param>
     /// <returns>The result of the operation.</returns>
-    public ProfileController(IProfileService profileService)
+    public ProfileController(IUserProfileService profileService)
     {
         _profileService = profileService;
     }

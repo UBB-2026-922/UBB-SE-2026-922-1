@@ -1,7 +1,7 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Beneficiary;
+
+using BankingApp.Application.Features.Beneficiaries.Services;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;

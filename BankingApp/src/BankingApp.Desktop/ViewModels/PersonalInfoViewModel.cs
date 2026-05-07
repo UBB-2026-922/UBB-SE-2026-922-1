@@ -2,10 +2,10 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using Application.DTOs.Profile;
+using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using Services;
-using Utilities;
+using BankingApp.Desktop.Services;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 

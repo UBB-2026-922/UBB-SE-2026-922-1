@@ -1,7 +1,7 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.RateAlerts;
-using Application.Services.RateAlerts;
+using BankingApp.Application.Features.ForexRateAlerts.Dtos;
+using BankingApp.Application.Features.ForexRateAlerts.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,13 +13,13 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/exchange/rate-alerts")]
 public class RateAlertsController : ApiControllerBase
 {
-    private readonly IRateAlertService _rateAlertService;
+    private readonly IForexRateAlertService _rateAlertService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="RateAlertsController" /> class.
     /// </summary>
     /// <param name="rateAlertService">The rate-alert application service.</param>
-    public RateAlertsController(IRateAlertService rateAlertService)
+    public RateAlertsController(IForexRateAlertService rateAlertService)
     {
         _rateAlertService = rateAlertService;
     }
@@ -32,7 +32,7 @@ public class RateAlertsController : ApiControllerBase
     public IActionResult GetAlerts()
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<List<RateAlertDto>> result = _rateAlertService.GetAlerts(userId);
+        ErrorOr<List<ForexRateAlertDto>> result = _rateAlertService.GetAlerts(userId);
         return ToActionResult(result, Ok);
     }
 
@@ -42,10 +42,10 @@ public class RateAlertsController : ApiControllerBase
     /// <param name="request">The alert request.</param>
     /// <returns>The created alert.</returns>
     [HttpPost]
-    public IActionResult CreateAlert([FromBody] RateAlertDto request)
+    public IActionResult CreateAlert([FromBody] ForexRateAlertDto request)
     {
         request.UserId = GetAuthenticatedUserId();
-        ErrorOr<RateAlertDto> result = _rateAlertService.CreateAlert(request);
+        ErrorOr<ForexRateAlertDto> result = _rateAlertService.CreateAlert(request);
         return ToActionResult(result, Ok);
     }
 
@@ -58,7 +58,7 @@ public class RateAlertsController : ApiControllerBase
     public IActionResult DeleteAlert(int id)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<List<RateAlertDto>> alertsResult = _rateAlertService.GetAlerts(userId);
+        ErrorOr<List<ForexRateAlertDto>> alertsResult = _rateAlertService.GetAlerts(userId);
         if (alertsResult.IsError)
         {
             return MapError(alertsResult.FirstError);

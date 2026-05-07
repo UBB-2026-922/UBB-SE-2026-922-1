@@ -2,7 +2,7 @@ namespace BankingApp.Desktop.Services;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.RateAlerts;
+using BankingApp.Application.Features.ForexRateAlerts.Dtos;
 using ErrorOr;
 
 /// <summary>
@@ -18,12 +18,12 @@ public interface IRateAlertClientService
     /// <summary>
     ///     Loads all rate alerts for the specified user.
     /// </summary>
-    public Task<ErrorOr<List<RateAlertDto>>> GetAlertsAsync(int userId);
+    public Task<ErrorOr<List<ForexRateAlertDto>>> GetAlertsAsync(int userId);
 
     /// <summary>
     ///     Creates a new rate alert.
     /// </summary>
-    public Task<ErrorOr<RateAlertDto>> CreateAlertAsync(RateAlertDto alert);
+    public Task<ErrorOr<ForexRateAlertDto>> CreateAlertAsync(ForexRateAlertDto alert);
 
     /// <summary>
     ///     Deletes an existing rate alert.

@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs.Transfer;
-using Application.Services.Transfers;
+using BankingApp.Application.Features.Transfers.Dtos;
+using BankingApp.Application.Features.Transfers.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

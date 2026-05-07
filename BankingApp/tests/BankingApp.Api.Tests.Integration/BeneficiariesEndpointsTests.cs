@@ -1,4 +1,4 @@
-﻿// <copyright file="BeneficiariesEndpointsTests.cs" company="UBB-922">
+// <copyright file="BeneficiariesEndpointsTests.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
@@ -8,7 +8,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Infrastructure;
-using Application.DTOs.Beneficiaries;
+using BankingApp.Application.Features.Beneficiaries.Dtos;
 using Domain.Entities;
 using ErrorOr;
 using FluentAssertions;

@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs.Billers;
-using Application.Services.Billers;
+using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Application.Features.Billers.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

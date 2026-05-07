@@ -1,18 +1,36 @@
-﻿namespace BankingApp.Infrastructure.DependencyInjection;
+namespace BankingApp.Infrastructure.DependencyInjection;
 
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.Security;
-using Application.Utilities;
-using DataAccess;
-using DataAccess.Implementations;
-using DataAccess.Interfaces;
-using Repositories.Implementations;
-using Services;
-using Services.Notifications;
-using Services.Security;
+
+using BankingApp.Application.Features.AccountOverview.Repositories;
+using BankingApp.Application.Features.Authentication.Repositories;
+using BankingApp.Application.Features.Beneficiaries.Repositories;
+using BankingApp.Application.Features.Billers.Repositories;
+using BankingApp.Application.Features.BillPayments.Repositories;
+using BankingApp.Application.Features.BillPayments.Services;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Common.Notifications;
+using BankingApp.Application.Common.Security;
+using BankingApp.Application.Common.Utilities;
+using BankingApp.Application.Features.Forex.Repositories;
+using BankingApp.Application.Features.ForexRateAlerts.Repositories;
+using BankingApp.Application.Features.RecurringPayments.Repositories;
+using BankingApp.Application.Features.Transfers.Repositories;
+using BankingApp.Application.Features.UserProfile.Repositories;
+using BankingApp.Infrastructure.DataAccess;
+using BankingApp.Infrastructure.DataAccess.Implementations;
+using BankingApp.Infrastructure.DataAccess.Interfaces;
+using BankingApp.Infrastructure.Repositories.AccountOverview;
+using BankingApp.Infrastructure.Repositories.Authentication;
+using BankingApp.Infrastructure.Repositories.Beneficiaries;
+using BankingApp.Infrastructure.Repositories.Billers;
+using BankingApp.Infrastructure.Repositories.BillPayments;
+using BankingApp.Infrastructure.Repositories.Forex;
+using BankingApp.Infrastructure.Repositories.ForexRateAlerts;
+using BankingApp.Infrastructure.Repositories.RecurringPayments;
+using BankingApp.Infrastructure.Repositories.Transfers;
+using BankingApp.Infrastructure.Repositories.UserProfile;
+using BankingApp.Infrastructure.Common.Notifications;
+using BankingApp.Infrastructure.Common.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -59,9 +77,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IHashService, HashService>();
         services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
         services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<IAuthRepository, AuthRepository>();
+        services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IDashboardRepository, DashboardRepository>();
+        services.AddScoped<IAccountOverviewRepository, AccountOverviewRepository>();
         services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
         services.AddScoped<
             IBillPaymentService,
@@ -79,8 +97,8 @@ public static class ServiceCollectionExtensions
         // repository implementations in the Infrastructure layer.
         services.AddScoped<ITransferRepository, TransferRepository>();
         services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
-        services.AddScoped<IExchangeRepository, ExchangeRepository>();
-        services.AddScoped<IRateAlertRepository, RateAlertRepository>();
+        services.AddScoped<IForexRepository, ForexRepository>();
+        services.AddScoped<IForexRateAlertRepository, ForexRateAlertRepository>();
 
         return services;
     }

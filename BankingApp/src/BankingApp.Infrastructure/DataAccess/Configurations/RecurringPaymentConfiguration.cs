@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Infrastructure.DataAccess.Configurations;
+namespace BankingApp.Infrastructure.DataAccess.Configurations;
 
 using Domain.Entities;
 using Domain.Enums;

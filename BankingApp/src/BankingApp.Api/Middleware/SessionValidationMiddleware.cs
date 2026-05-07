@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Api.Middleware;
+namespace BankingApp.Api.Middleware;
 
-using Application.Repositories.Interfaces;
-using Application.Services.Security;
-using Logging;
+using BankingApp.Application.Features.Authentication.Repositories;
+using BankingApp.Application.Common.Security;
+using BankingApp.Api.Logging;
 using ErrorOr;
 using System.Globalization;
 
@@ -30,13 +30,13 @@ public class SessionValidationMiddleware
     ///     Validates the authorization token and session, then invokes the next middleware.
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
-    /// <param name="authRepository">The authentication repository used to verify sessions.</param>
+    /// <param name="authenticationRepository">The authentication repository used to verify sessions.</param>
     /// <param name="jsonWebTokenService">The JWT service used to extract and validate tokens.</param>
     /// <param name="logger">Logger for validation errors.</param>
     /// <returns>A <see cref="Task" /> representing the asynchronous operation.</returns>
     public async Task Invoke(
         HttpContext context,
-        IAuthRepository authRepository,
+        IAuthenticationRepository authenticationRepository,
         IJsonWebTokenService jsonWebTokenService,
         ILogger<SessionValidationMiddleware> logger)
     {
@@ -70,7 +70,7 @@ public class SessionValidationMiddleware
         }
 
         // Check if session still active in the databaseContext
-        ErrorOr<bool> sessionResult = authRepository.IsSessionActive(token);
+        ErrorOr<bool> sessionResult = authenticationRepository.IsSessionActive(token);
         if (sessionResult.IsError)
         {
             logger.SessionLookupFailed(sessionResult.FirstError.Code, sessionResult.FirstError.Description);

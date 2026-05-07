@@ -3,8 +3,8 @@ namespace BankingApp.Desktop.Services;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.DTOs.Dashboard;
-using Utilities;
+using BankingApp.Application.Features.AccountOverview.Dtos;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 
 /// <summary>
@@ -23,8 +23,8 @@ internal sealed class DashboardClientService : IDashboardClientService
     }
 
     /// <inheritdoc />
-    public Task<ErrorOr<DashboardDto>> GetDashboardAsync(CancellationToken cancellationToken = default)
+    public Task<ErrorOr<AccountOverviewDto>> GetDashboardAsync(CancellationToken cancellationToken = default)
     {
-        return _apiClient.GetAsync<DashboardDto>(ApiEndpoints.Dashboard, cancellationToken);
+        return _apiClient.GetAsync<AccountOverviewDto>(ApiEndpoints.Dashboard, cancellationToken);
     }
 }

@@ -5,9 +5,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Application.DTOs.Exchange;
-using Services;
-using Utilities;
+using BankingApp.Application.Features.Forex.Dtos;
+using BankingApp.Desktop.Services;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
@@ -184,7 +184,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            ErrorOr<ExchangeTransactionResponse> result =
+            ErrorOr<ForexTransactionResponse> result =
                 await _forexClientService.GetPreviewAsync(SourceCurrency, TargetCurrency, _amount);
 
             if (result.IsError)
@@ -194,7 +194,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
                 return;
             }
 
-            ExchangeTransactionResponse preview = result.Value;
+            ForexTransactionResponse preview = result.Value;
             LiveRate = preview.ExchangeRate;
             Commission = preview.Commission;
             TargetAmount = preview.TargetAmount;
@@ -228,7 +228,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            var request = new ExchangeTransactionRequest
+            var request = new ForexTransactionRequest
             {
                 UserId = _forexClientService.CurrentUserId ?? 0,
                 SourceCurrency = SourceCurrency,
@@ -236,7 +236,7 @@ public partial class ForexViewModel : INotifyPropertyChanged
                 SourceAmount = _amount,
             };
 
-            ErrorOr<ExchangeTransactionResponse> result =
+            ErrorOr<ForexTransactionResponse> result =
                 await _forexClientService.ExecuteExchangeAsync(request);
 
             if (result.IsError)

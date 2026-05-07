@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.ViewModels;
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
@@ -8,9 +8,9 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Application.DTOs.Transfer;
+using BankingApp.Application.Features.Transfers.Dtos;
 using Services.Transfers;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 
 /// <summary>

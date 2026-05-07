@@ -1,7 +1,7 @@
 ﻿namespace BankingApp.Api.HostedServices;
 
-using Application.Services.RecurringPayments;
-using Application.Services.RateAlerts;
+using Application.Features.RecurringPayments.Services;
+using Application.Features.ForexRateAlerts.Services;
 using Logging;
 using ErrorOr;
 
@@ -36,7 +36,7 @@ public class FinanceBackgroundService : BackgroundService
                 using IServiceScope scope = _serviceProvider.CreateScope();
                 IRecurringPaymentProcessingService recurringPaymentProcessingService =
                     scope.ServiceProvider.GetRequiredService<IRecurringPaymentProcessingService>();
-                IRateAlertService rateAlertService = scope.ServiceProvider.GetRequiredService<IRateAlertService>();
+                IForexRateAlertService rateAlertService = scope.ServiceProvider.GetRequiredService<IForexRateAlertService>();
 
                 ErrorOr<Success> recurringResult =
                     await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);

@@ -3,9 +3,9 @@ namespace BankingApp.Desktop.Services.Transfers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.DTOs.Beneficiaries;
-using Application.DTOs.Transfer;
-using Utilities;
+using BankingApp.Application.Features.Beneficiaries.Dtos;
+using BankingApp.Application.Features.Transfers.Dtos;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 
 /// <summary>

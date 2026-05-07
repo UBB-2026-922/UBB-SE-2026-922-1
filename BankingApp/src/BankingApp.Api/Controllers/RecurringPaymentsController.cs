@@ -1,7 +1,7 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.RecurringPayments;
-using Application.Services.RecurringPayments;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
+using BankingApp.Application.Features.RecurringPayments.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 

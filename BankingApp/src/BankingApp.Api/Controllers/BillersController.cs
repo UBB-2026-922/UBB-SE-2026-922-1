@@ -1,7 +1,7 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.Billers;
-using Application.Services.Billers;
+using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Application.Features.Billers.Services;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>

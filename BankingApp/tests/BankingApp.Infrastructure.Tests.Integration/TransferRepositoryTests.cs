@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Infrastructure.Tests.Integration;
+namespace BankingApp.Infrastructure.Tests.Integration;
 
 using Domain.Entities;
 using Domain.Enums;
-using DataAccess;
-using Repositories.Implementations;
+using BankingApp.Infrastructure.DataAccess;
+
 using Infrastructure;
 using ErrorOr;
 

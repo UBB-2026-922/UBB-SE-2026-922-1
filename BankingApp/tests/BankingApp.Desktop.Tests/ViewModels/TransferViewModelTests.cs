@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Collections.Generic;
-using Application.DTOs.Transfer;
+using BankingApp.Application.Features.Transfers.Dtos;
 using Services.Transfers;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;

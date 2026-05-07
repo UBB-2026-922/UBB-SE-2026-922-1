@@ -1,6 +1,6 @@
-﻿namespace BankingApp.Application.Tests.Utilities;
+namespace BankingApp.Application.Tests.Utilities;
 
-using BankingApp.Application.Utilities;
+using BankingApp.Application.Common.Utilities;
 
 /// <summary>
 ///     Unit tests for <see cref="ValidationUtilities" />.

@@ -1,11 +1,14 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.DTOs;
-using Application.DTOs.Auth;
-using Application.Services.Login;
-using Application.Services.PasswordRecovery;
-using Application.Services.Registration;
-using Application.Utilities;
+using BankingApp.Application.Common.Dtos;
+using BankingApp.Application.Features.Authentication.Dtos;
+using BankingApp.Application.Features.Authentication.Models;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Features.PasswordReset.Dtos;
+using BankingApp.Application.Features.PasswordReset.Services;
+using BankingApp.Application.Features.UserRegistration.Dtos;
+using BankingApp.Application.Features.UserRegistration.Services;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,8 +26,8 @@ public class AuthController : ApiControllerBase
     private const int BrowserMaxLength = 100;
     private const int IpAddressMaxLength = 45;
     private readonly ILoginService _loginService;
-    private readonly IPasswordRecoveryService _passwordRecoveryService;
-    private readonly IRegistrationService _registrationService;
+    private readonly IPasswordResetService _passwordRecoveryService;
+    private readonly IUserRegistrationService _registrationService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="AuthController" /> class.
@@ -34,8 +37,8 @@ public class AuthController : ApiControllerBase
     /// <param name="passwordRecoveryService">The password recovery service used to handle password reset operations.</param>
     public AuthController(
         ILoginService loginService,
-        IRegistrationService registrationService,
-        IPasswordRecoveryService passwordRecoveryService)
+        IUserRegistrationService registrationService,
+        IPasswordResetService passwordRecoveryService)
     {
         _loginService = loginService;
         _registrationService = registrationService;

@@ -3,10 +3,10 @@ namespace BankingApp.Desktop.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.BillPayments;
-using Application.DTOs.Billers;
-using Application.DTOs.RecurringPayments;
-using Utilities;
+using BankingApp.Application.Features.BillPayments.Dtos;
+using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 
 /// <summary>

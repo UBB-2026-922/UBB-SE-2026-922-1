@@ -1,13 +1,13 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.Services.Beneficiary;
+using BankingApp.Application.Features.Beneficiaries.Services;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using Application.DTOs.Beneficiaries;
+using BankingApp.Application.Features.Beneficiaries.Dtos;
 
 [Trait("Category", "Unit")]
 public sealed class BeneficiariesControllerTests

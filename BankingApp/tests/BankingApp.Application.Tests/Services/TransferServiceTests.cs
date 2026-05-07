@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using DTOs.Transfer;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Application.Services.Transfers;
+using BankingApp.Application.Features.Transfers.Dtos;
+
+using BankingApp.Application.Common.Security;
+using BankingApp.Application.Features.Transfers.Services;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
@@ -25,7 +25,7 @@ public class TransferServiceTests
     private const string ValidTwoFaToken = "123456";
     private const string InvalidIban = "INVALID";
 
-    private readonly Mock<IDashboardRepository> _dashboardRepository = new(MockBehavior.Strict);
+    private readonly Mock<IAccountOverviewRepository> _dashboardRepository = new(MockBehavior.Strict);
     private readonly Mock<IOtpService> _otpService = MockFactory.CreateOtpService();
     private readonly TransferService _service;
 

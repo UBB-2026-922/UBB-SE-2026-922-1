@@ -1,10 +1,10 @@
-﻿namespace BankingApp.Desktop.ViewModels;
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using Application.DTOs.Profile;
+using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using BankingApp.Domain.Enums;
 
 /// <summary>

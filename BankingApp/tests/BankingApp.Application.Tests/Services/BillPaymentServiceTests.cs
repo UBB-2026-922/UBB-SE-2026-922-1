@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
 using System.Threading.Tasks;
-using DTOs.BillPayments;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.BillPayments;
+using BankingApp.Application.Features.BillPayments.Dtos;
+
+using BankingApp.Application.Features.BillPayments.Services;
 using Domain.Entities;
 using FluentAssertions;
 using Moq;

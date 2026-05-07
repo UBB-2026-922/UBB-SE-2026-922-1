@@ -3,8 +3,8 @@ namespace BankingApp.Desktop.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.Profile;
-using Utilities;
+using BankingApp.Application.Features.UserProfile.Dtos;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 
 /// <summary>

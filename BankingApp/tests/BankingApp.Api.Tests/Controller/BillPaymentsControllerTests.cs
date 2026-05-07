@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs.Billers;
-using Application.DTOs.BillPayments;
-using Application.Services.BillPayments;
+using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Application.Features.BillPayments.Dtos;
+using BankingApp.Application.Features.BillPayments.Services;
 using Domain.Entities;
 using Domain.Enums;
 using Microsoft.AspNetCore.Http;

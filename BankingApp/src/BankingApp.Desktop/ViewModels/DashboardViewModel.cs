@@ -6,10 +6,10 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.DTOs.Dashboard;
+using BankingApp.Application.Features.AccountOverview.Dtos;
 using Enums;
-using Services;
-using Utilities;
+using BankingApp.Desktop.Services;
+using BankingApp.Application.Common.Utilities;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -210,7 +210,7 @@ public class DashboardViewModel
     {
         State.SetValue(DashboardState.Loading);
         ErrorMessage = string.Empty;
-        ErrorOr<DashboardDto> result = await _dashboardClientService.GetDashboardAsync(cancellationToken);
+        ErrorOr<AccountOverviewDto> result = await _dashboardClientService.GetDashboardAsync(cancellationToken);
         return result.Match<ErrorOr<Success>>(
             dashboard =>
             {

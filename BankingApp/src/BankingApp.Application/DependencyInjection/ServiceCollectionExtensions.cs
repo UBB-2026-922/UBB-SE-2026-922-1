@@ -1,16 +1,16 @@
 ﻿namespace BankingApp.Application.DependencyInjection;
 
-using Services.Beneficiary;
-using Services.Billers;
-using Services.Dashboard;
-using Services.Exchange;
-using Services.Login;
-using Services.PasswordRecovery;
-using Services.Profile;
-using Services.RateAlerts;
-using Services.RecurringPayments;
-using Services.Registration;
-using Services.Transfers;
+using Features.Beneficiaries.Services;
+using Features.Billers.Services;
+using Features.AccountOverview.Services;
+using Features.Forex.Services;
+using Features.Authentication.Services;
+using Features.PasswordReset.Services;
+using Features.UserProfile.Services;
+using Features.ForexRateAlerts.Services;
+using Features.RecurringPayments.Services;
+using Features.UserRegistration.Services;
+using Features.Transfers.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 /// <summary>
@@ -26,17 +26,17 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<ILoginService, LoginService>();
-        services.AddScoped<IRegistrationService, RegistrationService>();
-        services.AddScoped<IPasswordRecoveryService, PasswordRecoveryService>();
-        services.AddScoped<IProfileService, ProfileService>();
-        services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IUserRegistrationService, UserRegistrationService>();
+        services.AddScoped<IPasswordResetService, PasswordResetService>();
+        services.AddScoped<IUserProfileService, UserProfileService>();
+        services.AddScoped<IAccountOverviewService, AccountOverviewService>();
         services.AddScoped<IBillerService, BillerService>();
         services.AddScoped<ITransferService, TransferService>();
         services.AddScoped<IBeneficiaryService, BeneficiaryService>();
         services.AddScoped<IRecurringPaymentService, RecurringPaymentService>();
         services.AddScoped<IRecurringPaymentProcessingService, RecurringPaymentProcessingService>();
-        services.AddScoped<IExchangeService, ExchangeService>();
-        services.AddScoped<IRateAlertService, RateAlertService>();
+        services.AddScoped<IForexService, ForexService>();
+        services.AddScoped<IForexRateAlertService, ForexRateAlertService>();
         return services;
     }
 }

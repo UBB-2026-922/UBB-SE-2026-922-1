@@ -1,3 +1,15 @@
 global using FluentAssertions;
 global using Moq;
+global using BankingApp.Application.Features.AccountOverview.Repositories;
+global using BankingApp.Application.Features.Authentication.Repositories;
+global using BankingApp.Application.Features.Authentication.Models;
+global using BankingApp.Application.Features.Beneficiaries.Repositories;
+global using BankingApp.Application.Features.Billers.Repositories;
+global using BankingApp.Application.Features.BillPayments.Repositories;
+global using BankingApp.Application.Features.Forex.Repositories;
+global using BankingApp.Application.Features.ForexRateAlerts.Repositories;
+global using BankingApp.Application.Features.RecurringPayments.Repositories;
+global using BankingApp.Application.Features.Transfers.Repositories;
+global using BankingApp.Application.Features.UserRegistration.Dtos;
+global using BankingApp.Application.Features.UserProfile.Repositories;
 global using Xunit;

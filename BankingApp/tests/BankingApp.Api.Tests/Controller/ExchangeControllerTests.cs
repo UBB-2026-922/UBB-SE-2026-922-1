@@ -1,10 +1,10 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs;
-using Application.DTOs.Exchange;
-using Application.Repositories.Interfaces;
-using Application.Services.Exchange;
+using BankingApp.Application.Common.Dtos;
+using BankingApp.Application.Features.Forex.Dtos;
+using BankingApp.Application.Features.UserProfile.Repositories;
+using BankingApp.Application.Features.Forex.Services;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
@@ -12,15 +12,15 @@ using Microsoft.AspNetCore.Mvc;
 
 public class ExchangeControllerTests
 {
-    private readonly Mock<IExchangeService> _mockExchangeService;
+    private readonly Mock<IForexService> _mockForexService;
     private readonly Mock<IBillPaymentRepository> _mockBillPaymentRepository;
     private readonly ExchangeController _controller;
 
     public ExchangeControllerTests()
     {
-        _mockExchangeService = new Mock<IExchangeService>();
+        _mockForexService = new Mock<IForexService>();
         _mockBillPaymentRepository = new Mock<IBillPaymentRepository>();
-        _controller = new ExchangeController(_mockExchangeService.Object, _mockBillPaymentRepository.Object);
+        _controller = new ExchangeController(_mockForexService.Object, _mockBillPaymentRepository.Object);
 
         var httpContext = new DefaultHttpContext
         {
@@ -40,14 +40,14 @@ public class ExchangeControllerTests
     public void GetPreview_WhenPreviewAndLockBothSucceed_ReturnsOkWithPreviewDto()
     {
         // Arrange
-        var previewDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
+        var previewDto = new ForexTransactionResponse { ExchangeRate = 1.2m };
         var lockedRate = new LockedRate { Rate = 1.2m };
 
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.GetRatePreview("EUR", "USD", 100m))
             .Returns(previewDto);
 
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.LockRate(1, "EUR", "USD"))
             .Returns(lockedRate);
 
@@ -56,7 +56,7 @@ public class ExchangeControllerTests
 
         // Assert
         OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        ExchangeTransactionResponse actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
+        ForexTransactionResponse actualDto = Assert.IsType<ForexTransactionResponse>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -65,7 +65,7 @@ public class ExchangeControllerTests
     {
         // Arrange
         var error = Error.Validation("Code", "Description");
-        _mockExchangeService
+        _mockForexService
             .Setup(exchangeService => exchangeService.GetRatePreview("EUR", "USD", 100m))
             .Returns(error);
 
@@ -82,14 +82,14 @@ public class ExchangeControllerTests
     public void GetPreview_WhenLockRateFails_ReturnsMappedError()
     {
         // Arrange
-        var previewDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
+        var previewDto = new ForexTransactionResponse { ExchangeRate = 1.2m };
         var error = Error.Validation("Code", "Description");
 
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.GetRatePreview("EUR", "USD", 100m))
             .Returns(previewDto);
 
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.LockRate(1, "EUR", "USD"))
             .Returns(error);
 
@@ -106,7 +106,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenBothAccountIdsAreProvidedAndValid_ReturnsOkWithExchangeDto()
     {
         // Arrange
-        var request = new ExchangeTransactionRequest
+        var request = new ForexTransactionRequest
         {
             SourceAccountId = 10,
             TargetAccountId = 20,
@@ -121,13 +121,13 @@ public class ExchangeControllerTests
             new Account { Id = 20, Currency = "USD" },
         };
 
-        var responseDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
+        var responseDto = new ForexTransactionResponse { ExchangeRate = 1.2m };
 
         _mockBillPaymentRepository
             .Setup(repository => repository.GetAccountsByUserIdAsync(1))
             .ReturnsAsync(userAccounts);
 
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.ExecuteExchange(request))
             .Returns(responseDto);
 
@@ -136,7 +136,7 @@ public class ExchangeControllerTests
 
         // Assert
         OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        ExchangeTransactionResponse actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
+        ForexTransactionResponse actualDto = Assert.IsType<ForexTransactionResponse>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -144,7 +144,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenAccountIdsAreZeroAndCurrencyMatchFound_ResolvesAccountsAndReturnsOk()
     {
         // Arrange
-        var request = new ExchangeTransactionRequest
+        var request = new ForexTransactionRequest
         {
             SourceAccountId = 0,
             TargetAccountId = 0,
@@ -159,14 +159,14 @@ public class ExchangeControllerTests
             new Account { Id = 20, Currency = "USD" },
         };
 
-        var responseDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
+        var responseDto = new ForexTransactionResponse { ExchangeRate = 1.2m };
 
         _mockBillPaymentRepository
             .Setup(repository => repository.GetAccountsByUserIdAsync(1))
             .ReturnsAsync(userAccounts);
 
-        _mockExchangeService
-            .Setup(service => service.ExecuteExchange(It.Is<ExchangeTransactionRequest>(req => req.SourceAccountId == 10 && req.TargetAccountId == 20)))
+        _mockForexService
+            .Setup(service => service.ExecuteExchange(It.Is<ForexTransactionRequest>(req => req.SourceAccountId == 10 && req.TargetAccountId == 20)))
             .Returns(responseDto);
 
         // Act
@@ -174,7 +174,7 @@ public class ExchangeControllerTests
 
         // Assert
         OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        ExchangeTransactionResponse actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
+        ForexTransactionResponse actualDto = Assert.IsType<ForexTransactionResponse>(actionResult.Value);
         Assert.Equal(1.2m, actualDto.ExchangeRate);
     }
 
@@ -182,7 +182,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenAccountIdsAreZeroAndNoCurrencyMatchFound_ReturnsNotFound()
     {
         // Arrange
-        var request = new ExchangeTransactionRequest
+        var request = new ForexTransactionRequest
         {
             SourceAccountId = 0,
             TargetAccountId = 0,
@@ -212,7 +212,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenProvidedAccountsDoNotBelongToUser_ReturnsNotFound()
     {
         // Arrange
-        var request = new ExchangeTransactionRequest
+        var request = new ForexTransactionRequest
         {
             SourceAccountId = 10,
             TargetAccountId = 20,
@@ -242,7 +242,7 @@ public class ExchangeControllerTests
     public async Task Execute_WhenExecuteExchangeFails_ReturnsMappedError()
     {
         // Arrange
-        var request = new ExchangeTransactionRequest
+        var request = new ForexTransactionRequest
         {
             SourceAccountId = 10,
             TargetAccountId = 20,
@@ -263,7 +263,7 @@ public class ExchangeControllerTests
             .Setup(repository => repository.GetAccountsByUserIdAsync(1))
             .ReturnsAsync(userAccounts);
 
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.ExecuteExchange(request))
             .Returns(error);
 
@@ -280,13 +280,13 @@ public class ExchangeControllerTests
     public void GetHistory_WhenHistoryExistsForUser_ReturnsOkWithList()
     {
         // Arrange
-        var historyList = new List<ExchangeTransactionResponse>
+        var historyList = new List<ForexTransactionResponse>
         {
             new() { Id = 1, SourceCurrency = "EUR", TargetCurrency = "USD" },
             new() { Id = 2, SourceCurrency = "GBP", TargetCurrency = "EUR" },
         };
 
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.GetExchangeHistory(1))
             .Returns(historyList);
 
@@ -295,7 +295,7 @@ public class ExchangeControllerTests
 
         // Assert
         OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        List<ExchangeTransactionResponse> actualList = Assert.IsType<List<ExchangeTransactionResponse>>(actionResult.Value);
+        List<ForexTransactionResponse> actualList = Assert.IsType<List<ForexTransactionResponse>>(actionResult.Value);
         actualList.Count.Should().Be(2);
     }
 
@@ -304,7 +304,7 @@ public class ExchangeControllerTests
     {
         // Arrange
         var error = Error.Validation("Code", "Description");
-        _mockExchangeService
+        _mockForexService
             .Setup(service => service.GetExchangeHistory(1))
             .Returns(error);
 

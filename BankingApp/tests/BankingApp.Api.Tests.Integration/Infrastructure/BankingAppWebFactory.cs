@@ -1,11 +1,11 @@
-﻿using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.Beneficiary;
-using BankingApp.Application.Services.Dashboard;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.PasswordRecovery;
-using BankingApp.Application.Services.Profile;
-using BankingApp.Application.Services.Registration;
-using BankingApp.Application.Services.Security;
+
+using BankingApp.Application.Features.Beneficiaries.Services;
+using BankingApp.Application.Features.AccountOverview.Services;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Features.PasswordReset.Services;
+using BankingApp.Application.Features.UserProfile.Services;
+using BankingApp.Application.Features.UserRegistration.Services;
+using BankingApp.Application.Common.Security;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -50,7 +50,7 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     /// <summary>
     ///     Gets the mock auth repository that controls session lookup behavior.
     /// </summary>
-    public Mock<IAuthRepository> AuthRepositoryMock { get; } = MockFactory.CreateAuthRepository();
+    public Mock<IAuthenticationRepository> AuthRepositoryMock { get; } = MockFactory.CreateAuthRepository();
 
     /// <summary>
     ///     Gets the mock login service.
@@ -60,23 +60,23 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     /// <summary>
     ///     Gets the mock registration service.
     /// </summary>
-    public Mock<IRegistrationService> RegistrationServiceMock { get; } = MockFactory.CreateRegistrationService();
+    public Mock<IUserRegistrationService> UserRegistrationServiceMock { get; } = MockFactory.CreateUserRegistrationService();
 
     /// <summary>
     ///     Gets the mock password recovery service.
     /// </summary>
-    public Mock<IPasswordRecoveryService> PasswordRecoveryServiceMock { get; } =
-        MockFactory.CreatePasswordRecoveryService();
+    public Mock<IPasswordResetService> PasswordResetServiceMock { get; } =
+        MockFactory.CreatePasswordResetService();
 
     /// <summary>
     ///     Gets the mock dashboard service.
     /// </summary>
-    public Mock<IDashboardService> DashboardServiceMock { get; } = MockFactory.CreateDashboardService();
+    public Mock<IAccountOverviewService> AccountOverviewServiceMock { get; } = MockFactory.CreateAccountOverviewService();
 
     /// <summary>
     ///     Gets the mock profile service.
     /// </summary>
-    public Mock<IProfileService> ProfileServiceMock { get; } = MockFactory.CreateProfileService();
+    public Mock<IUserProfileService> UserProfileServiceMock { get; } = MockFactory.CreateUserProfileService();
 
     /// <summary>
     ///     Gets the mock beneficiary service.
@@ -104,12 +104,12 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
 
             // Remove real infrastructure registrations and replace with substitutes.
             ReplaceService<IJsonWebTokenService>(services, JwtServiceMock.Object);
-            ReplaceService<IAuthRepository>(services, AuthRepositoryMock.Object);
+            ReplaceService<IAuthenticationRepository>(services, AuthRepositoryMock.Object);
             ReplaceService<ILoginService>(services, LoginServiceMock.Object);
-            ReplaceService<IRegistrationService>(services, RegistrationServiceMock.Object);
-            ReplaceService<IPasswordRecoveryService>(services, PasswordRecoveryServiceMock.Object);
-            ReplaceService<IDashboardService>(services, DashboardServiceMock.Object);
-            ReplaceService<IProfileService>(services, ProfileServiceMock.Object);
+            ReplaceService<IUserRegistrationService>(services, UserRegistrationServiceMock.Object);
+            ReplaceService<IPasswordResetService>(services, PasswordResetServiceMock.Object);
+            ReplaceService<IAccountOverviewService>(services, AccountOverviewServiceMock.Object);
+            ReplaceService<IUserProfileService>(services, UserProfileServiceMock.Object);
             ReplaceService<IBeneficiaryService>(services, BeneficiaryServiceMock.Object);
         });
     }

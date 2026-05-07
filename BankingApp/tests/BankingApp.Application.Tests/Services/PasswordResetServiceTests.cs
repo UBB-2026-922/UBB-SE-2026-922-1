@@ -1,0 +1,193 @@
+namespace BankingApp.Application.Tests.Services;
+
+
+using BankingApp.Application.Common.Notifications;
+using BankingApp.Application.Features.PasswordReset.Services;
+using BankingApp.Application.Common.Security;
+using Domain.Entities;
+using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
+
+/// <summary>
+///     Unit tests for <see cref="PasswordResetService" />.
+/// </summary>
+public class PasswordResetServiceTests
+{
+    private const int TokenExpiryLowerBoundMinutes = 29;
+    private const int TokenExpiryUpperBoundMinutes = 31;
+    private const int TokenStillValidMinutes = 5;
+    private const int TokenAlreadyExpiredMinutes = -1;
+
+    /// <summary>
+    ///     Verifies the RequestPasswordReset_WhenUserDoesNotExist_ReturnsRepositoryError scenario.
+    /// </summary>
+    [Fact]
+    public void RequestPasswordReset_WhenUserDoesNotExist_ReturnsRepositoryError()
+    {
+        // Arrange
+        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
+        Mock<IHashService> hashService = MockFactory.CreateHashService();
+        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
+        authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail("missing@test.com"))
+            .Returns(Error.NotFound("user_not_found", "User not found."));
+
+        var service = new PasswordResetService(
+            authRepository.Object,
+            hashService.Object,
+            emailService.Object,
+            NullLogger<PasswordResetService>.Instance);
+
+        // Act
+        ErrorOr<Success> result = service.RequestPasswordReset("missing@test.com");
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("user_not_found");
+        emailService.Verify(
+            sendsPasswordResetLink =>
+                sendsPasswordResetLink.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    ///     Verifies the RequestPasswordReset_WhenUserExists_CreatesThirtyMinuteToken scenario.
+    /// </summary>
+    [Fact]
+    public void RequestPasswordReset_WhenUserExists_CreatesThirtyMinuteToken()
+    {
+        // Arrange
+        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
+        Mock<IHashService> hashService = MockFactory.CreateHashService();
+        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
+        var user = new User { Id = 1, Email = "ada@test.com" };
+        PasswordResetToken? savedToken = null;
+        DateTime before = DateTime.UtcNow.AddMinutes(TokenExpiryLowerBoundMinutes);
+
+        authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(user.Email))
+            .Returns((ErrorOr<User>)user);
+        authRepository.Setup(savesPasswordResetToken =>
+                savesPasswordResetToken.SavePasswordResetToken(It.IsAny<PasswordResetToken>()))
+            .Callback<PasswordResetToken>(token => savedToken = token)
+            .Returns(Result.Success);
+
+        var service = new PasswordResetService(
+            authRepository.Object,
+            hashService.Object,
+            emailService.Object,
+            NullLogger<PasswordResetService>.Instance);
+
+        // Act
+        ErrorOr<Success> result = service.RequestPasswordReset(user.Email);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        savedToken.Should().NotBeNull();
+        savedToken!.ExpiresAt.Should().BeOnOrAfter(before);
+        savedToken.ExpiresAt.Should().BeOnOrBefore(DateTime.UtcNow.AddMinutes(TokenExpiryUpperBoundMinutes));
+    }
+
+    /// <summary>
+    ///     Verifies the RequestPasswordReset_WhenSavingTokenFails_ReturnsFailure scenario.
+    /// </summary>
+    [Fact]
+    public void RequestPasswordReset_WhenSavingTokenFails_ReturnsFailure()
+    {
+        // Arrange
+        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
+        Mock<IHashService> hashService = MockFactory.CreateHashService();
+        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
+        var user = new User { Id = 1, Email = "ada@test.com" };
+
+        authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(user.Email))
+            .Returns((ErrorOr<User>)user);
+        authRepository.Setup(savesPasswordResetToken =>
+                savesPasswordResetToken.SavePasswordResetToken(It.IsAny<PasswordResetToken>()))
+            .Returns(Error.Failure("save_failed", "Save failed."));
+
+        var service = new PasswordResetService(
+            authRepository.Object,
+            hashService.Object,
+            emailService.Object,
+            NullLogger<PasswordResetService>.Instance);
+
+        // Act
+        ErrorOr<Success> result = service.RequestPasswordReset(user.Email);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Description.Should().Be("Failed to save password reset token.");
+        emailService.Verify(
+            sendsPasswordResetLink =>
+                sendsPasswordResetLink.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    ///     Verifies the ResetPassword_WhenTokenIsAlreadyUsed_ReturnsValidationError scenario.
+    /// </summary>
+    [Fact]
+    public void ResetPassword_WhenTokenIsAlreadyUsed_ReturnsValidationError()
+    {
+        // Arrange
+        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
+        Mock<IHashService> hashService = MockFactory.CreateHashService();
+        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
+        authRepository.Setup(findsPasswordResetToken =>
+                findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
+            .Returns(
+                new PasswordResetToken
+                {
+                    Id = 1,
+                    UserId = 1,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes),
+                    UsedAt = DateTime.UtcNow
+                });
+
+        var service = new PasswordResetService(
+            authRepository.Object,
+            hashService.Object,
+            emailService.Object,
+            NullLogger<PasswordResetService>.Instance);
+
+        // Act
+        ErrorOr<Success> result = service.ResetPassword("raw-token", "StrongPass1!");
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("token_already_used");
+    }
+
+    /// <summary>
+    ///     Verifies the VerifyResetToken_WhenTokenExpired_ReturnsValidationError scenario.
+    /// </summary>
+    [Fact]
+    public void VerifyResetToken_WhenTokenExpired_ReturnsValidationError()
+    {
+        // Arrange
+        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
+        Mock<IHashService> hashService = MockFactory.CreateHashService();
+        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
+        authRepository.Setup(findsPasswordResetToken =>
+                findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
+            .Returns(
+                new PasswordResetToken
+                {
+                    Id = 1,
+                    UserId = 1,
+                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes)
+                });
+
+        var service = new PasswordResetService(
+            authRepository.Object,
+            hashService.Object,
+            emailService.Object,
+            NullLogger<PasswordResetService>.Instance);
+
+        // Act
+        ErrorOr<Success> result = service.VerifyResetToken("raw-token");
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("token_expired");
+    }
+}

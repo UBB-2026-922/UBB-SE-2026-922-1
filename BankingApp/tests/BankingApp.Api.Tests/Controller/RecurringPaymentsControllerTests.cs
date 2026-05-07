@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs.RecurringPayments;
-using Application.Services.RecurringPayments;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
+using BankingApp.Application.Features.RecurringPayments.Services;
 using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;

@@ -6,10 +6,10 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Application.DTOs.Auth;
+using BankingApp.Application.Features.Authentication.Dtos;
 using Enums;
-using Services;
-using Utilities;
+using BankingApp.Desktop.Services;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 

@@ -1,4 +1,4 @@
-﻿// <copyright file="AuthEndpointsTests.cs" company="UBB-922">
+// <copyright file="AuthEndpointsTests.cs" company="UBB-922">
 // Copyright (c) UBB-922. All rights reserved.
 // </copyright>
 
@@ -8,8 +8,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Infrastructure;
-using Application.DTOs.Auth;
-using Application.Services.Login;
+using BankingApp.Application.Features.Authentication.Dtos;
+using BankingApp.Application.Features.Authentication.Services;
 using ErrorOr;
 using FluentAssertions;
 
@@ -27,8 +27,8 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
 
         // Reset mocks before each test to ensure isolated state
         _factory.LoginServiceMock.Invocations.Clear();
-        _factory.RegistrationServiceMock.Invocations.Clear();
-        _factory.PasswordRecoveryServiceMock.Invocations.Clear();
+        _factory.UserRegistrationServiceMock.Invocations.Clear();
+        _factory.PasswordResetServiceMock.Invocations.Clear();
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         // Arrange
         var request = new { Email = "new@example.com", Password = "Password1!", FirstName = "Test", LastName = "User" };
-        _factory.RegistrationServiceMock
+        _factory.UserRegistrationServiceMock
             .Setup(registrationService => registrationService.Register(It.IsAny<RegisterRequest>()))
             .Returns(Result.Success);
 
@@ -108,7 +108,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         // Arrange
         var request = new { Email = "existing@example.com", Password = "Password1!", FirstName = "Test", LastName = "User" };
-        _factory.RegistrationServiceMock
+        _factory.UserRegistrationServiceMock
             .Setup(registrationService => registrationService.Register(It.IsAny<RegisterRequest>()))
             .Returns(Error.Conflict("email_taken", "Email is already registered."));
 
@@ -159,7 +159,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         // Arrange
         var request = new { Email = "test@example.com" };
-        _factory.PasswordRecoveryServiceMock
+        _factory.PasswordResetServiceMock
             .Setup(passwordRecoveryService => passwordRecoveryService.RequestPasswordReset(request.Email))
             .Returns(Result.Success);
 
@@ -187,7 +187,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         // Arrange
         var request = new { Token = "valid-token", NewPassword = "NewStrongPassword1!" };
-        _factory.PasswordRecoveryServiceMock
+        _factory.PasswordResetServiceMock
             .Setup(passwordRecoveryService => passwordRecoveryService.ResetPassword(request.Token, request.NewPassword))
             .Returns(Result.Success);
 
@@ -247,7 +247,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         // Arrange
         var request = new { Token = "valid-token" };
-        _factory.PasswordRecoveryServiceMock
+        _factory.PasswordResetServiceMock
             .Setup(passwordRecoveryService => passwordRecoveryService.VerifyResetToken(request.Token))
             .Returns(Result.Success);
 
@@ -263,7 +263,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         // Arrange
         var request = new { Token = "invalid-token" };
-        _factory.PasswordRecoveryServiceMock
+        _factory.PasswordResetServiceMock
             .Setup(passwordRecoveryService => passwordRecoveryService.VerifyResetToken(request.Token))
             .Returns(Error.Validation("invalid_token", "Token is invalid or expired."));
 

@@ -1,7 +1,7 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.Dashboard;
-using Application.Services.Dashboard;
+using BankingApp.Application.Features.AccountOverview.Dtos;
+using BankingApp.Application.Features.AccountOverview.Services;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
@@ -12,14 +12,14 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public class DashboardController : ApiControllerBase
 {
-    private readonly IDashboardService _dashboardService;
+    private readonly IAccountOverviewService _dashboardService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DashboardController" /> class.
     /// </summary>
     /// <param name="dashboardService">The dashboard service used to handle business logic.</param>
     /// <returns>The result of the operation.</returns>
-    public DashboardController(IDashboardService dashboardService)
+    public DashboardController(IAccountOverviewService dashboardService)
     {
         _dashboardService = dashboardService;
     }
@@ -29,13 +29,13 @@ public class DashboardController : ApiControllerBase
     ///     The user ID is extracted from the HTTP context, set by the authentication middleware.
     /// </summary>
     /// <returns>
-    ///     200 OK with a <see cref="DashboardDto" /> on success,
+    ///     200 OK with a <see cref="AccountOverviewDto" /> on success,
     ///     or 404 Not Found if the user does not exist.
     /// </returns>
     [HttpGet]
     public IActionResult GetDashboard()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_dashboardService.GetDashboardData(userId), Ok);
+        return ToActionResult(_dashboardService.GetAccountOverview(userId), Ok);
     }
 }

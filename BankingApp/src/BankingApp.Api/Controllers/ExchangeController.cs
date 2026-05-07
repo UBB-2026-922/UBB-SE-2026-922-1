@@ -1,8 +1,8 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.Exchange;
-using Application.Repositories.Interfaces;
-using Application.Services.Exchange;
+using BankingApp.Application.Features.Forex.Dtos;
+using BankingApp.Application.Features.BillPayments.Repositories;
+using BankingApp.Application.Features.Forex.Services;
 using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
@@ -16,14 +16,14 @@ using Microsoft.AspNetCore.Mvc;
 public class ExchangeController : ApiControllerBase
 {
     private readonly IBillPaymentRepository _billPaymentRepository;
-    private readonly IExchangeService _exchangeService;
+    private readonly IForexService _exchangeService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="ExchangeController" /> class.
     /// </summary>
     /// <param name="exchangeService">The exchange application service.</param>
     /// <param name="billPaymentRepository">The repository used to infer source and target accounts.</param>
-    public ExchangeController(IExchangeService exchangeService, IBillPaymentRepository billPaymentRepository)
+    public ExchangeController(IForexService exchangeService, IBillPaymentRepository billPaymentRepository)
     {
         _exchangeService = exchangeService;
         _billPaymentRepository = billPaymentRepository;
@@ -43,7 +43,7 @@ public class ExchangeController : ApiControllerBase
         [FromQuery] decimal amount)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<ExchangeTransactionResponse> result =
+        ErrorOr<ForexTransactionResponse> result =
             _exchangeService.GetRatePreview(sourceCurrency, targetCurrency, amount);
         if (result.IsError)
         {
@@ -65,7 +65,7 @@ public class ExchangeController : ApiControllerBase
     /// <param name="request">The exchange request.</param>
     /// <returns>The completed exchange DTO.</returns>
     [HttpPost("execute")]
-    public async Task<IActionResult> Execute([FromBody] ExchangeTransactionRequest request)
+    public async Task<IActionResult> Execute([FromBody] ForexTransactionRequest request)
     {
         int userId = GetAuthenticatedUserId();
         request.UserId = userId;
@@ -105,7 +105,7 @@ public class ExchangeController : ApiControllerBase
                 { error = "Matching source and target accounts were not found for the requested currencies.", });
         }
 
-        ErrorOr<ExchangeTransactionResponse> result = _exchangeService.ExecuteExchange(request);
+        ErrorOr<ForexTransactionResponse> result = _exchangeService.ExecuteExchange(request);
         return ToActionResult(result, Ok);
     }
 
@@ -117,7 +117,7 @@ public class ExchangeController : ApiControllerBase
     public IActionResult GetHistory()
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<List<ExchangeTransactionResponse>> result = _exchangeService.GetExchangeHistory(userId);
+        ErrorOr<List<ForexTransactionResponse>> result = _exchangeService.GetExchangeHistory(userId);
         return ToActionResult(result, Ok);
     }
 }

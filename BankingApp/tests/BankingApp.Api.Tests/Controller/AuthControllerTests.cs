@@ -1,24 +1,24 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.Services.Login;
-using Application.Services.PasswordRecovery;
-using Application.Services.Registration;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Features.PasswordReset.Services;
+using BankingApp.Application.Features.UserRegistration.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using Application.DTOs.Auth;
+using BankingApp.Application.Features.Authentication.Dtos;
 
 [Trait("Category", "Unit")]
 public sealed class AuthControllerTests
 {
     private readonly Mock<ILoginService> _loginService = MockFactory.CreateLoginService();
 
-    private readonly Mock<IPasswordRecoveryService> _passwordRecoveryService =
-        MockFactory.CreatePasswordRecoveryService();
+    private readonly Mock<IPasswordResetService> _passwordRecoveryService =
+        MockFactory.CreatePasswordResetService();
 
-    private readonly Mock<IRegistrationService> _registrationService = MockFactory.CreateRegistrationService();
+    private readonly Mock<IUserRegistrationService> _registrationService = MockFactory.CreateUserRegistrationService();
 
     [Fact]
     public void Login_WhenSuccessWithFullLogin_ShouldReturnOkWithToken()

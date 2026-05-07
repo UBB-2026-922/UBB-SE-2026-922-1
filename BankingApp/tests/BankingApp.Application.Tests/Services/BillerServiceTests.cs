@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using DTOs.Billers;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Billers;
+using BankingApp.Application.Features.Billers.Dtos;
+
+using BankingApp.Application.Features.Billers.Services;
 using Domain.Entities;
 using Domain.Errors;
 using ErrorOr;

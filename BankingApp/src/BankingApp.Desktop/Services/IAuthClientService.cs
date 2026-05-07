@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Services;
 
 using System.Threading.Tasks;
-using Application.DTOs.Auth;
+using BankingApp.Application.Features.Authentication.Dtos;
 using ErrorOr;
 
 /// <summary>

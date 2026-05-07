@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using DTOs.RecurringPayments;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Application.Utilities;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
+
+using BankingApp.Application.Features.RecurringPayments.Services;
+using BankingApp.Application.Common.Utilities;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;

@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using Enums;
-using Services;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;

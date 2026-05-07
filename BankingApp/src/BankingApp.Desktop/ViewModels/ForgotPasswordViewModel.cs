@@ -3,7 +3,7 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Threading.Tasks;
 using Enums;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 
 /// <summary>
 ///     Coordinates the desktop forgot-password flow through <see cref="IPasswordRecoveryManager" />.

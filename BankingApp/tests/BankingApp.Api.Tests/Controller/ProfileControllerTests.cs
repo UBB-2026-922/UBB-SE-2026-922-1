@@ -1,8 +1,8 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs.Profile;
-using Application.Services.Profile;
+using BankingApp.Application.Features.UserProfile.Dtos;
+using BankingApp.Application.Features.UserProfile.Services;
 using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 [Trait("Category", "Unit")]
 public sealed class ProfileControllerTests
 {
-    private readonly Mock<IProfileService> _profileService = MockFactory.CreateProfileService();
+    private readonly Mock<IUserProfileService> _profileService = MockFactory.CreateUserProfileService();
 
     /// <summary>
     ///     Verifies the GetProfile_WhenSuccess_ReturnsOk scenario.

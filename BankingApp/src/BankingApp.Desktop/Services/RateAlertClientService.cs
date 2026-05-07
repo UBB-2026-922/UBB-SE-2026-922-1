@@ -3,8 +3,8 @@ namespace BankingApp.Desktop.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.RateAlerts;
-using Utilities;
+using BankingApp.Application.Features.ForexRateAlerts.Dtos;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 
 /// <summary>
@@ -26,16 +26,16 @@ internal sealed class RateAlertClientService : IRateAlertClientService
     public int? CurrentUserId => _apiClient.CurrentUserId;
 
     /// <inheritdoc />
-    public Task<ErrorOr<List<RateAlertDto>>> GetAlertsAsync(int userId)
+    public Task<ErrorOr<List<ForexRateAlertDto>>> GetAlertsAsync(int userId)
     {
         string endpoint = $"{ApiEndpoints.RateAlerts}?userId={userId}";
-        return _apiClient.GetAsync<List<RateAlertDto>>(endpoint);
+        return _apiClient.GetAsync<List<ForexRateAlertDto>>(endpoint);
     }
 
     /// <inheritdoc />
-    public Task<ErrorOr<RateAlertDto>> CreateAlertAsync(RateAlertDto alert)
+    public Task<ErrorOr<ForexRateAlertDto>> CreateAlertAsync(ForexRateAlertDto alert)
     {
-        return _apiClient.PostAsync<RateAlertDto, RateAlertDto>(ApiEndpoints.RateAlerts, alert);
+        return _apiClient.PostAsync<ForexRateAlertDto, ForexRateAlertDto>(ApiEndpoints.RateAlerts, alert);
     }
 
     /// <inheritdoc />

@@ -1,12 +1,11 @@
-﻿namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using BankingApp.Application.Features.PasswordReset.Dtos;
 using Enums;
 using ErrorOr;
-
-using Application.DTOs.Auth;
 
 /// <summary>
 ///     Implements <see cref="IPasswordRecoveryManager" /> by delegating network calls

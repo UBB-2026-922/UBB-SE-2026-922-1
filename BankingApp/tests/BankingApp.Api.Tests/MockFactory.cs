@@ -1,19 +1,19 @@
-﻿namespace BankingApp.Api.Tests;
+namespace BankingApp.Api.Tests;
 
-using Application.Repositories.Interfaces;
-using Application.Services.Dashboard;
-using Application.Services.Login;
-using Application.Services.Notifications;
-using Application.Services.PasswordRecovery;
-using Application.Services.Profile;
-using Application.Services.Registration;
-using Application.Services.Security;
+using BankingApp.Application.Features.UserProfile.Repositories;
+using BankingApp.Application.Features.AccountOverview.Services;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Common.Notifications;
+using BankingApp.Application.Features.PasswordReset.Services;
+using BankingApp.Application.Features.UserProfile.Services;
+using BankingApp.Application.Features.UserRegistration.Services;
+using BankingApp.Application.Common.Security;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
-using Application.DTOs.Auth;
-using Application.DTOs.Dashboard;
-using Application.DTOs.Profile;
+using BankingApp.Application.Features.Authentication.Dtos;
+using BankingApp.Application.Features.AccountOverview.Dtos;
+using BankingApp.Application.Features.UserProfile.Dtos;
 
 /// <summary>
 ///     Factory methods for creating Moq mocks with sensible default return values.
@@ -39,24 +39,24 @@ internal static class MockFactory
     }
 
     /// <summary>
-    ///     Creates the configured CreateRegistrationService mock.
+    ///     Creates the configured CreateUserRegistrationService mock.
     /// </summary>
     /// <returns>The configured mock instance.</returns>
-    internal static Mock<IRegistrationService> CreateRegistrationService()
+    internal static Mock<IUserRegistrationService> CreateUserRegistrationService()
     {
-        var mock = new Mock<IRegistrationService>(MockBehavior.Strict);
+        var mock = new Mock<IUserRegistrationService>(MockBehavior.Strict);
         mock.Setup(register => register.Register(It.IsAny<RegisterRequest>()))
             .Returns(Result.Success);
         return mock;
     }
 
     /// <summary>
-    ///     Creates the configured CreatePasswordRecoveryService mock.
+    ///     Creates the configured CreatePasswordResetService mock.
     /// </summary>
     /// <returns>The configured mock instance.</returns>
-    internal static Mock<IPasswordRecoveryService> CreatePasswordRecoveryService()
+    internal static Mock<IPasswordResetService> CreatePasswordResetService()
     {
-        var mock = new Mock<IPasswordRecoveryService>(MockBehavior.Strict);
+        var mock = new Mock<IPasswordResetService>(MockBehavior.Strict);
         mock.Setup(requestsPasswordReset => requestsPasswordReset.RequestPasswordReset(It.IsAny<string>()))
             .Returns(Result.Success);
         mock.Setup(resetsPassword => resetsPassword.ResetPassword(It.IsAny<string>(), It.IsAny<string>()))
@@ -67,24 +67,24 @@ internal static class MockFactory
     }
 
     /// <summary>
-    ///     Creates the configured CreateDashboardService mock.
+    ///     Creates the configured CreateAccountOverviewService mock.
     /// </summary>
     /// <returns>The configured mock instance.</returns>
-    internal static Mock<IDashboardService> CreateDashboardService()
+    internal static Mock<IAccountOverviewService> CreateAccountOverviewService()
     {
-        var mock = new Mock<IDashboardService>(MockBehavior.Strict);
-        mock.Setup(getsDashboardData => getsDashboardData.GetDashboardData(It.IsAny<int>()))
-            .Returns(new DashboardDto());
+        var mock = new Mock<IAccountOverviewService>(MockBehavior.Strict);
+        mock.Setup(getsDashboardData => getsDashboardData.GetAccountOverview(It.IsAny<int>()))
+            .Returns(new AccountOverviewDto());
         return mock;
     }
 
     /// <summary>
-    ///     Creates the configured CreateProfileService mock.
+    ///     Creates the configured CreateUserProfileService mock.
     /// </summary>
     /// <returns>The configured mock instance.</returns>
-    internal static Mock<IProfileService> CreateProfileService()
+    internal static Mock<IUserProfileService> CreateUserProfileService()
     {
-        var mock = new Mock<IProfileService>(MockBehavior.Strict);
+        var mock = new Mock<IUserProfileService>(MockBehavior.Strict);
         mock.Setup(getsProfile => getsProfile.GetProfile(It.IsAny<int>()))
             .Returns(new ProfileDto());
         mock.Setup(updatesPersonalInfo => updatesPersonalInfo.UpdatePersonalInfo(It.IsAny<UpdateProfileRequest>()))
@@ -127,9 +127,9 @@ internal static class MockFactory
     ///     Creates the configured CreateAuthRepository mock.
     /// </summary>
     /// <returns>The configured mock instance.</returns>
-    internal static Mock<IAuthRepository> CreateAuthRepository()
+    internal static Mock<IAuthenticationRepository> CreateAuthRepository()
     {
-        var mock = new Mock<IAuthRepository>(MockBehavior.Strict);
+        var mock = new Mock<IAuthenticationRepository>(MockBehavior.Strict);
         mock.Setup(findsSessionByToken => findsSessionByToken.FindSessionByToken(It.IsAny<string>()))
             .Returns(new Session());
         mock.Setup(checksSession => checksSession.IsSessionActive(It.IsAny<string>()))

@@ -4,8 +4,8 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Enums;
-using Services;
-using Utilities;
+using BankingApp.Desktop.Services;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 

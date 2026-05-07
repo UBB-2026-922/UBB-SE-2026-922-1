@@ -1,9 +1,8 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
 using Master;
-using Services;
+using BankingApp.Desktop.Services;
 using Services.Transfers;
-using Utilities;
 using ViewModels;
 using Views;
 using Microsoft.Extensions.Configuration;

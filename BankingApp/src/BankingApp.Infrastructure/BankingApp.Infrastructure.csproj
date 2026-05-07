@@ -38,4 +38,8 @@
             <_Parameter1>BankingApp.Infrastructure.Tests.Integration</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Persistence\Configurations\" />
+      <Folder Include="Security\" />
+    </ItemGroup>
 </Project>

@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Application.Tests;
+namespace BankingApp.Application.Tests;
 
 using System.Security.Claims;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.Security;
+
+using BankingApp.Application.Common.Notifications;
+using BankingApp.Application.Common.Security;
 using Domain.Entities;
 using ErrorOr;
 
@@ -16,9 +16,9 @@ internal static class MockFactory
     ///     Creates the configured CreateAuthRepository mock.
     /// </summary>
     /// <returns>The configured mock instance.</returns>
-    internal static Mock<IAuthRepository> CreateAuthRepository()
+    internal static Mock<IAuthenticationRepository> CreateAuthRepository()
     {
-        var mock = new Mock<IAuthRepository>(MockBehavior.Strict);
+        var mock = new Mock<IAuthenticationRepository>(MockBehavior.Strict);
 
         mock.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(It.IsAny<string>()))
             .Returns(Error.NotFound());

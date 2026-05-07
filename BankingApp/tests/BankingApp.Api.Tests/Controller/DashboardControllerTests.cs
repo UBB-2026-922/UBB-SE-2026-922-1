@@ -1,11 +1,11 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.Services.Dashboard;
+using BankingApp.Application.Features.AccountOverview.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Application.DTOs.Dashboard;
+using BankingApp.Application.Features.AccountOverview.Dtos;
 
 /// <summary>
 ///     Unit tests for <see cref="DashboardController" /> verifying route contracts
@@ -14,7 +14,7 @@ using Application.DTOs.Dashboard;
 [Trait("Category", "Unit")]
 public sealed class DashboardControllerTests
 {
-    private readonly Mock<IDashboardService> _dashboardService = MockFactory.CreateDashboardService();
+    private readonly Mock<IAccountOverviewService> _dashboardService = MockFactory.CreateAccountOverviewService();
 
     /// <summary>
     ///     Verifies the GetDashboard_WhenSuccess_ReturnsOkWithData scenario.
@@ -24,8 +24,8 @@ public sealed class DashboardControllerTests
     {
         // Arrange
         const int validUserId = 1;
-        var response = new DashboardDto();
-        _dashboardService.Setup(getsDashboardData => getsDashboardData.GetDashboardData(validUserId)).Returns(response);
+        var response = new AccountOverviewDto();
+        _dashboardService.Setup(getsDashboardData => getsDashboardData.GetAccountOverview(validUserId)).Returns(response);
         DashboardController controller = CreateController(validUserId);
 
         // Act
@@ -45,7 +45,7 @@ public sealed class DashboardControllerTests
         // Arrange
         const int nonExistentUserId = 99;
         _dashboardService
-            .Setup(getsDashboardData => getsDashboardData.GetDashboardData(nonExistentUserId))
+            .Setup(getsDashboardData => getsDashboardData.GetAccountOverview(nonExistentUserId))
             .Returns(Error.NotFound("user_not_found", "User not found."));
 
         DashboardController controller = CreateController(nonExistentUserId);

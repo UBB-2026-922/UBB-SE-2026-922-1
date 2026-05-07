@@ -1,8 +1,8 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.DTOs.Auth;
+using BankingApp.Application.Features.Authentication.Dtos;
 using Enums;
-using Services;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;

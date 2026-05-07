@@ -9,4 +9,9 @@
     <ItemGroup>
         <PackageReference Include="ErrorOr" Version="2.1.0"/>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Common\" />
+      <Folder Include="Events\" />
+      <Folder Include="ValueObjects\" />
+    </ItemGroup>
 </Project>

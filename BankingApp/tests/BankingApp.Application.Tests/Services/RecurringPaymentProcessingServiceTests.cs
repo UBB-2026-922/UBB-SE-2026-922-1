@@ -1,14 +1,14 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using DTOs.BillPayments;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Application.Utilities;
+using BankingApp.Application.Features.BillPayments.Dtos;
+
+using BankingApp.Application.Features.BillPayments.Services;
+using BankingApp.Application.Features.RecurringPayments.Services;
+using BankingApp.Application.Common.Utilities;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;

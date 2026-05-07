@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.DTOs.Exchange;
-using Services;
+using BankingApp.Application.Features.Forex.Dtos;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
@@ -73,7 +73,7 @@ public class ForexViewModelTests
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
 
-        var response = new ExchangeTransactionResponse
+        var response = new ForexTransactionResponse
         {
             ExchangeRate = expectedRate,
             Commission = expectedCommission,
@@ -140,9 +140,9 @@ public class ForexViewModelTests
         _viewModel.AmountText = "100";
         _forexClientService.Setup(service => service.CurrentUserId).Returns(1);
 
-        var response = new ExchangeTransactionResponse { Id = transactionId };
+        var response = new ForexTransactionResponse { Id = transactionId };
         _forexClientService
-            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
+            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ForexTransactionRequest>()))
             .ReturnsAsync(response);
 
         // Act
@@ -163,7 +163,7 @@ public class ForexViewModelTests
         _forexClientService.Setup(forexClientService => forexClientService.CurrentUserId).Returns(1);
 
         _forexClientService
-            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ExchangeTransactionRequest>()))
+            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ForexTransactionRequest>()))
             .ReturnsAsync(Error.Failure());
 
         // Act

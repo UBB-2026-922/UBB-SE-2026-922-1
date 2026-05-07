@@ -22,4 +22,20 @@
         <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj"/>
         <ProjectReference Include="..\BankingApp.Infrastructure\BankingApp.Infrastructure.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Common\" />
+      <Folder Include="DependencyInjection\" />
+      <Folder Include="Features\AccountOverview\" />
+      <Folder Include="Features\Authentication\" />
+      <Folder Include="Features\Beneficiaries\" />
+      <Folder Include="Features\Billers\" />
+      <Folder Include="Features\BillPayments\" />
+      <Folder Include="Features\ForexRateAlerts\" />
+      <Folder Include="Features\Forex\" />
+      <Folder Include="Features\PasswordReset\" />
+      <Folder Include="Features\RecurringPayments\" />
+      <Folder Include="Features\Transfers\" />
+      <Folder Include="Features\UserProfile\" />
+      <Folder Include="Features\UserRegistration\" />
+    </ItemGroup>
 </Project>

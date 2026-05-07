@@ -1,6 +1,6 @@
-﻿namespace BankingApp.Infrastructure.Tests.Integration.Infrastructure;
+namespace BankingApp.Infrastructure.Tests.Integration.Infrastructure;
 
-using DataAccess;
+using BankingApp.Infrastructure.DataAccess;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;

@@ -6,9 +6,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Application.DTOs.RateAlerts;
-using Services;
-using Utilities;
+using BankingApp.Application.Features.ForexRateAlerts.Dtos;
+using BankingApp.Desktop.Services;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +22,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
 
     private readonly IRateAlertClientService _rateAlertClientService;
     private readonly ILogger<RateAlertViewModel> _logger;
-    private ObservableCollection<RateAlertDto> _alerts = [];
+    private ObservableCollection<ForexRateAlertDto> _alerts = [];
     private string _baseCurrency = string.Empty;
     private string _targetCurrency = string.Empty;
     private string _targetRateText = string.Empty;
@@ -51,7 +51,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Gets or sets the currently loaded alerts.
     /// </summary>
-    public ObservableCollection<RateAlertDto> Alerts
+    public ObservableCollection<ForexRateAlertDto> Alerts
     {
         get => _alerts;
         set => SetProperty(ref _alerts, value);
@@ -121,7 +121,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         try
         {
             int userId = _rateAlertClientService.CurrentUserId ?? 0;
-            ErrorOr<System.Collections.Generic.List<RateAlertDto>> result =
+            ErrorOr<System.Collections.Generic.List<ForexRateAlertDto>> result =
                 await _rateAlertClientService.GetAlertsAsync(userId);
 
             if (result.IsError)
@@ -131,7 +131,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
                 return;
             }
 
-            Alerts = new ObservableCollection<RateAlertDto>(result.Value);
+            Alerts = new ObservableCollection<ForexRateAlertDto>(result.Value);
         }
         catch (Exception exception)
         {
@@ -184,7 +184,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            var newAlert = new RateAlertDto
+            var newAlert = new ForexRateAlertDto
             {
                 UserId = _rateAlertClientService.CurrentUserId ?? 0,
                 BaseCurrency = BaseCurrency,
@@ -193,7 +193,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
                 IsBuyAlert = IsBuyAlert,
             };
 
-            ErrorOr<RateAlertDto> result = await _rateAlertClientService.CreateAlertAsync(newAlert);
+            ErrorOr<ForexRateAlertDto> result = await _rateAlertClientService.CreateAlertAsync(newAlert);
 
             if (result.IsError)
             {
@@ -236,7 +236,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
                 return;
             }
 
-            RateAlertDto? toRemove = Alerts.FirstOrDefault(alert => alert.Id == alertId);
+            ForexRateAlertDto? toRemove = Alerts.FirstOrDefault(alert => alert.Id == alertId);
             if (toRemove != null)
             {
                 Alerts.Remove(toRemove);

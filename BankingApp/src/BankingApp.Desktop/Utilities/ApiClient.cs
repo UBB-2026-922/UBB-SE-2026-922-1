@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Net;
@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.DTOs;
+using BankingApp.Application.Common.Dtos;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

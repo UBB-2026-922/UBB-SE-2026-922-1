@@ -2,7 +2,7 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.Beneficiaries;
+using BankingApp.Application.Features.Beneficiaries.Dtos;
 using Master;
 using Services.Transfers;
 using BankingApp.Desktop.ViewModels;
