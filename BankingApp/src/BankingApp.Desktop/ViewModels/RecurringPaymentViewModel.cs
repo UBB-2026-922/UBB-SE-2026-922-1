@@ -1,16 +1,13 @@
 namespace BankingApp.Desktop.ViewModels;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using BankingApp.Application.Features.BillPayments.Dtos;
 using BankingApp.Application.Features.Billers.Dtos;
 using BankingApp.Application.Features.RecurringPayments.Dtos;
 using BankingApp.Desktop.Services;
 using BankingApp.Domain.Enums;
-using ErrorOr;
 
 /// <summary>Manages recurring bill payment creation and lifecycle actions for the desktop client.</summary>
 public partial class RecurringPaymentViewModel : ObservableObject
@@ -87,7 +84,7 @@ public partial class RecurringPaymentViewModel : ObservableObject
     /// <summary>Gets or sets the current user-facing error message.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
-public partial string ErrorMessage { get; set; } = string.Empty;
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>Gets a value indicating whether an error message is currently available.</summary>
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
@@ -117,38 +114,6 @@ public partial string ErrorMessage { get; set; } = string.Empty;
     [ObservableProperty]
     public partial ObservableCollection<RecurringFrequency> Frequencies { get; set; } = default!;
 
-    /// <summary>Loads the accounts, billers, and existing recurring payments for the current user.</summary>
-    public async Task LoadAsync()
-    {
-        try
-        {
-            ErrorMessage = string.Empty;
-
-            ErrorOr<List<AccountDto>> accountsResult = await _billPaymentClientService.GetAccountsAsync();
-            if (!accountsResult.IsError)
-            {
-                Accounts = new ObservableCollection<AccountDto>(accountsResult.Value);
-            }
-
-            ErrorOr<List<RecurringPaymentResponse>> paymentsResult =
-                await _billPaymentClientService.GetRecurringPaymentsAsync();
-            if (!paymentsResult.IsError)
-            {
-                Payments = new ObservableCollection<RecurringPaymentResponse>(paymentsResult.Value);
-            }
-
-            ErrorOr<List<BillerDto>> billersResult = await _billPaymentClientService.GetBillersAsync();
-            if (!billersResult.IsError)
-            {
-                Billers = new ObservableCollection<BillerDto>(billersResult.Value);
-            }
-        }
-        catch (Exception loadException)
-        {
-            ErrorMessage = $"Failed to load data: {loadException.Message}";
-        }
-    }
-
     /// <summary>Creates a recurring payment using the current form values.</summary>
     public Task CreateAsync() => ExecuteCreateAsync();
 
@@ -160,173 +125,4 @@ public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>Cancels the specified recurring payment.</summary>
     public Task CancelAsync(RecurringPaymentResponse? payment) => ExecuteCancelAsync(payment);
-
-    private async Task ExecuteCreateAsync()
-    {
-        try
-        {
-            ErrorMessage = string.Empty;
-
-            if (SelectedBiller == null)
-            {
-                ErrorMessage = "Please select a biller.";
-                return;
-            }
-
-            if (SelectedAccount == null)
-            {
-                ErrorMessage = "Please select a source account.";
-                return;
-            }
-
-            if (Amount <= NoAmount)
-            {
-                ErrorMessage = "Please enter a valid amount.";
-                return;
-            }
-
-            if (EndDate.HasValue && EndDate.Value.Date < StartDate.Date)
-            {
-                ErrorMessage = "End date cannot be earlier than start date.";
-                return;
-            }
-
-            var request = new CreateRecurringPaymentRequest
-            {
-                BillerId = SelectedBiller.Id,
-                SourceAccountId = SelectedAccount.Id,
-                Amount = Amount,
-                IsPayInFull = false,
-                Frequency = Frequency,
-                StartDate = StartDate,
-                EndDate = EndDate,
-            };
-
-            ErrorOr<RecurringPaymentResponse> result =
-                await _billPaymentClientService.CreateRecurringPaymentAsync(request);
-
-            if (result.IsError)
-            {
-                ErrorMessage = result.FirstError.Description;
-                return;
-            }
-
-            Payments.Add(result.Value);
-            ClearForm();
-        }
-        catch (Exception createPaymentException)
-        {
-            ErrorMessage = $"Failed to create recurring payment: {createPaymentException.Message}";
-        }
-    }
-
-    private async Task ExecutePauseAsync(RecurringPaymentResponse? payment)
-    {
-        try
-        {
-            ErrorMessage = string.Empty;
-
-            if (payment == null)
-            {
-                ErrorMessage = "Please select a recurring payment to pause.";
-                return;
-            }
-
-            ErrorOr<Success> result = await _billPaymentClientService.PauseRecurringPaymentAsync(payment.Id);
-
-            if (result.IsError)
-            {
-                ErrorMessage = result.FirstError.Description;
-                return;
-            }
-
-            UpdatePaymentInCollection(payment.Id, RecurringPaymentStatus.Paused);
-        }
-        catch (Exception executePauseException)
-        {
-            ErrorMessage = $"Failed to pause recurring payment: {executePauseException.Message}";
-        }
-    }
-
-    private async Task ExecuteResumeAsync(RecurringPaymentResponse? payment)
-    {
-        try
-        {
-            ErrorMessage = string.Empty;
-
-            if (payment == null)
-            {
-                ErrorMessage = "Please select a recurring payment to resume.";
-                return;
-            }
-
-            ErrorOr<Success> result = await _billPaymentClientService.ResumeRecurringPaymentAsync(payment.Id);
-
-            if (result.IsError)
-            {
-                ErrorMessage = result.FirstError.Description;
-                return;
-            }
-
-            UpdatePaymentInCollection(payment.Id, RecurringPaymentStatus.Active);
-        }
-        catch (Exception executeResumeException)
-        {
-            ErrorMessage = $"Failed to resume recurring payment: {executeResumeException.Message}";
-        }
-    }
-
-    private async Task ExecuteCancelAsync(RecurringPaymentResponse? payment)
-    {
-        try
-        {
-            ErrorMessage = string.Empty;
-
-            if (payment == null)
-            {
-                ErrorMessage = "Please select a recurring payment to cancel.";
-                return;
-            }
-
-            ErrorOr<Success> result = await _billPaymentClientService.CancelRecurringPaymentAsync(payment.Id);
-
-            if (result.IsError)
-            {
-                ErrorMessage = result.FirstError.Description;
-                return;
-            }
-
-            UpdatePaymentInCollection(payment.Id, RecurringPaymentStatus.Cancelled);
-        }
-        catch (Exception executeCancelException)
-        {
-            ErrorMessage = $"Failed to cancel recurring payment: {executeCancelException.Message}";
-        }
-    }
-
-    private void UpdatePaymentInCollection(int paymentId, RecurringPaymentStatus newStatus)
-    {
-        RecurringPaymentResponse? existingPayment = Payments.FirstOrDefault(payment => payment.Id == paymentId);
-        if (existingPayment == null)
-        {
-            return;
-        }
-
-        int index = Payments.IndexOf(existingPayment);
-        existingPayment.Status = newStatus;
-        Payments[index] = existingPayment;
-    }
-
-    private void ClearForm()
-    {
-        SelectedPayment = null;
-        SelectedBiller = null;
-        SelectedBillerId = NoBillerSelected;
-        SelectedAccount = null;
-        Amount = NoAmount;
-        Frequency = RecurringFrequency.Weekly;
-        StartDate = DateTime.Today;
-        EndDate = null;
-        ErrorMessage = string.Empty;
-    }
 }
