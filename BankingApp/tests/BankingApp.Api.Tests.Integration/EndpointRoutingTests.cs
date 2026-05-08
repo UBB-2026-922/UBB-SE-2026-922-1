@@ -1,16 +1,12 @@
-﻿namespace BankingApp.Api.Tests.Integration;
+namespace BankingApp.Api.Tests.Integration;
 
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Infrastructure;
+using BankingApp.Api.Tests.Integration.Infrastructure;
+using BankingApp.Domain.Aggregates.IdentityAggregate;
 using ErrorOr;
 
-/// <summary>
-///     Integration tests that verify route contracts, middleware auth enforcement,
-///     and the public-versus-protected distinction by sending real HTTP requests
-///     through the full ASP.NET Core pipeline.
-/// </summary>
 public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
 {
     private const string ValidToken = "valid-test-token";
@@ -19,23 +15,22 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     private readonly HttpClient _client;
     private readonly BankingAppWebFactory _factory;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="EndpointRoutingTests" /> class.
-    /// </summary>
-    /// <param name="factory">The shared web application factory.</param>
     public EndpointRoutingTests(BankingAppWebFactory factory)
     {
         _factory = factory;
         _client = factory.CreateClient();
 
-        // By default, configure the substitutes so that a valid token is accepted.
+        _factory.SenderMock.Reset();
+        _factory.JwtServiceMock.Reset();
+        _factory.IdentityRepositoryMock.Reset();
+
         factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId(ValidToken))
+            .Setup(service => service.ExtractUserId(ValidToken))
             .Returns(TestUserId);
 
-        factory.AuthRepositoryMock
-            .Setup(checksSession => checksSession.IsSessionActive(ValidToken))
-            .Returns(true);
+        factory.IdentityRepositoryMock
+            .Setup(repository => repository.GetBySessionTokenAsync(ValidToken, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateActiveIdentity(TestUserId, ValidToken));
     }
 
     [Theory]
@@ -51,18 +46,13 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         string method,
         string path)
     {
-        // Arrange
         var request = new HttpRequestMessage(new HttpMethod(method), path)
         {
             Content = JsonContent.Create(new { })
         };
 
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
-        // Assert
-        // The endpoint is reachable (middleware did not reject). We accept any
-        // status other than 401, because the empty body may cause a 400 or 500.
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
     }
@@ -83,13 +73,10 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         string method,
         string path)
     {
-        // Arrange
-        var request = new HttpRequestMessage(new HttpMethod(method), path);
+        HttpResponseMessage response = await _client.SendAsync(
+            new HttpRequestMessage(new HttpMethod(method), path),
+            TestContext.Current.CancellationToken);
 
-        // Act
-        HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
-
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
@@ -109,20 +96,16 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         string method,
         string path)
     {
-        // Arrange
         var request = new HttpRequestMessage(new HttpMethod(method), path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
-        // Provide minimal JSON body for endpoints that expect one.
         if (method is "POST" or "PUT")
         {
             request.Content = JsonContent.Create(new { });
         }
 
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
-        // Assert
         response.StatusCode.Should().NotBe(HttpStatusCode.Unauthorized);
         response.StatusCode.Should().NotBe(HttpStatusCode.NotFound);
     }
@@ -130,71 +113,66 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsInvalid_ShouldReturnUnauthorized()
     {
-        // Arrange
         const string invalidToken = "bad-token";
 
         _factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId(invalidToken))
+            .Setup(service => service.ExtractUserId(invalidToken))
             .Returns(Error.Unauthorized("Token.Invalid", "Token is invalid."));
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/dashboard");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", invalidToken);
 
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task SendAsync_WhenProtectedEndpointIsRequestedAndSessionIsExpired_ShouldReturnUnauthorized()
     {
-        // Arrange
         const string orphanToken = "orphan-token";
 
         _factory.JwtServiceMock
-            .Setup(extractsUserId => extractsUserId.ExtractUserId(orphanToken))
+            .Setup(service => service.ExtractUserId(orphanToken))
             .Returns(TestUserId);
 
-        _factory.AuthRepositoryMock
-            .Setup(checksSession => checksSession.IsSessionActive(orphanToken))
-            .Returns(Error.NotFound("Session.NotFound", "Session not found."));
+        _factory.IdentityRepositoryMock
+            .Setup(repository => repository.GetBySessionTokenAsync(orphanToken, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IdentityAccount?)null);
 
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/dashboard");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", orphanToken);
 
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task GetAsync_WhenRouteDoesNotExistAndTokenIsMissing_ShouldReturnUnauthorized()
     {
-        // Arrange
-        const string nonExistentProtectedRoute = "/api/does-not-exist";
+        HttpResponseMessage response = await _client.GetAsync(
+            "/api/does-not-exist",
+            TestContext.Current.CancellationToken);
 
-        // Act
-        HttpResponseMessage response = await _client.GetAsync(nonExistentProtectedRoute, TestContext.Current.CancellationToken);
-
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task SendAsync_WhenRouteDoesNotExistAndTokenIsValid_ShouldReturnNotFound()
     {
-        // Arrange
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/does-not-exist");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    private static IdentityAccount CreateActiveIdentity(int userId, string token)
+    {
+        IdentityAccount identity = IdentityAccount.Create(userId, null);
+        identity.OpenSession(token, DateTime.UtcNow.AddMinutes(5), DateTime.UtcNow);
+        return identity;
     }
 }

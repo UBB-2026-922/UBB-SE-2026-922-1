@@ -1,130 +1,51 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
+using BankingApp.Application.Features.Beneficiaries.Commands;
 using BankingApp.Application.Features.Beneficiaries.Dtos;
-using BankingApp.Application.Features.Beneficiaries.Services;
-using Domain.Aggregates.BeneficiaryAggregate;
-using Domain.Entities;
+using BankingApp.Application.Features.Beneficiaries.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
-///     Controller responsible for managing beneficiaries for the authenticated user.
+///     Manages the authenticated user's saved beneficiaries.
 /// </summary>
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class BeneficiariesController : ApiControllerBase
 {
-    private readonly IBeneficiaryService _beneficiaryService;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="BeneficiariesController" /> class.
-    /// </summary>
-    /// <param name="beneficiaryService">The beneficiary service.</param>
-    public BeneficiariesController(IBeneficiaryService beneficiaryService)
-    {
-        _beneficiaryService = beneficiaryService;
-    }
-
-    /// <summary>
-    ///     Gets all beneficiaries for the authenticated user.
-    /// </summary>
-    /// <returns>
-    ///     200 OK with the user's beneficiaries, or an error otherwise.
-    /// </returns>
     [HttpGet]
-    public IActionResult GetBeneficiaries()
+    public async Task<IActionResult> GetBeneficiaries(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-
-        return ToActionResult(
-            _beneficiaryService.GetByUserId(userId),
-            beneficiaries => Ok(beneficiaries.Select(MapToDto).ToList()));
+        return ToActionResult(await Sender.Send(new GetBeneficiariesQuery(userId), cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Gets a beneficiary by identifier.
-    /// </summary>
-    /// <param name="id">The beneficiary identifier.</param>
-    /// <returns>
-    ///     200 OK with the beneficiary when found, or an error otherwise.
-    /// </returns>
-    [HttpGet("{id:int}")]
-    public IActionResult GetBeneficiaryById(int id)
-    {
-        int userId = GetAuthenticatedUserId();
-
-        return ToActionResult(
-            _beneficiaryService.GetById(id, userId),
-            beneficiary => Ok(MapToDto(beneficiary)));
-    }
-
-    /// <summary>
-    ///     Creates a new beneficiary for the authenticated user.
-    /// </summary>
-    /// <param name="request">The beneficiary creation request.</param>
-    /// <returns>
-    ///     200 OK with the created beneficiary, or an error otherwise.
-    /// </returns>
     [HttpPost]
-    public IActionResult CreateBeneficiary([FromBody] CreateBeneficiaryRequest request)
+    public async Task<IActionResult> CreateBeneficiary(
+        [FromBody] CreateBeneficiaryRequest request,
+        CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-
-        return ToActionResult(
-            _beneficiaryService.Create(userId, request.Name, request.Iban, request.BankName),
-            beneficiary => Ok(MapToDto(beneficiary)));
+        var command = new CreateBeneficiaryCommand(userId, request.Name, request.Iban, request.BankName);
+        return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Updates an existing beneficiary.
-    /// </summary>
-    /// <param name="id">The beneficiary identifier from the route.</param>
-    /// <param name="request">The beneficiary update request.</param>
-    /// <returns>
-    ///     204 No Content on success, or an error otherwise.
-    /// </returns>
     [HttpPut("{id:int}")]
-    public IActionResult UpdateBeneficiary(int id, [FromBody] UpdateBeneficiaryRequest request)
+    public async Task<IActionResult> UpdateBeneficiary(
+        int id,
+        [FromBody] UpdateBeneficiaryRequest request,
+        CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-
-        var beneficiary = new Beneficiary
-        {
-            Id = id,
-            UserId = userId,
-            Name = request.Name,
-            Iban = request.Iban,
-            BankName = request.BankName,
-        };
-
-        return ToActionResult(_beneficiaryService.Update(beneficiary));
+        var command = new UpdateBeneficiaryCommand(userId, id, request.Name, request.Iban, request.BankName);
+        return ToActionResult(await Sender.Send(command, cancellationToken));
     }
 
-    /// <summary>
-    ///     Deletes a beneficiary by identifier.
-    /// </summary>
-    /// <param name="id">The beneficiary identifier.</param>
-    /// <returns>
-    ///     204 No Content on success, or an error otherwise.
-    /// </returns>
     [HttpDelete("{id:int}")]
-    public IActionResult DeleteBeneficiary(int id)
+    public async Task<IActionResult> DeleteBeneficiary(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_beneficiaryService.Delete(id, userId));
-    }
-
-    private static BeneficiaryDto MapToDto(Beneficiary beneficiary)
-    {
-        return new BeneficiaryDto
-        {
-            Id = beneficiary.Id,
-            Name = beneficiary.Name,
-            Iban = beneficiary.Iban,
-            BankName = beneficiary.BankName,
-            LastTransferDate = beneficiary.LastTransferDate,
-            TotalAmountSent = beneficiary.TotalAmountSent,
-            TransferCount = beneficiary.TransferCount,
-            CreatedAt = beneficiary.CreatedAt,
-        };
+        return ToActionResult(await Sender.Send(new DeleteBeneficiaryCommand(userId, id), cancellationToken));
     }
 }

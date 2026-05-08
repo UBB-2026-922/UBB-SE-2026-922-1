@@ -1,16 +1,13 @@
-// <copyright file="ProfileEndpointsTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 namespace BankingApp.Api.Tests.Integration;
 
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Infrastructure;
+using BankingApp.Api.Tests.Integration.Infrastructure;
+using BankingApp.Application.Features.UserProfile.Commands;
 using BankingApp.Application.Features.UserProfile.Dtos;
-using ErrorOr;
-using FluentAssertions;
+using BankingApp.Application.Features.UserProfile.Queries;
+using BankingApp.Domain.Aggregates.IdentityAggregate;
 
 public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
@@ -27,40 +24,36 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
         _client = factory.CreateClient();
         _cancellationToken = TestContext.Current.CancellationToken;
 
-        // Reset mocks before each test to ensure isolated state
-        _factory.UserProfileServiceMock.Invocations.Clear();
+        _factory.SenderMock.Reset();
+        _factory.JwtServiceMock.Reset();
+        _factory.IdentityRepositoryMock.Reset();
 
-        // Ensure the token validation and session are bypassed
         _factory.JwtServiceMock
             .Setup(jwtService => jwtService.ExtractUserId(ValidToken))
             .Returns(ValidUserId);
 
-        _factory.AuthRepositoryMock
-            .Setup(authRepository => authRepository.IsSessionActive(ValidToken))
-            .Returns(true);
+        _factory.IdentityRepositoryMock
+            .Setup(repository => repository.GetBySessionTokenAsync(ValidToken, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateActiveIdentity(ValidUserId, ValidToken));
     }
 
     [Fact]
     public async Task GetProfile_WhenUserExists_ShouldReturnOkWithProfileInfo()
     {
-        // Arrange
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<GetProfileQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ProfileDto
+            {
+                UserId = ValidUserId,
+                Email = "user@test.com",
+                FullName = "Test User"
+            });
+
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/profile");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
-        var expectedProfile = new ProfileDto
-        {
-            Email = "user@test.com",
-            FullName = "Test User",
-        };
-
-        _factory.UserProfileServiceMock
-            .Setup(profileService => profileService.GetProfile(ValidUserId))
-            .Returns(expectedProfile);
-
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         ProfileDto? result = await response.Content.ReadFromJsonAsync<ProfileDto>(_cancellationToken);
         result.Should().NotBeNull();
@@ -70,52 +63,47 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task UpdateProfile_WhenDataIsValid_ShouldReturnNoContent()
     {
-        // Arrange
-        var requestData = new UpdateProfileRequest
-        {
-            UserId = ValidUserId,
-            PhoneNumber = "1234567890",
-            Address = "123 Test St",
-        };
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<UpdateProfileCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
 
         var request = new HttpRequestMessage(HttpMethod.Put, "/api/profile");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
-        request.Content = JsonContent.Create(requestData);
+        request.Content = JsonContent.Create(new UpdateProfileRequest
+        {
+            PhoneNumber = "1234567890",
+            Address = "123 Test St"
+        });
 
-        _factory.UserProfileServiceMock
-            .Setup(profileService => profileService.UpdatePersonalInfo(
-                It.Is<UpdateProfileRequest>(updateProfileRequest => updateProfileRequest.UserId == ValidUserId)))
-            .Returns(Result.Success);
-
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task ChangePassword_WhenOldPasswordIsIncorrect_ShouldReturnBadRequest()
     {
-        // Arrange
-        var requestData = new ChangePasswordRequest
-        {
-            CurrentPassword = "wrong",
-            NewPassword = "newPassword1!",
-        };
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<ChangePasswordCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Error.Validation("Password.Mismatch", "Old password does not match."));
 
         var request = new HttpRequestMessage(HttpMethod.Put, "/api/profile/password");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
-        request.Content = JsonContent.Create(requestData);
+        request.Content = JsonContent.Create(new ChangePasswordRequest
+        {
+            CurrentPassword = "wrong",
+            NewPassword = "newPassword1!"
+        });
 
-        _factory.UserProfileServiceMock
-            .Setup(profileService => profileService.ChangePassword(It.IsAny<ChangePasswordRequest>()))
-            .Returns(Error.Validation("Password.Mismatch", "Old password does not match."));
-
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    private static IdentityAccount CreateActiveIdentity(int userId, string token)
+    {
+        IdentityAccount identity = IdentityAccount.Create(userId, null);
+        identity.OpenSession(token, DateTime.UtcNow.AddMinutes(5), DateTime.UtcNow);
+        return identity;
     }
 }

@@ -2,7 +2,7 @@ namespace BankingApp.Domain.Tests.Entities;
 
 using Aggregates.RateAlertAggregate;
 using Aggregates.RecurringPaymentAggregate;
-using BankingApp.Domain.Entities;
+using Aggregates.TransferAggregate;
 using Enums;
 using ErrorOr;
 

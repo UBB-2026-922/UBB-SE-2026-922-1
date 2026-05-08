@@ -1,39 +1,24 @@
+namespace BankingApp.Api.Tests.Integration.Infrastructure;
 
-using BankingApp.Application.Features.Beneficiaries.Services;
-using BankingApp.Application.Features.AccountOverview.Services;
-using BankingApp.Application.Features.Authentication.Services;
-using BankingApp.Application.Features.PasswordReset.Services;
-using BankingApp.Application.Features.UserProfile.Services;
-using BankingApp.Application.Features.UserRegistration.Services;
-using BankingApp.Application.Common.Security;
+using BankingApp.Api.HostedServices;
+using BankingApp.Application.Common.Contracts.Security;
+using BankingApp.Domain.Repositories;
+using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
-namespace BankingApp.Api.Tests.Integration.Infrastructure;
-
-/// <summary>
-///     A custom <see cref="WebApplicationFactory{TEntryPoint}" /> that:
-///     <list type="bullet">
-///         <item>Replaces all infrastructure services with Moq stubs.</item>
-///         <item>Runs the API in the Testing environment so startup does not apply database migrations.</item>
-///     </list>
-/// </summary>
 public class BankingAppWebFactory : WebApplicationFactory<Program>
 {
     private const string TestConnectionString =
         "Server=(localdb)\\MSSQLLocalDB;Database=BankingAppApiTests;Trusted_Connection=True;TrustServerCertificate=True;";
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="BankingAppWebFactory" /> class.
-    /// </summary>
     public BankingAppWebFactory()
     {
-        // These environment variables must be set before the host is built so that
-        // AddInfrastructure does not throw and Program.cs does not run migrations.
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Testing");
         Environment.SetEnvironmentVariable("Database__ApplyMigrations", "false");
@@ -42,51 +27,12 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Otp__Secret", "integration-test-otp-secret-placeholder");
     }
 
-    /// <summary>
-    ///     Gets the mock JWT service that controls token validation behavior.
-    /// </summary>
-    public Mock<IJsonWebTokenService> JwtServiceMock { get; } = MockFactory.CreateJwtService();
+    public Mock<ISender> SenderMock { get; } = new();
 
-    /// <summary>
-    ///     Gets the mock auth repository that controls session lookup behavior.
-    /// </summary>
-    public Mock<IAuthenticationRepository> AuthRepositoryMock { get; } = MockFactory.CreateAuthRepository();
+    public Mock<IJsonWebTokenService> JwtServiceMock { get; } = new();
 
-    /// <summary>
-    ///     Gets the mock login service.
-    /// </summary>
-    public Mock<ILoginService> LoginServiceMock { get; } = MockFactory.CreateLoginService();
+    public Mock<IIdentityRepository> IdentityRepositoryMock { get; } = new();
 
-    /// <summary>
-    ///     Gets the mock registration service.
-    /// </summary>
-    public Mock<IUserRegistrationService> UserRegistrationServiceMock { get; } = MockFactory.CreateUserRegistrationService();
-
-    /// <summary>
-    ///     Gets the mock password recovery service.
-    /// </summary>
-    public Mock<IPasswordResetService> PasswordResetServiceMock { get; } =
-        MockFactory.CreatePasswordResetService();
-
-    /// <summary>
-    ///     Gets the mock dashboard service.
-    /// </summary>
-    public Mock<IAccountOverviewService> AccountOverviewServiceMock { get; } = MockFactory.CreateAccountOverviewService();
-
-    /// <summary>
-    ///     Gets the mock profile service.
-    /// </summary>
-    public Mock<IUserProfileService> UserProfileServiceMock { get; } = MockFactory.CreateUserProfileService();
-
-    /// <summary>
-    ///     Gets the mock beneficiary service.
-    /// </summary>
-    public Mock<IBeneficiaryService> BeneficiaryServiceMock { get; } = MockFactory.CreateBeneficiaryService();
-
-    /// <summary>
-    ///     Configures the test server by replacing service-layer dependencies with Moq stubs.
-    /// </summary>
-    /// <param name="builder">The web host builder.</param>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseSetting(WebHostDefaults.ApplicationKey, typeof(Program).Assembly.GetName().Name);
@@ -99,30 +45,38 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
 
         builder.ConfigureTestServices(services =>
         {
-            // Ensure controllers from the API assembly are discovered
             services.AddControllers().AddApplicationPart(typeof(Program).Assembly);
 
-            // Remove real infrastructure registrations and replace with substitutes.
-            ReplaceService<IJsonWebTokenService>(services, JwtServiceMock.Object);
-            ReplaceService<IAuthenticationRepository>(services, AuthRepositoryMock.Object);
-            ReplaceService<ILoginService>(services, LoginServiceMock.Object);
-            ReplaceService<IUserRegistrationService>(services, UserRegistrationServiceMock.Object);
-            ReplaceService<IPasswordResetService>(services, PasswordResetServiceMock.Object);
-            ReplaceService<IAccountOverviewService>(services, AccountOverviewServiceMock.Object);
-            ReplaceService<IUserProfileService>(services, UserProfileServiceMock.Object);
-            ReplaceService<IBeneficiaryService>(services, BeneficiaryServiceMock.Object);
+            RemoveHostedService<FinanceBackgroundService>(services);
+            ReplaceService(services, SenderMock.Object);
+            ReplaceService(services, JwtServiceMock.Object);
+            ReplaceService(services, IdentityRepositoryMock.Object);
         });
     }
 
     private static void ReplaceService<TService>(IServiceCollection services, TService implementation)
         where TService : class
     {
-        var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
+        List<ServiceDescriptor> descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
         foreach (ServiceDescriptor descriptor in descriptors)
         {
             services.Remove(descriptor);
         }
 
         services.AddSingleton(_ => implementation);
+    }
+
+    private static void RemoveHostedService<THostedService>(IServiceCollection services)
+        where THostedService : class, IHostedService
+    {
+        List<ServiceDescriptor> descriptors = services
+            .Where(descriptor => descriptor.ServiceType == typeof(IHostedService) &&
+                                 descriptor.ImplementationType == typeof(THostedService))
+            .ToList();
+
+        foreach (ServiceDescriptor descriptor in descriptors)
+        {
+            services.Remove(descriptor);
+        }
     }
 }

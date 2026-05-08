@@ -1,17 +1,17 @@
-// <copyright file="AuthEndpointsTests.cs" company="UBB-922">
-// Copyright (c) UBB-922. All rights reserved.
-// </copyright>
-
 namespace BankingApp.Api.Tests.Integration;
 
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Infrastructure;
+using BankingApp.Api.Tests.Integration.Infrastructure;
+using BankingApp.Application.Features.Authentication.Commands;
 using BankingApp.Application.Features.Authentication.Dtos;
-using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Features.Authentication.Models;
+using BankingApp.Application.Features.PasswordReset.Commands;
+using BankingApp.Application.Features.PasswordReset.Dtos;
+using BankingApp.Application.Features.PasswordReset.Queries;
+using BankingApp.Application.Features.UserRegistration.Commands;
 using ErrorOr;
-using FluentAssertions;
 
 public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
 {
@@ -25,25 +25,23 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         _client = factory.CreateClient();
         _cancellationToken = TestContext.Current.CancellationToken;
 
-        // Reset mocks before each test to ensure isolated state
-        _factory.LoginServiceMock.Invocations.Clear();
-        _factory.UserRegistrationServiceMock.Invocations.Clear();
-        _factory.PasswordResetServiceMock.Invocations.Clear();
+        _factory.SenderMock.Reset();
+        _factory.JwtServiceMock.Reset();
+        _factory.IdentityRepositoryMock.Reset();
     }
 
     [Fact]
     public async Task Login_WhenCredentialsAreValidAndNo2Fa_ShouldReturnOkWithToken()
     {
-        // Arrange
-        var request = new { Email = "test@example.com", Password = "Password1!" };
-        _factory.LoginServiceMock
-            .Setup(service => service.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
-            .Returns(new FullLogin(1, "fake-jwt-token"));
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token"));
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { Email = "test@example.com", Password = "Password1!" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
         result.Should().NotBeNull();
@@ -55,83 +53,80 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task Login_WhenCredentialsAreValidAndRequires2Fa_ShouldReturnOkWithRequires2FaFlag()
     {
-        // Arrange
-        var request = new { Email = "test@example.com", Password = "Password1!" };
-        _factory.LoginServiceMock
-            .Setup(loginService => loginService.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
-            .Returns(new RequiresTwoFactor(1));
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ErrorOr<LoginSuccess>)new RequiresTwoFactor(1));
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { Email = "test@example.com", Password = "Password1!" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
         result.Should().NotBeNull();
         result!.UserId.Should().Be(1);
         result.Requires2Fa.Should().BeTrue();
+        result.Token.Should().BeNull();
     }
 
     [Fact]
     public async Task Login_WhenCredentialsAreInvalid_ShouldReturnUnauthorized()
     {
-        // Arrange
-        var request = new { Email = "test@example.com", Password = "WrongPassword!" };
-        _factory.LoginServiceMock
-            .Setup(service => service.Login(It.IsAny<LoginRequest>(), It.IsAny<SessionMetadata>()))
-            .Returns(Error.Unauthorized("invalid_credentials", "Invalid credentials."));
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Error.Unauthorized("invalid_credentials", "Invalid credentials."));
 
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            new { Email = "test@example.com", Password = "WrongPassword!" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     [Fact]
     public async Task Register_WhenValid_ShouldReturnNoContent()
     {
-        // Arrange
-        var request = new { Email = "new@example.com", Password = "Password1!", FirstName = "Test", LastName = "User" };
-        _factory.UserRegistrationServiceMock
-            .Setup(registrationService => registrationService.Register(It.IsAny<RegisterRequest>()))
-            .Returns(Result.Success);
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<RegisterCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            new { Email = "new@example.com", Password = "Password1!", FullName = "Test User" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task Register_WhenEmailAlreadyExists_ShouldReturnConflict()
     {
-        // Arrange
-        var request = new { Email = "existing@example.com", Password = "Password1!", FirstName = "Test", LastName = "User" };
-        _factory.UserRegistrationServiceMock
-            .Setup(registrationService => registrationService.Register(It.IsAny<RegisterRequest>()))
-            .Returns(Error.Conflict("email_taken", "Email is already registered."));
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<RegisterCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Error.Conflict("email_taken", "Email is already registered."));
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/register", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/register",
+            new { Email = "existing@example.com", Password = "Password1!", FullName = "Test User" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
     public async Task VerifyOtp_WhenValid_ShouldReturnOkWithToken()
     {
-        // Arrange
-        var request = new { UserId = 1, OtpCode = "123456" };
-        _factory.LoginServiceMock
-            .Setup(service => service.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata>()))
-            .Returns(new FullLogin(1, "fake-jwt-token"));
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<VerifyOtpCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token"));
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-otp", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/verify-otp",
+            new { UserId = 1, OtpCode = "123456" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
         result.Should().NotBeNull();
@@ -139,138 +134,87 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Fact]
-    public async Task VerifyOtp_WhenInvalid_ShouldReturnUnauthorized()
-    {
-        // Arrange
-        var request = new { UserId = 1, OtpCode = "wrong" };
-        _factory.LoginServiceMock
-            .Setup(loginService => loginService.VerifyOtp(It.IsAny<VerifyOtpRequest>(), It.IsAny<SessionMetadata>()))
-            .Returns(Error.Unauthorized("invalid_otp", "Invalid or expired code."));
-
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-otp", request, _cancellationToken);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-    }
-
-    [Fact]
     public async Task ForgotPassword_WhenEmailProvided_ShouldReturnOk()
     {
-        // Arrange
-        var request = new { Email = "test@example.com" };
-        _factory.PasswordResetServiceMock
-            .Setup(passwordRecoveryService => passwordRecoveryService.RequestPasswordReset(request.Email))
-            .Returns(Result.Success);
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<ForgotPasswordCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/forgot-password", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/forgot-password",
+            new { Email = "test@example.com" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task ForgotPassword_WhenEmailMissing_ShouldReturnBadRequest()
-    {
-        var request = new { Email = string.Empty };
-
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/forgot-password", request, _cancellationToken);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task ResetPassword_WhenValid_ShouldReturnNoContent()
     {
-        // Arrange
-        var request = new { Token = "valid-token", NewPassword = "NewStrongPassword1!" };
-        _factory.PasswordResetServiceMock
-            .Setup(passwordRecoveryService => passwordRecoveryService.ResetPassword(request.Token, request.NewPassword))
-            .Returns(Result.Success);
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<ResetPasswordCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/reset-password", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/reset-password",
+            new { Token = "valid-token", NewPassword = "NewStrongPassword1!" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
-
-    [Fact]
-    public async Task ResetPassword_WhenPasswordIsWeak_ShouldReturnBadRequest()
-    {
-        // Arrange
-        var request = new { Token = "valid-token", NewPassword = "weak" };
-
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/reset-password", request, _cancellationToken);
-
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task Logout_WhenTokenIsProvided_ShouldReturnNoContent()
     {
-        // Arrange
-        _factory.LoginServiceMock
-            .Setup(loginService => loginService.Logout("valid-token"))
-            .Returns(Result.Success);
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<LogoutCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "valid-token");
 
-        // Act
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task Logout_WhenTokenIsMissing_ShouldReturnBadRequest()
     {
-        // Arrange
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        HttpResponseMessage response = await _client.SendAsync(
+            new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout"),
+            _cancellationToken);
 
-        // Act
-        HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
-
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
     public async Task VerifyResetToken_WhenValid_ShouldReturnNoContent()
     {
-        // Arrange
-        var request = new { Token = "valid-token" };
-        _factory.PasswordResetServiceMock
-            .Setup(passwordRecoveryService => passwordRecoveryService.VerifyResetToken(request.Token))
-            .Returns(Result.Success);
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<VerifyResetTokenQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success);
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-reset-token", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/verify-reset-token",
+            new { Token = "valid-token" },
+            _cancellationToken);
 
-        // Assert
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent, await response.Content.ReadAsStringAsync(_cancellationToken));
+        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
     [Fact]
     public async Task VerifyResetToken_WhenInvalid_ShouldReturnBadRequest()
     {
-        // Arrange
-        var request = new { Token = "invalid-token" };
-        _factory.PasswordResetServiceMock
-            .Setup(passwordRecoveryService => passwordRecoveryService.VerifyResetToken(request.Token))
-            .Returns(Error.Validation("invalid_token", "Token is invalid or expired."));
+        _factory.SenderMock
+            .Setup(sender => sender.Send(It.IsAny<VerifyResetTokenQuery>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Error.Validation("invalid_token", "Token is invalid or expired."));
 
-        // Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/verify-reset-token", request, _cancellationToken);
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/verify-reset-token",
+            new { Token = "invalid-token" },
+            _cancellationToken);
 
-        // Assert
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }

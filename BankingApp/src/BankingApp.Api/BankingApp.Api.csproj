@@ -4,6 +4,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
         <UserSecretsId>6321c0d0-8c18-47df-b537-61e283ac2339</UserSecretsId>
         <RootNamespace>BankingApp.Api</RootNamespace>
     </PropertyGroup>
@@ -25,17 +26,5 @@
     <ItemGroup>
       <Folder Include="Common\Mappers\" />
       <Folder Include="DependencyInjection\" />
-      <Folder Include="_Features\AccountOverview\" />
-      <Folder Include="_Features\Authentication\" />
-      <Folder Include="_Features\Beneficiaries\" />
-      <Folder Include="_Features\Billers\" />
-      <Folder Include="_Features\BillPayments\" />
-      <Folder Include="_Features\ForexRateAlerts\" />
-      <Folder Include="_Features\Forex\" />
-      <Folder Include="_Features\PasswordReset\" />
-      <Folder Include="_Features\RecurringPayments\" />
-      <Folder Include="_Features\Transfers\" />
-      <Folder Include="_Features\UserProfile\" />
-      <Folder Include="_Features\UserRegistration\" />
     </ItemGroup>
 </Project>
