@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.BillPayments.Dtos;
-using BankingApp.Application.Features.Billers.Dtos;
-using BankingApp.Application.Features.RecurringPayments.Dtos;
+using Application.Features.BillPayments.Dtos;
+using Application.Features.Billers.Dtos;
+using Application.Features.RecurringPayments.Dtos;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 

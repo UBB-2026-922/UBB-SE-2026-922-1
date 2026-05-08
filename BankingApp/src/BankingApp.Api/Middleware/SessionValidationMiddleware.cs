@@ -1,8 +1,8 @@
 namespace BankingApp.Api.Middleware;
 
-using BankingApp.Application.Features.Authentication.Repositories;
-using BankingApp.Application.Common.Security;
-using BankingApp.Api.Logging;
+using Application.Features.Authentication.Repositories;
+using Application.Common.Security;
+using Logging;
 using ErrorOr;
 using System.Globalization;
 
