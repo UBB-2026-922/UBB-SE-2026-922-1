@@ -1,79 +1,43 @@
 namespace BankingApp.Api.Controllers;
 
+using BankingApp.Application.Features.Billers.Commands;
 using BankingApp.Application.Features.Billers.Dtos;
-using BankingApp.Application.Features.Billers.Services;
+using BankingApp.Application.Features.Billers.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-///     Controller for biller directory lookup and saved-biller CRUD.
-///     All endpoints are accessible under the /api/billers route.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class BillersController : ApiControllerBase
 {
-    private readonly IBillerService _billerService;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="BillersController" /> class.
-    /// </summary>
-    /// <param name="billerService">The biller service.</param>
-    public BillersController(IBillerService billerService)
-    {
-        _billerService = billerService;
-    }
-
-    /// <summary>
-    ///     Returns the full active biller directory, or filters results by name and/or category.
-    /// </summary>
-    /// <param name="search">Optional name search term.</param>
-    /// <param name="category">Optional category filter.</param>
-    /// <returns>200 OK with the list of billers.</returns>
     [HttpGet]
-    public IActionResult GetBillers([FromQuery] string? search, [FromQuery] string? category)
+    public async Task<IActionResult> GetBillers(CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrWhiteSpace(search) || !string.IsNullOrWhiteSpace(category))
-        {
-            return ToActionResult(_billerService.SearchBillers(search ?? string.Empty, category), Ok);
-        }
-
-        return ToActionResult(_billerService.GetBillerDirectory(), Ok);
+        return ToActionResult(await Sender.Send(new GetBillersQuery(), cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Returns the billers saved by the currently authenticated user.
-    /// </summary>
-    /// <returns>200 OK with the list of saved billers.</returns>
     [HttpGet("saved")]
-    public IActionResult GetSavedBillers()
+    public async Task<IActionResult> GetSavedBillers(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_billerService.GetSavedBillers(userId), Ok);
+        return ToActionResult(await Sender.Send(new GetSavedBillersQuery(userId), cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Saves a biller for the currently authenticated user.
-    /// </summary>
-    /// <param name="request">The save request.</param>
-    /// <returns>201 Created with the saved biller DTO.</returns>
     [HttpPost("saved")]
-    public IActionResult SaveBiller([FromBody] SaveBillerRequest request)
+    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
+        var command = new SaveBillerCommand(userId, request.BillerId, request.Nickname, request.DefaultReference);
         return ToActionResult(
-            _billerService.SaveBiller(userId, request),
+            await Sender.Send(command, cancellationToken),
             data => CreatedAtAction(nameof(GetSavedBillers), data));
     }
 
-    /// <summary>
-    ///     Removes a saved biller for the currently authenticated user.
-    /// </summary>
-    /// <param name="id">The saved biller entry identifier.</param>
-    /// <returns>204 No Content on success.</returns>
     [HttpDelete("saved/{id:int}")]
-    public IActionResult RemoveSavedBiller(int id)
+    public async Task<IActionResult> RemoveSavedBiller(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_billerService.RemoveSavedBiller(userId, id));
+        return ToActionResult(await Sender.Send(new DeleteSavedBillerCommand(userId, id), cancellationToken));
     }
 }

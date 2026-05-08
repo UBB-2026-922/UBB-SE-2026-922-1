@@ -43,6 +43,43 @@ public sealed class IdentityAccount : AggregateRoot<int>
 
     public bool IsCurrentlyLocked() => IsLocked && LockoutEnd.HasValue && LockoutEnd.Value > DateTime.UtcNow;
 
+    public void IncrementFailedAttempts() => FailedLoginAttempts++;
+
+    public void LockAccount(DateTime lockoutEnd)
+    {
+        IsLocked = true;
+        LockoutEnd = lockoutEnd;
+    }
+
+    public void ResetFailedAttempts()
+    {
+        FailedLoginAttempts = 0;
+        IsLocked = false;
+        LockoutEnd = null;
+    }
+
+    public void UpdatePassword(HashedPassword hash) => PasswordHash = hash;
+
+    public bool TryRevokeSession(int sessionId)
+    {
+        Session? session = _sessions.FirstOrDefault(s => s.Id == sessionId);
+        if (session is null)
+        {
+            return false;
+        }
+
+        session.Revoke();
+        return true;
+    }
+
+    public void InvalidateAllSessions()
+    {
+        foreach (Session session in _sessions.Where(s => !s.IsRevoked))
+        {
+            session.Revoke();
+        }
+    }
+
     public void Enable2Fa(TwoFactorMethod method)
     {
         Is2FaEnabled = true;

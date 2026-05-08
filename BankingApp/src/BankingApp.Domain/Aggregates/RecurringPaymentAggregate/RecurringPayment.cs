@@ -108,4 +108,15 @@ public sealed class RecurringPayment : AggregateRoot<int>
 
         NextExecutionDate = nextExecutionDate;
     }
+
+    public ErrorOr<Success> Cancel(int userId)
+    {
+        if (userId != UserId)
+        {
+            return RecurringPaymentErrors.Forbidden;
+        }
+
+        Status = RecurringPaymentStatus.Cancelled;
+        return Result.Success;
+    }
 }

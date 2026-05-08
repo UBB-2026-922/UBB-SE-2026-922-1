@@ -42,4 +42,12 @@ public static class AuthErrors
     /// <summary>An account with the given email address already exists.</summary>
     public static readonly Error EmailAlreadyRegistered =
         Error.Conflict("email_registered", "Email is already registered.");
+
+    /// <summary>The session token was not found or has already been revoked.</summary>
+    public static readonly Error SessionNotFound =
+        Error.NotFound("session_not_found", "Session not found.");
+
+    /// <summary>The requested 2FA method does not match the configured method for the user.</summary>
+    public static readonly Error InvalidTwoFactorMethod =
+        Error.Validation("invalid_2fa_method", "The requested 2FA method is not available for this user.");
 }

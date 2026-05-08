@@ -1,7 +1,9 @@
 namespace BankingApp.Domain.Aggregates.ForexAggregate;
 
+using Common.Errors;
 using Common.Primitives;
 using Enums;
+using ErrorOr;
 using Money = NodaMoney.Money;
 
 public sealed class ForexTransaction : AggregateRoot<int>
@@ -34,7 +36,7 @@ public sealed class ForexTransaction : AggregateRoot<int>
 
     public DateTime CreatedAt { get; private set; }
 
-    public static ForexTransaction Create(
+    public static ErrorOr<ForexTransaction> Create(
         int userId,
         int sourceAccountId,
         int targetAccountId,
@@ -44,6 +46,31 @@ public sealed class ForexTransaction : AggregateRoot<int>
         Money commission,
         DateTime createdAt)
     {
+        if (sourceAmount.Amount <= 0 || targetAmount.Amount <= 0)
+        {
+            return ForexErrors.InvalidAmount;
+        }
+
+        if (sourceAmount.Currency == targetAmount.Currency)
+        {
+            return ForexErrors.SameCurrency;
+        }
+
+        if (exchangeRate <= 0)
+        {
+            return ForexErrors.InvalidRate;
+        }
+
+        if (commission.Amount < 0)
+        {
+            return ForexErrors.InvalidCommission;
+        }
+
+        if (commission.Currency != sourceAmount.Currency)
+        {
+            return AccountErrors.CurrencyMismatch;
+        }
+
         return new ForexTransaction
         {
             UserId = userId,

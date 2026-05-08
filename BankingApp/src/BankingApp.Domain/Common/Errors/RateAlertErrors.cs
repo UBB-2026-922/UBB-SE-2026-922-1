@@ -22,4 +22,8 @@ public static class RateAlertErrors
     /// <summary>The target rate must be positive.</summary>
     public static readonly Error InvalidTargetRate =
         Error.Validation("rate_alert.invalid_target_rate", "Target rate must be greater than zero.");
+
+    /// <summary>The rate alert was not found.</summary>
+    public static readonly Error NotFound =
+        Error.NotFound("rate_alert.not_found", "Rate alert was not found.");
 }

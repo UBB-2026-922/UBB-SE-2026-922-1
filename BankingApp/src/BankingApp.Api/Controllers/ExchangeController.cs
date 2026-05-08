@@ -1,124 +1,46 @@
-﻿namespace BankingApp.Api.Controllers;
+namespace BankingApp.Api.Controllers;
 
+using BankingApp.Application.Features.Forex.Commands;
 using BankingApp.Application.Features.Forex.Dtos;
-using BankingApp.Application.Features.BillPayments.Repositories;
-using BankingApp.Application.Features.Forex.Services;
-using Domain.Aggregates.ForexAggregate;
-using Domain.Entities;
-using ErrorOr;
+using BankingApp.Application.Features.Forex.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-///     Controller for exchange previews, execution, and history.
-/// </summary>
+[ApiController]
 [Authorize]
 [Route("api/exchange")]
 public class ExchangeController : ApiControllerBase
 {
-    private readonly IBillPaymentRepository _billPaymentRepository;
-    private readonly IForexService _exchangeService;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="ExchangeController" /> class.
-    /// </summary>
-    /// <param name="exchangeService">The exchange application service.</param>
-    /// <param name="billPaymentRepository">The repository used to infer source and target accounts.</param>
-    public ExchangeController(IForexService exchangeService, IBillPaymentRepository billPaymentRepository)
-    {
-        _exchangeService = exchangeService;
-        _billPaymentRepository = billPaymentRepository;
-    }
-
-    /// <summary>
-    ///     Returns a preview for the requested currency pair and amount and locks the rate for the user.
-    /// </summary>
-    /// <param name="sourceCurrency">The source currency code.</param>
-    /// <param name="targetCurrency">The target currency code.</param>
-    /// <param name="amount">The amount to convert.</param>
-    /// <returns>The preview DTO.</returns>
     [HttpGet("preview")]
-    public IActionResult GetPreview(
+    public async Task<IActionResult> GetPreview(
         [FromQuery] string sourceCurrency,
         [FromQuery] string targetCurrency,
-        [FromQuery] decimal amount)
+        [FromQuery] decimal amount,
+        CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<ForexTransactionResponse> result =
-            _exchangeService.GetRatePreview(sourceCurrency, targetCurrency, amount);
-        if (result.IsError)
-        {
-            return MapError(result.FirstError);
-        }
-
-        ErrorOr<LockedRate> lockResult = _exchangeService.LockRate(userId, sourceCurrency, targetCurrency);
-        if (lockResult.IsError)
-        {
-            return MapError(lockResult.FirstError);
-        }
-
-        return Ok(result.Value);
+        var query = new GetRatePreviewQuery(userId, sourceCurrency, targetCurrency, amount);
+        return ToActionResult(await Sender.Send(query, cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Executes a currency exchange for the authenticated user.
-    /// </summary>
-    /// <param name="request">The exchange request.</param>
-    /// <returns>The completed exchange DTO.</returns>
     [HttpPost("execute")]
-    public async Task<IActionResult> Execute([FromBody] ForexTransactionRequest request)
+    public async Task<IActionResult> Execute([FromBody] ForexTransactionRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        request.UserId = userId;
-
-        if (request.SourceAccountId <= 0 || request.TargetAccountId <= 0)
-        {
-            var accounts = (await _billPaymentRepository.GetAccountsByUserIdAsync(userId)).ToList();
-            request.SourceAccountId = request.SourceAccountId > 0
-                ? request.SourceAccountId
-                : accounts.FirstOrDefault(account =>
-                          string.Equals(account.Currency, request.SourceCurrency, StringComparison.OrdinalIgnoreCase))
-                      ?.Id ??
-                  0;
-            request.TargetAccountId = request.TargetAccountId > 0
-                ? request.TargetAccountId
-                : accounts.FirstOrDefault(account =>
-                          string.Equals(account.Currency, request.TargetCurrency, StringComparison.OrdinalIgnoreCase))
-                      ?.Id ??
-                  0;
-        }
-
-        if (request.SourceAccountId > 0 || request.TargetAccountId > 0)
-        {
-            var accounts = (await _billPaymentRepository.GetAccountsByUserIdAsync(userId)).ToList();
-            bool hasSourceAccount = accounts.Any(account => account.Id == request.SourceAccountId);
-            bool hasTargetAccount = accounts.Any(account => account.Id == request.TargetAccountId);
-            if (!hasSourceAccount || !hasTargetAccount)
-            {
-                return NotFound(new
-                    { error = "The selected exchange accounts do not belong to the authenticated user.", });
-            }
-        }
-
-        if (request.SourceAccountId <= 0 || request.TargetAccountId <= 0)
-        {
-            return NotFound(new
-                { error = "Matching source and target accounts were not found for the requested currencies.", });
-        }
-
-        ErrorOr<ForexTransactionResponse> result = _exchangeService.ExecuteExchange(request);
-        return ToActionResult(result, Ok);
+        var command = new ExecuteForexCommand(
+            userId,
+            request.SourceAccountId,
+            request.TargetAccountId,
+            request.SourceCurrency,
+            request.TargetCurrency,
+            request.SourceAmount);
+        return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Returns the exchange history for the authenticated user.
-    /// </summary>
-    /// <returns>The user's exchange history.</returns>
     [HttpGet("history")]
-    public IActionResult GetHistory()
+    public async Task<IActionResult> GetHistory(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<List<ForexTransactionResponse>> result = _exchangeService.GetExchangeHistory(userId);
-        return ToActionResult(result, Ok);
+        return ToActionResult(await Sender.Send(new GetForexHistoryQuery(userId), cancellationToken), Ok);
     }
 }

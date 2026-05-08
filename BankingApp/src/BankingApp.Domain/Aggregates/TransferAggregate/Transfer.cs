@@ -1,7 +1,9 @@
 namespace BankingApp.Domain.Aggregates.TransferAggregate;
 
+using Common.Errors;
 using Common.Primitives;
 using Enums;
+using ErrorOr;
 using ValueObjects;
 using Money = NodaMoney.Money;
 
@@ -41,7 +43,9 @@ public sealed class Transfer : AggregateRoot<int>
 
     public DateTime CreatedAt { get; private set; }
 
-    public static Transfer Create(
+    public Money TotalDebit => Amount + Fee;
+
+    public static ErrorOr<Transfer> Create(
         int userId,
         int sourceAccountId,
         string recipientName,
@@ -51,15 +55,35 @@ public sealed class Transfer : AggregateRoot<int>
         string? reference,
         DateTime createdAt)
     {
+        if (string.IsNullOrWhiteSpace(recipientName))
+        {
+            return TransferErrors.InvalidRecipientName;
+        }
+
+        if (amount.Amount <= 0)
+        {
+            return TransferErrors.InvalidAmount;
+        }
+
+        if (fee.Amount < 0)
+        {
+            return TransferErrors.InvalidFee;
+        }
+
+        if (amount.Currency != fee.Currency)
+        {
+            return TransferErrors.CurrencyMismatch;
+        }
+
         return new Transfer
         {
             UserId = userId,
             SourceAccountId = sourceAccountId,
-            RecipientName = recipientName,
+            RecipientName = recipientName.Trim(),
             RecipientIban = recipientIban,
             Amount = amount,
             Fee = fee,
-            Reference = reference,
+            Reference = string.IsNullOrWhiteSpace(reference) ? null : reference.Trim(),
             Status = TransferStatus.Pending,
             CreatedAt = createdAt
         };

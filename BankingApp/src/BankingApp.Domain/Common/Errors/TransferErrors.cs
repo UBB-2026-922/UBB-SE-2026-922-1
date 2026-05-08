@@ -50,4 +50,13 @@ public static class TransferErrors
     /// <summary>The account debit operation failed.</summary>
     public static readonly Error DebitFailed =
         Error.Failure("transfer.debit_failed", "Failed to debit the source account.");
+
+    public static readonly Error CurrencyMismatch =
+        Error.Validation("transfer.currency_mismatch", "Transfer currency must match the source account currency.");
+
+    public static readonly Error InvalidRecipientName =
+        Error.Validation("transfer.invalid_recipient_name", "Recipient name is required.");
+
+    public static readonly Error InvalidFee =
+        Error.Validation("transfer.invalid_fee", "Transfer fee cannot be negative.");
 }

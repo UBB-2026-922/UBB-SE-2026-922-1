@@ -8,6 +8,8 @@ using Money = NodaMoney.Money;
 
 public sealed class BillPayment : AggregateRoot<int>
 {
+    private const decimal TwoFaAmountThreshold = 1000m;
+
     private BillPayment()
     {
     }
@@ -32,6 +34,8 @@ public sealed class BillPayment : AggregateRoot<int>
 
     public DateTime CreatedAt { get; private set; }
 
+    public Money TotalDebit => Amount + Fee;
+
     public static ErrorOr<BillPayment> Create(
         int userId,
         int sourceAccountId,
@@ -46,18 +50,35 @@ public sealed class BillPayment : AggregateRoot<int>
             return BillPaymentErrors.InvalidAmount;
         }
 
+        if (fee.Amount < 0)
+        {
+            return BillPaymentErrors.InvalidFee;
+        }
+
+        if (amount.Currency != fee.Currency)
+        {
+            return AccountErrors.CurrencyMismatch;
+        }
+
+        if (string.IsNullOrWhiteSpace(billerReference))
+        {
+            return BillPaymentErrors.InvalidReference;
+        }
+
         return new BillPayment
         {
             UserId = userId,
             SourceAccountId = sourceAccountId,
             BillerId = billerId,
-            BillerReference = billerReference,
+            BillerReference = billerReference.Trim(),
             Amount = amount,
             Fee = fee,
             Status = BillPaymentStatus.Pending,
             CreatedAt = createdAt
         };
     }
+
+    public static bool RequiresTwoFactorAuthentication(Money amount) => amount.Amount >= TwoFaAmountThreshold;
 
     public void MarkProcessed(string receiptNumber, int? ledgerTransactionId)
     {

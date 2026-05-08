@@ -11,6 +11,11 @@ public class BeneficiaryDto
     public int Id { get; set; }
 
     /// <summary>
+    ///     Gets or sets the user identifier who owns this beneficiary.
+    /// </summary>
+    public int UserId { get; set; }
+
+    /// <summary>
     ///     Gets or sets the beneficiary name.
     /// </summary>
     public string? Name { get; set; }

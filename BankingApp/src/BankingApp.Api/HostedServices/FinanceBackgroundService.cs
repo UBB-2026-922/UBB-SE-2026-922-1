@@ -1,16 +1,17 @@
-﻿namespace BankingApp.Api.HostedServices;
+namespace BankingApp.Api.HostedServices;
 
-using Application.Features.RecurringPayments.Services;
-using Application.Features.ForexRateAlerts.Services;
-using Logging;
+using Application.Features.ForexRateAlerts.Commands;
+using Application.Features.RecurringPayments.Commands;
 using ErrorOr;
+using Logging;
+using MediatR;
 
 /// <summary>
 ///     Periodically processes due recurring payments and pending rate alerts.
 /// </summary>
 public class FinanceBackgroundService : BackgroundService
 {
-    private static readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(30);
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<FinanceBackgroundService> _logger;
@@ -34,18 +35,15 @@ public class FinanceBackgroundService : BackgroundService
             try
             {
                 using IServiceScope scope = _serviceProvider.CreateScope();
-                IRecurringPaymentProcessingService recurringPaymentProcessingService =
-                    scope.ServiceProvider.GetRequiredService<IRecurringPaymentProcessingService>();
-                IForexRateAlertService rateAlertService = scope.ServiceProvider.GetRequiredService<IForexRateAlertService>();
+                ISender sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
-                ErrorOr<Success> recurringResult =
-                    await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
+                ErrorOr<int> recurringResult = await sender.Send(new ProcessDueRecurringPaymentsCommand(), stoppingToken);
                 if (recurringResult.IsError)
                 {
                     _logger.RecurringPaymentProcessingFailed(recurringResult.FirstError.Description);
                 }
 
-                ErrorOr<int> rateAlertResult = rateAlertService.ProcessAlerts();
+                ErrorOr<int> rateAlertResult = await sender.Send(new ProcessRateAlertsCommand(), stoppingToken);
                 if (rateAlertResult.IsError)
                 {
                     _logger.RateAlertProcessingFailed(rateAlertResult.FirstError.Description);
@@ -56,7 +54,7 @@ public class FinanceBackgroundService : BackgroundService
                 _logger.BackgroundFinanceProcessingFailed(exception);
             }
 
-            await Task.Delay(_pollInterval, stoppingToken);
+            await Task.Delay(PollInterval, stoppingToken);
         }
     }
 }

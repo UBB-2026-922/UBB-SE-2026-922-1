@@ -1,4 +1,4 @@
-namespace BankingApp.Api.Controllers;
+﻿namespace BankingApp.Api.Controllers;
 
 using BankingApp.Application.Common.Dtos;
 using BankingApp.Application.Features.Authentication.Dtos;
@@ -136,7 +136,7 @@ public class AuthController : ApiControllerBase
             return BadRequest(new ApplicationErrorResponse { Error = "Token and new password are required." });
         }
 
-        if (!ValidationUtilities.IsStrongPassword(request.NewPassword))
+        if (!InputRules.IsStrongPassword(request.NewPassword))
         {
             return BadRequest(
                 new ApplicationErrorResponse

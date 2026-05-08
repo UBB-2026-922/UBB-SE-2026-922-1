@@ -37,6 +37,13 @@ public sealed class Beneficiary : AggregateRoot<int>
         };
     }
 
+    public void Update(string name, Iban iban, string? bankName)
+    {
+        Name = name;
+        Iban = iban;
+        BankName = bankName;
+    }
+
     public void RegisterTransfer(decimal amount, DateTime transferredAt)
     {
         LastTransferDate = transferredAt;

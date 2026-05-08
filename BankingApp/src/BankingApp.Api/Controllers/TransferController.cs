@@ -1,117 +1,76 @@
 namespace BankingApp.Api.Controllers;
 
+using BankingApp.Application.Features.Transfers.Commands;
 using BankingApp.Application.Features.Transfers.Dtos;
-using BankingApp.Application.Features.Transfers.Services;
+using BankingApp.Application.Features.Transfers.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-///     Controller responsible for handling transfer-related operations.
-///     All endpoints are accessible under the /api/transfer route.
-/// </summary>
 [ApiController]
 [Authorize]
 [Route("api/transfers")]
 [Route("api/transfer")]
 public class TransferController : ApiControllerBase
 {
-    private readonly ITransferService _transferService;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="TransferController" /> class.
-    /// </summary>
-    /// <param name="transferService">The transfer service used to handle business logic.</param>
-    public TransferController(ITransferService transferService)
-    {
-        _transferService = transferService;
-    }
-
-    /// <summary>
-    ///     Creates a new transfer for the currently authenticated user.
-    /// </summary>
-    /// <param name="request">The transfer creation request.</param>
-    /// <returns>
-    ///     201 Created with a <see cref="TransferResponse" /> on success,
-    ///     or an error response if validation, authorization, or persistence fails.
-    /// </returns>
     [HttpPost]
-    public IActionResult CreateTransfer([FromBody] CreateTransferRequest request)
+    public async Task<IActionResult> CreateTransfer([FromBody] CreateTransferRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
+        var command = new ExecuteTransferCommand(
+            userId,
+            request.SourceAccountId,
+            request.RecipientName,
+            request.RecipientIban,
+            request.Amount,
+            request.Currency,
+            request.Reference,
+            request.TwoFaToken);
         return ToActionResult(
-            _transferService.CreateTransfer(request, userId),
+            await Sender.Send(command, cancellationToken),
             transfer => CreatedAtAction(nameof(GetHistory), new { }, transfer));
     }
 
-    /// <summary>
-    ///     Creates a new transfer for the authenticated user using the desktop transfer wizard contract.
-    /// </summary>
-    /// <param name="request">The transfer execution request.</param>
-    /// <returns>A compact response containing the transaction reference.</returns>
     [HttpPost("execute")]
-    public IActionResult ExecuteTransfer([FromBody] CreateTransferRequest request)
+    public async Task<IActionResult> ExecuteTransfer([FromBody] CreateTransferRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
+        var command = new ExecuteTransferCommand(
+            userId,
+            request.SourceAccountId,
+            request.RecipientName,
+            request.RecipientIban,
+            request.Amount,
+            request.Currency,
+            request.Reference,
+            request.TwoFaToken);
         return ToActionResult(
-            _transferService.CreateTransfer(request, userId),
-            transfer => Ok(new TransferExecutionResponse
-            {
-                TransactionRef = transfer.TransactionRef ?? string.Empty,
-            }));
+            await Sender.Send(command, cancellationToken),
+            transfer => Ok(new TransferExecutionResponse { TransactionRef = transfer.TransactionRef ?? string.Empty }));
     }
 
-    /// <summary>
-    ///     Retrieves the transfer history for the currently authenticated user.
-    /// </summary>
-    /// <returns>
-    ///     200 OK with a list of <see cref="TransferResponse" /> on success,
-    ///     or an error response if the operation fails.
-    /// </returns>
     [HttpGet]
-    public IActionResult GetHistory()
+    public async Task<IActionResult> GetHistory(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(
-            _transferService.GetHistory(userId), Ok);
+        return ToActionResult(await Sender.Send(new GetTransferHistoryQuery(userId), cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Returns transfer-ready accounts for the authenticated user.
-    /// </summary>
-    /// <returns>The available source accounts.</returns>
     [HttpGet("accounts")]
-    public IActionResult GetAccounts()
+    public async Task<IActionResult> GetAccounts(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(
-            _transferService.GetAvailableAccounts(userId),
-            Ok);
+        return ToActionResult(await Sender.Send(new GetTransferAccountsQuery(userId), cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Validates a recipient IBAN and infers the bank name when possible.
-    /// </summary>
-    /// <param name="request">The IBAN validation request.</param>
-    /// <returns>The validation result.</returns>
     [HttpPost("validate-iban")]
-    public IActionResult ValidateIban([FromBody] TransferIbanValidationRequest request)
+    public async Task<IActionResult> ValidateIban([FromBody] TransferIbanValidationRequest request, CancellationToken cancellationToken)
     {
-        return ToActionResult(
-            _transferService.ValidateRecipientIban(request.Iban),
-            Ok);
+        return ToActionResult(await Sender.Send(new ValidateIbanQuery(request.Iban), cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Returns an FX preview for a transfer amount and currency pair.
-    /// </summary>
-    /// <param name="from">The source currency code.</param>
-    /// <param name="to">The target currency code.</param>
-    /// <param name="amount">The amount to convert.</param>
-    /// <returns>The FX preview result.</returns>
     [HttpGet("fx-preview")]
-    public IActionResult GetFxPreview([FromQuery] string from, [FromQuery] string to, [FromQuery] decimal amount)
+    public async Task<IActionResult> GetFxPreview([FromQuery] string from, [FromQuery] string to, [FromQuery] decimal amount, CancellationToken cancellationToken)
     {
-        return ToActionResult(
-            _transferService.GetFxPreview(from, to, amount), Ok);
+        return ToActionResult(await Sender.Send(new GetFxPreviewQuery(from, to, amount), cancellationToken), Ok);
     }
 }

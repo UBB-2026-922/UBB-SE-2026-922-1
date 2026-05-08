@@ -21,6 +21,10 @@ public static class RecurringPaymentErrors
             "recurring_payment.forbidden",
             "You do not have permission to modify this recurring payment.");
 
+    /// <summary>The recurring payment was not found.</summary>
+    public static readonly Error NotFound =
+        Error.NotFound("recurring_payment.not_found", "Recurring payment was not found.");
+
     /// <summary>Only paused recurring payments can be resumed.</summary>
     public static readonly Error ResumeConflict =
         Error.Conflict(

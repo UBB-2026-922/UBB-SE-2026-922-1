@@ -1,111 +1,59 @@
 namespace BankingApp.Api.Controllers;
 
+using BankingApp.Application.Features.RecurringPayments.Commands;
 using BankingApp.Application.Features.RecurringPayments.Dtos;
-using BankingApp.Application.Features.RecurringPayments.Services;
-using ErrorOr;
+using BankingApp.Application.Features.RecurringPayments.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-///     Controller responsible for managing recurring payment schedules.
-///     All endpoints are accessible under the /api/recurring_payments route
-///     and require an authenticated session.
-/// </summary>
 [ApiController]
+[Authorize]
 [Route("api/recurring_payments")]
 public class RecurringPaymentsController : ApiControllerBase
 {
-    private readonly IRecurringPaymentService _recurringPaymentService;
-
-    /// <summary>Initializes a new instance of the <see cref="RecurringPaymentsController" /> class.</summary>
-    /// <param name="recurringPaymentService">The recurring payment service.</param>
-    public RecurringPaymentsController(IRecurringPaymentService recurringPaymentService)
-    {
-        _recurringPaymentService = recurringPaymentService;
-    }
-
-    /// <summary>
-    ///     Returns all recurring payment schedules owned by the authenticated user.
-    /// </summary>
-    /// <returns>
-    ///     200 OK with a list of <see cref="RecurringPaymentResponse" /> on success,
-    ///     or an appropriate error response.
-    /// </returns>
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<List<RecurringPaymentResponse>> result = _recurringPaymentService.GetByUser(userId);
-        return ToActionResult(result, Ok);
+        return ToActionResult(await Sender.Send(new GetRecurringPaymentsQuery(userId), cancellationToken), Ok);
     }
 
-    /// <summary>
-    ///     Creates a new recurring payment schedule for the authenticated user.
-    /// </summary>
-    /// <param name="request">The creation request containing schedule details.</param>
-    /// <returns>
-    ///     201 Created with the new <see cref="RecurringPaymentResponse" /> on success,
-    ///     400 Bad Request if validation fails,
-    ///     or an appropriate error response.
-    /// </returns>
     [HttpPost]
-    public IActionResult Create([FromBody] CreateRecurringPaymentRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateRecurringPaymentRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<RecurringPaymentResponse> result = _recurringPaymentService.Create(userId, request);
-        return ToActionResult(result, payment => CreatedAtAction(nameof(GetAll), new { }, payment));
+        var command = new CreateRecurringPaymentCommand(
+            userId,
+            request.BillerId,
+            request.SourceAccountId,
+            request.Amount,
+            request.IsPayInFull,
+            request.Frequency,
+            request.StartDate,
+            request.EndDate);
+        return ToActionResult(
+            await Sender.Send(command, cancellationToken),
+            payment => CreatedAtAction(nameof(GetAll), new { }, payment));
     }
 
-    /// <summary>
-    ///     Pauses an active recurring payment schedule.
-    /// </summary>
-    /// <param name="id">The identifier of the recurring payment to pause.</param>
-    /// <returns>
-    ///     204 No Content on success,
-    ///     404 Not Found if the schedule does not exist,
-    ///     403 Forbidden if the schedule belongs to another user,
-    ///     or an appropriate error response.
-    /// </returns>
     [HttpPut("{id}/pause")]
-    public IActionResult Pause(int id)
+    public async Task<IActionResult> Pause(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.Pause(userId, id);
-        return ToActionResult(result);
+        return ToActionResult(await Sender.Send(new PauseRecurringPaymentCommand(userId, id), cancellationToken));
     }
 
-    /// <summary>
-    ///     Resumes a paused recurring payment schedule.
-    /// </summary>
-    /// <param name="id">The identifier of the recurring payment to resume.</param>
-    /// <returns>
-    ///     204 No Content on success,
-    ///     404 Not Found if the schedule does not exist,
-    ///     403 Forbidden if the schedule belongs to another user,
-    ///     or an appropriate error response.
-    /// </returns>
     [HttpPut("{id}/resume")]
-    public IActionResult ResumePayment(int id)
+    public async Task<IActionResult> ResumePayment(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.ResumeRecurringPayment(userId, id);
-        return ToActionResult(result);
+        return ToActionResult(await Sender.Send(new ResumeRecurringPaymentCommand(userId, id), cancellationToken));
     }
 
-    /// <summary>
-    ///     Permanently cancels a recurring payment schedule.
-    /// </summary>
-    /// <param name="id">The identifier of the recurring payment to cancel.</param>
-    /// <returns>
-    ///     204 No Content on success,
-    ///     404 Not Found if the schedule does not exist,
-    ///     403 Forbidden if the schedule belongs to another user,
-    ///     or an appropriate error response.
-    /// </returns>
     [HttpDelete("{id}")]
-    public IActionResult Cancel(int id)
+    public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.Cancel(userId, id);
-        return ToActionResult(result);
+        return ToActionResult(await Sender.Send(new CancelRecurringPaymentCommand(userId, id), cancellationToken));
     }
 }

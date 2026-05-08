@@ -2,8 +2,10 @@ namespace BankingApp.Domain.Aggregates.AccountAggregate;
 
 using Entities;
 using Events;
+using Common.Errors;
 using Common.Primitives;
 using Enums;
+using ErrorOr;
 using ValueObjects;
 using Currency = NodaMoney.Currency;
 using Money = NodaMoney.Money;
@@ -54,9 +56,40 @@ public sealed class Account : AggregateRoot<int>
 
     public bool HasSufficientFunds(Money amount) => amount.Amount >= 0 && Balance >= amount;
 
+    public bool UsesCurrency(Currency currency) => Balance.Currency == currency;
+
     public void Rename(string? accountName)
     {
         AccountName = accountName;
+    }
+
+    public ErrorOr<Money> Debit(Money amount, DateTime occurredOnUtc)
+    {
+        ErrorOr<Success> validation = ValidateMoneyOperation(amount);
+        if (validation.IsError)
+        {
+            return validation.FirstError;
+        }
+
+        if (Balance < amount)
+        {
+            return AccountErrors.InsufficientFunds;
+        }
+
+        ChangeBalance(Balance - amount, occurredOnUtc);
+        return Balance;
+    }
+
+    public ErrorOr<Money> Credit(Money amount, DateTime occurredOnUtc)
+    {
+        ErrorOr<Success> validation = ValidateMoneyOperation(amount);
+        if (validation.IsError)
+        {
+            return validation.FirstError;
+        }
+
+        ChangeBalance(Balance + amount, occurredOnUtc);
+        return Balance;
     }
 
     public void ChangeBalance(Money newBalance, DateTime occurredOnUtc)
@@ -102,5 +135,20 @@ public sealed class Account : AggregateRoot<int>
         _transactions.Add(transaction);
         Raise(new TransactionRecordedEvent(Id, transactionRef, createdAt));
         return transaction;
+    }
+
+    private ErrorOr<Success> ValidateMoneyOperation(Money amount)
+    {
+        if (amount.Amount < 0)
+        {
+            return AccountErrors.NegativeAmount;
+        }
+
+        if (!UsesCurrency(amount.Currency))
+        {
+            return AccountErrors.CurrencyMismatch;
+        }
+
+        return Result.Success;
     }
 }

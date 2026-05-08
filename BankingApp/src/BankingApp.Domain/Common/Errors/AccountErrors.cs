@@ -18,4 +18,7 @@ public static class AccountErrors
 
     public static readonly Error InvalidCurrency =
         Error.Validation("account.invalid_currency", "The specified currency is not supported.");
+
+    public static readonly Error CurrencyMismatch =
+        Error.Validation("account.currency_mismatch", "The money currency must match the account currency.");
 }
