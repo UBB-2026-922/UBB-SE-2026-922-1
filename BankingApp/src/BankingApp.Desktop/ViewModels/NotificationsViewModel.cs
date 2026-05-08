@@ -10,38 +10,28 @@ using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-/// <summary>
-///     Handles notification-preference loading and updates for the profile area.
-/// </summary>
-public class NotificationsViewModel
+/// <summary>Handles notification-preference loading and updates for the profile area.</summary>
+public partial class NotificationsViewModel : ObservableObject
 {
     private readonly IProfileClientService _profileClientService;
     private readonly ILogger<NotificationsViewModel> _logger;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="NotificationsViewModel" /> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="NotificationsViewModel"/> class.</summary>
     public NotificationsViewModel(IProfileClientService profileClientService, ILogger<NotificationsViewModel> logger)
     {
         _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        State = new ObservableState<ProfileState>(ProfileState.Idle);
         NotificationPreferences = new List<NotificationPreferenceDto>();
     }
 
-    /// <summary>
-    ///     Gets the current notifications workflow state.
-    /// </summary>
-    public ObservableState<ProfileState> State { get; }
+    /// <summary>Gets or sets the current notifications workflow state.</summary>
+    [ObservableProperty]
+    public partial ProfileState State { get; set; } = ProfileState.Idle;
 
-    /// <summary>
-    ///     Gets the current notification preferences.
-    /// </summary>
+    /// <summary>Gets the current notification preferences.</summary>
     public List<NotificationPreferenceDto> NotificationPreferences { get; private set; }
 
-    /// <summary>
-    ///     Toggles a single notification preference and rolls the change back if persistence fails.
-    /// </summary>
+    /// <summary>Toggles a single notification preference and rolls the change back if persistence fails.</summary>
     public async Task<bool> ToggleNotificationPreference(NotificationPreferenceDto preference, bool enabled)
     {
         bool previousValue = preference.EmailEnabled;
@@ -55,9 +45,7 @@ public class NotificationsViewModel
         return success;
     }
 
-    /// <summary>
-    ///     Loads notification preferences for the current user.
-    /// </summary>
+    /// <summary>Loads notification preferences for the current user.</summary>
     public async Task<bool> LoadNotificationPreferences()
     {
         ErrorOr<List<NotificationPreferenceDto>> preferencesResult =
@@ -72,9 +60,7 @@ public class NotificationsViewModel
         return true;
     }
 
-    /// <summary>
-    ///     Persists the provided notification preferences.
-    /// </summary>
+    /// <summary>Persists the provided notification preferences.</summary>
     public async Task<bool> UpdateNotificationPreferences(List<NotificationPreferenceDto> preferences)
     {
         if (preferences.Count == 0)
@@ -82,19 +68,19 @@ public class NotificationsViewModel
             return false;
         }
 
-        State.SetValue(ProfileState.Loading);
+        State = ProfileState.Loading;
         ErrorOr<Success> result = await _profileClientService.UpdateNotificationPreferencesAsync(preferences);
         return result.Match(
             _ =>
             {
                 NotificationPreferences = preferences;
-                State.SetValue(ProfileState.UpdateSuccess);
+                State = ProfileState.UpdateSuccess;
                 return true;
             },
             errors =>
             {
                 _logger.UpdateNotificationPreferencesFailed(errors);
-                State.SetValue(ProfileState.Error);
+                State = ProfileState.Error;
                 return false;
             });
     }

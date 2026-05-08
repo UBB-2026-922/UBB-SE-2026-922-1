@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml;
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.
 /// </summary>
-public sealed partial class RegisterView : IStateObserver<RegisterState>
+public sealed partial class RegisterView
 {
     private readonly IAppNavigationService _navigationService;
     private readonly IRegistrationContext _registrationContext;
@@ -31,14 +31,16 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
         _viewModel = viewModel;
         _navigationService = navigationService;
         _registrationContext = registrationContext;
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        OnStateChanged(_viewModel.State);
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(RegisterState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        OnStateChanged(state);
+        if (e.PropertyName == nameof(RegisterViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
     }
 
     private void OnStateChanged(RegisterState state)

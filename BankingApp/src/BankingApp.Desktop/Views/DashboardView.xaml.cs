@@ -18,7 +18,7 @@ using Windows.UI;
 /// <summary>
 ///     Displays the authenticated user's account summary, card carousel, and recent transactions.
 /// </summary>
-public sealed partial class DashboardView : IStateObserver<DashboardState>, IDisposable
+public sealed partial class DashboardView : IDisposable
 {
     private const int ActiveCardDotSize = 18;
     private const int InactiveCardDotSize = 8;
@@ -59,11 +59,12 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         Unloaded += OnPageUnloaded;
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(DashboardState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        OnStateChanged(state);
+        if (e.PropertyName == nameof(DashboardViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
     }
 
     /// <inheritdoc />
@@ -340,7 +341,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
             return;
         }
 
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _isObserverAttached = true;
     }
 
@@ -351,7 +352,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
             return;
         }
 
-        _viewModel.State.RemoveObserver(this);
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         _isObserverAttached = false;
     }
 

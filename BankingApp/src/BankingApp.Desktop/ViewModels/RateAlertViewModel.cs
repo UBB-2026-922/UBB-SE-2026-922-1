@@ -2,9 +2,7 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BankingApp.Application.Features.ForexRateAlerts.Dtos;
 using BankingApp.Desktop.Services;
@@ -12,108 +10,56 @@ using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-/// <summary>
-///     Handles rate-alert listing, creation, and deletion for the desktop client.
-/// </summary>
-public partial class RateAlertViewModel : INotifyPropertyChanged
+/// <summary>Handles rate-alert listing, creation, and deletion for the desktop client.</summary>
+public partial class RateAlertViewModel : ObservableObject
 {
     private const decimal MinimumRate = 0m;
     private static readonly string[] _availableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
     private readonly IRateAlertClientService _rateAlertClientService;
     private readonly ILogger<RateAlertViewModel> _logger;
-    private ObservableCollection<ForexRateAlertDto> _alerts = [];
-    private string _baseCurrency = string.Empty;
-    private string _targetCurrency = string.Empty;
-    private string _targetRateText = string.Empty;
-    private string _errorMessage = string.Empty;
-    private bool _isBuyAlert;
-    private bool _isLoading;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RateAlertViewModel" /> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="RateAlertViewModel"/> class.</summary>
     public RateAlertViewModel(IRateAlertClientService rateAlertClientService, ILogger<RateAlertViewModel> logger)
     {
         _rateAlertClientService = rateAlertClientService ?? throw new ArgumentNullException(nameof(rateAlertClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         AvailableCurrencies = new ObservableCollection<string>(_availableCurrencyCodes);
+        Alerts = [];
     }
 
-    /// <inheritdoc />
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    /// <summary>
-    ///     Gets the supported currency codes offered by the UI.
-    /// </summary>
+    /// <summary>Gets the supported currency codes offered by the UI.</summary>
     public ObservableCollection<string> AvailableCurrencies { get; }
 
-    /// <summary>
-    ///     Gets or sets the currently loaded alerts.
-    /// </summary>
-    public ObservableCollection<ForexRateAlertDto> Alerts
-    {
-        get => _alerts;
-        set => SetProperty(ref _alerts, value);
-    }
+    /// <summary>Gets or sets the currently loaded alerts.</summary>
+    [ObservableProperty]
+    public partial ObservableCollection<ForexRateAlertDto> Alerts { get; set; } = default!;
 
-    /// <summary>
-    ///     Gets or sets the selected base currency for a new alert.
-    /// </summary>
-    public string BaseCurrency
-    {
-        get => _baseCurrency;
-        set => SetProperty(ref _baseCurrency, value);
-    }
+    /// <summary>Gets or sets the selected base currency for a new alert.</summary>
+    [ObservableProperty]
+    public partial string BaseCurrency { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets or sets the selected target currency for a new alert.
-    /// </summary>
-    public string TargetCurrency
-    {
-        get => _targetCurrency;
-        set => SetProperty(ref _targetCurrency, value);
-    }
+    /// <summary>Gets or sets the selected target currency for a new alert.</summary>
+    [ObservableProperty]
+    public partial string TargetCurrency { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets or sets the raw target-rate text entered by the user.
-    /// </summary>
-    public string TargetRateText
-    {
-        get => _targetRateText;
-        set => SetProperty(ref _targetRateText, value);
-    }
+    /// <summary>Gets or sets the raw target-rate text entered by the user.</summary>
+    [ObservableProperty]
+    public partial string TargetRateText { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets or sets the latest user-facing error message.
-    /// </summary>
-    public string ErrorMessage
-    {
-        get => _errorMessage;
-        set => SetProperty(ref _errorMessage, value);
-    }
+    /// <summary>Gets or sets the latest user-facing error message.</summary>
+    [ObservableProperty]
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets or sets a value indicating whether the alert is a buy alert.
-    /// </summary>
-    public bool IsBuyAlert
-    {
-        get => _isBuyAlert;
-        set => SetProperty(ref _isBuyAlert, value);
-    }
+    /// <summary>Gets or sets a value indicating whether the alert is a buy alert.</summary>
+    [ObservableProperty]
+    public partial bool IsBuyAlert { get; set; } = default!;
 
-    /// <summary>
-    ///     Gets or sets a value indicating whether a rate-alert request is in progress.
-    /// </summary>
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
+    /// <summary>Gets or sets a value indicating whether a rate-alert request is in progress.</summary>
+    [ObservableProperty]
+    public partial bool IsLoading { get; set; } = default!;
 
-    /// <summary>
-    ///     Loads all alerts for the current user.
-    /// </summary>
+    /// <summary>Loads all alerts for the current user.</summary>
     public async Task LoadAlertsAsync()
     {
         ErrorMessage = string.Empty;
@@ -144,9 +90,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    ///     Creates a new rate alert from the current form state.
-    /// </summary>
+    /// <summary>Creates a new rate alert from the current form state.</summary>
     public async Task CreateAlertAsync()
     {
         ErrorMessage = string.Empty;
@@ -219,9 +163,7 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    ///     Deletes the specified alert.
-    /// </summary>
+    /// <summary>Deletes the specified alert.</summary>
     public async Task DeleteAlertAsync(int alertId)
     {
         ErrorMessage = string.Empty;
@@ -247,22 +189,5 @@ public partial class RateAlertViewModel : INotifyPropertyChanged
             ErrorMessage = exception.Message;
             _logger.DeleteAlertFailedUnexpected(exception);
         }
-    }
-
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    private bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (Equals(field, value))
-        {
-            return false;
-        }
-
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
     }
 }

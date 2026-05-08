@@ -12,7 +12,7 @@ using Microsoft.UI.Xaml.Controls;
 ///     Displays the OTP verification step of the login flow.
 ///     <see cref="TwoFactorViewModel" />.
 /// </summary>
-public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
+public sealed partial class TwoFactorView
 {
     private readonly IApiClient _apiClient;
     private readonly IAppNavigationService _navigationService;
@@ -30,7 +30,8 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         ViewModel = viewModel;
         _navigationService = navigationService;
         _apiClient = apiClient;
-        ViewModel.State.AddObserver(this);
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        OnStateChanged(ViewModel.State);
     }
 
     /// <summary>
@@ -43,11 +44,12 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
     /// </value>
     public TwoFactorViewModel ViewModel { get; }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(TwoFactorState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(() => OnStateChanged(state));
+        if (e.PropertyName == nameof(TwoFactorViewModel.State))
+        {
+            DispatcherQueue.TryEnqueue(() => OnStateChanged(ViewModel.State));
+        }
     }
 
     // Used in XAML as: Visibility="{x:Bind BoolToVisibility(ViewModel.SomeBool), Mode=OneWay}"

@@ -10,7 +10,7 @@ using Microsoft.UI.Xaml;
 /// <summary>
 ///     Displays the login form and reacts to authentication state changes produced by <see cref="LoginViewModel" />.
 /// </summary>
-public sealed partial class LoginView : IStateObserver<LoginState>
+public sealed partial class LoginView
 {
     private readonly IAppNavigationService _navigationService;
     private readonly LoginViewModel _viewModel;
@@ -30,7 +30,7 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         _navigationService = navigationService;
         InitializeComponent();
         _viewModel = viewModel;
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         if (registrationContext.JustRegistered)
         {
             registrationContext.JustRegistered = false;
@@ -40,14 +40,15 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         // Apply the ViewModel's current state immediately. The ViewModel is constructed
         // before the view subscribes, so any state set in the constructor (e.g.
         // ServerNotConfigured when ApiBaseUrl is missing) would otherwise be missed.
-        OnStateChanged(_viewModel.State.Value);
+        OnStateChanged(_viewModel.State);
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(LoginState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        OnStateChanged(state);
+        if (e.PropertyName == nameof(LoginViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
     }
 
     private void OnStateChanged(LoginState state)

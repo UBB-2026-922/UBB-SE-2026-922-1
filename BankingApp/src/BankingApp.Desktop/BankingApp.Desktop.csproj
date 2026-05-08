@@ -36,6 +36,13 @@
         <None Remove="Views\TransferHistoryView.xaml"/>
     </ItemGroup>
 
+    <!-- Legacy folders excluded from compilation — files have been moved to organized locations -->
+    <ItemGroup>
+        <Compile Remove="_Utilities\**\*.cs"/>
+        <Compile Remove="_Enums\**\*.cs"/>
+        <Compile Remove="Common\Commands\**\*.cs"/>
+    </ItemGroup>
+
     <ItemGroup>
         <Content Include="Assets\SplashScreen.scale-200.png"/>
         <Content Include="Assets\LockScreenLogo.scale-200.png"/>
@@ -59,6 +66,7 @@
         <ProjectCapability Include="Msix"/>
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2"/>
         <PackageReference Include="ErrorOr" Version="2.1.0"/>
         <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0"/>
@@ -129,6 +137,10 @@
         <Page Update="Views\TransferHistoryView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Common\Logging\" />
+      <Folder Include="Http\" />
     </ItemGroup>
 
     <!--

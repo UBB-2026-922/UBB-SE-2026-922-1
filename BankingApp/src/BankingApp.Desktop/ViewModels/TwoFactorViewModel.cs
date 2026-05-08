@@ -1,10 +1,6 @@
 namespace BankingApp.Desktop.ViewModels;
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BankingApp.Application.Features.Authentication.Dtos;
 using Enums;
@@ -13,25 +9,16 @@ using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-/// <summary>
-///     Coordinates OTP verification and resend operations for the two-factor flow.
-/// </summary>
-public partial class TwoFactorViewModel : INotifyPropertyChanged
+/// <summary>Coordinates OTP verification and resend operations for the two-factor flow.</summary>
+public partial class TwoFactorViewModel : ObservableObject
 {
     private const int ResendCooldownSeconds = 30;
     private const int OtpRequiredLength = 6;
     private readonly IAuthClientService _authClientService;
     private readonly ICountdownTimer _countdownTimer;
     private readonly ILogger<TwoFactorViewModel> _logger;
-    private string _errorMessage = string.Empty;
-    private bool _hasError;
-    private bool _isLoading;
-    private string _otpCode = string.Empty;
-    private int _secondsRemaining;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="TwoFactorViewModel" /> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="TwoFactorViewModel"/> class.</summary>
     public TwoFactorViewModel(
         IAuthClientService authClientService,
         ICountdownTimer countdownTimer,
@@ -42,104 +29,52 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
         _countdownTimer = countdownTimer ?? throw new ArgumentNullException(nameof(countdownTimer));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         IsLocked = isLocked;
-        State = new ObservableState<TwoFactorState>(TwoFactorState.Idle);
         _countdownTimer.Tick += OnCountdownTick;
     }
 
-    /// <inheritdoc />
-    public event PropertyChangedEventHandler? PropertyChanged;
+    /// <summary>Gets or sets the current two-factor workflow state.</summary>
+    [ObservableProperty]
+    public partial TwoFactorState State { get; set; } = TwoFactorState.Idle;
 
-    /// <summary>
-    ///     Gets the current two-factor workflow state.
-    /// </summary>
-    public ObservableState<TwoFactorState> State { get; }
+    /// <summary>Gets or sets the OTP code entered by the user.</summary>
+    [ObservableProperty]
+    public partial string OtpCode { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets or sets the OTP code entered by the user.
-    /// </summary>
-    public string OtpCode
-    {
-        get => _otpCode;
-        set => SetField(ref _otpCode, value);
-    }
+    /// <summary>Gets or sets a value indicating whether a two-factor request is currently in progress.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInputEnabled))]
+public partial bool IsLoading { get; set; } = default!;
 
-    /// <summary>
-    ///     Gets a value indicating whether a two-factor request is currently in progress.
-    /// </summary>
-    public bool IsLoading
-    {
-        get => _isLoading;
-        private set
-        {
-            if (SetField(ref _isLoading, value))
-            {
-                OnPropertyChanged(nameof(IsInputEnabled));
-            }
-        }
-    }
+    /// <summary>Gets a value indicating whether OTP input controls should be enabled.</summary>
+    public bool IsInputEnabled => !IsLoading && !IsLocked;
 
-    /// <summary>
-    ///     Gets a value indicating whether OTP input controls should be enabled.
-    /// </summary>
-    public bool IsInputEnabled => !_isLoading && !IsLocked;
+    /// <summary>Gets or sets the latest user-facing error message.</summary>
+    [ObservableProperty]
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
-    /// <summary>
-    ///     Gets the latest user-facing error message.
-    /// </summary>
-    public string ErrorMessage
-    {
-        get => _errorMessage;
-        private set => SetField(ref _errorMessage, value);
-    }
+    /// <summary>Gets or sets a value indicating whether an error message is currently active.</summary>
+    [ObservableProperty]
+    public partial bool HasError { get; set; } = default!;
 
-    /// <summary>
-    ///     Gets a value indicating whether an error message is currently active.
-    /// </summary>
-    public bool HasError
-    {
-        get => _hasError;
-        private set => SetField(ref _hasError, value);
-    }
+    /// <summary>Gets or sets the remaining seconds until a resend is allowed.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanResend))]
+    [NotifyPropertyChangedFor(nameof(IsCountdownVisible))]
+    [NotifyPropertyChangedFor(nameof(CountdownDisplayText))]
+public partial int SecondsRemaining { get; set; } = default!;
 
-    /// <summary>
-    ///     Gets or sets the remaining seconds until a resend is allowed.
-    /// </summary>
-    public int SecondsRemaining
-    {
-        get => _secondsRemaining;
-        private set
-        {
-            if (!SetField(ref _secondsRemaining, value))
-            {
-                return;
-            }
+    /// <summary>Gets a value indicating whether a new OTP may be requested.</summary>
+    public bool CanResend => SecondsRemaining <= 0;
 
-            OnPropertyChanged(nameof(CanResend));
-            OnPropertyChanged(nameof(IsCountdownVisible));
-            OnPropertyChanged(nameof(CountdownDisplayText));
-        }
-    }
+    /// <summary>Gets a value indicating whether the resend countdown should be shown.</summary>
+    public bool IsCountdownVisible => SecondsRemaining > 0;
 
-    /// <summary>
-    ///     Gets a value indicating whether a new OTP may be requested.
-    /// </summary>
-    public bool CanResend => _secondsRemaining <= 0;
-
-    /// <summary>
-    ///     Gets a value indicating whether the resend countdown should be shown.
-    /// </summary>
-    public bool IsCountdownVisible => _secondsRemaining > 0;
-
-    /// <summary>
-    ///     Gets the countdown text shown next to the resend action.
-    /// </summary>
-    public string CountdownDisplayText => $"Available in {_secondsRemaining}s";
+    /// <summary>Gets the countdown text shown next to the resend action.</summary>
+    public string CountdownDisplayText => $"Available in {SecondsRemaining}s";
 
     private bool IsLocked { get; }
 
-    /// <summary>
-    ///     Verifies the entered OTP with the backend.
-    /// </summary>
+    /// <summary>Verifies the entered OTP with the backend.</summary>
     public async Task VerifyOtp()
     {
         ClearError();
@@ -150,7 +85,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
         }
 
         IsLoading = true;
-        State.SetValue(TwoFactorState.Verifying);
+        State = TwoFactorState.Verifying;
         int? userId = _authClientService.CurrentUserId;
         if (userId == null)
         {
@@ -164,11 +99,11 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
             {
                 _authClientService.SetToken(response.Token!);
                 IsLoading = false;
-                State.SetValue(TwoFactorState.Success);
+                State = TwoFactorState.Success;
             },
             errors =>
             {
-                if (errors.First().Type != ErrorType.Unauthorized)
+                if (errors[0].Type != ErrorType.Unauthorized)
                 {
                     _logger.VerifyOtpFailed(errors);
                 }
@@ -177,9 +112,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
             });
     }
 
-    /// <summary>
-    ///     Requests a new OTP if the resend cooldown has expired.
-    /// </summary>
+    /// <summary>Requests a new OTP if the resend cooldown has expired.</summary>
     public async Task ResendOtp()
     {
         if (!CanResend)
@@ -190,7 +123,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
         ClearError();
         SecondsRemaining = ResendCooldownSeconds;
         _countdownTimer.Start();
-        State.SetValue(TwoFactorState.Idle);
+        State = TwoFactorState.Idle;
         int? userId = _authClientService.CurrentUserId;
         if (userId == null)
         {
@@ -218,7 +151,7 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
     {
         IsLoading = false;
         SetError(UserMessages.TwoFactor.IncorrectCode);
-        State.SetValue(TwoFactorState.InvalidOtp);
+        State = TwoFactorState.InvalidOtp;
     }
 
     private void SetError(string message)
@@ -231,22 +164,5 @@ public partial class TwoFactorViewModel : INotifyPropertyChanged
     {
         HasError = false;
         ErrorMessage = string.Empty;
-    }
-
-    private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value))
-        {
-            return false;
-        }
-
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
     }
 }

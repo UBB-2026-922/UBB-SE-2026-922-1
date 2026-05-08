@@ -8,6 +8,7 @@ using Enums;
 using Master;
 using BankingApp.Application.Common.Utilities;
 using ViewModels;
+using BankingApp.Domain.Common.Extensions;
 using BankingApp.Domain.Enums;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -19,7 +20,7 @@ using Serilog;
 /// <summary>
 ///     Displays and manages the authenticated user's profile settings.
 /// </summary>
-public sealed partial class ProfileView : IStateObserver<ProfileState>
+public sealed partial class ProfileView
 {
     private const double EnabledFormOpacity = 1.0;
     private const double DisabledFormOpacity = 0.6;
@@ -69,13 +70,19 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         InitializeComponent();
         _viewModel = viewModel;
         _navigationService = navigationService;
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         Loaded += OnPageLoaded;
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(ProfileState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ProfileViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
+    }
+
+    private void OnStateChanged(ProfileState state)
     {
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -125,7 +132,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
-        _viewModel.State.RemoveObserver(this);
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)

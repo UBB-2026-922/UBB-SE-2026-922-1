@@ -8,17 +8,13 @@ using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-/// TODO: add docs.
-/// </summary>
+/// <summary>Registers the desktop application's client services, view models, and views.</summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
+    /// <summary>Adds the Desktop layer dependencies required by the WinUI client.</summary>
+    /// <param name="services">The service collection being configured.</param>
+    /// <param name="configuration">Application configuration used by HTTP and client services.</param>
+    /// <returns>The same service collection for chaining.</returns>
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);

@@ -9,79 +9,61 @@ using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-/// <summary>
-///     Handles personal-profile loading, editing, and password verification for the profile area.
-/// </summary>
-public class PersonalInfoViewModel
+/// <summary>Handles personal-profile loading, editing, and password verification for the profile area.</summary>
+public partial class PersonalInfoViewModel : ObservableObject
 {
     private readonly IProfileClientService _profileClientService;
     private readonly ILogger<PersonalInfoViewModel> _logger;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="PersonalInfoViewModel" /> class.
-    /// </summary>
+    /// <summary>Initializes a new instance of the <see cref="PersonalInfoViewModel"/> class.</summary>
     public PersonalInfoViewModel(IProfileClientService profileClientService, ILogger<PersonalInfoViewModel> logger)
     {
         _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        State = new ObservableState<ProfileState>(ProfileState.Idle);
         ProfileInfo = new ProfileDto();
     }
 
-    /// <summary>
-    ///     Gets the current profile workflow state.
-    /// </summary>
-    public ObservableState<ProfileState> State { get; }
+    /// <summary>Gets or sets the current profile workflow state.</summary>
+    [ObservableProperty]
+    public partial ProfileState State { get; set; } = ProfileState.Idle;
 
-    /// <summary>
-    ///     Gets the loaded profile details.
-    /// </summary>
+    /// <summary>Gets the loaded profile details.</summary>
     public ProfileDto ProfileInfo { get; private set; }
 
-    /// <summary>
-    ///     Gets the loaded profile details using the legacy property name expected elsewhere in the UI.
-    /// </summary>
+    /// <summary>Gets the loaded profile details using the legacy property name expected elsewhere in the UI.</summary>
     public ProfileDto ProfileDto => ProfileInfo;
 
-    /// <summary>
-    ///     Gets a value indicating whether the user has a phone number on file.
-    /// </summary>
+    /// <summary>Gets a value indicating whether the user has a phone number on file.</summary>
     public bool HasPhoneNumber => !string.IsNullOrEmpty(ProfileInfo.PhoneNumber);
 
-    /// <summary>
-    ///     Gets the phone-number text shown in the two-factor section.
-    /// </summary>
+    /// <summary>Gets the phone-number text shown in the two-factor section.</summary>
     public string TwoFactorPhoneDisplay =>
         HasPhoneNumber ? ProfileInfo.PhoneNumber! : UserMessages.Profile.NoPhoneNumber;
 
-    /// <summary>
-    ///     Loads the current user's profile.
-    /// </summary>
+    /// <summary>Loads the current user's profile.</summary>
     public async Task<bool> LoadProfile()
     {
-        State.SetValue(ProfileState.Loading);
+        State = ProfileState.Loading;
         ErrorOr<ProfileDto> profileResult = await _profileClientService.GetProfileAsync();
         if (profileResult.IsError)
         {
             _logger.LoadProfileFailed(profileResult.Errors);
-            State.SetValue(ProfileState.Error);
+            State = ProfileState.Error;
             return false;
         }
 
         ProfileInfo = profileResult.Value;
-        State.SetValue(ProfileState.UpdateSuccess);
+        State = ProfileState.UpdateSuccess;
         return true;
     }
 
-    /// <summary>
-    ///     Updates editable personal-information fields for the current user.
-    /// </summary>
+    /// <summary>Updates editable personal-information fields for the current user.</summary>
     public async Task<bool> UpdatePersonalInfo(string? phone, string? address, string password, string? fullName = null)
     {
-        State.SetValue(ProfileState.Loading);
+        State = ProfileState.Loading;
         if (ProfileInfo.UserId == null)
         {
-            State.SetValue(ProfileState.Error);
+            State = ProfileState.Error;
             return false;
         }
 
@@ -105,26 +87,24 @@ public class PersonalInfoViewModel
                 ProfileInfo.FullName = trimmedFullName;
                 ProfileInfo.PhoneNumber = trimmedPhone;
                 ProfileInfo.Address = trimmedAddress;
-                State.SetValue(ProfileState.UpdateSuccess);
+                State = ProfileState.UpdateSuccess;
                 return true;
             },
             errors =>
             {
                 _logger.UpdatePersonalInfoFailed(errors);
-                State.SetValue(ProfileState.Error);
+                State = ProfileState.Error;
                 return false;
             });
     }
 
-    /// <summary>
-    ///     Verifies the current password against the server.
-    /// </summary>
+    /// <summary>Verifies the current password against the server.</summary>
     public async Task<bool> VerifyPassword(string password)
     {
-        State.SetValue(ProfileState.Loading);
+        State = ProfileState.Loading;
         if (ProfileInfo.UserId == null)
         {
-            State.SetValue(ProfileState.Error);
+            State = ProfileState.Error;
             return false;
         }
 
@@ -134,17 +114,17 @@ public class PersonalInfoViewModel
             {
                 if (!valid)
                 {
-                    State.SetValue(ProfileState.Error);
+                    State = ProfileState.Error;
                     return false;
                 }
 
-                State.SetValue(ProfileState.UpdateSuccess);
+                State = ProfileState.UpdateSuccess;
                 return true;
             },
             errors =>
             {
                 _logger.VerifyPasswordFailed(errors);
-                State.SetValue(ProfileState.Error);
+                State = ProfileState.Error;
                 return false;
             });
     }
