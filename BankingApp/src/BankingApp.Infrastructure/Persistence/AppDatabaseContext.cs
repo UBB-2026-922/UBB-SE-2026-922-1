@@ -1,8 +1,8 @@
 ﻿namespace BankingApp.Infrastructure.Persistence;
 
+using Configurations;
 using Domain.Entities;
 using Domain.Enums;
-using DataAccess.Configurations;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.BeneficiaryAggregate;
 using Domain.Aggregates.BillerAggregate;
