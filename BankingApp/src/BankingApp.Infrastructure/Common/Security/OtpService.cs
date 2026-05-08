@@ -4,13 +4,13 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using BankingApp.Application.Common.Security;
+using BankingApp.Application.Common.Contracts.Security;
 using ErrorOr;
 
 /// <summary>
 ///     Provides HMAC-based TOTP and in-memory SMS OTP generation and verification.
 /// </summary>
-public class OtpService : IOtpService
+public sealed class OtpService : IOtpService
 {
     /// <summary>Number of seconds in one TOTP time window.</summary>
     public const int TotpWindowSeconds = 60;
@@ -86,14 +86,6 @@ public class OtpService : IOtpService
     public void InvalidateOtp(int userId)
     {
         _temporarySmsStorage.TryRemove(userId, out _);
-    }
-
-    /// <inheritdoc />
-    /// <param name="expiredAt">The expiredAt value.</param>
-    /// <returns>The result of the operation.</returns>
-    public bool IsExpired(DateTime expiredAt)
-    {
-        return DateTime.UtcNow > expiredAt;
     }
 
     /// <inheritdoc />

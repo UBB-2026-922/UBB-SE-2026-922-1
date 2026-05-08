@@ -3,7 +3,7 @@ namespace BankingApp.Infrastructure.Common.Notifications;
 using System.Net;
 using System.Net.Mail;
 using System.Globalization;
-using BankingApp.Application.Common.Notifications;
+using BankingApp.Application.Common.Contracts.Notifications;
 using BankingApp.Infrastructure.Common.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 ///     Sends transactional emails using SMTP _configuration from application settings.
 /// </summary>
-public class EmailService : IEmailService
+public sealed class EmailService : IEmailService
 {
     private const int DefaultSmtpPort = 587;
     private readonly IConfiguration _configuration;

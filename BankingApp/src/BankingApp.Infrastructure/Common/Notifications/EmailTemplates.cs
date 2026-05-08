@@ -1,6 +1,5 @@
 namespace BankingApp.Infrastructure.Common.Notifications;
 
-using BankingApp.Application.Common.Security;
 using BankingApp.Infrastructure.Common.Security;
 
 /// <summary>

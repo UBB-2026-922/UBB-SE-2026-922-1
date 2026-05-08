@@ -25,14 +25,14 @@ Depends on `BankingApp.Application` and `BankingApp.Domain`.
 BankingApp.Infrastructure/
 ├── Caching/              # ILockedRateCache — short-lived in-memory rate locks
 ├── Common/
-│   ├── Logging/
+│   ├── Clock/
 │   ├── Notifications/
 │   ├── Security/
-│   └── SystemClock.cs    # ISystemClock wrapping DateTime.UtcNow
+│   └── Logging/
 ├── DependencyInjection/
 ├── ExchangeRates/        # IExchangeRateService — live forex rate retrieval
 └── Persistence/
-    ├── AppDatabaseContext.cs
+    ├── AppDbContext.cs
     ├── UnitOfWork.cs
     ├── Configurations/   # One IEntityTypeConfiguration<T> per aggregate root
     ├── Migrations/
@@ -41,17 +41,17 @@ BankingApp.Infrastructure/
 
 ## Persistence
 
-### AppDatabaseContext
+### AppDbContext
 
 Inherits `DbContext`. Entity configurations are applied via `ApplyConfigurationsFromAssembly` — `OnModelCreating` contains no inline configuration. Each aggregate root has a corresponding `IEntityTypeConfiguration<T>` in `Configurations/`.
 
 ### Repositories
 
-One repository per aggregate root, implementing the `Domain.Repositories.IXRepository` interface. All methods are async. Repositories receive `AppDatabaseContext` via constructor injection and do not wrap a secondary data-access layer.
+One repository per aggregate root, implementing the `Domain.Repositories.IXRepository` interface. All methods are async. Repositories receive `AppDbContext` via constructor injection and do not wrap a secondary data-access layer.
 
 ### UnitOfWork
 
-Wraps `AppDatabaseContext.SaveChangesAsync`. Application handlers call `IUnitOfWork.SaveChangesAsync` once per command after all mutations.
+Wraps `AppDbContext.SaveChangesAsync`. Application handlers call `IUnitOfWork.SaveChangesAsync` once per command after all mutations.
 
 ### Migrations
 
@@ -82,4 +82,4 @@ EF Core code-first migrations. Run `dotnet ef migrations add` from this project 
 services.AddInfrastructure(configuration);
 ```
 
-Registers `AppDatabaseContext`, `UnitOfWork`, all repositories, all `Common` services, `ILockedRateCache`, and `IExchangeRateService`.
+Registers `AppDbContext`, `UnitOfWork`, all repositories, all `Common` services, `ILockedRateCache`, and `IExchangeRateService`.

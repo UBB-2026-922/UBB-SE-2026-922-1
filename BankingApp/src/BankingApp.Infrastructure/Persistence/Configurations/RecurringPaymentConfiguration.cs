@@ -1,78 +1,32 @@
-﻿namespace BankingApp.Infrastructure.Persistence.Configurations;
+namespace BankingApp.Infrastructure.Persistence.Configurations;
 
-using Domain.Aggregates.RecurringPaymentAggregate;
-using Domain.Enums;
+using BankingApp.Domain.Aggregates.RecurringPaymentAggregate;
+using BankingApp.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-/// <summary>
-///     Configures the EF Core mapping for the <see cref="RecurringPayment" /> entity
-///     using Fluent API constraints derived from the legacy SQL schema.
-/// </summary>
-public class RecurringPaymentConfiguration : IEntityTypeConfiguration<RecurringPayment>
+public sealed class RecurringPaymentConfiguration : IEntityTypeConfiguration<RecurringPayment>
 {
-    /// <inheritdoc />
     public void Configure(EntityTypeBuilder<RecurringPayment> builder)
     {
-        builder.ToTable("RecurringPayment");
-
+        builder.ToTable("RecurringPayments");
         builder.HasKey(recurringPayment => recurringPayment.Id);
+        builder.Ignore(recurringPayment => recurringPayment.DomainEvents);
 
         builder.Property(recurringPayment => recurringPayment.UserId).IsRequired();
         builder.Property(recurringPayment => recurringPayment.BillerId).IsRequired();
         builder.Property(recurringPayment => recurringPayment.SourceAccountId).IsRequired();
-
-        builder.Property(recurringPayment => recurringPayment.Amount)
-            .IsRequired()
-            .HasColumnType("decimal(18,2)");
-
-        builder.ToTable(tableBuilder => tableBuilder.HasCheckConstraint(
-            "CK_RecurringPayment_Amount",
-            "Amount > 0"));
-
-        builder.Property(recurringPayment => recurringPayment.IsPayInFull)
-            .IsRequired()
-            .HasDefaultValue(false);
-
-        builder.Property(recurringPayment => recurringPayment.Frequency)
-            .IsRequired()
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
-        builder.ToTable(tableBuilder => tableBuilder.HasCheckConstraint(
-            "CK_RecurringPayment_Frequency",
-            "Frequency IN ('Daily', 'Weekly', 'BiWeekly', 'Monthly', 'Quarterly', 'Yearly')"));
-
+        builder.Property(recurringPayment => recurringPayment.Amount).HasColumnType("decimal(18,2)").IsRequired();
+        builder.Property(recurringPayment => recurringPayment.IsPayInFull).HasDefaultValue(false);
+        builder.Property(recurringPayment => recurringPayment.Frequency).HasConversion<string>().HasMaxLength(32).IsRequired();
         builder.Property(recurringPayment => recurringPayment.StartDate).IsRequired();
-        builder.Property(recurringPayment => recurringPayment.EndDate).IsRequired(false);
+        builder.Property(recurringPayment => recurringPayment.EndDate);
         builder.Property(recurringPayment => recurringPayment.NextExecutionDate).IsRequired();
-
         builder.Property(recurringPayment => recurringPayment.Status)
-            .IsRequired()
             .HasConversion<string>()
-            .HasMaxLength(20)
-            .HasDefaultValue(RecurringPaymentStatus.Active);
-
-        builder.ToTable(tableBuilder => tableBuilder.HasCheckConstraint(
-            "CK_RecurringPayment_Status",
-            "Status IN ('Active', 'Paused', 'Cancelled')"));
-
-        builder.Property(recurringPayment => recurringPayment.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
-
-        builder.HasIndex(recurringPayment => recurringPayment.BillerId);
-        builder.HasIndex(recurringPayment => recurringPayment.SourceAccountId);
-        builder.HasIndex(recurringPayment => recurringPayment.UserId);
-
-        builder.HasOne(recurringPayment => recurringPayment.Biller)
-            .WithMany()
-            .HasForeignKey(recurringPayment => recurringPayment.BillerId);
-
-        builder.HasOne(recurringPayment => recurringPayment.SourceAccount)
-            .WithMany()
-            .HasForeignKey(recurringPayment => recurringPayment.SourceAccountId)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        builder.HasOne(recurringPayment => recurringPayment.User).WithMany().HasForeignKey(recurringPayment => recurringPayment.UserId);
+            .HasMaxLength(32)
+            .HasDefaultValue(RecurringPaymentStatus.Active)
+            .IsRequired();
+        builder.Property(recurringPayment => recurringPayment.CreatedAt).IsRequired();
     }
 }

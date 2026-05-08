@@ -4,14 +4,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Globalization;
 using System.Security.Claims;
 using System.Text;
-using BankingApp.Application.Common.Security;
+using BankingApp.Application.Common.Contracts.Security;
 using ErrorOr;
 using Microsoft.IdentityModel.Tokens;
 
 /// <summary>
 ///     Provides JWT generation, validation, and claim extraction using HMAC-SHA256.
 /// </summary>
-public class JsonWebTokenService : IJsonWebTokenService
+public sealed class JsonWebTokenService : IJsonWebTokenService
 {
     private const int TokenExpirationDays = 7;
     private readonly string _secret;

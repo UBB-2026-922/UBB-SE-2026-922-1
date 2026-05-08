@@ -1,13 +1,13 @@
 namespace BankingApp.Infrastructure.Common.Security;
 
 using System.Collections.Concurrent;
-using BankingApp.Application.Common.Security;
+using BankingApp.Application.Common.Contracts.Security;
 
 /// <summary>
 ///     In-process, thread-safe implementation of <see cref="IOtpAttemptTracker" />.
 ///     Registered as a singleton so the counters survive individual request scopes.
 /// </summary>
-public class OtpAttemptTracker : IOtpAttemptTracker
+public sealed class OtpAttemptTracker : IOtpAttemptTracker
 {
     private readonly ConcurrentDictionary<int, int> _failedAttempts = new();
 

@@ -1,12 +1,12 @@
 namespace BankingApp.Infrastructure.Common.Security;
 
-using BankingApp.Application.Common.Security;
+using BankingApp.Application.Common.Contracts.Security;
 using ErrorOr;
 
 /// <summary>
 ///     Provides BCrypt-based password hashing and verification.
 /// </summary>
-public class HashService : IHashService
+public sealed class HashService : IHashService
 {
     /// <inheritdoc />
     /// <param name="input">The input value.</param>
