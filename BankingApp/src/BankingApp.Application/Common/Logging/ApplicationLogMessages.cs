@@ -266,4 +266,7 @@ internal static partial class ApplicationLogMessages
 
     [LoggerMessage(EventId = 2086, Level = LogLevel.Error, Message = "Transfer failed: could not persist transfer record for user {UserId}.")]
     internal static partial void TransferPersistenceFailed(this ILogger logger, int userId);
+
+    [LoggerMessage(EventId = 2087, Level = LogLevel.Warning, Message = "Bill payment rejected: invalid 2FA token for user {UserId}.")]
+    internal static partial void BillPaymentTwoFactorInvalid(this ILogger logger, int userId);
 }

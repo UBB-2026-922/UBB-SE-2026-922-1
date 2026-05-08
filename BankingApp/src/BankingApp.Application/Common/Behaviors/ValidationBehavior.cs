@@ -2,6 +2,7 @@ namespace BankingApp.Application.Common.Behaviors;
 
 using ErrorOr;
 using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 
 public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
@@ -19,8 +20,8 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
             return await next();
         }
 
-        var context = new ValidationContext<TRequest>(request);
-        var validationResults = await Task.WhenAll(
+        ValidationContext<TRequest> context = new(request);
+        ValidationResult[] validationResults = await Task.WhenAll(
             validators.Select(validator => validator.ValidateAsync(context, cancellationToken)));
 
         var failures = validationResults

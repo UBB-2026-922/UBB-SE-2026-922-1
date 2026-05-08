@@ -3,7 +3,6 @@ namespace BankingApp.Application.Features.Forex.Queries;
 using Common.Contracts;
 using Common.Utilities;
 using Domain.Common.Errors;
-using Domain.Enums;
 using Dtos;
 using ErrorOr;
 using MediatR;
@@ -14,17 +13,15 @@ public sealed record GetRatePreviewQuery(
     string SourceCurrency,
     string TargetCurrency,
     decimal SourceAmount)
-    : IRequest<ErrorOr<ForexTransactionResponse>>;
+    : IRequest<ErrorOr<ForexRatePreviewResponse>>;
 
 public sealed class GetRatePreviewQueryHandler(
     IExchangeRateService exchangeRateService,
     ILockedRateCache lockedRateCache,
     ISystemClock clock)
-    : IRequestHandler<GetRatePreviewQuery, ErrorOr<ForexTransactionResponse>>
+    : IRequestHandler<GetRatePreviewQuery, ErrorOr<ForexRatePreviewResponse>>
 {
-    private const decimal CommissionRate = 0.005m;
-
-    public Task<ErrorOr<ForexTransactionResponse>> Handle(GetRatePreviewQuery query, CancellationToken cancellationToken)
+    public Task<ErrorOr<ForexRatePreviewResponse>> Handle(GetRatePreviewQuery query, CancellationToken cancellationToken)
     {
         Currency sourceCurrency;
         Currency targetCurrency;
@@ -35,35 +32,30 @@ public sealed class GetRatePreviewQueryHandler(
         }
         catch
         {
-            return Task.FromResult<ErrorOr<ForexTransactionResponse>>(ForexErrors.InvalidCurrency);
+            return Task.FromResult<ErrorOr<ForexRatePreviewResponse>>(ForexErrors.InvalidCurrency);
         }
 
         if (sourceCurrency == targetCurrency)
         {
-            return Task.FromResult<ErrorOr<ForexTransactionResponse>>(ForexErrors.SameCurrency);
+            return Task.FromResult<ErrorOr<ForexRatePreviewResponse>>(ForexErrors.SameCurrency);
         }
 
         ErrorOr<decimal> rateResult = exchangeRateService.GetRate(sourceCurrency, targetCurrency);
         if (rateResult.IsError)
         {
-            return Task.FromResult<ErrorOr<ForexTransactionResponse>>(rateResult.FirstError);
+            return Task.FromResult<ErrorOr<ForexRatePreviewResponse>>(rateResult.FirstError);
         }
 
         decimal rate = rateResult.Value;
-        decimal targetAmount = query.SourceAmount * rate;
-        decimal commission = query.SourceAmount * CommissionRate;
-
         lockedRateCache.Store(query.UserId, sourceCurrency, targetCurrency, rate, clock.UtcNow);
 
-        return Task.FromResult<ErrorOr<ForexTransactionResponse>>(new ForexTransactionResponse
+        return Task.FromResult<ErrorOr<ForexRatePreviewResponse>>(new ForexRatePreviewResponse
         {
-            Id = 0,
             SourceCurrency = sourceCurrency.Code,
             TargetCurrency = targetCurrency.Code,
-            TargetAmount = Math.Round(targetAmount, 2),
+            TargetAmount = Math.Round(query.SourceAmount * rate, 2),
             ExchangeRate = rate,
-            Commission = Math.Round(commission, 2),
-            Status = ExchangeTransactionStatus.Pending
+            Commission = Math.Round(query.SourceAmount * ForexPolicy.CommissionRate, 2)
         });
     }
 }

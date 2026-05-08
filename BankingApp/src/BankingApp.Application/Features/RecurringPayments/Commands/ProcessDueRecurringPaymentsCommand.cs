@@ -8,6 +8,7 @@ using Domain.Aggregates.BillPaymentAggregate;
 using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Enums;
 using Domain.Repositories;
+using BillPayments;
 using ErrorOr;
 using MediatR;
 using Money = NodaMoney.Money;
@@ -22,10 +23,6 @@ public sealed class ProcessDueRecurringPaymentsCommandHandler(
     ISystemClock clock)
     : IRequestHandler<ProcessDueRecurringPaymentsCommand, ErrorOr<int>>
 {
-    private const decimal LowTierFee = 0.50m;
-    private const decimal HighTierFee = 1.00m;
-    private const decimal FeeThreshold = 100m;
-
     public async Task<ErrorOr<int>> Handle(ProcessDueRecurringPaymentsCommand command, CancellationToken cancellationToken)
     {
         DateTime now = clock.UtcNow;
@@ -40,9 +37,8 @@ public sealed class ProcessDueRecurringPaymentsCommandHandler(
                 continue;
             }
 
-            decimal feeAmount = recurring.Amount <= FeeThreshold ? LowTierFee : HighTierFee;
             Money amount = new(recurring.Amount, account.Balance.Currency);
-            Money fee = new(feeAmount, account.Balance.Currency);
+            Money fee = BillPaymentFeePolicy.Calculate(recurring.Amount, account.Balance.Currency);
 
             ErrorOr<BillPayment> paymentResult = BillPayment.Create(
                 recurring.UserId,

@@ -2,6 +2,7 @@ namespace BankingApp.Application.Features.BillPayments.Commands;
 
 using Common.Contracts;
 using Common.Contracts.Security;
+using Common.Logging;
 using Common.Utilities;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -36,10 +37,6 @@ public sealed class ProcessBillPaymentCommandHandler(
     ILogger<ProcessBillPaymentCommandHandler> logger)
     : IRequestHandler<ProcessBillPaymentCommand, ErrorOr<BillPayResponse>>
 {
-    private const decimal LowTierFee = 0.50m;
-    private const decimal HighTierFee = 1.00m;
-    private const decimal FeeThreshold = 100m;
-
     public async Task<ErrorOr<BillPayResponse>> Handle(ProcessBillPaymentCommand command, CancellationToken cancellationToken)
     {
         ErrorOr<Account> accountResult = await GetValidAccountAsync(command, cancellationToken);
@@ -137,11 +134,8 @@ public sealed class ProcessBillPaymentCommandHandler(
 
     private static Money CreateAmount(decimal amount, NodaMoney.Currency currency) => new(amount, currency);
 
-    private static Money CreateFee(decimal amount, NodaMoney.Currency currency)
-    {
-        decimal feeAmount = amount <= FeeThreshold ? LowTierFee : HighTierFee;
-        return new(feeAmount, currency);
-    }
+    private static Money CreateFee(decimal amount, NodaMoney.Currency currency) =>
+        BillPaymentFeePolicy.Calculate(amount, currency);
 
     private ErrorOr<Success> VerifyTwoFactorIfRequired(ProcessBillPaymentCommand command, BillPayment payment)
     {
@@ -158,7 +152,7 @@ public sealed class ProcessBillPaymentCommandHandler(
         ErrorOr<bool> otpValid = otpService.VerifyTotp(command.UserId, command.TwoFaToken);
         if (otpValid.IsError || !otpValid.Value)
         {
-            logger.LogWarning("Invalid 2FA token for bill payment by user {UserId}", command.UserId);
+            logger.BillPaymentTwoFactorInvalid(command.UserId);
             return BillPaymentErrors.InvalidTwoFaToken;
         }
 

@@ -32,7 +32,6 @@ public sealed class ExecuteForexCommandHandler(
     ISystemClock clock)
     : IRequestHandler<ExecuteForexCommand, ErrorOr<ForexTransactionResponse>>
 {
-    private const decimal CommissionRate = 0.005m;
     private static readonly TimeSpan _rateTtl = TimeSpan.FromSeconds(30);
 
     public async Task<ErrorOr<ForexTransactionResponse>> Handle(ExecuteForexCommand command, CancellationToken cancellationToken)
@@ -62,6 +61,7 @@ public sealed class ExecuteForexCommandHandler(
         Account sourceAccount = accountsResult.Value.SourceAccount;
         Account targetAccount = accountsResult.Value.TargetAccount;
         decimal rate = lockedRateResult.Value.Rate;
+        DateTime now = clock.UtcNow;
         Money sourceAmount = CreateSourceAmount(command.SourceAmount, sourceCurrency);
         Money commission = CreateCommission(command.SourceAmount, sourceCurrency);
         Money targetAmount = CreateTargetAmount(command.SourceAmount, rate, targetCurrency);
@@ -74,14 +74,13 @@ public sealed class ExecuteForexCommandHandler(
             targetAmount,
             rate,
             commission,
-            clock.UtcNow);
+            now);
 
         if (forexResult.IsError)
         {
             return forexResult.FirstError;
         }
 
-        DateTime now = clock.UtcNow;
         string forexRef = $"FX-{now:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpperInvariant()}";
 
         ErrorOr<Money> sourceBalanceResult = sourceAccount.Debit(sourceAmount + commission, now);
@@ -206,7 +205,7 @@ public sealed class ExecuteForexCommandHandler(
     private static Money CreateSourceAmount(decimal amount, Currency currency) => new(amount, currency);
 
     private static Money CreateCommission(decimal amount, Currency currency) =>
-        new(Math.Round(amount * CommissionRate, 2), currency);
+        new(Math.Round(amount * ForexPolicy.CommissionRate, 2), currency);
 
     private static Money CreateTargetAmount(decimal amount, decimal rate, Currency currency) =>
         new(Math.Round(amount * rate, 2), currency);

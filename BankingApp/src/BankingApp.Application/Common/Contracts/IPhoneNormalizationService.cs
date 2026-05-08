@@ -1,35 +1,12 @@
-﻿namespace BankingApp.Application.Common.Contracts;
+namespace BankingApp.Application.Common.Utilities;
 
-// TODO: move implementation into infrastructure.
 using PhoneNumbers;
 
-/// <summary>
-/// TODO: add docs.
-/// </summary>
-public interface IPhoneNormalizationService
+public static class PhoneNormalization
 {
+    public static bool IsValidPhoneNumber(string phone, string defaultRegion = "RO") =>
+        NormalizePhoneNumber(phone, defaultRegion) is not null;
 
-    /// <summary>
-    ///     Determines whether the specified string is a valid phone number.
-    /// </summary>
-    /// <param name="phone">The phone number string to validate.</param>
-    /// <param name="defaultRegion">
-    ///     The default country code to fall back to. Defaults to RO until callers can supply a user-specific region.
-    /// </param>
-    /// <returns><see langword="true" /> if the phone number is valid; otherwise, <see langword="false" />.</returns>
-    public static bool IsValidPhoneNumber(string phone, string defaultRegion = "RO")
-    {
-        return NormalizePhoneNumber(phone, defaultRegion) is not null;
-    }
-
-    /// <summary>
-    ///     Normalizes the specified phone number to E.164 format.
-    /// </summary>
-    /// <param name="phone">The phone number string to normalize.</param>
-    /// <param name="defaultRegion">
-    ///     The default country code to fall back to. Defaults to RO until callers can supply a user-specific region.
-    /// </param>
-    /// <returns>The normalized E.164 phone number if valid; otherwise, <see langword="null" />.</returns>
     public static string? NormalizePhoneNumber(string phone, string defaultRegion = "RO")
     {
         if (string.IsNullOrWhiteSpace(phone))
