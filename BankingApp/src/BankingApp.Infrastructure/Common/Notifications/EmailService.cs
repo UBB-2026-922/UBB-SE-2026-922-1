@@ -1,89 +1,55 @@
 namespace BankingApp.Infrastructure.Common.Notifications;
 
-using System.Net;
-using System.Net.Mail;
-using System.Globalization;
 using BankingApp.Application.Common.Contracts.Notifications;
 using BankingApp.Infrastructure.Common.Logging;
-using Microsoft.Extensions.Configuration;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MimeKit;
 
 /// <summary>
-///     Sends transactional emails using SMTP _configuration from application settings.
+///     Sends transactional emails using MailKit over SMTP.
 /// </summary>
-public sealed class EmailService : IEmailService
+public sealed class EmailService(IOptions<SmtpSettings> options, ILogger<EmailService> logger) : IEmailService
 {
-    private const int DefaultSmtpPort = 587;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<EmailService> _logger;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="EmailService" /> class.
-    /// </summary>
-    /// <param name="configuration">The application _configuration containing SMTP settings.</param>
-    /// <param name="logger">Logger for email send failures.</param>
-    /// <returns>The result of the operation.</returns>
-    public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
-    {
-        _configuration = configuration;
-        _logger = logger;
-    }
+    private readonly SmtpSettings _settings = options.Value;
 
     /// <inheritdoc />
-    /// <param name="email">The email value.</param>
-    public void SendLockNotification(string email)
-    {
-        SendEmail(email, EmailTemplates.AccountLockedSubject, EmailTemplates.AccountLockedBody);
-    }
+    public Task SendOtpCodeAsync(string email, string code) =>
+        SendAsync(email, EmailTemplates.OtpSubject, EmailTemplates.GetOtpBody(code));
 
     /// <inheritdoc />
-    /// <param name="email">The email value.</param>
-    public void SendLoginAlert(string email)
-    {
-        SendEmail(email, EmailTemplates.LoginAlertSubject, EmailTemplates.LoginAlertBody);
-    }
+    public Task SendLoginAlertAsync(string email) =>
+        SendAsync(email, EmailTemplates.LoginAlertSubject, EmailTemplates.LoginAlertBody);
 
     /// <inheritdoc />
-    /// <param name="email">The email value.</param>
-    /// <param name="code">The code value.</param>
-    public void SendOtpCode(string email, string code)
-    {
-        SendEmail(email, EmailTemplates.OtpSubject, EmailTemplates.GetOtpBody(code));
-    }
+    public Task SendPasswordResetLinkAsync(string email, string rawToken) =>
+        SendAsync(email, EmailTemplates.PasswordResetSubject, EmailTemplates.GetPasswordResetBody(rawToken));
 
-    /// <inheritdoc />
-    /// <param name="email">The email value.</param>
-    /// <param name="token">The token value.</param>
-    public void SendPasswordResetLink(string email, string token)
-    {
-        SendEmail(email, EmailTemplates.PasswordResetSubject, EmailTemplates.GetPasswordResetBody(token));
-    }
+    public Task SendLockNotificationAsync(string email) =>
+        SendAsync(email, EmailTemplates.AccountLockedSubject, EmailTemplates.AccountLockedBody);
 
-    private void SendEmail(string toEmail, string subject, string body)
+    private async Task SendAsync(string toEmail, string subject, string body)
     {
         try
         {
-            string host = _configuration["Email:SmtpHost"] ??
-                          throw new InvalidOperationException("Email:SmtpHost is missing from _configuration.");
-            int port = int.Parse(
-                _configuration["Email:SmtpPort"] ??
-                throw new InvalidOperationException("Email:SmtpPort is missing from _configuration."),
-                CultureInfo.InvariantCulture);
-            string smtpUsername = _configuration["Email:SmtpUser"] ??
-                                  throw new InvalidOperationException("Email:SmtpUser is missing from _configuration.");
-            string smtpPassword = _configuration["Email:SmtpPass"] ??
-                                  throw new InvalidOperationException("Email:SmtpPass is missing from _configuration.");
-            string fromAddress = _configuration["Email:FromAddress"] ?? smtpUsername;
-            using var client = new SmtpClient(host, port);
-            client.Credentials = new NetworkCredential(smtpUsername, smtpPassword);
-            client.EnableSsl = true;
-            client.UseDefaultCredentials = false;
-            using var mailMessage = new MailMessage(fromAddress, toEmail, subject, body);
-            client.Send(mailMessage);
+            MimeMessage message = new();
+            string from = _settings.FromAddress.Length > 0 ? _settings.FromAddress : _settings.SmtpUser;
+            message.From.Add(MailboxAddress.Parse(from));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = subject;
+            message.Body = new TextPart("plain") { Text = body };
+
+            using SmtpClient client = new();
+            await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, SecureSocketOptions.Auto);
+            await client.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPass);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(quit: true);
         }
         catch (Exception exception)
         {
-            _logger.EmailSendFailed(exception, toEmail, subject);
+            logger.EmailSendFailed(exception, toEmail, subject);
         }
     }
 }

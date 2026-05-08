@@ -62,7 +62,7 @@ public sealed class ForgotPasswordCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.PasswordResetEmailSent(user.Id);
-        emailService.SendPasswordResetLink(user.Email.Value, rawToken);
+        await emailService.SendPasswordResetLinkAsync(user.Email.Value, rawToken);
         return Result.Success;
     }
 

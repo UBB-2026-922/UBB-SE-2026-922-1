@@ -4,14 +4,14 @@ using BankingApp.Application.Common.Contracts;
 using BankingApp.Application.Common.Contracts.Notifications;
 using BankingApp.Application.Common.Contracts.Security;
 using BankingApp.Application.Common.Utilities;
-using BankingApp.Domain.Repositories;
-using BankingApp.Infrastructure.Caching;
-using BankingApp.Infrastructure.Common.Clock;
-using BankingApp.Infrastructure.Common.Notifications;
-using BankingApp.Infrastructure.Common.Security;
-using BankingApp.Infrastructure.ExchangeRates;
-using BankingApp.Infrastructure.Persistence;
-using BankingApp.Infrastructure.Persistence.Repositories;
+using Domain.Repositories;
+using Caching;
+using Common.Clock;
+using Common.Notifications;
+using Common.Security;
+using ExchangeRates;
+using Persistence;
+using Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +29,15 @@ public static class ServiceCollectionExtensions
         string otpSecret = configuration["Otp:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
 
+        services.Configure<SmtpSettings>(settings =>
+        {
+            IConfigurationSection section = configuration.GetSection("Email");
+            settings.SmtpHost = section["SmtpHost"] ?? string.Empty;
+            settings.SmtpPort = int.TryParse(section["SmtpPort"], out int port) ? port : 587;
+            settings.SmtpUser = section["SmtpUser"] ?? string.Empty;
+            settings.SmtpPass = section["SmtpPass"] ?? string.Empty;
+            settings.FromAddress = section["FromAddress"] ?? string.Empty;
+        });
         services.AddMemoryCache();
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString)

@@ -1,8 +1,8 @@
 namespace BankingApp.Infrastructure.Persistence;
 
 using BankingApp.Application.Common.Contracts;
+using BankingApp.Domain.Common;
 using BankingApp.Domain.Common.Primitives;
-using Domain.Common;
 using MediatR;
 
 public sealed class UnitOfWork(AppDbContext dbContext, IPublisher publisher) : IUnitOfWork

@@ -65,7 +65,7 @@ public sealed class ResendOtpCommandHandler(
         if (string.Equals(command.Method, nameof(TwoFactorMethod.Email), StringComparison.OrdinalIgnoreCase)
             || identity.Preferred2FaMethod == TwoFactorMethod.Email)
         {
-            emailService.SendOtpCode(user.Email.Value, otpResult.Value);
+            await emailService.SendOtpCodeAsync(user.Email.Value, otpResult.Value);
         }
 
         otpAttemptTracker.Reset(user.Id);

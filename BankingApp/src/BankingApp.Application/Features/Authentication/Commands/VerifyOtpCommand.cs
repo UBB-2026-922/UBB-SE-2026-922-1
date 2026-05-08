@@ -93,7 +93,7 @@ public sealed class VerifyOtpCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         logger.UserLoggedIn(user.Id);
-        emailService.SendLoginAlert(user.Email.Value);
+        await emailService.SendLoginAlertAsync(user.Email.Value);
         return new FullLogin(user.Id, token);
     }
 }

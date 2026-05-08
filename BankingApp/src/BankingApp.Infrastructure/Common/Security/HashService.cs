@@ -9,13 +9,13 @@ using ErrorOr;
 public sealed class HashService : IHashService
 {
     /// <inheritdoc />
-    /// <param name="input">The input value.</param>
+    /// <param name="plaintext">The plaintext value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<string> GetHash(string input)
+    public ErrorOr<string> GetHash(string plaintext)
     {
         try
         {
-            return BCrypt.Net.BCrypt.HashPassword(input);
+            return BCrypt.Net.BCrypt.HashPassword(plaintext);
         }
         catch (Exception exception)
         {
@@ -24,14 +24,14 @@ public sealed class HashService : IHashService
     }
 
     /// <inheritdoc />
-    /// <param name="input">The input value.</param>
+    /// <param name="plaintext">The plaintext value.</param>
     /// <param name="hash">The hash value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<bool> Verify(string input, string hash)
+    public ErrorOr<bool> Verify(string plaintext, string hash)
     {
         try
         {
-            return BCrypt.Net.BCrypt.Verify(input, hash);
+            return BCrypt.Net.BCrypt.Verify(plaintext, hash);
         }
         catch (Exception exception)
         {

@@ -17,7 +17,6 @@ public sealed class OtpService : IOtpService
 
     private const int SmsOtpExpiryMinutes = 5;
     private const int OtpRangeMinimum = 100000;
-    private const int OtpRangeMaximum = 999999;
     private const int OtpModulus = 1000000;
     private const int OtpDigitCount = 6;
     private const int TruncationOffsetMask = 0x0F;
@@ -32,7 +31,7 @@ public sealed class OtpService : IOtpService
     private const int SecondDynamicTruncationByteShift = 16;
     private const int ThirdDynamicTruncationByteShift = 8;
 
-    private static readonly ConcurrentDictionary<int, (string Code, DateTime ExpiryTime)> _temporarySmsStorage = [];
+    private readonly ConcurrentDictionary<int, (string Code, DateTime ExpiryTime)> _temporarySmsStorage = new();
 
     private readonly string _otpServerSecret;
 
@@ -53,7 +52,7 @@ public sealed class OtpService : IOtpService
     {
         try
         {
-            string code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpRangeMaximum)
+            string code = RandomNumberGenerator.GetInt32(OtpRangeMinimum, OtpModulus)
                 .ToString(CultureInfo.InvariantCulture);
             DateTime expiryTime = DateTime.UtcNow.AddMinutes(SmsOtpExpiryMinutes);
             _temporarySmsStorage[userId] = (code, expiryTime);
@@ -90,9 +89,9 @@ public sealed class OtpService : IOtpService
 
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
-    /// <param name="code">The code value.</param>
+    /// <param name="token">The token value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<bool> VerifySmsOtp(int userId, string code)
+    public ErrorOr<bool> VerifySmsOtp(int userId, string token)
     {
         try
         {
@@ -107,7 +106,7 @@ public sealed class OtpService : IOtpService
                 return false;
             }
 
-            if (storedOtpData.Code != code)
+            if (storedOtpData.Code != token)
             {
                 return false;
             }
@@ -123,19 +122,19 @@ public sealed class OtpService : IOtpService
 
     /// <inheritdoc />
     /// <param name="userId">The userId value.</param>
-    /// <param name="code">The code value.</param>
+    /// <param name="token">The token value.</param>
     /// <returns>The result of the operation.</returns>
-    public ErrorOr<bool> VerifyTotp(int userId, string code)
+    public ErrorOr<bool> VerifyTotp(int userId, string token)
     {
         try
         {
             long currentWindow = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / TotpWindowSeconds;
-            if (code == GenerateHmacCode(userId, currentWindow))
+            if (token == GenerateHmacCode(userId, currentWindow))
             {
                 return true;
             }
 
-            if (code == GenerateHmacCode(userId, currentWindow - PreviousTotpWindowOffset))
+            if (token == GenerateHmacCode(userId, currentWindow - PreviousTotpWindowOffset))
             {
                 return true;
             }
@@ -153,14 +152,14 @@ public sealed class OtpService : IOtpService
         string secret = $"{_otpServerSecret}_{userId}";
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
         byte[] hash = hmac.ComputeHash(BitConverter.GetBytes(timeWindow));
-        int offset = hash.Last() & TruncationOffsetMask;
-        int binary = ((hash.ElementAt(offset + FirstDynamicTruncationByteOffset) & SignBitMask) <<
+        int offset = hash[^1] & TruncationOffsetMask;
+        int binary = ((hash[offset + FirstDynamicTruncationByteOffset] & SignBitMask) <<
                       FirstDynamicTruncationByteShift) |
-                     ((hash.ElementAt(offset + SecondDynamicTruncationByteOffset) & ByteMask) <<
+                     ((hash[offset + SecondDynamicTruncationByteOffset] & ByteMask) <<
                       SecondDynamicTruncationByteShift) |
-                     ((hash.ElementAt(offset + ThirdDynamicTruncationByteOffset) & ByteMask) <<
+                     ((hash[offset + ThirdDynamicTruncationByteOffset] & ByteMask) <<
                       ThirdDynamicTruncationByteShift) |
-                     (hash.ElementAt(offset + FourthDynamicTruncationByteOffset) & ByteMask);
+                     (hash[offset + FourthDynamicTruncationByteOffset] & ByteMask);
         return (binary % OtpModulus).ToString($"D{OtpDigitCount}", CultureInfo.InvariantCulture);
     }
 }

@@ -150,7 +150,7 @@ public sealed class LoginCommandHandler(
 
         if (identity.Preferred2FaMethod == TwoFactorMethod.Email)
         {
-            emailService.SendOtpCode(user.Email.Value, otpResult.Value);
+            await emailService.SendOtpCodeAsync(user.Email.Value, otpResult.Value);
         }
 
         otpAttemptTracker.Reset(user.Id);
@@ -181,7 +181,7 @@ public sealed class LoginCommandHandler(
         await unitOfWork.SaveChangesAsync(ct);
 
         logger.UserLoggedIn(user.Id);
-        emailService.SendLoginAlert(user.Email.Value);
+        await emailService.SendLoginAlertAsync(user.Email.Value);
         return new FullLogin(user.Id, token);
     }
 }

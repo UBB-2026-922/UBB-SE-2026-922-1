@@ -10,16 +10,18 @@ public sealed class MemoryLockedRateCache(IMemoryCache memoryCache) : ILockedRat
 
     public void Store(int userId, Currency baseCurrency, Currency quoteCurrency, decimal rate, DateTime lockedAt)
     {
-        memoryCache.Set(userId, new LockedRate(baseCurrency, quoteCurrency, rate, lockedAt), _lockTtl);
+        memoryCache.Set(Key(userId), new LockedRate(baseCurrency, quoteCurrency, rate, lockedAt), _lockTtl);
     }
 
     public LockedRate? TryGet(int userId)
     {
-        return memoryCache.TryGetValue(userId, out LockedRate? lockedRate) ? lockedRate : null;
+        return memoryCache.TryGetValue(Key(userId), out LockedRate? lockedRate) ? lockedRate : null;
     }
 
     public void Remove(int userId)
     {
-        memoryCache.Remove(userId);
+        memoryCache.Remove(Key(userId));
     }
+
+    private static string Key(int userId) => $"forex_lock:{userId}";
 }
