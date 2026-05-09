@@ -77,6 +77,36 @@ public static class InputRules
     }
 
     /// <summary>
+    ///     Normalizes a phone number to E.164 format (e.g. +40712345678).
+    /// </summary>
+    /// <param name="phoneNumber">The phone number to normalize.</param>
+    /// <param name="defaultRegion">The default region code (e.g. "RO", "US"). Defaults to "RO".</param>
+    /// <returns>The E.164 formatted number, or <see langword="null" /> if the number is invalid.</returns>
+    public static string? NormalizePhoneNumber(string? phoneNumber, string defaultRegion = "RO")
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            return null;
+        }
+
+        try
+        {
+            var phoneUtil = PhoneNumberUtil.GetInstance();
+            PhoneNumber parsed = phoneUtil.Parse(phoneNumber, defaultRegion);
+            if (!phoneUtil.IsValidNumber(parsed))
+            {
+                return null;
+            }
+
+            return phoneUtil.Format(parsed, PhoneNumberFormat.E164);
+        }
+        catch (NumberParseException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     ///     Determines whether two password strings are equal.
     /// </summary>
     /// <param name="firstPassword">The first password.</param>

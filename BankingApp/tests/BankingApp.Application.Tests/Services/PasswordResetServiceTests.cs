@@ -1,193 +1,232 @@
 namespace BankingApp.Application.Tests.Services;
 
-
-using BankingApp.Application.Common.Notifications;
-using BankingApp.Application.Features.PasswordReset.Services;
-using BankingApp.Application.Common.Security;
-using Domain.Entities;
+using BankingApp.Application.Features.PasswordReset.Commands;
+using BankingApp.Application.Features.PasswordReset.Queries;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-/// <summary>
-///     Unit tests for <see cref="PasswordResetService" />.
-/// </summary>
-public class PasswordResetServiceTests
+public sealed class ForgotPasswordCommandHandlerTests
 {
-    private const int TokenExpiryLowerBoundMinutes = 29;
-    private const int TokenExpiryUpperBoundMinutes = 31;
-    private const int TokenStillValidMinutes = 5;
-    private const int TokenAlreadyExpiredMinutes = -1;
+    private readonly Mock<IUserRepository> _userRepo = MockFactory.CreateUserRepository();
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
+    private readonly Mock<IEmailService> _emailService = MockFactory.CreateEmailService();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    /// <summary>
-    ///     Verifies the RequestPasswordReset_WhenUserDoesNotExist_ReturnsRepositoryError scenario.
-    /// </summary>
+    private ForgotPasswordCommandHandler CreateHandler() => new(
+        _userRepo.Object,
+        _identityRepo.Object,
+        _emailService.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        NullLogger<ForgotPasswordCommandHandler>.Instance);
+
     [Fact]
-    public void RequestPasswordReset_WhenUserDoesNotExist_ReturnsRepositoryError()
+    public async Task Handle_WhenEmailInvalid_ReturnsSuccessWithoutEmail()
     {
-        // Arrange
-        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
-        Mock<IHashService> hashService = MockFactory.CreateHashService();
-        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
-        authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail("missing@test.com"))
-            .Returns(Error.NotFound("user_not_found", "User not found."));
+        var command = new ForgotPasswordCommand("not-an-email");
 
-        var service = new PasswordResetService(
-            authRepository.Object,
-            hashService.Object,
-            emailService.Object,
-            NullLogger<PasswordResetService>.Instance);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<Success> result = service.RequestPasswordReset("missing@test.com");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("user_not_found");
-        emailService.Verify(
-            sendsPasswordResetLink =>
-                sendsPasswordResetLink.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()),
-            Times.Never);
-    }
-
-    /// <summary>
-    ///     Verifies the RequestPasswordReset_WhenUserExists_CreatesThirtyMinuteToken scenario.
-    /// </summary>
-    [Fact]
-    public void RequestPasswordReset_WhenUserExists_CreatesThirtyMinuteToken()
-    {
-        // Arrange
-        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
-        Mock<IHashService> hashService = MockFactory.CreateHashService();
-        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
-        var user = new User { Id = 1, Email = "ada@test.com" };
-        PasswordResetToken? savedToken = null;
-        DateTime before = DateTime.UtcNow.AddMinutes(TokenExpiryLowerBoundMinutes);
-
-        authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(user.Email))
-            .Returns((ErrorOr<User>)user);
-        authRepository.Setup(savesPasswordResetToken =>
-                savesPasswordResetToken.SavePasswordResetToken(It.IsAny<PasswordResetToken>()))
-            .Callback<PasswordResetToken>(token => savedToken = token)
-            .Returns(Result.Success);
-
-        var service = new PasswordResetService(
-            authRepository.Object,
-            hashService.Object,
-            emailService.Object,
-            NullLogger<PasswordResetService>.Instance);
-
-        // Act
-        ErrorOr<Success> result = service.RequestPasswordReset(user.Email);
-
-        // Assert
         result.IsError.Should().BeFalse();
-        savedToken.Should().NotBeNull();
-        savedToken!.ExpiresAt.Should().BeOnOrAfter(before);
-        savedToken.ExpiresAt.Should().BeOnOrBefore(DateTime.UtcNow.AddMinutes(TokenExpiryUpperBoundMinutes));
+        _emailService.Verify(s => s.SendPasswordResetLinkAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
-    /// <summary>
-    ///     Verifies the RequestPasswordReset_WhenSavingTokenFails_ReturnsFailure scenario.
-    /// </summary>
     [Fact]
-    public void RequestPasswordReset_WhenSavingTokenFails_ReturnsFailure()
+    public async Task Handle_WhenUserNotFound_ReturnsSuccessWithoutEmail()
     {
-        // Arrange
-        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
-        Mock<IHashService> hashService = MockFactory.CreateHashService();
-        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
-        var user = new User { Id = 1, Email = "ada@test.com" };
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+        var command = new ForgotPasswordCommand("notfound@test.com");
 
-        authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(user.Email))
-            .Returns((ErrorOr<User>)user);
-        authRepository.Setup(savesPasswordResetToken =>
-                savesPasswordResetToken.SavePasswordResetToken(It.IsAny<PasswordResetToken>()))
-            .Returns(Error.Failure("save_failed", "Save failed."));
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        var service = new PasswordResetService(
-            authRepository.Object,
-            hashService.Object,
-            emailService.Object,
-            NullLogger<PasswordResetService>.Instance);
-
-        // Act
-        ErrorOr<Success> result = service.RequestPasswordReset(user.Email);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Description.Should().Be("Failed to save password reset token.");
-        emailService.Verify(
-            sendsPasswordResetLink =>
-                sendsPasswordResetLink.SendPasswordResetLink(It.IsAny<string>(), It.IsAny<string>()),
-            Times.Never);
+        result.IsError.Should().BeFalse();
+        _emailService.Verify(s => s.SendPasswordResetLinkAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
-    /// <summary>
-    ///     Verifies the ResetPassword_WhenTokenIsAlreadyUsed_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
-    public void ResetPassword_WhenTokenIsAlreadyUsed_ReturnsValidationError()
+    public async Task Handle_WhenIdentityNotFound_ReturnsSuccessWithoutEmail()
     {
-        // Arrange
-        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
-        Mock<IHashService> hashService = MockFactory.CreateHashService();
-        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
-        authRepository.Setup(findsPasswordResetToken =>
-                findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns(
-                new PasswordResetToken
-                {
-                    Id = 1,
-                    UserId = 1,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes),
-                    UsedAt = DateTime.UtcNow
-                });
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IdentityAccount?)null);
+        var command = new ForgotPasswordCommand("test@test.com");
 
-        var service = new PasswordResetService(
-            authRepository.Object,
-            hashService.Object,
-            emailService.Object,
-            NullLogger<PasswordResetService>.Instance);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<Success> result = service.ResetPassword("raw-token", "StrongPass1!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_already_used");
+        result.IsError.Should().BeFalse();
+        _emailService.Verify(s => s.SendPasswordResetLinkAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
-    /// <summary>
-    ///     Verifies the VerifyResetToken_WhenTokenExpired_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
-    public void VerifyResetToken_WhenTokenExpired_ReturnsValidationError()
+    public async Task Handle_WhenUserExists_IssuesTokenAndSendsEmail()
     {
-        // Arrange
-        Mock<IAuthenticationRepository> authRepository = MockFactory.CreateAuthRepository();
-        Mock<IHashService> hashService = MockFactory.CreateHashService();
-        Mock<IEmailService> emailService = MockFactory.CreateEmailService();
-        authRepository.Setup(findsPasswordResetToken =>
-                findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns(
-                new PasswordResetToken
-                {
-                    Id = 1,
-                    UserId = 1,
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes)
-                });
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new ForgotPasswordCommand("test@test.com");
 
-        var service = new PasswordResetService(
-            authRepository.Object,
-            hashService.Object,
-            emailService.Object,
-            NullLogger<PasswordResetService>.Instance);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<Success> result = service.VerifyResetToken("raw-token");
+        result.IsError.Should().BeFalse();
+        _emailService.Verify(s => s.SendPasswordResetLinkAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+    }
+}
 
-        // Assert
+public sealed class ResetPasswordCommandHandlerTests
+{
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
+    private readonly Mock<IHashService> _hashService = MockFactory.CreateHashService();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
+
+    private ResetPasswordCommandHandler CreateHandler() => new(
+        _identityRepo.Object,
+        _hashService.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        NullLogger<ResetPasswordCommandHandler>.Instance);
+
+    [Fact]
+    public async Task Handle_WhenTokenNotFound_ReturnsTokenInvalidError()
+    {
+        _identityRepo.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IdentityAccount?)null);
+        var command = new ResetPasswordCommand("unknown-token", "NewPassword1!");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_expired");
+    }
+
+    [Fact]
+    public async Task Handle_WhenTokenAlreadyUsed_ReturnsTokenAlreadyUsedError()
+    {
+        var identity = IdentityAccount.Create(1, null);
+        var rawToken = "valid-token";
+        var tokenHash = ComputeHash(rawToken);
+        identity.IssuePasswordResetToken(tokenHash, DateTime.UtcNow.AddMinutes(30), DateTime.UtcNow);
+        var resetToken = identity.PasswordResetTokens.First();
+        resetToken.MarkUsed(DateTime.UtcNow);
+        _identityRepo.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new ResetPasswordCommand(rawToken, "NewPassword1!");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenTokenExpired_ReturnsTokenExpiredError()
+    {
+        var identity = IdentityAccount.Create(1, null);
+        var rawToken = "expired-token";
+        var tokenHash = ComputeHash(rawToken);
+        identity.IssuePasswordResetToken(tokenHash, DateTime.UtcNow.AddMinutes(-5), DateTime.UtcNow.AddMinutes(-35));
+        _clock.SetupGet(c => c.UtcNow).Returns(DateTime.UtcNow);
+        _identityRepo.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new ResetPasswordCommand(rawToken, "NewPassword1!");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenHashFails_ReturnsError()
+    {
+        var identity = IdentityAccount.Create(1, null);
+        var rawToken = "valid-token";
+        var tokenHash = ComputeHash(rawToken);
+        identity.IssuePasswordResetToken(tokenHash, DateTime.UtcNow.AddMinutes(30), DateTime.UtcNow);
+        _clock.SetupGet(c => c.UtcNow).Returns(DateTime.UtcNow);
+        _identityRepo.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.GetHash(It.IsAny<string>()))
+            .Returns(Error.Failure("hash.error"));
+        var command = new ResetPasswordCommand(rawToken, "NewPassword1!");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("hash.error");
+    }
+
+    [Fact]
+    public async Task Handle_WhenTokenValid_ResetsPasswordAndInvalidatesSessions()
+    {
+        var identity = IdentityAccount.Create(1, HashedPassword.Wrap("old-hash"));
+        identity.OpenSession("session-token", DateTime.UtcNow.AddHours(24), DateTime.UtcNow);
+        var rawToken = "valid-token";
+        var tokenHash = ComputeHash(rawToken);
+        identity.IssuePasswordResetToken(tokenHash, DateTime.UtcNow.AddMinutes(30), DateTime.UtcNow);
+        _clock.SetupGet(c => c.UtcNow).Returns(DateTime.UtcNow);
+        _identityRepo.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new ResetPasswordCommand(rawToken, "NewPassword1!");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private static string ComputeHash(string input)
+    {
+        var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
+    }
+}
+
+public sealed class VerifyResetTokenQueryHandlerTests
+{
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
+
+    private VerifyResetTokenQueryHandler CreateHandler() => new(
+        _identityRepo.Object,
+        _clock.Object);
+
+    [Fact]
+    public async Task Handle_WhenTokenNotFound_ReturnsError()
+    {
+        _identityRepo.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IdentityAccount?)null);
+        var query = new VerifyResetTokenQuery("unknown");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenTokenValid_ReturnsSuccess()
+    {
+        var identity = IdentityAccount.Create(1, null);
+        var rawToken = "valid-token";
+        var tokenHash = ComputeHash(rawToken);
+        identity.IssuePasswordResetToken(tokenHash, DateTime.UtcNow.AddMinutes(30), DateTime.UtcNow);
+        _clock.SetupGet(c => c.UtcNow).Returns(DateTime.UtcNow);
+        _identityRepo.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var query = new VerifyResetTokenQuery(rawToken);
+
+        ErrorOr<Success> result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+    }
+
+    private static string ComputeHash(string input)
+    {
+        var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input));
+        return Convert.ToHexString(bytes).ToLowerInvariant();
     }
 }

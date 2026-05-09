@@ -14,7 +14,7 @@ using Logging;
 public class SessionValidationMiddleware
 {
     private const string BearerPrefix = "Bearer ";
-    private static readonly string[] PublicEndpointPrefixes = ["/api/auth/", "/swagger"];
+    private static readonly string[] _publicEndpointPrefixes = ["/api/auth/", "/swagger"];
     private readonly RequestDelegate _next;
 
     /// <summary>
@@ -72,7 +72,7 @@ public class SessionValidationMiddleware
     private static bool IsPublicEndpoint(string? path)
     {
         return path is not null &&
-               Array.Exists(PublicEndpointPrefixes, prefix => path.StartsWith(prefix, StringComparison.Ordinal));
+               Array.Exists(_publicEndpointPrefixes, prefix => path.StartsWith(prefix, StringComparison.Ordinal));
     }
 
     private static bool TryExtractBearerToken(HttpContext context, out string token)

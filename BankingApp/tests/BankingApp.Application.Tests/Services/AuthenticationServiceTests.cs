@@ -1,909 +1,438 @@
 namespace BankingApp.Application.Tests.Services;
 
-
-using BankingApp.Application.Features.Authentication.Services;
-using BankingApp.Application.Common.Notifications;
-using BankingApp.Application.Common.Security;
-using Domain.Entities;
-using Domain.Enums;
+using BankingApp.Application.Features.Authentication.Commands;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-using BankingApp.Application.Features.Authentication.Dtos;
-
-public sealed class AuthenticationServiceTests
+public sealed class LoginCommandHandlerTests
 {
-    private const int TokenStillValidMinutes = 5;
-    private const int TokenAlreadyExpiredMinutes = -5;
-    private const int LockoutDurationMinutes = 10;
-    private const int AttemptsBeforeLockout = 4;
-    private readonly AuthenticationService _authService;
-    private readonly Mock<IAuthenticationRepository> _mockAuthRepository = MockFactory.CreateAuthRepository();
-    private readonly Mock<IEmailService> _mockEmailService = MockFactory.CreateEmailService();
-    private readonly Mock<IHashService> _mockHashService = MockFactory.CreateHashService();
-    private readonly Mock<IJsonWebTokenService> _mockJwtService = MockFactory.CreateJwtService();
-    private readonly Mock<IOtpService> _mockOtpService = MockFactory.CreateOtpService();
+    private readonly Mock<IUserRepository> _userRepo = MockFactory.CreateUserRepository();
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
+    private readonly Mock<IHashService> _hashService = MockFactory.CreateHashService();
+    private readonly Mock<IJsonWebTokenService> _jwtService = MockFactory.CreateJwtService();
+    private readonly Mock<IOtpService> _otpService = MockFactory.CreateOtpService();
+    private readonly Mock<IOtpAttemptTracker> _otpTracker = MockFactory.CreateOtpAttemptTracker();
+    private readonly Mock<IEmailService> _emailService = MockFactory.CreateEmailService();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="AuthenticationServiceTests" /> class.
-    /// </summary>
-    public AuthenticationServiceTests()
-    {
-        _authService = new AuthenticationService(
-            _mockAuthRepository.Object,
-            _mockHashService.Object,
-            _mockJwtService.Object,
-            _mockOtpService.Object,
-            _mockEmailService.Object,
-            NullLogger<AuthenticationService>.Instance);
-    }
+    private LoginCommandHandler CreateHandler() => new(
+        _userRepo.Object,
+        _identityRepo.Object,
+        _hashService.Object,
+        _jwtService.Object,
+        _otpService.Object,
+        _otpTracker.Object,
+        _emailService.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        NullLogger<LoginCommandHandler>.Instance);
 
     [Fact]
-    public void Login_WhenEmailIsNotValid_ReturnsError()
+    public async Task Handle_WhenEmailIsInvalid_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "invalid_email", Password = "invalid_password" };
+        var command = new LoginCommand("not-an-email", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_email");
     }
 
     [Fact]
-    public void Login_WhenUserNotFound_ReturnsError()
+    public async Task Handle_WhenUserNotFound_ReturnsInvalidCredentials()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "fake@user.com", Password = "fake_password" };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.Failure());
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+        var command = new LoginCommand("test@test.com", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
-        result.FirstError.Code.Should().Be("invalid_credentials");
     }
 
     [Fact]
-    public void Login_WhenAccountIsLocked_ReturnsForbidden()
+    public async Task Handle_WhenIdentityNotFound_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "locked@user.com", Password = "password" };
-        var user = new User
-        {
-            Id = 1, Email = request.Email, IsLocked = true,
-            LockoutEnd = DateTime.UtcNow.AddMinutes(LockoutDurationMinutes)
-        };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IdentityAccount?)null);
+        var command = new LoginCommand("test@test.com", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenAccountCurrentlyLocked_ReturnsAccountLocked()
+    {
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        identity.LockAccount(DateTime.UtcNow.AddHours(1));
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new LoginCommand("test@test.com", "password");
+
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        result.FirstError.Code.Should().Be("account_locked");
     }
 
     [Fact]
-    public void Login_WhenAccountIsOAuthOnly_ReturnsInvalidCredentials()
+    public async Task Handle_WhenLockExpired_ResetsAndContinues()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "oauth@user.com", Password = "password" };
-        var user = new User { Id = 1, Email = request.Email, PasswordHash = null, IsLocked = false };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        identity.LockAccount(DateTime.UtcNow.AddHours(-1));
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)true);
+        var command = new LoginCommand("test@test.com", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_credentials");
-        _mockHashService.Verify(verifies => verifies.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        result.IsError.Should().BeFalse();
     }
 
     [Fact]
-    public void Login_WhenPasswordVerificationThrowsError_ReturnsError()
+    public async Task Handle_WhenOAuthOnlyAccount_ReturnsInvalidCredentials()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "test@test.com", Password = "ValidPassword1!" };
-        var user = new User { Id = 1, Email = request.Email, PasswordHash = "hash", IsLocked = false };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash))
-            .Returns(Error.Failure("verify_failed"));
+        var emailValue = Email.Create("oauth@test.com").Value;
+        var user = User.Register(emailValue, "OAuth User", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new LoginCommand("oauth@test.com", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("verify_failed");
-    }
-
-    [Fact]
-    public void Login_WhenPasswordIsWrong_IncrementsFailedAttempts()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "wrongpass@user.com", Password = "WrongPassword1!" };
-        var user = new User { Id = 1, Email = request.Email, PasswordHash = "hash", FailedLoginAttempts = 1 };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(false);
-        _mockAuthRepository.Setup(incrementsFailedAttempts => incrementsFailedAttempts.IncrementFailedAttempts(user.Id))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_credentials");
-        _mockAuthRepository.Verify(
-            incrementsFailedAttempts => incrementsFailedAttempts.IncrementFailedAttempts(user.Id),
-            Times.Once);
-    }
-
-    [Fact]
-    public void Login_WhenPasswordIsWrong_AndMaxAttemptsReached_LockAccountFails_ReturnsError()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "lockme@user.com", Password = "WrongPassword1!" };
-        var user = new User
-            { Id = 1, Email = request.Email, PasswordHash = "hash", FailedLoginAttempts = AttemptsBeforeLockout };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(false);
-        _mockAuthRepository.Setup(incrementsFailedAttempts => incrementsFailedAttempts.IncrementFailedAttempts(user.Id))
-            .Returns(Result.Success);
-        _mockAuthRepository.Setup(locksAccount => locksAccount.LockAccount(user.Id, It.IsAny<DateTime>()))
-            .Returns(Error.Failure("lock_failed"));
-
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
-        result.FirstError.Code.Should().Be("invalid_credentials");
+        _hashService.Verify(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public void Login_WhenPasswordIsWrong_AndMaxAttemptsReached_LocksAccount()
+    public async Task Handle_WhenWrongPassword_ReturnsInvalidCredentials()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "lockme@user.com", Password = "WrongPassword1!" };
-        var user = new User
-            { Id = 1, Email = request.Email, PasswordHash = "hash", FailedLoginAttempts = AttemptsBeforeLockout };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(false);
-        _mockAuthRepository.Setup(incrementsFailedAttempts => incrementsFailedAttempts.IncrementFailedAttempts(user.Id))
-            .Returns(Result.Success);
-        _mockAuthRepository.Setup(locksAccount => locksAccount.LockAccount(user.Id, It.IsAny<DateTime>()))
-            .Returns(Result.Success);
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)false);
+        var command = new LoginCommand("test@test.com", "wrong-password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Handle_WhenMaxFailedAttempts_LocksAccount()
+    {
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        for (int i = 0; i < 4; i++)
+        {
+            identity.IncrementFailedAttempts();
+        }
+
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)false);
+        var command = new LoginCommand("test@test.com", "wrong");
+
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        _mockAuthRepository.Verify(locksAccount => locksAccount.LockAccount(user.Id, It.IsAny<DateTime>()), Times.Once);
-        _mockEmailService.Verify(
-            sendsLockNotification => sendsLockNotification.SendLockNotification(user.Email),
-            Times.Once);
     }
 
     [Fact]
-    public void Login_When2FAEnabled_AndOtpGenerationFails_ReturnsError()
+    public async Task Handle_WhenHashVerifyFails_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "2fa@user.com", Password = "ValidPassword123!" };
-        var user = new User
-        {
-            Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email
-        };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
-        _mockOtpService.Setup(generatesTotp => generatesTotp.GenerateTotp(user.Id))
-            .Returns(Error.Failure("otp_failed"));
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Error.Failure("hash.failed", "Hash verify error"));
+        var command = new LoginCommand("test@test.com", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("otp_failed");
+        result.FirstError.Code.Should().Be("hash.failed");
     }
 
     [Fact]
-    public void Login_WhenUserHas2FA_ReturnsRequiresTwoFactor()
+    public async Task Handle_When2FaEnabled_ReturnsRequiresTwoFactor()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "2fa@user.com", Password = "ValidPassword123!" };
-        var user = new User
-        {
-            Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email
-        };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
-        _mockOtpService.Setup(generatesTotp => generatesTotp.GenerateTotp(user.Id)).Returns((ErrorOr<string>)"123456");
+        var (user, identity) = MockFactory.CreateAuthenticatedPair(is2FaEnabled: true, method: TwoFactorMethod.Email);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)true);
+        var command = new LoginCommand("test@test.com", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeOfType<RequiresTwoFactor>();
-        _mockEmailService.Verify(sendsOtpCode => sendsOtpCode.SendOtpCode(user.Email, "123456"), Times.Once);
     }
 
     [Fact]
-    public void Login_WhenCompleteLogin_AndTokenGenerationFails_ReturnsError()
+    public async Task Handle_When2FaOtpGenerationFails_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "ok@user.com", Password = "ValidPassword123!" };
-        var user = new User { Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = false };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
-        _mockAuthRepository.Setup(resetsFailedAttempts => resetsFailedAttempts.ResetFailedAttempts(user.Id))
-            .Returns(Result.Success);
-        _mockJwtService.Setup(generatesToken => generatesToken.GenerateToken(user.Id))
-            .Returns(Error.Failure("jwt_failed"));
+        var (user, identity) = MockFactory.CreateAuthenticatedPair(is2FaEnabled: true, method: TwoFactorMethod.Email);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)true);
+        _otpService.Setup(s => s.GenerateSmsOtp(It.IsAny<int>()))
+            .Returns(Error.Failure("otp.failed", "OTP generation failed"));
+        var command = new LoginCommand("test@test.com", "password");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("jwt_failed");
     }
 
     [Fact]
-    public void Login_WhenCompleteLogin_AndSessionCreationFailed_ReturnsError()
+    public async Task Handle_WhenJwtGenerationFails_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "ok@user.com", Password = "ValidPassword123!" };
-        var user = new User { Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = false };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
-        _mockAuthRepository.Setup(resetsFailedAttempts => resetsFailedAttempts.ResetFailedAttempts(user.Id))
-            .Returns(Result.Success);
-        _mockJwtService.Setup(generatesToken => generatesToken.GenerateToken(user.Id))
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)true);
+        _jwtService.Setup(s => s.GenerateToken(It.IsAny<int>()))
+            .Returns(Error.Failure("jwt.failed", "JWT generation failed"));
+        var command = new LoginCommand("test@test.com", "password");
+
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("jwt.failed");
+    }
+
+    [Fact]
+    public async Task Handle_WhenValidCredentials_ReturnsFullLogin()
+    {
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)true);
+        _jwtService.Setup(s => s.GenerateToken(It.IsAny<int>()))
             .Returns((ErrorOr<string>)"jwt-token");
-        _mockAuthRepository
-            .Setup(createsSession => createsSession.CreateSession(user.Id, "jwt-token", null, null, null))
-            .Returns(Error.Failure("session_failed"));
+        var command = new LoginCommand("test@test.com", "ValidPassword1!");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("session_failed");
-    }
-
-    [Fact]
-    public void Login_WhenValid_ReturnsFullLogin()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "ok@user.com", Password = "ValidPassword123!" };
-        var user = new User { Id = 1, Email = request.Email, PasswordHash = "hash", Is2FaEnabled = false };
-        string token = "jwt-token";
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockHashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash)).Returns(true);
-        _mockAuthRepository.Setup(resetsFailedAttempts => resetsFailedAttempts.ResetFailedAttempts(user.Id))
-            .Returns(Result.Success);
-        _mockJwtService.Setup(generatesToken => generatesToken.GenerateToken(user.Id)).Returns((ErrorOr<string>)token);
-        _mockAuthRepository.Setup(createsSession => createsSession.CreateSession(user.Id, token, null, null, null))
-            .Returns((ErrorOr<Session>)new Session());
-
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.Login(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        FullLogin? login = result.Value.Should().BeOfType<FullLogin>().Subject;
-        login.UserId.Should().Be(user.Id);
-        login.Token.Should().Be(token);
-    }
-
-    [Fact]
-    public void Register_WhenEmailIsInvalid_ReturnsValidationError()
-    {
-        // Arrange
-        var request = new RegisterRequest { Email = "invalid", Password = "ValidPassword1!", FullName = "Name" };
-
-        // Act
-        ErrorOr<Success> result = _authService.Register(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_email");
-    }
-
-    [Fact]
-    public void Register_WhenPasswordIsWeak_ReturnsValidationError()
-    {
-        // Arrange
-        var request = new RegisterRequest { Email = "test@user.com", Password = "weak", FullName = "John Doe" };
-
-        // Act
-        ErrorOr<Success> result = _authService.Register(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("weak_password");
-    }
-
-    [Fact]
-    public void Register_WhenFullNameIsEmpty_ReturnsValidationError()
-    {
-        // Arrange
-        var request = new RegisterRequest
-            { Email = "test@user.com", Password = "ValidPassword1!", FullName = string.Empty };
-
-        // Act
-        ErrorOr<Success> result = _authService.Register(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("full_name_required");
-    }
-
-    [Fact]
-    public void Register_WhenEmailAlreadyExists_ReturnsConflict()
-    {
-        // Arrange
-        var request = new RegisterRequest
-            { Email = "existing@user.com", Password = "ValidPassword123!", FullName = "John Doe" };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)new User());
-
-        // Act
-        ErrorOr<Success> result = _authService.Register(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("email_registered");
-    }
-
-    [Fact]
-    public void Register_WhenHashGenerationFails_ReturnsError()
-    {
-        // Arrange
-        var request = new RegisterRequest
-            { Email = "new@user.com", Password = "ValidPassword123!", FullName = "John Doe" };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound());
-        _mockHashService.Setup(getsHash => getsHash.GetHash(request.Password))
-            .Returns(Error.Failure("hash_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.Register(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("hash_failed");
-    }
-
-    [Fact]
-    public void Register_WhenUserCreationFailed_ReturnsError()
-    {
-        // Arrange
-        var request = new RegisterRequest
-            { Email = "new@user.com", Password = "ValidPassword123!", FullName = "John Doe" };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound());
-        _mockHashService.Setup(getsHash => getsHash.GetHash(request.Password)).Returns((ErrorOr<string>)"hashed_pass");
-        _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>()))
-            .Returns(Error.Failure("create_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.Register(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("user_creation_failed");
-    }
-
-    [Fact]
-    public void Register_WhenValid_ReturnsSuccess()
-    {
-        // Arrange
-        var request = new RegisterRequest
-            { Email = "new@user.com", Password = "ValidPassword123!", FullName = "John Doe" };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound());
-        _mockHashService.Setup(getsHash => getsHash.GetHash(request.Password)).Returns((ErrorOr<string>)"hashed_pass");
-        _mockAuthRepository.Setup(createsUser => createsUser.CreateUser(It.IsAny<User>())).Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.Register(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _mockAuthRepository.Verify(
-            createsUser => createsUser.CreateUser(
-                It.Is<User>(user => user.Email == request.Email && user.FullName == request.FullName)),
-            Times.Once);
-    }
-
-    [Fact]
-    public void VerifyOTP_WhenUserNotFound_ReturnsError()
-    {
-        // Arrange
-        var request = new VerifyOtpRequest { UserId = 1, OtpCode = "123456" };
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(request.UserId))
-            .Returns(Error.NotFound("user_not_found"));
-
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.VerifyOtp(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("user_not_found");
-    }
-
-    [Fact]
-    public void VerifyOTP_WhenVerifyTOTPFails_ReturnsError()
-    {
-        // Arrange
-        var request = new VerifyOtpRequest { UserId = 1, OtpCode = "123456" };
-        var user = new User { Id = 1 };
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(request.UserId))
-            .Returns((ErrorOr<User>)user);
-        _mockOtpService.Setup(verifiesTotp => verifiesTotp.VerifyTotp(request.UserId, request.OtpCode))
-            .Returns(Error.Failure("totp_failed"));
-
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.VerifyOtp(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("totp_failed");
-    }
-
-    [Fact]
-    public void VerifyOTP_WhenOtpInvalid_ReturnsUnauthorized()
-    {
-        // Arrange
-        var request = new VerifyOtpRequest { UserId = 1, OtpCode = "000000" };
-        var user = new User { Id = 1 };
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(request.UserId))
-            .Returns((ErrorOr<User>)user);
-        _mockOtpService.Setup(verifiesTotp => verifiesTotp.VerifyTotp(request.UserId, request.OtpCode)).Returns(false);
-
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.VerifyOtp(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_otp");
-    }
-
-    [Fact]
-    public void VerifyOTP_WhenValid_ReturnsFullLogin()
-    {
-        // Arrange
-        var request = new VerifyOtpRequest { UserId = 1, OtpCode = "123456" };
-        var user = new User { Id = 1, Email = "test@user.com" };
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(request.UserId))
-            .Returns((ErrorOr<User>)user);
-        _mockOtpService.Setup(verifiesTotp => verifiesTotp.VerifyTotp(request.UserId, request.OtpCode)).Returns(true);
-        _mockAuthRepository.Setup(resetsFailedAttempts => resetsFailedAttempts.ResetFailedAttempts(user.Id))
-            .Returns(Result.Success);
-        _mockJwtService.Setup(generatesToken => generatesToken.GenerateToken(user.Id))
-            .Returns((ErrorOr<string>)"token");
-        _mockAuthRepository.Setup(createsSession => createsSession.CreateSession(user.Id, "token", null, null, null))
-            .Returns((ErrorOr<Session>)new Session());
-
-        // Act
-        ErrorOr<LoginSuccess> result = _authService.VerifyOtp(request);
-
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeOfType<FullLogin>();
-        _mockOtpService.Verify(invalidatesOtp => invalidatesOtp.InvalidateOtp(user.Id), Times.Once);
+        ((FullLogin)result.Value).Token.Should().Be("jwt-token");
     }
 
     [Fact]
-    public void ResendOTP_WhenUserNotFound_ReturnsError()
+    public async Task Handle_WhenValidCredentials_SavesSession()
     {
-        // Arrange
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(1))
-            .Returns(Error.NotFound("user_not_found"));
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)true);
+        var command = new LoginCommand("test@test.com", "ValidPassword1!");
 
-        // Act
-        ErrorOr<Success> result = _authService.ResendOtp(1, "Email");
+        await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Handle_WhenValidCredentials_SendsLoginAlert()
+    {
+        var (user, identity) = MockFactory.CreateAuthenticatedPair();
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _hashService.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)true);
+        var command = new LoginCommand("test@test.com", "ValidPassword1!");
+
+        await CreateHandler().Handle(command, CancellationToken.None);
+
+        _emailService.Verify(s => s.SendLoginAlertAsync(It.IsAny<string>()), Times.Once);
+    }
+}
+
+public sealed class VerifyOtpCommandHandlerTests
+{
+    private readonly Mock<IUserRepository> _userRepo = MockFactory.CreateUserRepository();
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
+    private readonly Mock<IJsonWebTokenService> _jwtService = MockFactory.CreateJwtService();
+    private readonly Mock<IOtpService> _otpService = MockFactory.CreateOtpService();
+    private readonly Mock<IOtpAttemptTracker> _otpTracker = MockFactory.CreateOtpAttemptTracker();
+    private readonly Mock<IEmailService> _emailService = MockFactory.CreateEmailService();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
+
+    private BankingApp.Application.Features.Authentication.Commands.VerifyOtpCommandHandler CreateHandler() => new(
+        _userRepo.Object,
+        _identityRepo.Object,
+        _otpService.Object,
+        _otpTracker.Object,
+        _jwtService.Object,
+        _emailService.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        Microsoft.Extensions.Logging.Abstractions.NullLogger<BankingApp.Application.Features.Authentication.Commands.VerifyOtpCommandHandler>.Instance);
+
+    [Fact]
+    public async Task Handle_WhenUserNotFound_ReturnsError()
+    {
+        var command = new BankingApp.Application.Features.Authentication.Commands.VerifyOtpCommand(1, "123456");
+
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
     }
 
     [Fact]
-    public void ResendOTP_WhenGenerateTOTPFails_ReturnsError()
+    public async Task Handle_WhenOtpInvalid_ReturnsUnauthorized()
     {
-        // Arrange
-        var user = new User { Id = 1 };
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(1)).Returns((ErrorOr<User>)user);
-        _mockOtpService.Setup(generatesTotp => generatesTotp.GenerateTotp(1)).Returns(Error.Failure("totp_failed"));
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _otpService.Setup(s => s.VerifySmsOtp(It.IsAny<int>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)false);
+        var command = new BankingApp.Application.Features.Authentication.Commands.VerifyOtpCommand(1, "000000");
 
-        // Act
-        ErrorOr<Success> result = _authService.ResendOtp(1, "Email");
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("totp_failed");
+        result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
     }
 
     [Fact]
-    public void ResendOTP_WhenValid_SendsEmailAndReturnsSuccess()
+    public async Task Handle_WhenOtpValid_ReturnsFullLogin()
     {
-        // Arrange
-        var user = new User { Id = 1, Email = "test@user.com", Preferred2FaMethod = TwoFactorMethod.Email };
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(user.Id)).Returns((ErrorOr<User>)user);
-        _mockOtpService.Setup(generatesTotp => generatesTotp.GenerateTotp(user.Id)).Returns((ErrorOr<string>)"123456");
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _jwtService.Setup(s => s.GenerateToken(It.IsAny<int>()))
+            .Returns((ErrorOr<string>)"otp-token");
+        var command = new BankingApp.Application.Features.Authentication.Commands.VerifyOtpCommand(1, "123456");
 
-        // Act
-        ErrorOr<Success> result = _authService.ResendOtp(user.Id, "Email");
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
-        _mockEmailService.Verify(sendsOtpCode => sendsOtpCode.SendOtpCode(user.Email, "123456"), Times.Once);
+        result.Value.Should().BeOfType<FullLogin>();
     }
 
     [Fact]
-    public void ResendOTP_WhenValidAndMethodIsNotEmail_ReturnsSuccessWithoutEmail()
+    public async Task Handle_WhenMaxOtpAttemptsReached_ReturnsError()
     {
-        // Arrange
-        var user = new User { Id = 1, Email = "test@test.com", Preferred2FaMethod = TwoFactorMethod.Phone };
-        _mockAuthRepository.Setup(findsUserById => findsUserById.FindUserById(user.Id)).Returns((ErrorOr<User>)user);
-        _mockOtpService.Setup(generatesTotp => generatesTotp.GenerateTotp(user.Id)).Returns((ErrorOr<string>)"123456");
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _otpService.Setup(s => s.VerifySmsOtp(It.IsAny<int>(), It.IsAny<string>()))
+            .Returns((ErrorOr<bool>)false);
+        _otpTracker.Setup(t => t.RecordFailure(It.IsAny<int>())).Returns(3);
+        var command = new BankingApp.Application.Features.Authentication.Commands.VerifyOtpCommand(1, "000000");
 
-        // Act
-        ErrorOr<Success> result = _authService.ResendOtp(user.Id, "SMS");
+        ErrorOr<LoginSuccess> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenOtpValid_InvalidatesOtp()
+    {
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new BankingApp.Application.Features.Authentication.Commands.VerifyOtpCommand(1, "123456");
+
+        await CreateHandler().Handle(command, CancellationToken.None);
+
+        _otpService.Verify(s => s.InvalidateOtp(It.IsAny<int>()), Times.Once);
+    }
+}
+
+public sealed class LogoutCommandHandlerTests
+{
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+
+    private BankingApp.Application.Features.Authentication.Commands.LogoutCommandHandler CreateHandler() => new(
+        _identityRepo.Object,
+        _unitOfWork.Object,
+        Microsoft.Extensions.Logging.Abstractions.NullLogger<BankingApp.Application.Features.Authentication.Commands.LogoutCommandHandler>.Instance);
+
+    [Fact]
+    public async Task Handle_WhenSessionNotFound_ReturnsError()
+    {
+        _identityRepo.Setup(r => r.GetBySessionTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IdentityAccount?)null);
+        var command = new BankingApp.Application.Features.Authentication.Commands.LogoutCommand("invalid-token");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenSessionFound_RevokesAndReturnsSuccess()
+    {
+        var identity = IdentityAccount.Create(1, null);
+        identity.OpenSession("valid-token", DateTime.UtcNow.AddHours(24), DateTime.UtcNow);
+        _identityRepo.Setup(r => r.GetBySessionTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new BankingApp.Application.Features.Authentication.Commands.LogoutCommand("valid-token");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeFalse();
-        _mockEmailService.Verify(
-            sendsOtpCode => sendsOtpCode.SendOtpCode(It.IsAny<string>(), It.IsAny<string>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public void RequestPasswordReset_WhenUserNotFound_ReturnsError()
-    {
-        // Arrange
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail("test@test.com"))
-            .Returns(Error.NotFound("user_not_found"));
-
-        // Act
-        ErrorOr<Success> result = _authService.RequestPasswordReset("test@test.com");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-    }
-
-    [Fact]
-    public void RequestPasswordReset_WhenSaveTokenFails_ReturnsError()
-    {
-        // Arrange
-        var user = new User { Id = 1, Email = "test@test.com" };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(user.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockAuthRepository
-            .Setup(savesPasswordResetToken =>
-                savesPasswordResetToken.SavePasswordResetToken(It.IsAny<PasswordResetToken>()))
-            .Returns(Error.Failure("save_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.RequestPasswordReset(user.Email);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Description.Should().Be("Failed to save password reset token.");
-    }
-
-    [Fact]
-    public void RequestPasswordReset_WhenUserFound_SendsEmailAndReturnsSuccess()
-    {
-        // Arrange
-        var user = new User { Id = 1, Email = "test@test.com" };
-        _mockAuthRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(user.Email))
-            .Returns((ErrorOr<User>)user);
-        _mockAuthRepository
-            .Setup(deletesExpiredPasswordResetTokens =>
-                deletesExpiredPasswordResetTokens.DeleteExpiredPasswordResetTokens()).Returns(Result.Success);
-        _mockAuthRepository
-            .Setup(savesPasswordResetToken =>
-                savesPasswordResetToken.SavePasswordResetToken(It.IsAny<PasswordResetToken>())).Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.RequestPasswordReset(user.Email);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _mockEmailService.Verify(
-            sendsPasswordResetLink => sendsPasswordResetLink.SendPasswordResetLink(
-                It.Is<string>(email => email == user.Email),
-                It.IsAny<string>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public void ResetPassword_WhenTokenIsNullOrWhiteSpace_ReturnsError()
-    {
-        // Arrange & Act
-        ErrorOr<Success> result = _authService.ResetPassword(string.Empty, "ValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_invalid");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenTokenNotFound_ReturnsError()
-    {
-        // Arrange
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns(Error.NotFound("token_not_found"));
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("token", "ValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_invalid");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenTokenUsed_ReturnsError()
-    {
-        // Arrange
-        var token = new PasswordResetToken { UsedAt = DateTime.UtcNow };
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("token", "ValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_already_used");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenTokenExpired_ReturnsValidationError()
-    {
-        // Arrange
-        var token = new PasswordResetToken
-            { UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes) };
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("raw_token", "NewValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_expired");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenHashGenerationFails_ReturnsError()
-    {
-        // Arrange
-        var token = new PasswordResetToken { ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns(Error.Failure("hash_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("token", "ValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("hash_failed");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenUpdatePasswordFails_ReturnsError()
-    {
-        // Arrange
-        var token = new PasswordResetToken
-            { UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "hash"))
-            .Returns(Error.Failure("update_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("token", "ValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_invalid");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenMarkTokenAsUsedFails_ReturnsError()
-    {
-        // Arrange
-        var token = new PasswordResetToken
-            { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"new_hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"))
-            .Returns(Result.Success);
-        _mockAuthRepository
-            .Setup(marksPasswordResetTokenAsUsed =>
-                marksPasswordResetTokenAsUsed.MarkPasswordResetTokenAsUsed(token.Id))
-            .Returns(Error.Failure("mark_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("raw_token", "ValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("reset_failed");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenInvalidateSessionsFails_ReturnsError()
-    {
-        // Arrange
-        var token = new PasswordResetToken
-            { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-        _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"new_hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"))
-            .Returns(Result.Success);
-        _mockAuthRepository
-            .Setup(marksPasswordResetTokenAsUsed =>
-                marksPasswordResetTokenAsUsed.MarkPasswordResetTokenAsUsed(token.Id)).Returns(Result.Success);
-        _mockAuthRepository.Setup(invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.UserId))
-            .Returns(Error.Failure("invalidate_failed"));
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("raw_token", "ValidPassword123!");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("reset_failed");
-    }
-
-    [Fact]
-    public void ResetPassword_WhenValid_UpdatesPasswordAndReturnsSuccess()
-    {
-        // Arrange
-        var token = new PasswordResetToken
-            { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes), UsedAt = null };
-        string newPassword = "NewValidPassword123!";
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-        _mockHashService.Setup(getsHash => getsHash.GetHash(newPassword)).Returns((ErrorOr<string>)"new_hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"))
-            .Returns(Result.Success);
-        _mockAuthRepository
-            .Setup(marksPasswordResetTokenAsUsed =>
-                marksPasswordResetTokenAsUsed.MarkPasswordResetTokenAsUsed(token.Id)).Returns(Result.Success);
-        _mockAuthRepository.Setup(invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.UserId))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.ResetPassword("raw_token", newPassword);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _mockAuthRepository.Verify(
-            updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"),
-            Times.Once);
-        _mockAuthRepository.Verify(
-            invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.UserId),
-            Times.Once);
-    }
-
-    [Fact]
-    public void VerifyResetToken_WhenTokenIsNullOrWhiteSpace_ReturnsError()
-    {
-        // Arrange & Act
-        ErrorOr<Success> result = _authService.VerifyResetToken(string.Empty);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_invalid");
-    }
-
-    [Fact]
-    public void VerifyResetToken_WhenTokenNotFound_ReturnsError()
-    {
-        // Arrange
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns(Error.NotFound("not_found"));
-
-        // Act
-        ErrorOr<Success> result = _authService.VerifyResetToken("token");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("token_invalid");
-    }
-
-    [Fact]
-    public void VerifyResetToken_WhenTokenValid_ReturnsSuccess()
-    {
-        // Arrange
-        var token = new PasswordResetToken { ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
-        _mockAuthRepository
-            .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
-            .Returns((ErrorOr<PasswordResetToken>)token);
-
-        // Act
-        ErrorOr<Success> result = _authService.VerifyResetToken("token");
-
-        // Assert
-        result.IsError.Should().BeFalse();
-    }
-
-    [Fact]
-    public void Logout_WhenSessionNotFound_ReturnsError()
-    {
-        // Arrange
-        _mockAuthRepository.Setup(findsSessionByToken => findsSessionByToken.FindSessionByToken("invalid"))
-            .Returns(Error.NotFound());
-
-        // Act
-        ErrorOr<Success> result = _authService.Logout("invalid");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Logout_WhenValid_ReturnsSuccess()
-    {
-        // Arrange
-        var session = new Session { Id = 1, UserId = 1 };
-        _mockAuthRepository.Setup(findsSessionByToken => findsSessionByToken.FindSessionByToken("valid_token"))
-            .Returns((ErrorOr<Session>)session);
-        _mockAuthRepository.Setup(updatesSessionToken => updatesSessionToken.UpdateSessionToken(session.Id))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _authService.Logout("valid_token");
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _mockAuthRepository.Verify(
-            updatesSessionToken => updatesSessionToken.UpdateSessionToken(session.Id),
-            Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

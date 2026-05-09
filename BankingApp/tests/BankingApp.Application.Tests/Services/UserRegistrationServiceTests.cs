@@ -1,91 +1,89 @@
 namespace BankingApp.Application.Tests.Services;
 
-
-using BankingApp.Application.Features.UserRegistration.Services;
-using BankingApp.Application.Common.Security;
-using Domain.Entities;
+using BankingApp.Application.Features.UserRegistration.Commands;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-using BankingApp.Application.Features.Authentication.Dtos;
-
-/// <summary>
-///     Unit tests for <see cref="UserRegistrationService" />.
-/// </summary>
-public class UserRegistrationServiceTests
+public sealed class RegisterCommandHandlerTests
 {
-    private readonly Mock<IAuthenticationRepository> _authRepository = MockFactory.CreateAuthRepository();
+    private readonly Mock<IUserRepository> _userRepo = MockFactory.CreateUserRepository();
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
     private readonly Mock<IHashService> _hashService = MockFactory.CreateHashService();
-    private readonly UserRegistrationService _service;
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="UserRegistrationServiceTests" /> class.
-    /// </summary>
-    public UserRegistrationServiceTests()
-    {
-        _service = new UserRegistrationService(
-            _authRepository.Object,
-            _hashService.Object,
-            NullLogger<UserRegistrationService>.Instance);
-    }
+    private RegisterCommandHandler CreateHandler() => new(
+        _userRepo.Object,
+        _identityRepo.Object,
+        _hashService.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        NullLogger<RegisterCommandHandler>.Instance);
 
     [Fact]
-    public void Register_WhenExistingUserLookupFails_ReturnsDatabaseError()
+    public async Task Handle_WhenEmailAlreadyExists_ReturnsEmailRegisteredError()
     {
-        // Arrange
-        var request = new RegisterRequest
-        {
-            Email = "new@test.com",
-            Password = "StrongPass1!",
-            FullName = "New User"
-        };
-        _authRepository
-            .Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.Failure("db_failed", "Database failed."));
+        var existing = User.Register(Email.Create("taken@test.com").Value, "Existing", DateTime.UtcNow);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+        var command = new RegisterCommand("taken@test.com", "ValidPass1!", "New User");
 
-        // Act
-        ErrorOr<Success> result = _service.Register(request);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("database_error");
+        result.FirstError.Type.Should().Be(ErrorType.Conflict);
     }
 
     [Fact]
-    public void Register_WhenValid_CreatesUserWithDefaults()
+    public async Task Handle_WhenHashFails_ReturnsError()
     {
-        // Arrange
-        var request = new RegisterRequest
-        {
-            Email = "new@test.com",
-            Password = "StrongPass1!",
-            FullName = "New User"
-        };
-        _authRepository
-            .Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns(Error.NotFound());
-        _hashService
-            .Setup(getsHash => getsHash.GetHash(request.Password))
-            .Returns("hashed-password");
-        _authRepository
-            .Setup(createsUser => createsUser.CreateUser(It.IsAny<User>()))
-            .Returns(Result.Success);
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+        _hashService.Setup(s => s.GetHash(It.IsAny<string>()))
+            .Returns(Error.Failure("hash.error"));
+        var command = new RegisterCommand("new@test.com", "ValidPass1!", "New User");
 
-        // Act
-        ErrorOr<Success> result = _service.Register(request);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("hash.error");
+    }
+
+    [Fact]
+    public async Task Handle_WhenValid_CreatesUserAndIdentity()
+    {
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+        var command = new RegisterCommand("new@test.com", "ValidPass1!", "New User");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeFalse();
-        _authRepository.Verify(
-            createsUser => createsUser.CreateUser(
-                It.Is<User>(user =>
-                    user.Email == request.Email &&
-                    user.FullName == request.FullName &&
-                    user.PasswordHash == "hashed-password" &&
-                    user.PreferredLanguage == "en" &&
-                    !user.Is2FaEnabled &&
-                    !user.IsLocked &&
-                    user.FailedLoginAttempts == 0)),
-            Times.Once);
+        _userRepo.Verify(r => r.AddAsync(It.Is<User>(u => u.FullName == "New User"), It.IsAny<CancellationToken>()), Times.Once);
+        _identityRepo.Verify(r => r.AddAsync(It.IsAny<IdentityAccount>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenValid_SavesChanges()
+    {
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+        var command = new RegisterCommand("new@test.com", "ValidPass1!", "New User");
+
+        await CreateHandler().Handle(command, CancellationToken.None);
+
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Handle_WhenValid_TrimsFullName()
+    {
+        _userRepo.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((User?)null);
+        var command = new RegisterCommand("new@test.com", "ValidPass1!", "  Spaced Name  ");
+
+        await CreateHandler().Handle(command, CancellationToken.None);
+
+        _userRepo.Verify(r => r.AddAsync(It.Is<User>(u => u.FullName == "Spaced Name"), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

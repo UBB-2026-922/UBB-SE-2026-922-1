@@ -1,404 +1,155 @@
 namespace BankingApp.Application.Tests.Services;
 
+using BankingApp.Application.Features.Forex.Commands;
 using BankingApp.Application.Features.Forex.Dtos;
-
-using BankingApp.Application.Features.Forex.Services;
-using Domain.Aggregates.ForexAggregate;
-using Domain.Entities;
-using Domain.Enums;
+using BankingApp.Application.Features.Forex.Queries;
 using ErrorOr;
 
-/// <summary>
-///     Unit tests for <see cref="ForexService" />.
-/// </summary>
-public class ForexServiceTests
+public sealed class GetRatePreviewQueryHandlerTests
 {
-    private const int ValidUserId = 1;
-    private const int ValidSourceAccountId = 10;
-    private const int ValidTargetAccountId = 20;
-    private const string EurCurrency = "EUR";
-    private const string UsdCurrency = "USD";
-    private const string RonCurrency = "RON";
-    private const decimal ValidAmount = 100m;
-    private const decimal MinimumCommission = 0.50m;
-    private const decimal CommissionRate = 0.005m;
-    private const decimal SmallAmount = 10m;
-    private const decimal LargeAmount = 1000m;
-    private const decimal EurUsdRate = 1.15m;
-    private const int NonExistentUserId = 99;
+    private readonly Mock<IExchangeRateService> _exchangeRateService = MockFactory.CreateExchangeRateService();
+    private readonly Mock<ILockedRateCache> _lockedRateCache = MockFactory.CreateLockedRateCache();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    private readonly Mock<IForexRepository> _exchangeRepository = new(MockBehavior.Strict);
-    private readonly ForexService _service;
+    private GetRatePreviewQueryHandler CreateHandler() => new(
+        _exchangeRateService.Object,
+        _lockedRateCache.Object,
+        _clock.Object);
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="ForexServiceTests" /> class.
-    /// </summary>
-    public ForexServiceTests()
-    {
-        _exchangeRepository
-            .Setup(createsExchange => createsExchange.Create(It.IsAny<ForexTransaction>()))
-            .Returns((ForexTransaction forex) => forex);
-        _exchangeRepository
-            .Setup(getsByUserId => getsByUserId.GetByUserId(It.IsAny<int>()))
-            .Returns(new List<ForexTransaction>());
-
-        _service = new ForexService(_exchangeRepository.Object);
-    }
-
-    /// <summary>
-    ///     Verifies the GetRatePreview_WhenSourceCurrencyIsEmpty_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
-    public void GetRatePreview_WhenSourceCurrencyIsEmpty_ReturnsValidationError()
+    public async Task Handle_WhenInvalidSourceCurrency_ReturnsError()
     {
-        // Arrange
-        string sourceCurrency = string.Empty;
+        var query = new GetRatePreviewQuery(1, "INVALID", "USD", 100m);
 
-        // Act
-        ErrorOr<ForexTransactionResponse> result =
-            _service.GetRatePreview(sourceCurrency, UsdCurrency, ValidAmount);
+        ErrorOr<ForexRatePreviewResponse> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
     }
 
-    /// <summary>
-    ///     Verifies the GetRatePreview_WhenTargetCurrencyIsEmpty_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
-    public void GetRatePreview_WhenTargetCurrencyIsEmpty_ReturnsValidationError()
+    public async Task Handle_WhenSameCurrencies_ReturnsError()
     {
-        // Arrange
-        string targetCurrency = string.Empty;
+        var query = new GetRatePreviewQuery(1, "EUR", "EUR", 100m);
 
-        // Act
-        ErrorOr<ForexTransactionResponse> result =
-            _service.GetRatePreview(EurCurrency, targetCurrency, ValidAmount);
+        ErrorOr<ForexRatePreviewResponse> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
     }
 
-    /// <summary>
-    ///     Verifies the GetRatePreview_WhenCurrenciesAreTheSame_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
-    public void GetRatePreview_WhenCurrenciesAreTheSame_ReturnsValidationError()
+    public async Task Handle_WhenExchangeRateFails_ReturnsError()
     {
-        // Act
-        ErrorOr<ForexTransactionResponse> result = _service.GetRatePreview(EurCurrency, EurCurrency, ValidAmount);
+        _exchangeRateService.Setup(s => s.GetRate(It.IsAny<NodaMoney.Currency>(), It.IsAny<NodaMoney.Currency>()))
+            .Returns(Error.NotFound("forex.rate_not_found"));
+        var query = new GetRatePreviewQuery(1, "EUR", "USD", 100m);
 
-        // Assert
+        ErrorOr<ForexRatePreviewResponse> result = await CreateHandler().Handle(query, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
     }
 
-    /// <summary>
-    ///     Verifies the GetRatePreview_WhenAmountIsZero_ReturnsValidationError scenario.
-    /// </summary>
     [Fact]
-    public void GetRatePreview_WhenAmountIsZero_ReturnsValidationError()
+    public async Task Handle_WhenValid_ReturnsPreviewAndStoresLockedRate()
     {
-        // Act
-        ErrorOr<ForexTransactionResponse> result = _service.GetRatePreview(EurCurrency, UsdCurrency, 0m);
+        var query = new GetRatePreviewQuery(1, "EUR", "USD", 100m);
 
-        // Assert
+        ErrorOr<ForexRatePreviewResponse> result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.SourceCurrency.Should().Be("EUR");
+        result.Value.TargetCurrency.Should().Be("USD");
+        _lockedRateCache.Verify(c => c.Store(
+            It.IsAny<int>(),
+            It.IsAny<NodaMoney.Currency>(),
+            It.IsAny<NodaMoney.Currency>(),
+            It.IsAny<decimal>(),
+            It.IsAny<DateTime>()), Times.Once);
+    }
+}
+
+public sealed class ExecuteForexCommandHandlerTests
+{
+    private readonly Mock<IAccountRepository> _accountRepo = MockFactory.CreateAccountRepository();
+    private readonly Mock<IForexRepository> _forexRepo = MockFactory.CreateForexRepository();
+    private readonly Mock<ILockedRateCache> _lockedRateCache = MockFactory.CreateLockedRateCache();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
+
+    private ExecuteForexCommandHandler CreateHandler() => new(
+        _accountRepo.Object,
+        _forexRepo.Object,
+        _lockedRateCache.Object,
+        _unitOfWork.Object,
+        _clock.Object);
+
+    [Fact]
+    public async Task Handle_WhenNoLockedRate_ReturnsRateExpiredError()
+    {
+        var command = new ExecuteForexCommand(1, 1, 2, "EUR", "USD", 100m);
+
+        ErrorOr<ForexTransactionResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
     }
 
-    /// <summary>
-    ///     Verifies the GetRatePreview_WhenCurrencyPairIsUnsupported_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
-    public void GetRatePreview_WhenCurrencyPairIsUnsupported_ReturnsNotFoundError()
+    public async Task Handle_WhenSameCurrencies_ReturnsError()
     {
-        // Act
-        ErrorOr<ForexTransactionResponse> result = _service.GetRatePreview("JPY", "CHF", ValidAmount);
+        var command = new ExecuteForexCommand(1, 1, 2, "EUR", "EUR", 100m);
 
-        // Assert
+        ErrorOr<ForexTransactionResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenLockedRateCurrenciesMismatch_ReturnsError()
+    {
+        var lockedRate = new LockedRate(
+            NodaMoney.Currency.FromCode("EUR"),
+            NodaMoney.Currency.FromCode("GBP"),
+            1.15m,
+            DateTime.UtcNow);
+        _lockedRateCache.Setup(c => c.TryGet(It.IsAny<int>())).Returns(lockedRate);
+        var command = new ExecuteForexCommand(1, 1, 2, "EUR", "USD", 100m);
+
+        ErrorOr<ForexTransactionResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenAccountNotFound_ReturnsNotFoundError()
+    {
+        var lockedRate = new LockedRate(
+            NodaMoney.Currency.FromCode("EUR"),
+            NodaMoney.Currency.FromCode("USD"),
+            1.15m,
+            DateTime.UtcNow);
+        _lockedRateCache.Setup(c => c.TryGet(It.IsAny<int>())).Returns(lockedRate);
+        var command = new ExecuteForexCommand(1, 1, 2, "EUR", "USD", 100m);
+
+        ErrorOr<ForexTransactionResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
+}
 
-    /// <summary>
-    ///     Verifies the GetRatePreview_WhenValidEurToUsdRequest_ReturnsPreviewWithCorrectRate scenario.
-    /// </summary>
+public sealed class GetForexHistoryQueryHandlerTests
+{
+    private readonly Mock<IForexRepository> _forexRepo = MockFactory.CreateForexRepository();
+
+    private GetForexHistoryQueryHandler CreateHandler() => new(_forexRepo.Object);
+
     [Fact]
-    public void GetRatePreview_WhenValidEurToUsdRequest_ReturnsPreviewWithCorrectRate()
+    public async Task Handle_WhenNoHistory_ReturnsEmptyList()
     {
-        // Act
-        ErrorOr<ForexTransactionResponse> result = _service.GetRatePreview(EurCurrency, UsdCurrency, ValidAmount);
+        var query = new GetForexHistoryQuery(1);
 
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.ExchangeRate.Should().Be(EurUsdRate);
-        result.Value.SourceCurrency.Should().Be(EurCurrency);
-        result.Value.TargetCurrency.Should().Be(UsdCurrency);
-    }
+        ErrorOr<List<ForexTransactionResponse>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-    /// <summary>
-    ///     Verifies the GetRatePreview_WhenValidRequest_ReturnsPreviewWithCommissionDeducted scenario.
-    /// </summary>
-    [Fact]
-    public void GetRatePreview_WhenValidRequest_ReturnsPreviewWithCommissionDeducted()
-    {
-        // Arrange
-        decimal expectedCommission = Math.Max(MinimumCommission, ValidAmount * CommissionRate);
-        decimal expectedTarget = ValidAmount * EurUsdRate - expectedCommission;
-
-        // Act
-        ErrorOr<ForexTransactionResponse> result = _service.GetRatePreview(EurCurrency, UsdCurrency, ValidAmount);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Commission.Should().Be(expectedCommission);
-        result.Value.TargetAmount.Should().Be(expectedTarget);
-    }
-
-    /// <summary>
-    ///     Verifies the CalculateCommission_WhenAmountProducesFeeBelowMinimum_ReturnsMinimumCommission scenario.
-    /// </summary>
-    [Fact]
-    public void CalculateCommission_WhenAmountProducesFeeBelowMinimum_ReturnsMinimumCommission()
-    {
-        // Act
-        decimal commission = ForexService.CalculateCommission(SmallAmount);
-
-        // Assert
-        commission.Should().Be(MinimumCommission);
-    }
-
-    /// <summary>
-    ///     Verifies the CalculateCommission_WhenAmountProducesFeeAboveMinimum_ReturnsPercentageCommission scenario.
-    /// </summary>
-    [Fact]
-    public void CalculateCommission_WhenAmountProducesFeeAboveMinimum_ReturnsPercentageCommission()
-    {
-        // Arrange
-        decimal expectedCommission = LargeAmount * CommissionRate;
-
-        // Act
-        decimal commission = ForexService.CalculateCommission(LargeAmount);
-
-        // Assert
-        commission.Should().Be(expectedCommission);
-    }
-
-    /// <summary>
-    ///     Verifies the IsRateLockValid_WhenNoLockExists_ReturnsFalse scenario.
-    /// </summary>
-    [Fact]
-    public void IsRateLockValid_WhenNoLockExists_ReturnsFalse()
-    {
-        // Act
-        bool result = _service.IsRateLockValid(NonExistentUserId);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    /// <summary>
-    ///     Verifies the LockRate_WhenValidCurrencyPair_ReturnsLockedRateWithCorrectValues scenario.
-    /// </summary>
-    [Fact]
-    public void LockRate_WhenValidCurrencyPair_ReturnsLockedRateWithCorrectValues()
-    {
-        // Act
-        ErrorOr<LockedRate> result = _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.UserId.Should().Be(ValidUserId);
-        result.Value.Rate.Should().Be(EurUsdRate);
-        result.Value.CurrencyPair.Should().Be($"{EurCurrency}/{UsdCurrency}");
-    }
-
-    /// <summary>
-    ///     Verifies the IsRateLockValid_WhenLockExists_ReturnsTrue scenario.
-    /// </summary>
-    [Fact]
-    public void IsRateLockValid_WhenLockExists_ReturnsTrue()
-    {
-        // Arrange
-        _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
-
-        // Act
-        bool result = _service.IsRateLockValid(ValidUserId);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    /// <summary>
-    ///     Verifies the LockRate_WhenUnsupportedCurrencyPair_ReturnsNotFoundError scenario.
-    /// </summary>
-    [Fact]
-    public void LockRate_WhenUnsupportedCurrencyPair_ReturnsNotFoundError()
-    {
-        // Act
-        ErrorOr<LockedRate> result = _service.LockRate(ValidUserId, "JPY", "CHF");
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.NotFound);
-    }
-
-    /// <summary>
-    ///     Verifies the ExecuteExchange_WhenNoRateLockExists_ReturnsValidationError scenario.
-    /// </summary>
-    [Fact]
-    public void ExecuteExchange_WhenNoRateLockExists_ReturnsValidationError()
-    {
-        // Arrange
-        var request = new ForexTransactionRequest
-        {
-            UserId = NonExistentUserId,
-            SourceAccountId = ValidSourceAccountId,
-            TargetAccountId = ValidTargetAccountId,
-            SourceCurrency = EurCurrency,
-            TargetCurrency = UsdCurrency,
-            SourceAmount = ValidAmount
-        };
-
-        // Act
-        ErrorOr<ForexTransactionResponse> result = _service.ExecuteExchange(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-    }
-
-    /// <summary>
-    ///     Verifies the ExecuteExchange_WhenValidLockExists_ReturnsCompletedExchange scenario.
-    /// </summary>
-    [Fact]
-    public void ExecuteExchange_WhenValidLockExists_ReturnsCompletedExchange()
-    {
-        // Arrange
-        _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
-
-        var request = new ForexTransactionRequest
-        {
-            UserId = ValidUserId,
-            SourceAccountId = ValidSourceAccountId,
-            TargetAccountId = ValidTargetAccountId,
-            SourceCurrency = EurCurrency,
-            TargetCurrency = UsdCurrency,
-            SourceAmount = ValidAmount
-        };
-
-        // Act
-        ErrorOr<ForexTransactionResponse> result = _service.ExecuteExchange(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Status.Should().Be(ExchangeTransactionStatus.Completed);
-        result.Value.SourceCurrency.Should().Be(EurCurrency);
-        result.Value.TargetCurrency.Should().Be(UsdCurrency);
-    }
-
-    /// <summary>
-    ///     Verifies the ExecuteExchange_WhenValidLockExists_RemovesLockAfterExecution scenario.
-    /// </summary>
-    [Fact]
-    public void ExecuteExchange_WhenValidLockExists_RemovesLockAfterExecution()
-    {
-        // Arrange
-        _service.LockRate(ValidUserId, EurCurrency, UsdCurrency);
-
-        var request = new ForexTransactionRequest
-        {
-            UserId = ValidUserId,
-            SourceAccountId = ValidSourceAccountId,
-            TargetAccountId = ValidTargetAccountId,
-            SourceCurrency = EurCurrency,
-            TargetCurrency = UsdCurrency,
-            SourceAmount = ValidAmount
-        };
-
-        // Act
-        _service.ExecuteExchange(request);
-        bool lockStillValid = _service.IsRateLockValid(ValidUserId);
-
-        // Assert
-        lockStillValid.Should().BeFalse();
-    }
-
-    /// <summary>
-    ///     Verifies the GetExchangeHistory_WhenUserHasNoTransactions_ReturnsEmptyList scenario.
-    /// </summary>
-    [Fact]
-    public void GetExchangeHistory_WhenUserHasNoTransactions_ReturnsEmptyList()
-    {
-        // Arrange
-        _exchangeRepository
-            .Setup(getsByUserId => getsByUserId.GetByUserId(ValidUserId))
-            .Returns(new List<ForexTransaction>());
-
-        // Act
-        ErrorOr<List<ForexTransactionResponse>> result = _service.GetExchangeHistory(ValidUserId);
-
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeEmpty();
-    }
-
-    /// <summary>
-    ///     Verifies the GetExchangeHistory_WhenRepositoryFails_ReturnsError scenario.
-    /// </summary>
-    [Fact]
-    public void GetExchangeHistory_WhenRepositoryFails_ReturnsError()
-    {
-        // Arrange
-        _exchangeRepository
-            .Setup(getsByUserId => getsByUserId.GetByUserId(ValidUserId))
-            .Returns(Error.Failure());
-
-        // Act
-        ErrorOr<List<ForexTransactionResponse>> result = _service.GetExchangeHistory(ValidUserId);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-    }
-
-    /// <summary>
-    ///     Verifies the GetExchangeHistory_WhenTransactionsExist_ReturnsMappedDtos scenario.
-    /// </summary>
-    [Fact]
-    public void GetExchangeHistory_WhenTransactionsExist_ReturnsMappedDtos()
-    {
-        // Arrange
-        var exchanges = new List<ForexTransaction>
-        {
-            new()
-            {
-                Id = 1,
-                UserId = ValidUserId,
-                SourceCurrency = EurCurrency,
-                TargetCurrency = UsdCurrency,
-                SourceAmount = ValidAmount,
-                TargetAmount = 114.50m,
-                ExchangeRate = EurUsdRate,
-                Commission = MinimumCommission,
-                Status = ExchangeTransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow
-            }
-        };
-
-        _exchangeRepository
-            .Setup(getsByUserId => getsByUserId.GetByUserId(ValidUserId))
-            .Returns(exchanges);
-
-        // Act
-        ErrorOr<List<ForexTransactionResponse>> result = _service.GetExchangeHistory(ValidUserId);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Should().ContainSingle();
-        result.Value.First().SourceCurrency.Should().Be(EurCurrency);
-        result.Value.First().ExchangeRate.Should().Be(EurUsdRate);
     }
 }

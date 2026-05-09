@@ -2,9 +2,8 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.UserProfile.Dtos;
+using Application.Features.UserProfile.Dtos;
 using Enums;
-using BankingApp.Application.Common.Utilities;
 using BankingApp.Domain.Enums;
 
 /// <summary>
@@ -62,13 +61,7 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
     public async Task<bool> LoadProfile()
     {
         State = ProfileState.Loading;
-        if (!await PersonalInfo.LoadProfile())
-        {
-            State = ProfileState.Error;
-            return false;
-        }
-
-        if (!await Notifications.LoadNotificationPreferences())
+        if (!await PersonalInfo.LoadProfile() || !await Notifications.LoadNotificationPreferences())
         {
             State = ProfileState.Error;
             return false;

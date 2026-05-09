@@ -1,347 +1,83 @@
 namespace BankingApp.Application.Tests.Services;
 
-
-using BankingApp.Application.Features.AccountOverview.Services;
-using Domain.Entities;
-using Domain.Enums;
+using BankingApp.Application.Features.AccountOverview.Dtos;
+using BankingApp.Application.Features.AccountOverview.Queries;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-using BankingApp.Application.Features.AccountOverview.Dtos;
-using Domain.Aggregates.AccountAggregate;
-using Domain.Aggregates.TransactionAggregate;
-
-/// <summary>
-///     Unit tests for <see cref="AccountOverviewService" />.
-/// </summary>
-public class AccountOverviewServiceTests
+public sealed class GetDashboardQueryHandlerTests
 {
-    private const int NonExistentUserId = 99;
-    private const int FirstAccountTransactionCount = 8;
-    private const int SecondAccountTransactionCount = 5;
-    private const int AmountMultiplier = 10;
-    private const int MergedTransactionLimit = 5;
+    private readonly Mock<IUserRepository> _userRepo = MockFactory.CreateUserRepository();
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
+    private readonly Mock<IAccountRepository> _accountRepo = MockFactory.CreateAccountRepository();
+    private readonly Mock<ITransactionRepository> _transactionRepo = MockFactory.CreateTransactionRepository();
 
-    private readonly Mock<IAccountOverviewRepository> _dashboardRepository = new(MockBehavior.Strict);
+    private GetDashboardQueryHandler CreateHandler() => new(
+        _userRepo.Object,
+        _identityRepo.Object,
+        _accountRepo.Object,
+        _transactionRepo.Object,
+        NullLogger<GetDashboardQueryHandler>.Instance);
 
-    private readonly AccountOverviewService _service;
-    private readonly Mock<IUserRepository> _userRepository = new(MockBehavior.Strict);
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="AccountOverviewServiceTests" /> class.
-    /// </summary>
-    public AccountOverviewServiceTests()
-    {
-        _userRepository
-            .Setup(findsById => findsById.FindById(It.IsAny<int>()))
-            .Returns(Error.NotFound());
-        _dashboardRepository
-            .Setup(getsCardsByUser => getsCardsByUser.GetCardsByUser(It.IsAny<int>()))
-            .Returns(new List<Card>());
-        _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(It.IsAny<int>()))
-            .Returns(new List<Account>());
-        _dashboardRepository
-            .Setup(getsRecentTransactions =>
-                getsRecentTransactions.GetRecentTransactions(It.IsAny<int>(), It.IsAny<int>()))
-            .Returns(new List<Transaction>());
-        _dashboardRepository
-            .Setup(getsUnreadNotificationCount =>
-                getsUnreadNotificationCount.GetUnreadNotificationCount(It.IsAny<int>()))
-            .Returns(0);
-
-        _service = new AccountOverviewService(
-            _dashboardRepository.Object,
-            _userRepository.Object,
-            NullLogger<AccountOverviewService>.Instance);
-    }
-
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenUserDoesNotExist_ReturnsNotFoundError scenario.
-    /// </summary>
     [Fact]
-    public void GetAccountOverview_WhenUserDoesNotExist_ReturnsNotFoundError()
+    public async Task Handle_WhenUserNotFound_ReturnsNotFoundError()
     {
-        // Arrange
-        _userRepository
-            .Setup(findsById => findsById.FindById(NonExistentUserId))
-            .Returns(Error.NotFound());
+        var query = new GetDashboardQuery(1);
 
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(NonExistentUserId);
+        ErrorOr<AccountOverviewDto> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenUserExists_ReturnsResponseWithUserSummary scenario.
-    /// </summary>
     [Fact]
-    public void GetAccountOverview_WhenUserExists_ReturnsResponseWithUserSummary()
+    public async Task Handle_WhenUserFound_ReturnsOverviewWithUserDetails()
     {
-        // Arrange
-        const int userId = 1;
-        const string fullName = "Ada Lovelace";
-        const string email = "ada@lovelace.com";
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = fullName, Email = email });
+        var user = User.Register(Email.Create("ada@test.com").Value, "Ada Lovelace", DateTime.UtcNow);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        var query = new GetDashboardQuery(1);
 
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
+        ErrorOr<AccountOverviewDto> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.CurrentUser!.FullName.Should().Be(fullName);
-        result.Value.CurrentUser!.Email.Should().Be(email);
+        result.Value.CurrentUser!.FullName.Should().Be("Ada Lovelace");
+        result.Value.CurrentUser.Email.Should().Be("ada@test.com");
     }
 
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenCardsExist_ReturnsMappedCards scenario.
-    /// </summary>
     [Fact]
-    public void GetAccountOverview_WhenCardsExist_ReturnsMappedCards()
+    public async Task Handle_WhenUserFoundWithIdentity_ReturnsOverviewWith2FaStatus()
     {
-        // Arrange
-        const int userId = 1;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = "Ada", Email = "ada@test.com" });
-        _dashboardRepository
-            .Setup(getsCardsByUser => getsCardsByUser.GetCardsByUser(userId))
-            .Returns(
-                new List<Card>
-                {
-                    new()
-                    {
-                        Id = 1,
-                        UserId = userId,
-                        CardNumber = "1234567890123456",
-                        CardholderName = "Ada Lovelace",
-                        CardType = CardType.Debit,
-                        ExpiryDate = new DateTime(2027, 12, 1),
-                        Status = CardStatus.Active
-                    }
-                });
-        _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(userId))
-            .Returns(
-                new List<Account>
-                {
-                    new() { Id = 0, AccountName = "Checking", Balance = 2500 }
-                });
+        var user = User.Register(Email.Create("test@test.com").Value, "Test User", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        identity.Enable2Fa(TwoFactorMethod.Email);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var query = new GetDashboardQuery(1);
 
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
+        ErrorOr<AccountOverviewDto> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.Cards.Should().ContainSingle();
-        result.Value.Cards.First().CardholderName.Should().Be("Ada Lovelace");
-        result.Value.Cards.First().CardType.Should().Be(CardType.Debit);
-        result.Value.Cards.First().CardNumber.Should().Be("**** **** **** 3456");
-        result.Value.Cards.First().AccountName.Should().Be("Checking");
-        result.Value.Cards.First().AccountBalance.Should().Be(2500);
+        result.Value.CurrentUser!.Is2FaEnabled.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenCardsQueryFails_ReturnsEmptyCardList scenario.
-    /// </summary>
     [Fact]
-    public void GetAccountOverview_WhenCardsQueryFails_ReturnsEmptyCardList()
+    public async Task Handle_WhenUserHasAccounts_ReturnsOverviewWithAccountData()
     {
-        // Arrange
-        const int userId = 1;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = "Ada", Email = "ada@test.com" });
-        _dashboardRepository
-            .Setup(getsCardsByUser => getsCardsByUser.GetCardsByUser(userId))
-            .Returns(Error.Failure());
+        var user = User.Register(Email.Create("test@test.com").Value, "Test User", DateTime.UtcNow);
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(user.Id, iban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, "My Account", DateTime.UtcNow);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _accountRepo.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<Account>)new[] { account });
+        var query = new GetDashboardQuery(1);
 
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
+        ErrorOr<AccountOverviewDto> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Cards.Should().BeEmpty();
-    }
-
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenTransactionsExist_ReturnsMappedTransactions scenario.
-    /// </summary>
-    [Fact]
-    public void GetAccountOverview_WhenTransactionsExist_ReturnsMappedTransactions()
-    {
-        // Arrange
-        const int userId = 1;
-        const int accountId = 10;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = "Ada", Email = "ada@test.com" });
-        _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(userId))
-            .Returns(
-                new List<Account>
-                {
-                    new() { Id = accountId, UserId = userId }
-                });
-        _dashboardRepository
-            .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId, It.IsAny<int>()))
-            .Returns(
-                new List<Transaction>
-                {
-                    new()
-                    {
-                        Id = 1,
-                        AccountId = accountId,
-                        Direction = TransactionDirection.Out,
-                        Amount = 100,
-                        Currency = "RON",
-                        Status = TransactionStatus.Completed,
-                        MerchantName = "Shop",
-                        CreatedAt = DateTime.UtcNow
-                    }
-                });
-
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.RecentTransactions.Should().ContainSingle();
-        result.Value.RecentTransactions.First().MerchantName.Should().Be("Shop");
-        result.Value.RecentTransactions.First().Amount.Should().Be(100);
-    }
-
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenAccountsQueryFails_ReturnsEmptyTransactionList scenario.
-    /// </summary>
-    [Fact]
-    public void GetAccountOverview_WhenAccountsQueryFails_ReturnsEmptyTransactionList()
-    {
-        // Arrange
-        const int userId = 1;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = "Ada", Email = "ada@test.com" });
-        _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(userId))
-            .Returns(Error.Failure());
-
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
-
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.RecentTransactions.Should().BeEmpty();
-    }
-
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenNotificationCountQueryFails_ReturnsZeroCount scenario.
-    /// </summary>
-    [Fact]
-    public void GetAccountOverview_WhenNotificationCountQueryFails_ReturnsZeroCount()
-    {
-        // Arrange
-        const int userId = 1;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = "Ada", Email = "ada@test.com" });
-        _dashboardRepository
-            .Setup(getsUnreadNotificationCount => getsUnreadNotificationCount.GetUnreadNotificationCount(userId))
-            .Returns(Error.Failure());
-
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.UnreadNotificationCount.Should().Be(0);
-    }
-
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenMultipleAccountsExist_MergesAndLimitsTransactions scenario.
-    /// </summary>
-    [Fact]
-    public void GetAccountOverview_WhenMultipleAccountsExist_MergesAndLimitsTransactions()
-    {
-        // Arrange
-        const int userId = 1;
-        const int accountId1 = 10;
-        const int accountId2 = 11;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = "Ada", Email = "ada@test.com" });
-        _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(userId))
-            .Returns(
-                new List<Account>
-                {
-                    new() { Id = accountId1, UserId = userId },
-                    new() { Id = accountId2, UserId = userId }
-                });
-
-        var transactions1 = Enumerable.Range(1, FirstAccountTransactionCount).Select(index =>
-            new Transaction
-            {
-                Id = index,
-                AccountId = accountId1,
-                Direction = TransactionDirection.In,
-                Amount = index * AmountMultiplier,
-                Currency = "RON",
-                Status = TransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-index)
-            }).ToList();
-        var transactions2 = Enumerable.Range(9, SecondAccountTransactionCount).Select(index =>
-            new Transaction
-            {
-                Id = index,
-                AccountId = accountId2,
-                Direction = TransactionDirection.Out,
-                Amount = index * AmountMultiplier,
-                Currency = "RON",
-                Status = TransactionStatus.Completed,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-index)
-            }).ToList();
-        _dashboardRepository
-            .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId1, It.IsAny<int>()))
-            .Returns(transactions1);
-        _dashboardRepository
-            .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId2, It.IsAny<int>()))
-            .Returns(transactions2);
-
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.RecentTransactions.Should().HaveCount(MergedTransactionLimit);
-    }
-
-    /// <summary>
-    ///     Verifies the GetAccountOverview_WhenUnreadNotificationsExist_ReturnsCorrectCount scenario.
-    /// </summary>
-    [Fact]
-    public void GetAccountOverview_WhenUnreadNotificationsExist_ReturnsCorrectCount()
-    {
-        // Arrange
-        const int userId = 1;
-        const int unreadCount = 7;
-        _userRepository
-            .Setup(findsById => findsById.FindById(userId))
-            .Returns(new User { Id = userId, FullName = "Ada", Email = "ada@test.com" });
-        _dashboardRepository
-            .Setup(getsUnreadNotificationCount => getsUnreadNotificationCount.GetUnreadNotificationCount(userId))
-            .Returns(unreadCount);
-
-        // Act
-        ErrorOr<AccountOverviewDto> result = _service.GetAccountOverview(userId);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.UnreadNotificationCount.Should().Be(unreadCount);
     }
 }
