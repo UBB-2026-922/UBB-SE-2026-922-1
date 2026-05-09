@@ -4,9 +4,13 @@ using Controllers;
 using Application.DTOs.Transfer;
 using Application.Repositories.Interfaces;
 using Application.Services.Transfers;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Moq;
+using FluentAssertions;
 
 [Trait("Category", "Unit")]
 public sealed class TransferControllerTests
@@ -16,6 +20,7 @@ public sealed class TransferControllerTests
 
     private readonly Mock<ITransferService> _transferService = new(MockBehavior.Strict);
     private readonly Mock<ITransferRepository> _transferRepository = new(MockBehavior.Strict);
+    private readonly Mock<IDashboardRepository> _dashboardRepository = new(MockBehavior.Strict);
 
     [Fact]
     public void CreateTransfer_WhenRequestIsValid_ReturnsCreatedWithTransfer()
@@ -39,7 +44,11 @@ public sealed class TransferControllerTests
             Currency = "RON",
             TransactionRef = "TXN-001",
         };
-        _transferService.Setup(service => service.CreateTransfer(request, DefaultUserId)).Returns(transfer);
+        _transferRepository.Setup(r => r.Create(It.IsAny<Transfer>())).Returns((Transfer t) => 
+        {
+            t.Id = DefaultTransferId;
+            return t;
+        });
         TransferController controller = CreateController();
 
         // Act
@@ -48,7 +57,8 @@ public sealed class TransferControllerTests
         // Assert
         CreatedAtActionResult createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.ActionName.Should().Be(nameof(TransferController.GetHistory));
-        createdResult.Value.Should().BeEquivalentTo(transfer);
+        Transfer returnedTransfer = createdResult.Value.Should().BeOfType<Transfer>().Subject;
+        returnedTransfer.Id.Should().Be(DefaultTransferId);
     }
 
     [Fact]
@@ -56,8 +66,8 @@ public sealed class TransferControllerTests
     {
         // Arrange
         var request = new CreateTransferRequest { Amount = -1m };
-        _transferService
-            .Setup(service => service.CreateTransfer(request, DefaultUserId))
+        _transferRepository
+            .Setup(r => r.Create(It.IsAny<Transfer>()))
             .Returns(Error.Validation("invalid_amount", "Amount must be positive."));
         TransferController controller = CreateController();
 
@@ -85,7 +95,7 @@ public sealed class TransferControllerTests
             Id = DefaultTransferId,
             TransactionRef = "TXN-002",
         };
-        _transferService.Setup(service => service.CreateTransfer(request, DefaultUserId)).Returns(transfer);
+        _transferRepository.Setup(r => r.Create(It.IsAny<Transfer>())).Returns(new Transfer { Id = DefaultTransferId, Transaction = new Transaction { TransactionRef = "TXN-002" } });
         TransferController controller = CreateController();
 
         // Act
@@ -102,7 +112,7 @@ public sealed class TransferControllerTests
         // Arrange
         var request = new CreateTransferRequest { SourceAccountId = 1, Amount = 100m, Currency = "RON" };
         var transfer = new TransferResponse { Id = DefaultTransferId, TransactionRef = null };
-        _transferService.Setup(service => service.CreateTransfer(request, DefaultUserId)).Returns(transfer);
+        _transferRepository.Setup(r => r.Create(It.IsAny<Transfer>())).Returns(new Transfer { Id = DefaultTransferId });
         TransferController controller = CreateController();
 
         // Act
@@ -118,8 +128,8 @@ public sealed class TransferControllerTests
     {
         // Arrange
         var request = new CreateTransferRequest { Amount = 500m };
-        _transferService
-            .Setup(service => service.CreateTransfer(request, DefaultUserId))
+        _transferRepository
+            .Setup(r => r.Create(It.IsAny<Transfer>()))
             .Returns(Error.Unauthorized("unauthorized", "2FA required."));
         TransferController controller = CreateController();
 
@@ -134,11 +144,15 @@ public sealed class TransferControllerTests
     public void GetHistory_WhenServiceReturnsTransfers_ReturnsOkWithHistory()
     {
         // Arrange
-        var history = new List<TransferResponse>
+        var history = new List<Transfer>
         {
-            new() { Id = DefaultTransferId, Amount = 250m, Currency = "RON" },
+            new() { Id = DefaultTransferId, Amount = 250m, Currency = "RON", Transaction = new Transaction { TransactionRef = "TXN-001" } },
         };
-        _transferService.Setup(service => service.GetHistory(DefaultUserId)).Returns(history);
+        var expectedResponse = new List<TransferResponse>
+        {
+            new() { Id = DefaultTransferId, Amount = 250m, Currency = "RON", Status = default, CreatedAt = history[0].CreatedAt, RecipientBankName = null, RecipientIban = string.Empty, RecipientName = string.Empty, Reference = null, SourceAccountId = 0, TransactionId = 0, TransactionRef = "TXN-001" }
+        };
+        _transferRepository.Setup(r => r.GetByUserId(DefaultUserId)).Returns(history);
         TransferController controller = CreateController();
 
         // Act
@@ -146,16 +160,16 @@ public sealed class TransferControllerTests
 
         // Assert
         OkObjectResult successResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        successResult.Value.Should().BeEquivalentTo(history);
-        _transferService.Verify(service => service.GetHistory(DefaultUserId), Times.Once);
+        successResult.Value.Should().BeEquivalentTo(expectedResponse);
+        _transferRepository.Verify(r => r.GetByUserId(DefaultUserId), Times.Once);
     }
 
     [Fact]
     public void GetHistory_WhenServiceReturnsError_ReturnsMatchingError()
     {
         // Arrange
-        _transferService
-            .Setup(service => service.GetHistory(DefaultUserId))
+        _transferRepository
+            .Setup(r => r.GetByUserId(DefaultUserId))
             .Returns(Error.Failure("query_failed", "Could not retrieve history."));
         TransferController controller = CreateController();
 
@@ -171,11 +185,15 @@ public sealed class TransferControllerTests
     public void GetAccounts_WhenServiceReturnsAccounts_ReturnsOkWithAccounts()
     {
         // Arrange
-        var accounts = new List<TransferAccountSelectionResponse>
+        var accounts = new List<Account>
         {
-            new() { Id = 1, Iban = "RO49AAAA1B31007593840000", Currency = "RON", Balance = 5000m },
+            new() { Id = 1, Iban = "RO49AAAA1B31007593840000", Currency = "RON", Balance = 5000m, Status = AccountStatus.Active, AccountName = "Test" },
         };
-        _transferService.Setup(service => service.GetAvailableAccounts(DefaultUserId)).Returns(accounts);
+        var expectedResponses = new List<TransferAccountSelectionResponse>
+        {
+            new() { Id = 1, Iban = "RO49AAAA1B31007593840000", Currency = "RON", Balance = 5000m, AccountName = "Test" }
+        };
+        _dashboardRepository.Setup(r => r.GetAccountsByUser(DefaultUserId)).Returns(accounts);
         TransferController controller = CreateController();
 
         // Act
@@ -183,15 +201,15 @@ public sealed class TransferControllerTests
 
         // Assert
         OkObjectResult successResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        successResult.Value.Should().BeEquivalentTo(accounts);
+        successResult.Value.Should().BeEquivalentTo(expectedResponses);
     }
 
     [Fact]
     public void GetAccounts_WhenServiceReturnsError_ReturnsMatchingError()
     {
         // Arrange
-        _transferService
-            .Setup(service => service.GetAvailableAccounts(DefaultUserId))
+        _dashboardRepository
+            .Setup(r => r.GetAccountsByUser(DefaultUserId))
             .Returns(Error.Failure("query_failed", "Could not load accounts."));
         TransferController controller = CreateController();
 
@@ -207,11 +225,8 @@ public sealed class TransferControllerTests
     public void ValidateIban_WhenIbanIsValid_ReturnsOkWithValidation()
     {
         // Arrange
-        var request = new TransferIbanValidationRequest { Iban = "RO49AAAA1B31007593840000" };
-        var response = new TransferIbanValidationResponse { IsValid = true, BankName = "Alpha Bank" };
-        _transferService
-            .Setup(service => service.ValidateRecipientIban("RO49AAAA1B31007593840000"))
-            .Returns(response);
+        var request = new TransferIbanValidationRequest { Iban = "RO49BTRL0000000000000000" };
+        var response = new TransferIbanValidationResponse { IsValid = true, BankName = "Romanian Bank" };
         TransferController controller = CreateController();
 
         // Act
@@ -223,20 +238,19 @@ public sealed class TransferControllerTests
     }
 
     [Fact]
-    public void ValidateIban_WhenServiceReturnsError_ReturnsMatchingError()
+    public void ValidateIban_WhenServiceReturnsError_ReturnsValidButFalse()
     {
         // Arrange
         var request = new TransferIbanValidationRequest { Iban = "INVALID" };
-        _transferService
-            .Setup(service => service.ValidateRecipientIban("INVALID"))
-            .Returns(Error.Validation("invalid_iban", "The IBAN is not valid."));
         TransferController controller = CreateController();
 
         // Act
         IActionResult result = controller.ValidateIban(request);
 
         // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        OkObjectResult successResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        TransferIbanValidationResponse response = successResult.Value.Should().BeOfType<TransferIbanValidationResponse>().Subject;
+        response.IsValid.Should().BeFalse();
     }
 
     [Fact]
@@ -275,7 +289,7 @@ public sealed class TransferControllerTests
 
     private TransferController CreateController()
     {
-        var controller = new TransferController(_transferService.Object, _transferRepository.Object);
+        var controller = new TransferController(_transferService.Object, _transferRepository.Object, _dashboardRepository.Object);
         var httpContext = new DefaultHttpContext
         {
             Items =

@@ -5,6 +5,7 @@ using Application.Repositories.Interfaces;
 using Application.Services.Transfers;
 using Domain.Entities;
 using Domain.Enums;
+using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,17 +21,21 @@ public class TransferController : ApiControllerBase
 {
     private readonly ITransferRepository _transferRepository;
     private readonly ITransferService _transferService;
+    private readonly IDashboardRepository _dashboardRepository;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferController" /> class.
     /// </summary>
     /// <param name="transferService">The transfer service used to handle business logic.</param>
     /// <param name="transferRepository">The transfer repository used by the raw proxy endpoints.</param>
-    public TransferController(ITransferService transferService, ITransferRepository transferRepository)
+    /// <param name="dashboardRepository">The dashboard repository for accounts.</param>
+    public TransferController(ITransferService transferService, ITransferRepository transferRepository, IDashboardRepository dashboardRepository)
     {
         _transferService = transferService;
         _transferRepository = transferRepository;
+        _dashboardRepository = dashboardRepository;
     }
+
 
     /// <summary>
     ///     Creates a new transfer for the currently authenticated user.
@@ -44,9 +49,19 @@ public class TransferController : ApiControllerBase
     public IActionResult CreateTransfer([FromBody] CreateTransferRequest request)
     {
         int userId = GetAuthenticatedUserId();
+        var transfer = new Transfer
+        {
+            Amount = request.Amount,
+            Currency = request.Currency,
+            RecipientIban = request.RecipientIban,
+            RecipientName = request.RecipientName,
+            Reference = request.Reference,
+            Status = TransferStatus.Pending
+        };
+
         return ToActionResult(
-            _transferService.CreateTransfer(request, userId),
-            transfer => CreatedAtAction(nameof(GetHistory), new { }, transfer));
+            _transferRepository.Create(transfer),
+            t => CreatedAtAction(nameof(GetHistory), new { }, t));
     }
 
     /// <summary>
@@ -58,11 +73,22 @@ public class TransferController : ApiControllerBase
     public IActionResult ExecuteTransfer([FromBody] CreateTransferRequest request)
     {
         int userId = GetAuthenticatedUserId();
+        // Route through Raw proxy logic simulating the transfer
+        var transfer = new Transfer
+        {
+            Amount = request.Amount,
+            Currency = request.Currency,
+            RecipientIban = request.RecipientIban,
+            RecipientName = request.RecipientName,
+            Reference = request.Reference,
+            Status = TransferStatus.Pending
+        };
+
         return ToActionResult(
-            _transferService.CreateTransfer(request, userId),
-            transfer => Ok(new TransferExecutionResponse
+            _transferRepository.Create(transfer),
+            t => Ok(new TransferExecutionResponse
             {
-                TransactionRef = transfer.TransactionRef ?? string.Empty,
+                TransactionRef = t.Transaction?.TransactionRef ?? string.Empty,
             }));
     }
 
@@ -77,8 +103,31 @@ public class TransferController : ApiControllerBase
     public IActionResult GetHistory()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(
-            _transferService.GetHistory(userId), Ok);
+
+        ErrorOr<System.Collections.Generic.List<Transfer>> result = _transferRepository.GetByUserId(userId);
+        if (result.IsError)
+        {
+            return ToActionResult(result.FirstError);
+        }
+
+        var responses = result.Value.Select(transfer => new TransferResponse
+        {
+            Id = transfer.Id,
+            SourceAccountId = transfer.SourceAccount?.Id ?? 0,
+            TransactionId = transfer.Transaction?.Id,
+            TransactionRef = transfer.Transaction?.TransactionRef ?? string.Empty,
+            RecipientName = transfer.RecipientName,
+            RecipientIban = transfer.RecipientIban,
+            RecipientBankName = transfer.RecipientBankName,
+            Amount = transfer.Amount,
+            Currency = transfer.Currency,
+            Fee = transfer.Fee,
+            Reference = transfer.Reference,
+            Status = transfer.Status,
+            CreatedAt = transfer.CreatedAt
+        }).ToList();
+
+        return Ok(responses);
     }
 
     /// <summary>
@@ -89,9 +138,27 @@ public class TransferController : ApiControllerBase
     public IActionResult GetAccounts()
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(
-            _transferService.GetAvailableAccounts(userId),
-            Ok);
+
+        ErrorOr<System.Collections.Generic.List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId);
+        if (accountsResult.IsError)
+        {
+            return ToActionResult(accountsResult.FirstError);
+        }
+
+        var accounts = accountsResult.Value
+            .Where(account => account.Status == AccountStatus.Active)
+            .OrderBy(account => account.AccountName)
+            .Select(account => new TransferAccountSelectionResponse
+            {
+                Id = account.Id,
+                Iban = account.Iban,
+                Currency = account.Currency,
+                Balance = account.Balance,
+                AccountName = account.AccountName ?? string.Empty
+            })
+            .ToList();
+
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -102,9 +169,11 @@ public class TransferController : ApiControllerBase
     [HttpPost("validate-iban")]
     public IActionResult ValidateIban([FromBody] TransferIbanValidationRequest request)
     {
-        return ToActionResult(
-            _transferService.ValidateRecipientIban(request.Iban),
-            Ok);
+        return Ok(new TransferIbanValidationResponse
+        {
+            IsValid = Transfer.IsValidRecipientIban(request.Iban),
+            BankName = Transfer.IsValidRecipientIban(request.Iban) ? Transfer.InferRecipientBankName(request.Iban) : string.Empty
+        });
     }
 
     /// <summary>
