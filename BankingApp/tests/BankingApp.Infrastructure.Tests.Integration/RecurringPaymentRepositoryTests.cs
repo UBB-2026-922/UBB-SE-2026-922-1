@@ -30,9 +30,9 @@ public class RecurringPaymentRepositoryTests(DatabaseFixture fixture) : IAsyncLi
 
         Assert.False(result.IsError);
         Assert.True(result.Value.Id > 0);
-        Assert.Equal(userId, result.Value.UserId);
-        Assert.Equal(billerId, result.Value.BillerId);
-        Assert.Equal(accountId, result.Value.SourceAccountId);
+        Assert.Equal(userId, result.Value.User?.Id);
+        Assert.Equal(billerId, result.Value.Biller?.Id);
+        Assert.Equal(accountId, result.Value.SourceAccount?.Id);
         Assert.Equal(payment.Amount, result.Value.Amount);
         Assert.Equal(RecurringPaymentStatus.Active, result.Value.Status);
     }
@@ -79,7 +79,7 @@ public class RecurringPaymentRepositoryTests(DatabaseFixture fixture) : IAsyncLi
 
         Assert.False(result.IsError);
         Assert.Equal(created.Id, result.Value.Id);
-        Assert.Equal(userId, result.Value.UserId);
+        Assert.Equal(userId, result.Value.User?.Id);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class RecurringPaymentRepositoryTests(DatabaseFixture fixture) : IAsyncLi
 
         Assert.False(result.IsError);
         Assert.True(result.Value.Count >= 2);
-        Assert.All(result.Value, p => Assert.Equal(userId, p.UserId));
+        Assert.All(result.Value, p => Assert.Equal(userId, p.User?.Id));
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class RecurringPaymentRepositoryTests(DatabaseFixture fixture) : IAsyncLi
         ErrorOr<List<RecurringPayment>> result = repository.GetByUserId(userId);
 
         Assert.False(result.IsError);
-        Assert.DoesNotContain(result.Value, p => p.UserId == otherUserId);
+        Assert.DoesNotContain(result.Value, p => p.User?.Id == otherUserId);
     }
 
     [Fact]
@@ -149,7 +149,9 @@ public class RecurringPaymentRepositoryTests(DatabaseFixture fixture) : IAsyncLi
         ErrorOr<List<RecurringPayment>> result = repository.GetDuePayments(DateTime.UtcNow);
 
         Assert.False(result.IsError);
-        Assert.Contains(result.Value, recurringPayment => recurringPayment.UserId == userId && recurringPayment.BillerId == billerId);
+        Assert.Contains(result.Value, recurringPayment =>
+            recurringPayment.User?.Id == userId &&
+            recurringPayment.Biller?.Id == billerId);
     }
 
     [Fact]
@@ -265,7 +267,7 @@ public class RecurringPaymentRepositoryTests(DatabaseFixture fixture) : IAsyncLi
 
         var account = new Account
         {
-            UserId = user.Id,
+            User = user,
             Iban = $"RO{Guid.NewGuid():N}"[..24],
             Currency = "RON",
             Balance = 5000m,
@@ -291,9 +293,9 @@ public class RecurringPaymentRepositoryTests(DatabaseFixture fixture) : IAsyncLi
         DateTime start = DateTime.UtcNow.Date;
         return new RecurringPayment
         {
-            UserId = userId,
-            BillerId = billerId,
-            SourceAccountId = accountId,
+            User = new User { Id = userId },
+            Biller = new Biller { Id = billerId },
+            SourceAccount = new Account { Id = accountId },
             Amount = amount,
             IsPayInFull = isPayInFull,
             Frequency = frequency,

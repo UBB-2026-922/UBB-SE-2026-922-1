@@ -4,6 +4,7 @@ using BankingApp.Application.Repositories.Interfaces;
 using Domain.Entities;
 using DataAccess;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     EF Core implementation of <see cref="IRateAlertRepository" />.
@@ -39,7 +40,7 @@ public class RateAlertRepository : IRateAlertRepository
         try
         {
             return _databaseContext.RateAlerts
-                .Where(alert => alert.UserId == userId)
+                .Where(alert => EF.Property<int>(alert, "UserId") == userId)
                 .OrderByDescending(alert => alert.CreatedAt)
                 .ToList();
         }

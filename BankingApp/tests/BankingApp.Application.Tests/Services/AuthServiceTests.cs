@@ -695,7 +695,7 @@ public sealed class AuthServiceTests
     {
         // Arrange
         var token = new PasswordResetToken
-            { UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes) };
+            { User = new User { Id = 1 }, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes) };
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
             .Returns((ErrorOr<PasswordResetToken>)token);
@@ -731,12 +731,12 @@ public sealed class AuthServiceTests
     {
         // Arrange
         var token = new PasswordResetToken
-            { UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
+            { User = new User { Id = 1 }, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
             .Returns((ErrorOr<PasswordResetToken>)token);
         _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "hash"))
+        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.User!.Id, "hash"))
             .Returns(Error.Failure("update_failed"));
 
         // Act
@@ -752,12 +752,12 @@ public sealed class AuthServiceTests
     {
         // Arrange
         var token = new PasswordResetToken
-            { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
+            { Id = 1, User = new User { Id = 1 }, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
             .Returns((ErrorOr<PasswordResetToken>)token);
         _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"new_hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"))
+        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.User!.Id, "new_hash"))
             .Returns(Result.Success);
         _mockAuthRepository
             .Setup(marksPasswordResetTokenAsUsed =>
@@ -777,17 +777,17 @@ public sealed class AuthServiceTests
     {
         // Arrange
         var token = new PasswordResetToken
-            { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
+            { Id = 1, User = new User { Id = 1 }, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes) };
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
             .Returns((ErrorOr<PasswordResetToken>)token);
         _mockHashService.Setup(getsHash => getsHash.GetHash(It.IsAny<string>())).Returns((ErrorOr<string>)"new_hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"))
+        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.User!.Id, "new_hash"))
             .Returns(Result.Success);
         _mockAuthRepository
             .Setup(marksPasswordResetTokenAsUsed =>
                 marksPasswordResetTokenAsUsed.MarkPasswordResetTokenAsUsed(token.Id)).Returns(Result.Success);
-        _mockAuthRepository.Setup(invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.UserId))
+        _mockAuthRepository.Setup(invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.User!.Id))
             .Returns(Error.Failure("invalidate_failed"));
 
         // Act
@@ -803,18 +803,18 @@ public sealed class AuthServiceTests
     {
         // Arrange
         var token = new PasswordResetToken
-            { Id = 1, UserId = 1, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes), UsedAt = null };
+            { Id = 1, User = new User { Id = 1 }, ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes), UsedAt = null };
         string newPassword = "NewValidPassword123!";
         _mockAuthRepository
             .Setup(findsPasswordResetToken => findsPasswordResetToken.FindPasswordResetToken(It.IsAny<string>()))
             .Returns((ErrorOr<PasswordResetToken>)token);
         _mockHashService.Setup(getsHash => getsHash.GetHash(newPassword)).Returns((ErrorOr<string>)"new_hash");
-        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"))
+        _mockAuthRepository.Setup(updatesPassword => updatesPassword.UpdatePassword(token.User!.Id, "new_hash"))
             .Returns(Result.Success);
         _mockAuthRepository
             .Setup(marksPasswordResetTokenAsUsed =>
                 marksPasswordResetTokenAsUsed.MarkPasswordResetTokenAsUsed(token.Id)).Returns(Result.Success);
-        _mockAuthRepository.Setup(invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.UserId))
+        _mockAuthRepository.Setup(invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.User!.Id))
             .Returns(Result.Success);
 
         // Act
@@ -823,10 +823,10 @@ public sealed class AuthServiceTests
         // Assert
         result.IsError.Should().BeFalse();
         _mockAuthRepository.Verify(
-            updatesPassword => updatesPassword.UpdatePassword(token.UserId, "new_hash"),
+            updatesPassword => updatesPassword.UpdatePassword(token.User!.Id, "new_hash"),
             Times.Once);
         _mockAuthRepository.Verify(
-            invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.UserId),
+            invalidatesAllSessions => invalidatesAllSessions.InvalidateAllSessions(token.User!.Id),
             Times.Once);
     }
 
@@ -891,7 +891,7 @@ public sealed class AuthServiceTests
     public void Logout_WhenValid_ReturnsSuccess()
     {
         // Arrange
-        var session = new Session { Id = 1, UserId = 1 };
+        var session = new Session { Id = 1, User = new User { Id = 1 } };
         _mockAuthRepository.Setup(findsSessionByToken => findsSessionByToken.FindSessionByToken("valid_token"))
             .Returns((ErrorOr<Session>)session);
         _mockAuthRepository.Setup(updatesSessionToken => updatesSessionToken.UpdateSessionToken(session.Id))

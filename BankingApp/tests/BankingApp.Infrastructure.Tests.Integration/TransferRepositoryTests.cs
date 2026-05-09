@@ -44,8 +44,8 @@ public class TransferRepositoryTests : IAsyncLifetime
 
         Assert.False(result.IsError);
         Assert.True(result.Value.Id > 0);
-        Assert.Equal(userId, result.Value.UserId);
-        Assert.Equal(accountId, result.Value.SourceAccountId);
+        Assert.Equal(userId, result.Value.User?.Id);
+        Assert.Equal(accountId, result.Value.SourceAccount?.Id);
         Assert.Equal(transfer.Amount, result.Value.Amount);
         Assert.Equal(TransferStatus.Pending, result.Value.Status);
     }
@@ -95,7 +95,7 @@ public class TransferRepositoryTests : IAsyncLifetime
 
         Assert.False(result.IsError);
         Assert.Equal(created.Id, result.Value.Id);
-        Assert.Equal(userId, result.Value.UserId);
+        Assert.Equal(userId, result.Value.User?.Id);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class TransferRepositoryTests : IAsyncLifetime
 
         Assert.False(result.IsError);
         Assert.True(result.Value.Count >= 2);
-        Assert.All(result.Value, t => Assert.Equal(userId, t.UserId));
+        Assert.All(result.Value, t => Assert.Equal(userId, t.User?.Id));
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class TransferRepositoryTests : IAsyncLifetime
         ErrorOr<List<Transfer>> result = repository.GetByUserId(userId);
 
         Assert.False(result.IsError);
-        Assert.DoesNotContain(result.Value, t => t.UserId == otherUserId);
+        Assert.DoesNotContain(result.Value, t => t.User?.Id == otherUserId);
     }
 
     [Fact]
@@ -228,7 +228,7 @@ public class TransferRepositoryTests : IAsyncLifetime
 
         var account = new Account
         {
-            UserId = user.Id,
+            User = user,
             Iban = $"RO{Guid.NewGuid():N}"[..24],
             Currency = "RON",
             Balance = 10000m,
@@ -252,8 +252,8 @@ public class TransferRepositoryTests : IAsyncLifetime
     {
         return new Transfer
         {
-            UserId = userId,
-            SourceAccountId = accountId,
+            User = new User { Id = userId },
+            SourceAccount = new Account { Id = accountId },
             Amount = amount,
             Currency = currency,
             RecipientName = recipientName,

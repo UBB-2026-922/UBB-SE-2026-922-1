@@ -251,7 +251,7 @@ public class ProfileService : IProfileService
             .Select(preference => new NotificationPreferenceDto
             {
                 Id = preference.Id,
-                UserId = preference.UserId,
+                UserId = preference.User?.Id ?? userId,
                 Category = preference.Category,
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,
@@ -280,7 +280,7 @@ public class ProfileService : IProfileService
             .Select(preference => new NotificationPreference
             {
                 Id = preference.Id,
-                UserId = preference.UserId,
+                User = new User { Id = preference.UserId },
                 Category = preference.Category,
                 PushEnabled = preference.PushEnabled,
                 EmailEnabled = preference.EmailEnabled,

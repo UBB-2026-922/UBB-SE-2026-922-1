@@ -29,7 +29,7 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     {
         Beneficiary? beneficiary = _databaseContext.Beneficiaries
             .AsNoTracking()
-            .FirstOrDefault(beneficiary => beneficiary.Id == beneficiaryId && beneficiary.UserId == userId);
+            .FirstOrDefault(beneficiary => beneficiary.Id == beneficiaryId && EF.Property<int>(beneficiary, "UserId") == userId);
 
         if (beneficiary is null)
         {
@@ -46,7 +46,7 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     {
         var beneficiaries = _databaseContext.Beneficiaries
             .AsNoTracking()
-            .Where(beneficiary => beneficiary.UserId == userId)
+            .Where(beneficiary => EF.Property<int>(beneficiary, "UserId") == userId)
             .OrderBy(beneficiary => beneficiary.Name)
             .ToList();
 
@@ -60,7 +60,7 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         bool exists = _databaseContext.Beneficiaries
             .AsNoTracking()
             .Any(beneficiary =>
-                beneficiary.UserId == userId &&
+                EF.Property<int>(beneficiary, "UserId") == userId &&
                 beneficiary.Iban == normalizedIban);
 
         return exists;
@@ -86,13 +86,13 @@ public class BeneficiaryRepository : IBeneficiaryRepository
     /// <inheritdoc />
     public ErrorOr<Success> Update(Beneficiary beneficiary)
     {
-        bool exists = _databaseContext.Beneficiaries
-            .AsNoTracking()
-            .Any(existingBeneficiary =>
-                existingBeneficiary.Id == beneficiary.Id &&
-                existingBeneficiary.UserId == beneficiary.UserId);
+        int userId = beneficiary.User?.Id ?? 0;
+        Beneficiary? existingBeneficiary = _databaseContext.Beneficiaries
+            .FirstOrDefault(currentBeneficiary =>
+                currentBeneficiary.Id == beneficiary.Id &&
+                EF.Property<int>(currentBeneficiary, "UserId") == userId);
 
-        if (!exists)
+        if (existingBeneficiary is null)
         {
             return Error.NotFound(
                 "Beneficiary.NotFound",
@@ -101,7 +101,13 @@ public class BeneficiaryRepository : IBeneficiaryRepository
 
         try
         {
-            _databaseContext.Beneficiaries.Update(beneficiary);
+            existingBeneficiary.Name = beneficiary.Name;
+            existingBeneficiary.Iban = beneficiary.Iban;
+            existingBeneficiary.BankName = beneficiary.BankName;
+            existingBeneficiary.LastTransferDate = beneficiary.LastTransferDate;
+            existingBeneficiary.TotalAmountSent = beneficiary.TotalAmountSent;
+            existingBeneficiary.TransferCount = beneficiary.TransferCount;
+            existingBeneficiary.CreatedAt = beneficiary.CreatedAt;
             _databaseContext.SaveChanges();
             return Result.Success;
         }
@@ -119,7 +125,7 @@ public class BeneficiaryRepository : IBeneficiaryRepository
         Beneficiary? beneficiary = _databaseContext.Beneficiaries
             .FirstOrDefault(existingBeneficiary =>
                 existingBeneficiary.Id == beneficiaryId &&
-                existingBeneficiary.UserId == userId);
+                EF.Property<int>(existingBeneficiary, "UserId") == userId);
 
         if (beneficiary is null)
         {

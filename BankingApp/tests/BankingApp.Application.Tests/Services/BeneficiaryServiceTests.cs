@@ -37,7 +37,7 @@ public class BeneficiaryServiceTests
         // Arrange
         List<Beneficiary> expectedBeneficiaries =
         [
-            new() { Id = DefaultBeneficiaryId, UserId = DefaultUserId, Name = DefaultName, Iban = ValidIban }
+            new() { Id = DefaultBeneficiaryId, User = new User { Id = DefaultUserId }, Name = DefaultName, Iban = ValidIban }
         ];
 
         _beneficiaryRepository
@@ -141,7 +141,7 @@ public class BeneficiaryServiceTests
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Id.Should().Be(DefaultBeneficiaryId);
-        result.Value.UserId.Should().Be(DefaultUserId);
+        result.Value.User?.Id.Should().Be(DefaultUserId);
         result.Value.Name.Should().Be(DefaultName);
         result.Value.Iban.Should().Be(ValidIban);
         result.Value.BankName.Should().Be("Bank Name");
@@ -149,7 +149,8 @@ public class BeneficiaryServiceTests
         _beneficiaryRepository.Verify(
             creates => creates.Create(
                 It.Is<Beneficiary>(beneficiary =>
-                    beneficiary.UserId == DefaultUserId &&
+                    beneficiary.User != null &&
+                    beneficiary.User.Id == DefaultUserId &&
                     beneficiary.Name == DefaultName &&
                     beneficiary.Iban == ValidIban &&
                     beneficiary.BankName == "Bank Name")),
@@ -163,7 +164,7 @@ public class BeneficiaryServiceTests
         var beneficiary = new Beneficiary
         {
             Id = DefaultBeneficiaryId,
-            UserId = DefaultUserId,
+            User = new User { Id = DefaultUserId },
             Name = EmptyName,
             Iban = ValidIban
         };
@@ -186,7 +187,7 @@ public class BeneficiaryServiceTests
         var existingBeneficiary = new Beneficiary
         {
             Id = DefaultBeneficiaryId,
-            UserId = DefaultUserId,
+            User = new User { Id = DefaultUserId },
             Name = "Old Name",
             Iban = "RO49AAAA1B31007593840001",
             BankName = "Old Bank",
@@ -198,7 +199,7 @@ public class BeneficiaryServiceTests
         var updatedBeneficiary = new Beneficiary
         {
             Id = DefaultBeneficiaryId,
-            UserId = DefaultUserId,
+            User = new User { Id = DefaultUserId },
             Name = $" {DefaultName} ",
             Iban = ValidIban,
             BankName = " New Bank "
@@ -223,7 +224,8 @@ public class BeneficiaryServiceTests
             updates => updates.Update(
                 It.Is<Beneficiary>(beneficiary =>
                     beneficiary.Id == DefaultBeneficiaryId &&
-                    beneficiary.UserId == DefaultUserId &&
+                    beneficiary.User != null &&
+                    beneficiary.User.Id == DefaultUserId &&
                     beneficiary.Name == DefaultName &&
                     beneficiary.Iban == ValidIban &&
                     beneficiary.BankName == "New Bank" &&

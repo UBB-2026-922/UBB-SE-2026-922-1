@@ -8,10 +8,6 @@ public class LockedRate
 {
     private const int LockDurationSeconds = 30;
 
-    /// <summary>Gets or sets the identifier of the user who locked this rate.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int UserId { get; set; }
-
     /// <summary>Gets or sets the user who locked this rate.</summary>
     public User? User { get; set; }
 

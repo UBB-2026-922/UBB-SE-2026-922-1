@@ -62,7 +62,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         BeneficiaryRepository beneficiaryRepository = new(databaseContext);
         var newBeneficiary = new Beneficiary
         {
-            UserId = beneficiaryOwner.Id,
+            User = beneficiaryOwner,
             Name = "Ava Recipient",
             Iban = "RO49AAAA1B31007593840000",
             BankName = "Transylvania Bank",
@@ -97,7 +97,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         string beneficiaryIban = "RO49AAAA1B31007593840000";
         var firstBeneficiary = new Beneficiary
         {
-            UserId = beneficiaryOwner.Id,
+            User = beneficiaryOwner,
             Name = "Sam Original",
             Iban = beneficiaryIban,
             BankName = "Transylvania Bank",
@@ -107,7 +107,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
 
         var duplicateBeneficiary = new Beneficiary
         {
-            UserId = beneficiaryOwner.Id,
+            User = beneficiaryOwner,
             Name = "Sam Duplicate",
             Iban = beneficiaryIban,
             BankName = "Transylvania Bank",
@@ -141,7 +141,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         // Assert
         result.IsError.Should().BeFalse(result.IsError ? result.FirstError.Description : string.Empty);
         result.Value.Id.Should().Be(storedBeneficiary.Id);
-        result.Value.UserId.Should().Be(beneficiaryOwner.Id);
+        result.Value.User?.Id.Should().Be(beneficiaryOwner.Id);
         result.Value.Name.Should().Be(storedBeneficiary.Name);
         result.Value.Iban.Should().Be(storedBeneficiary.Iban);
     }
@@ -223,7 +223,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
         var beneficiaryToUpdate = new Beneficiary
         {
             Id = existingBeneficiaryId,
-            UserId = beneficiaryOwner.Id,
+            User = new User { Id = beneficiaryOwner.Id },
             Name = "Noah Updated",
             Iban = existingIban,
             BankName = "Updated Bank",
@@ -299,7 +299,7 @@ public sealed class BeneficiaryRepositoryTests : IAsyncLifetime
     {
         var beneficiary = new Beneficiary
         {
-            UserId = userId,
+            User = databaseContext.Users.Find(userId)!,
             Name = name,
             Iban = beneficiaryIban,
             BankName = "Seed Bank",

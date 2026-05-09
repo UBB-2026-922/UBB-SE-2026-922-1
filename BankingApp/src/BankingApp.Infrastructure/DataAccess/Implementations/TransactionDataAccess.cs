@@ -3,6 +3,7 @@
 using Domain.Entities;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides SQL Server data access for financial transaction records.
@@ -51,7 +52,7 @@ public class TransactionDataAccess : ITransactionDataAccess
     public ErrorOr<List<Transaction>> FindRecentByAccountId(int accountId, int limit = DefaultTransactionLimit)
     {
         var transactions = _databaseContext.Transactions
-            .Where(transaction => transaction.AccountId == accountId)
+            .Where(transaction => EF.Property<int>(transaction, "AccountId") == accountId)
             .OrderByDescending(transaction => transaction.CreatedAt)
             .Take(limit)
             .ToList();

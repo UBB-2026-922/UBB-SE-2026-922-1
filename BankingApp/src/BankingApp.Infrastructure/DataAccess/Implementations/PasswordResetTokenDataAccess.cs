@@ -3,6 +3,7 @@
 using Domain.Entities;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides SQL Server data access for password reset token records.
@@ -30,9 +31,15 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     {
         try
         {
+            User? user = _databaseContext.Users.Find(userId);
+            if (user is null)
+            {
+                return Error.NotFound(description: "User not found.");
+            }
+
             PasswordResetToken token = new()
             {
-                UserId = userId,
+                User = user,
                 TokenHash = tokenHash,
                 ExpiresAt = expiresAt,
                 CreatedAt = DateTime.UtcNow,
@@ -52,7 +59,9 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<PasswordResetToken> FindByToken(string tokenHash)
     {
-        PasswordResetToken? token = _databaseContext.PasswordResetTokens.FirstOrDefault(resetToken => resetToken.TokenHash == tokenHash);
+        PasswordResetToken? token = _databaseContext.PasswordResetTokens
+            .Include(resetToken => resetToken.User)
+            .FirstOrDefault(resetToken => resetToken.TokenHash == tokenHash);
         return token ?? (ErrorOr<PasswordResetToken>)Error.NotFound(description: "Password reset token not found.");
     }
 

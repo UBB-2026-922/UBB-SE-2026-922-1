@@ -172,7 +172,8 @@ public sealed class BeneficiariesControllerTests
         _beneficiaryService
             .Setup(service => service.Update(It.Is<Beneficiary>(beneficiary =>
                 beneficiary.Id == DefaultBeneficiaryId &&
-                beneficiary.UserId == DefaultUserId &&
+                beneficiary.User != null &&
+                beneficiary.User.Id == DefaultUserId &&
                 beneficiary.Name == request.Name &&
                 beneficiary.Iban == request.Iban &&
                 beneficiary.BankName == request.BankName)))
@@ -280,7 +281,7 @@ public sealed class BeneficiariesControllerTests
         return new Beneficiary
         {
             Id = id,
-            UserId = DefaultUserId,
+            User = new User { Id = DefaultUserId },
             Name = name,
             Iban = iban,
             BankName = bankName,

@@ -27,7 +27,7 @@ public class SavedBillerDataAccess : ISavedBillerDataAccess
     {
         return _databaseContext.SavedBillers
             .Include(savedBiller => savedBiller.Biller)
-            .Where(savedBiller => savedBiller.UserId == userId)
+            .Where(savedBiller => EF.Property<int>(savedBiller, "UserId") == userId)
             .OrderByDescending(savedBiller => savedBiller.CreatedAt)
             .ToList();
     }

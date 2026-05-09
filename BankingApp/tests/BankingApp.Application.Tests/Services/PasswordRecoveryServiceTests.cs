@@ -138,7 +138,7 @@ public class PasswordRecoveryServiceTests
                 new PasswordResetToken
                 {
                     Id = 1,
-                    UserId = 1,
+                    User = new User { Id = 1 },
                     ExpiresAt = DateTime.UtcNow.AddMinutes(TokenStillValidMinutes),
                     UsedAt = DateTime.UtcNow
                 });
@@ -173,7 +173,7 @@ public class PasswordRecoveryServiceTests
                 new PasswordResetToken
                 {
                     Id = 1,
-                    UserId = 1,
+                    User = new User { Id = 1 },
                     ExpiresAt = DateTime.UtcNow.AddMinutes(TokenAlreadyExpiredMinutes)
                 });
 

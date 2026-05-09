@@ -89,7 +89,7 @@ public class BeneficiariesController : ApiControllerBase
         var beneficiary = new Beneficiary
         {
             Id = id,
-            UserId = userId,
+            User = new User { Id = userId },
             Name = request.Name,
             Iban = request.Iban,
             BankName = request.BankName,

@@ -210,7 +210,7 @@ public class ExchangeServiceTests
 
         // Assert
         result.IsError.Should().BeFalse();
-        result.Value.UserId.Should().Be(ValidUserId);
+        result.Value.User?.Id.Should().Be(ValidUserId);
         result.Value.Rate.Should().Be(EurUsdRate);
         result.Value.CurrencyPair.Should().Be($"{EurCurrency}/{UsdCurrency}");
     }
@@ -375,7 +375,7 @@ public class ExchangeServiceTests
             new()
             {
                 Id = 1,
-                UserId = ValidUserId,
+                User = new User { Id = ValidUserId },
                 SourceCurrency = EurCurrency,
                 TargetCurrency = UsdCurrency,
                 SourceAmount = ValidAmount,

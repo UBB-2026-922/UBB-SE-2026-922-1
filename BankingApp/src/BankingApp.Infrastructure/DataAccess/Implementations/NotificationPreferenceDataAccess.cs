@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Extensions;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides SQL Server data access for notification preference records.
@@ -30,9 +31,15 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
     {
         try
         {
+            User? user = _databaseContext.Users.Find(userId);
+            if (user is null)
+            {
+                return Error.NotFound(description: "User not found.");
+            }
+
             NotificationPreference notification = new()
             {
-                UserId = userId,
+                User = user,
                 Category = NotificationTypeExtensions.FromString(category),
                 PushEnabled = false,
                 EmailEnabled = false,
@@ -53,7 +60,7 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<NotificationPreference>> FindByUserId(int userId)
     {
-        var preferences = _databaseContext.NotificationPreferences.Where(preference => preference.UserId == userId)
+        var preferences = _databaseContext.NotificationPreferences.Where(preference => EF.Property<int>(preference, "UserId") == userId)
             .ToList();
         return preferences;
     }
@@ -69,7 +76,7 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
             foreach (NotificationPreference preference in preferences)
             {
                 NotificationPreference? existing = _databaseContext.NotificationPreferences
-                    .FirstOrDefault(existingPreference => existingPreference.UserId == userId && existingPreference.Category == preference.Category);
+                    .FirstOrDefault(existingPreference => EF.Property<int>(existingPreference, "UserId") == userId && existingPreference.Category == preference.Category);
                 if (existing is not null)
                 {
                     existing.PushEnabled = preference.PushEnabled;

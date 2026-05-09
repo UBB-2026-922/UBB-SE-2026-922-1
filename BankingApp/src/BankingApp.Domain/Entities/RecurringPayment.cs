@@ -9,15 +9,8 @@ using ErrorOr;
 ///     Maps to the SQL table <c>RecurringPayment</c> introduced by Team B.
 /// </summary>
 /// <remarks>
-///     <para>
-///         Reuses the base entity <see cref="User" /> via <see cref="UserId" /> (Many-to-One).
-///     </para>
-///     <para>
-///         Reuses the base entity <see cref="Account" /> via <see cref="SourceAccountId" /> (Many-to-One).
-///     </para>
-///     <para>
-///         References <see cref="Biller" /> via <see cref="BillerId" /> (Many-to-One).
-///     </para>
+///     Reuses the base entities <see cref="User" />, <see cref="Account" />, and <see cref="Biller" />
+///     to model ownership and payment routing.
 /// </remarks>
 public class RecurringPayment
 {
@@ -32,23 +25,11 @@ public class RecurringPayment
     /// <value>Gets or sets the current value.</value>
     public int Id { get; set; }
 
-    /// <summary>Gets or sets the identifier of the <see cref="User" /> who owns this schedule.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int UserId { get; set; }
-
     /// <summary>Gets or sets the user who owns this schedule.</summary>
     public User? User { get; set; }
 
-    /// <summary>Gets or sets the identifier of the target <see cref="Biller" />.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int BillerId { get; set; }
-
     /// <summary>Gets or sets the target biller.</summary>
     public Biller? Biller { get; set; }
-
-    /// <summary>Gets or sets the identifier of the source <see cref="Account" /> to be debited.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int SourceAccountId { get; set; }
 
     /// <summary>Gets or sets the source account to be debited.</summary>
     public Account? SourceAccount { get; set; }
@@ -127,9 +108,9 @@ public class RecurringPayment
 
         return new RecurringPayment
         {
-            UserId = userId,
-            BillerId = billerId,
-            SourceAccountId = sourceAccountId,
+            User = new User { Id = userId },
+            Biller = new Biller { Id = billerId },
+            SourceAccount = new Account { Id = sourceAccountId },
             Amount = amount,
             IsPayInFull = isPayInFull,
             Frequency = frequency,
@@ -148,7 +129,7 @@ public class RecurringPayment
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Pause(int userId)
     {
-        if (UserId != userId)
+        if (User?.Id != userId)
         {
             return RecurringPaymentErrors.Forbidden;
         }
@@ -164,7 +145,7 @@ public class RecurringPayment
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Resume(int userId)
     {
-        if (UserId != userId)
+        if (User?.Id != userId)
         {
             return RecurringPaymentErrors.Forbidden;
         }
@@ -185,7 +166,7 @@ public class RecurringPayment
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> Cancel(int userId)
     {
-        if (UserId != userId)
+        if (User?.Id != userId)
         {
             return RecurringPaymentErrors.Forbidden;
         }

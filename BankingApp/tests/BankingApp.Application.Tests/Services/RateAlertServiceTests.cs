@@ -105,7 +105,7 @@ public class RateAlertServiceTests
             new()
             {
                 Id = ValidAlertId,
-                UserId = ValidUserId,
+                User = new User { Id = ValidUserId },
                 BaseCurrency = EurCurrency,
                 TargetCurrency = UsdCurrency,
                 TargetRate = ValidTargetRate,
@@ -360,7 +360,7 @@ public class RateAlertServiceTests
             new()
             {
                 Id = ValidAlertId,
-                UserId = ValidUserId,
+                User = new User { Id = ValidUserId },
                 BaseCurrency = EurCurrency,
                 TargetCurrency = UsdCurrency,
                 TargetRate = BuyAlertTargetRateAboveCurrent,
@@ -398,7 +398,7 @@ public class RateAlertServiceTests
             new()
             {
                 Id = ValidAlertId,
-                UserId = ValidUserId,
+                User = new User { Id = ValidUserId },
                 BaseCurrency = EurCurrency,
                 TargetCurrency = UsdCurrency,
                 TargetRate = SellAlertTargetRateBelowCurrent,
@@ -436,7 +436,7 @@ public class RateAlertServiceTests
             new()
             {
                 Id = ValidAlertId,
-                UserId = ValidUserId,
+                User = new User { Id = ValidUserId },
                 BaseCurrency = EurCurrency,
                 TargetCurrency = UsdCurrency,
                 TargetRate = 1.50m,

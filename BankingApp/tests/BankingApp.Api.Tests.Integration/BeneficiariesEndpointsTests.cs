@@ -53,7 +53,7 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
             new Beneficiary
             {
                 Id = 1,
-                UserId = ValidUserId,
+                User = new User { Id = ValidUserId },
                 Name = "John Doe",
                 Iban = "RO49AAAA1B31007593840000",
                 BankName = "Test Bank",
@@ -93,7 +93,7 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
         var createdBeneficiary = new Beneficiary
         {
             Id = 2,
-            UserId = ValidUserId,
+            User = new User { Id = ValidUserId },
             Name = "Jane Doe",
             Iban = "RO49AAAA1B31007593840001",
             BankName = "Another Bank",

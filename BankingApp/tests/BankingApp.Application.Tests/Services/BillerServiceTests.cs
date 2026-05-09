@@ -123,7 +123,7 @@ public class BillerServiceTests
         var biller = new Biller { Id = DefaultBillerId, Name = "Gas Co", Category = "Utilities" };
         var saved = new List<SavedBiller>
         {
-            new() { Id = DefaultSavedBillerId, UserId = DefaultUserId, BillerId = DefaultBillerId, Nickname = "Home Gas", Biller = biller, CreatedAt = DateTime.UtcNow },
+            new() { Id = DefaultSavedBillerId, User = new User { Id = DefaultUserId }, Biller = biller, Nickname = "Home Gas", CreatedAt = DateTime.UtcNow },
         };
         _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(saved);
 
@@ -206,7 +206,7 @@ public class BillerServiceTests
         var biller = new Biller { Id = DefaultBillerId, Name = "Water Co", Category = "Utilities" };
         var existingSavedBillers = new List<SavedBiller>
         {
-            new() { Id = DefaultSavedBillerId, UserId = DefaultUserId, BillerId = DefaultBillerId, Biller = biller },
+            new() { Id = DefaultSavedBillerId, User = new User { Id = DefaultUserId }, Biller = biller },
         };
         var request = new SaveBillerRequest { BillerId = DefaultBillerId };
         _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(biller);
@@ -231,7 +231,7 @@ public class BillerServiceTests
         // Arrange
         var existingSavedBillers = new List<SavedBiller>
         {
-            new() { Id = DefaultSavedBillerId, UserId = DefaultUserId, BillerId = DefaultBillerId },
+            new() { Id = DefaultSavedBillerId, User = new User { Id = DefaultUserId }, Biller = new Biller { Id = DefaultBillerId } },
         };
         _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(existingSavedBillers);
         _billerRepository.Setup(repository => repository.DeleteSavedBiller(DefaultSavedBillerId)).Returns(Result.Success);

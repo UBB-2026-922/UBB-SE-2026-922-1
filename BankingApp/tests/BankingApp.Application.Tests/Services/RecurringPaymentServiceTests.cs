@@ -108,9 +108,9 @@ public class RecurringPaymentServiceTests
         var savedPayment = new RecurringPayment
         {
             Id = 1,
-            UserId = 42,
-            BillerId = 7,
-            SourceAccountId = 3,
+            User = new User { Id = 42 },
+            Biller = new Biller { Id = 7 },
+            SourceAccount = new Account { Id = 3 },
             Amount = 200m,
             Frequency = RecurringFrequency.Monthly,
             StartDate = _fixedStartDate,
@@ -147,9 +147,9 @@ public class RecurringPaymentServiceTests
         var savedPayment = new RecurringPayment
         {
             Id = 2,
-            UserId = 42,
-            BillerId = 7,
-            SourceAccountId = 3,
+            User = new User { Id = 42 },
+            Biller = new Biller { Id = 7 },
+            SourceAccount = new Account { Id = 3 },
             Amount = 50m,
             Frequency = RecurringFrequency.Weekly,
             StartDate = _fixedStartDate,
@@ -186,9 +186,9 @@ public class RecurringPaymentServiceTests
         var savedPayment = new RecurringPayment
         {
             Id = 3,
-            UserId = 42,
-            BillerId = 7,
-            SourceAccountId = 3,
+            User = new User { Id = 42 },
+            Biller = new Biller { Id = 7 },
+            SourceAccount = new Account { Id = 3 },
             Amount = 1200m,
             Frequency = RecurringFrequency.Yearly,
             StartDate = _fixedStartDate,
@@ -225,9 +225,9 @@ public class RecurringPaymentServiceTests
         var savedPayment = new RecurringPayment
         {
             Id = 10,
-            UserId = 5,
-            BillerId = 1,
-            SourceAccountId = 1,
+            User = new User { Id = 5 },
+            Biller = new Biller { Id = 1 },
+            SourceAccount = new Account { Id = 1 },
             Amount = 75m,
             Frequency = RecurringFrequency.Daily,
             StartDate = _fixedStartDate,
@@ -291,12 +291,12 @@ public class RecurringPaymentServiceTests
         {
             new()
             {
-                Id = 1, UserId = 10, Amount = 50m, Frequency = RecurringFrequency.Monthly,
+                Id = 1, User = new User { Id = 10 }, Amount = 50m, Frequency = RecurringFrequency.Monthly,
                 Status = RecurringPaymentStatus.Active
             },
             new()
             {
-                Id = 2, UserId = 10, Amount = 30m, Frequency = RecurringFrequency.Weekly,
+                Id = 2, User = new User { Id = 10 }, Amount = 30m, Frequency = RecurringFrequency.Weekly,
                 Status = RecurringPaymentStatus.Paused
             },
         };
@@ -346,7 +346,7 @@ public class RecurringPaymentServiceTests
     public void Pause_WhenUserDoesNotOwnPayment_ShouldReturnForbiddenError()
     {
         // Arrange
-        var payment = new RecurringPayment { Id = 5, UserId = 10, Status = RecurringPaymentStatus.Active };
+        var payment = new RecurringPayment { Id = 5, User = new User { Id = 10 }, Status = RecurringPaymentStatus.Active };
         _recurringPaymentRepository.Setup(repository => repository.GetById(5))
             .Returns((ErrorOr<RecurringPayment>)payment);
 
@@ -362,7 +362,7 @@ public class RecurringPaymentServiceTests
     public void Pause_WhenPaymentIsOwnedByUser_ShouldSetStatusToPausedAndReturnSuccess()
     {
         // Arrange
-        var payment = new RecurringPayment { Id = 5, UserId = 42, Status = RecurringPaymentStatus.Active };
+        var payment = new RecurringPayment { Id = 5, User = new User { Id = 42 }, Status = RecurringPaymentStatus.Active };
         _recurringPaymentRepository.Setup(repository => repository.GetById(5))
             .Returns((ErrorOr<RecurringPayment>)payment);
         _recurringPaymentRepository.Setup(repository =>
@@ -400,7 +400,7 @@ public class RecurringPaymentServiceTests
     public void ResumeRecurringPayment_WhenPaymentIsPaused_ShouldSetStatusToActiveAndReturnSuccess()
     {
         // Arrange
-        var payment = new RecurringPayment { Id = 6, UserId = 42, Status = RecurringPaymentStatus.Paused };
+        var payment = new RecurringPayment { Id = 6, User = new User { Id = 42 }, Status = RecurringPaymentStatus.Paused };
         _recurringPaymentRepository.Setup(repository => repository.GetById(6))
             .Returns((ErrorOr<RecurringPayment>)payment);
         _recurringPaymentRepository.Setup(repository =>
@@ -438,7 +438,7 @@ public class RecurringPaymentServiceTests
     public void Cancel_WhenUserDoesNotOwnPayment_ShouldReturnForbiddenError()
     {
         // Arrange
-        var payment = new RecurringPayment { Id = 7, UserId = 10, Status = RecurringPaymentStatus.Active };
+        var payment = new RecurringPayment { Id = 7, User = new User { Id = 10 }, Status = RecurringPaymentStatus.Active };
         _recurringPaymentRepository.Setup(repository => repository.GetById(7))
             .Returns((ErrorOr<RecurringPayment>)payment);
 
@@ -454,7 +454,7 @@ public class RecurringPaymentServiceTests
     public void Cancel_WhenPaymentIsOwnedByUser_ShouldSetStatusToCancelledAndReturnSuccess()
     {
         // Arrange
-        var payment = new RecurringPayment { Id = 7, UserId = 42, Status = RecurringPaymentStatus.Active };
+        var payment = new RecurringPayment { Id = 7, User = new User { Id = 42 }, Status = RecurringPaymentStatus.Active };
         _recurringPaymentRepository.Setup(repository => repository.GetById(7))
             .Returns((ErrorOr<RecurringPayment>)payment);
         _recurringPaymentRepository.Setup(repository =>

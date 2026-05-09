@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Enums;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides EF Core data access for transfer records.
@@ -53,7 +54,7 @@ public class TransferDataAccess : ITransferDataAccess
     public ErrorOr<List<Transfer>> FindByUserId(int userId)
     {
         var transfers = _databaseContext.Transfers
-            .Where(transfer => transfer.UserId == userId)
+            .Where(transfer => EF.Property<int>(transfer, "UserId") == userId)
             .OrderByDescending(transfer => transfer.CreatedAt)
             .ToList();
         return transfers;

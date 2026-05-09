@@ -115,7 +115,8 @@ public class DashboardServiceTests
                     new()
                     {
                         Id = 1,
-                        UserId = userId,
+                        User = new User { Id = userId },
+                        Account = new Account { Id = 1, AccountName = "Checking", Balance = 2500 },
                         CardNumber = "1234567890123456",
                         CardholderName = "Ada Lovelace",
                         CardType = CardType.Debit,
@@ -128,7 +129,7 @@ public class DashboardServiceTests
             .Returns(
                 new List<Account>
                 {
-                    new() { Id = 0, AccountName = "Checking", Balance = 2500 }
+                    new() { Id = 1, AccountName = "Checking", Balance = 2500 }
                 });
 
         // Act
@@ -184,7 +185,7 @@ public class DashboardServiceTests
             .Returns(
                 new List<Account>
                 {
-                    new() { Id = accountId, UserId = userId }
+                    new() { Id = accountId, User = new User { Id = userId } }
                 });
         _dashboardRepository
             .Setup(getsRecentTransactions => getsRecentTransactions.GetRecentTransactions(accountId, It.IsAny<int>()))
@@ -194,7 +195,7 @@ public class DashboardServiceTests
                     new()
                     {
                         Id = 1,
-                        AccountId = accountId,
+                        Account = new Account { Id = accountId },
                         Direction = TransactionDirection.Out,
                         Amount = 100,
                         Currency = "RON",
@@ -278,15 +279,15 @@ public class DashboardServiceTests
             .Returns(
                 new List<Account>
                 {
-                    new() { Id = accountId1, UserId = userId },
-                    new() { Id = accountId2, UserId = userId }
+                    new() { Id = accountId1, User = new User { Id = userId } },
+                    new() { Id = accountId2, User = new User { Id = userId } }
                 });
 
         var transactions1 = Enumerable.Range(1, FirstAccountTransactionCount).Select(index =>
             new Transaction
             {
                 Id = index,
-                AccountId = accountId1,
+                Account = new Account { Id = accountId1 },
                 Direction = TransactionDirection.In,
                 Amount = index * AmountMultiplier,
                 Currency = "RON",
@@ -297,7 +298,7 @@ public class DashboardServiceTests
             new Transaction
             {
                 Id = index,
-                AccountId = accountId2,
+                Account = new Account { Id = accountId2 },
                 Direction = TransactionDirection.Out,
                 Amount = index * AmountMultiplier,
                 Currency = "RON",

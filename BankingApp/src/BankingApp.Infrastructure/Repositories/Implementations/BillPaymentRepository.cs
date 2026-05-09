@@ -47,7 +47,11 @@ public class BillPaymentRepository : IBillPaymentRepository
     public async Task<IEnumerable<BillPayment>> GetUserPaymentHistoryAsync(int userId)
     {
         return await _context.BillPayments
-            .Where(bp => bp.UserId == userId)
+            .Include(bp => bp.User)
+            .Include(bp => bp.SourceAccount)
+            .Include(bp => bp.Biller)
+            .Include(bp => bp.Transaction)
+            .Where(bp => EF.Property<int>(bp, "UserId") == userId)
             .OrderByDescending(bp => bp.CreatedAt)
             .ToListAsync();
     }
@@ -56,8 +60,9 @@ public class BillPaymentRepository : IBillPaymentRepository
     public async Task<IEnumerable<SavedBiller>> GetSavedBillersAsync(int userId)
     {
         return await _context.SavedBillers
+            .Include(sb => sb.User)
             .Include(sb => sb.Biller)
-            .Where(sb => sb.UserId == userId)
+            .Where(sb => EF.Property<int>(sb, "UserId") == userId)
             .OrderByDescending(sb => sb.CreatedAt)
             .ToListAsync();
     }
@@ -72,14 +77,17 @@ public class BillPaymentRepository : IBillPaymentRepository
     /// <inheritdoc/>
     public async Task<Account?> GetAccountByIdAsync(int accountId)
     {
-        return await _context.Accounts.FirstOrDefaultAsync(account => account.Id == accountId);
+        return await _context.Accounts
+            .Include(account => account.User)
+            .FirstOrDefaultAsync(account => account.Id == accountId);
     }
 
     /// <inheritdoc/>
     public async Task<IEnumerable<Account>> GetAccountsByUserIdAsync(int userId)
     {
         return await _context.Accounts
-            .Where(account => account.UserId == userId)
+            .Include(account => account.User)
+            .Where(account => EF.Property<int>(account, "UserId") == userId)
             .OrderBy(account => account.AccountName)
             .ToListAsync();
     }

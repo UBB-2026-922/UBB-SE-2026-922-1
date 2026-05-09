@@ -55,7 +55,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         // Assert
         result.IsError.Should().BeFalse(result.IsError ? result.FirstError.Description : string.Empty);
         result.Value.Should().ContainSingle();
-        result.Value.First().UserId.Should().Be(user.Id);
+        result.Value.First().User?.Id.Should().Be(user.Id);
         result.Value.First().Currency.Should().Be("RON");
     }
 
@@ -110,7 +110,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         // Assert
         result.IsError.Should().BeFalse(result.IsError ? result.FirstError.Description : string.Empty);
         result.Value.Should().ContainSingle();
-        result.Value.First().UserId.Should().Be(user.Id);
+        result.Value.First().User?.Id.Should().Be(user.Id);
         result.Value.First().CardType.Should().Be(CardType.Debit);
     }
 
@@ -144,7 +144,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         iban ??= faker.Finance.Iban();
         var account = new Account
         {
-            UserId = userId,
+            User = databaseContext.Users.Find(userId)!,
             AccountName = "Main Account",
             Iban = iban,
             Currency = "RON",
@@ -161,8 +161,8 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
     {
         var card = new Card
         {
-            AccountId = accountId,
-            UserId = userId,
+            Account = databaseContext.Accounts.Find(accountId)!,
+            User = databaseContext.Users.Find(userId)!,
             CardNumber = "4111111111111111",
             CardholderName = "Test User",
             ExpiryDate = new DateTime(2027, 12, 31),
@@ -180,7 +180,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         {
             var transaction = new Transaction
             {
-                AccountId = accountId,
+                Account = databaseContext.Accounts.Find(accountId)!,
                 TransactionRef = $"REF-{index}-{Guid.NewGuid():N}",
                 Type = "Transfer",
                 RelatedEntityType = "Transfer",
@@ -202,7 +202,7 @@ public sealed class DashboardRepositoryTests : IAsyncLifetime
         {
             var notification = new Notification
             {
-                UserId = userId,
+                User = databaseContext.Users.Find(userId)!,
                 Title = "Info",
                 Message = "You have a new notification.",
                 Type = "Alert",

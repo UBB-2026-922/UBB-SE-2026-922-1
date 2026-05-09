@@ -6,14 +6,8 @@ using System;
 /// Represents a biller that a user has saved to their personal quick-pay list.
 /// </summary>
 /// <remarks>
-///     <para>
-///         Reuses the base entity <see cref="User" /> via <see cref="UserId" /> (Many-to-One):
-///         each saved-biller entry belongs to exactly one user.
-///     </para>
-///     <para>
-///         References <see cref="Biller" /> via <see cref="BillerId" /> (Many-to-One):
-///         the biller being saved must exist in the <c>Biller</c> master table.
-///     </para>
+///     Reuses the base entities <see cref="User" /> and <see cref="Biller" />
+///     to model each saved quick-pay entry.
 /// </remarks>
 public class SavedBiller
 {
@@ -23,19 +17,9 @@ public class SavedBiller
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the user who saved this biller.
-    /// </summary>
-    public int UserId { get; set; }
-
-    /// <summary>
     /// Gets or sets the user associated with this saved biller.
     /// </summary>
     public User? User { get; set; }
-
-    /// <summary>
-    /// Gets or sets the identifier of the saved biller.
-    /// </summary>
-    public int BillerId { get; set; }
 
     /// <summary>
     /// Gets or sets the biller associated with this saved record.

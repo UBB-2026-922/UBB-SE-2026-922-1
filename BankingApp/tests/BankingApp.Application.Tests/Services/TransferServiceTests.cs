@@ -41,7 +41,7 @@ public class TransferServiceTests
                 new()
                 {
                     Id = DefaultAccountId,
-                    UserId = DefaultUserId,
+                    User = new User { Id = DefaultUserId },
                     Balance = DefaultBalance,
                     Status = AccountStatus.Active,
                     Currency = DefaultCurrency
@@ -188,7 +188,7 @@ public class TransferServiceTests
                 new()
                 {
                     Id = DefaultAccountId,
-                    UserId = DefaultUserId,
+                    User = new User { Id = DefaultUserId },
                     Balance = DefaultBalance,
                     Status = AccountStatus.Suspended,
                     Currency = DefaultCurrency
@@ -227,7 +227,7 @@ public class TransferServiceTests
                 new()
                 {
                     Id = DefaultAccountId,
-                    UserId = DefaultUserId,
+                    User = new User { Id = DefaultUserId },
                     Balance = 10m,
                     Status = AccountStatus.Active,
                     Currency = DefaultCurrency
@@ -388,8 +388,8 @@ public class TransferServiceTests
                 new()
                 {
                     Id = 1,
-                    UserId = DefaultUserId,
-                    SourceAccountId = DefaultAccountId,
+                    User = new User { Id = DefaultUserId },
+                    SourceAccount = new Account { Id = DefaultAccountId },
                     RecipientName = DefaultRecipientName,
                     RecipientIban = DefaultIban,
                     Amount = SmallAmount,

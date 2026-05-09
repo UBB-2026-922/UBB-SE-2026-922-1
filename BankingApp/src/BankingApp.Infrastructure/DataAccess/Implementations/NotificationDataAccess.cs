@@ -3,6 +3,7 @@
 using Domain.Entities;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides SQL Server data access for notification records.
@@ -20,7 +21,7 @@ public class NotificationDataAccess(AppDatabaseContext databaseContext) : INotif
     public ErrorOr<int> CountUnreadByUserId(int userId)
     {
         var notifications = databaseContext.Notifications
-            .Where(notification => notification.UserId == userId && !notification.IsRead).ToList();
+            .Where(notification => EF.Property<int>(notification, "UserId") == userId && !notification.IsRead).ToList();
         return notifications.Count;
     }
 
@@ -29,7 +30,7 @@ public class NotificationDataAccess(AppDatabaseContext databaseContext) : INotif
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Notification>> FindByUserId(int userId)
     {
-        var notifications = databaseContext.Notifications.Where(notification => notification.UserId == userId)
+        var notifications = databaseContext.Notifications.Where(notification => EF.Property<int>(notification, "UserId") == userId)
             .OrderByDescending(notification => notification.CreatedAt).ToList();
         return notifications;
     }

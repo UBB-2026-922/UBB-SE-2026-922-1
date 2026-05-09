@@ -108,9 +108,9 @@ public class ExchangeService : IExchangeService
 
         var exchange = new ExchangeTransaction
         {
-            UserId = request.UserId,
-            SourceAccountId = request.SourceAccountId,
-            TargetAccountId = request.TargetAccountId,
+            User = new User { Id = request.UserId },
+            SourceAccount = new Account { Id = request.SourceAccountId },
+            TargetAccount = new Account { Id = request.TargetAccountId },
             SourceCurrency = request.SourceCurrency,
             TargetCurrency = request.TargetCurrency,
             SourceAmount = request.SourceAmount,
@@ -160,7 +160,7 @@ public class ExchangeService : IExchangeService
 
         var lockedRate = new LockedRate
         {
-            UserId = userId,
+            User = new User { Id = userId },
             CurrencyPair = $"{sourceCurrency}/{targetCurrency}",
             Rate = rateResult.Value,
             LockedAt = DateTime.UtcNow

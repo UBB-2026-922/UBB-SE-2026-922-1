@@ -35,7 +35,7 @@ public interface IDashboardRepository
     /// <summary>
     /// Adds a new transfer request for the specified user and source account.
     /// </summary>
-    /// <param name="transfer">The transfer to add. Required fields include <see cref="Transfer.UserId"/>, <see cref="Transfer.SourceAccountId"/>, and <see cref="Transfer.Amount"/>.</param>
+    /// <param name="transfer">The transfer to add. Required fields include <see cref="Transfer.User"/>, <see cref="Transfer.SourceAccount"/>, and <see cref="Transfer.Amount"/>.</param>
     /// <returns>
     /// The added <see cref="Transfer"/> on success, or an <see cref="ErrorOr{T}"/> containing errors if the operation fails.
     /// </returns>

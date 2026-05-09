@@ -51,7 +51,7 @@ public sealed class AuthRepositoryTests(DatabaseFixture fixture) : IAsyncLifetim
         // Assert
         result.IsError.Should().BeFalse(result.IsError ? result.FirstError.Description : string.Empty);
         User user = userDataAccess.FindByEmail(newUser.Email).Value;
-        int count = databaseContext.NotificationPreferences.Count(preference => preference.UserId == user.Id);
+        int count = databaseContext.NotificationPreferences.Count(preference => preference.User != null && preference.User.Id == user.Id);
         count.Should().BeGreaterThan(0, "Expected at least one notification preference to be created.");
     }
 
@@ -70,7 +70,7 @@ public sealed class AuthRepositoryTests(DatabaseFixture fixture) : IAsyncLifetim
         result.IsError.Should().BeFalse(result.IsError ? result.FirstError.Description : string.Empty);
         result.Value.Id.Should().BeGreaterThan(0);
         result.Value.Token.Should().Be("token-abc");
-        result.Value.UserId.Should().Be(user.Id);
+        result.Value.User?.Id.Should().Be(user.Id);
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class AuthRepositoryTests(DatabaseFixture fixture) : IAsyncLifetim
         AuthRepository repository = MakeAuthenticationRepository(databaseContext);
         var token = new PasswordResetToken
         {
-            UserId = user.Id,
+            User = user,
             TokenHash = "sha256-hash-xyz",
             ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours)
         };
@@ -129,7 +129,7 @@ public sealed class AuthRepositoryTests(DatabaseFixture fixture) : IAsyncLifetim
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.TokenHash.Should().Be("sha256-hash-xyz");
-        result.Value.UserId.Should().Be(user.Id);
+        result.Value.User?.Id.Should().Be(user.Id);
         result.Value.UsedAt.Should().BeNull();
     }
 
@@ -142,7 +142,7 @@ public sealed class AuthRepositoryTests(DatabaseFixture fixture) : IAsyncLifetim
         AuthRepository repository = MakeAuthenticationRepository(databaseContext);
         var token = new PasswordResetToken
         {
-            UserId = user.Id,
+            User = user,
             TokenHash = "mark-used-hash",
             ExpiresAt = DateTime.UtcNow.AddHours(PasswordResetTokenExpiryHours)
         };

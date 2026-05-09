@@ -191,8 +191,8 @@ public class TransferService(
         return new TransferResponse
         {
             Id = transfer.Id,
-            SourceAccountId = transfer.SourceAccountId,
-            TransactionId = transfer.TransactionId,
+            SourceAccountId = transfer.SourceAccount?.Id ?? 0,
+            TransactionId = transfer.Transaction?.Id,
             TransactionRef = null,
             RecipientName = transfer.RecipientName,
             RecipientIban = transfer.RecipientIban,
@@ -276,7 +276,7 @@ public class TransferService(
 
         var transaction = new Transaction
         {
-            AccountId = account.Id,
+            Account = account,
             TransactionRef = GenerateTransactionRef(),
             Direction = TransactionDirection.Out,
             Amount = request.Amount,
@@ -299,9 +299,9 @@ public class TransferService(
 
         var transfer = new Transfer
         {
-            UserId = userId,
-            SourceAccountId = account.Id,
-            TransactionId = logResult.Value.Id,
+            User = new User { Id = userId },
+            SourceAccount = account,
+            Transaction = logResult.Value,
             RecipientName = request.RecipientName,
             RecipientIban = request.RecipientIban,
             RecipientBankName = Transfer.InferRecipientBankName(request.RecipientIban),
@@ -324,8 +324,8 @@ public class TransferService(
         return new TransferResponse
         {
             Id = persistedTransfer.Id,
-            SourceAccountId = persistedTransfer.SourceAccountId,
-            TransactionId = persistedTransfer.TransactionId,
+            SourceAccountId = persistedTransfer.SourceAccount?.Id ?? 0,
+            TransactionId = persistedTransfer.Transaction?.Id,
             TransactionRef = logResult.Value.TransactionRef,
             RecipientName = persistedTransfer.RecipientName,
             RecipientIban = persistedTransfer.RecipientIban,
