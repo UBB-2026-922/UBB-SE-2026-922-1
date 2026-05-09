@@ -1,7 +1,10 @@
 ﻿namespace BankingApp.Api.Controllers;
 
 using Application.DTOs.Transfer;
+using Application.Repositories.Interfaces;
 using Application.Services.Transfers;
+using Domain.Entities;
+using Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,15 +18,18 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/transfer")]
 public class TransferController : ApiControllerBase
 {
+    private readonly ITransferRepository _transferRepository;
     private readonly ITransferService _transferService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferController" /> class.
     /// </summary>
     /// <param name="transferService">The transfer service used to handle business logic.</param>
-    public TransferController(ITransferService transferService)
+    /// <param name="transferRepository">The transfer repository used by the raw proxy endpoints.</param>
+    public TransferController(ITransferService transferService, ITransferRepository transferRepository)
     {
         _transferService = transferService;
+        _transferRepository = transferRepository;
     }
 
     /// <summary>
@@ -113,5 +119,52 @@ public class TransferController : ApiControllerBase
     {
         return ToActionResult(
             _transferService.GetFxPreview(from, to, amount), Ok);
+    }
+
+    /// <summary>
+    ///     Returns raw transfers for the supplied user identifier.
+    /// </summary>
+    [HttpGet("raw/{userId:int}")]
+    public IActionResult GetTransfersByUserIdRaw(int userId)
+    {
+        return ToActionResult(_transferRepository.GetByUserId(userId), Ok);
+    }
+
+    /// <summary>
+    ///     Returns a raw transfer by identifier.
+    /// </summary>
+    [HttpGet("raw/id/{id:int}")]
+    public IActionResult GetTransferByIdRaw(int id)
+    {
+        return ToActionResult(_transferRepository.GetById(id), Ok);
+    }
+
+    /// <summary>
+    ///     Persists a raw transfer entity.
+    /// </summary>
+    [HttpPost("raw")]
+    public IActionResult CreateTransferRaw([FromBody] Transfer transfer)
+    {
+        return ToActionResult(_transferRepository.Create(transfer), Ok);
+    }
+
+    /// <summary>
+    ///     Updates the status of a raw transfer entity.
+    /// </summary>
+    [HttpPut("raw/{transferId:int}/status")]
+    public IActionResult UpdateTransferStatusRaw(int transferId, [FromBody] UpdateTransferStatusRequest request)
+    {
+        return ToActionResult(_transferRepository.UpdateStatus(transferId, request.Status), Ok);
+    }
+
+    /// <summary>
+    ///     Request body for raw transfer-status updates.
+    /// </summary>
+    public sealed class UpdateTransferStatusRequest
+    {
+        /// <summary>
+        ///     Gets or sets the new transfer status.
+        /// </summary>
+        public TransferStatus Status { get; set; }
     }
 }

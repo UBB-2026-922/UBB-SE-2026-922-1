@@ -132,13 +132,13 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         try
         {
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(endpoint, data);
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(endpoint, data).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
-                return await MapErrorAsync(response, endpoint, CancellationToken.None);
+                return await MapErrorAsync(response, endpoint, CancellationToken.None).ConfigureAwait(false);
             }
 
-            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>().ConfigureAwait(false);
             if (result is null)
             {
                 return Error.Failure(description: $"POST {endpoint} returned an empty response.");
@@ -168,10 +168,10 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         try
         {
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(endpoint, data);
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(endpoint, data).ConfigureAwait(false);
             return response.IsSuccessStatusCode
                 ? Result.Success
-                : await MapErrorAsync(response, endpoint, CancellationToken.None);
+                : await MapErrorAsync(response, endpoint, CancellationToken.None).ConfigureAwait(false);
         }
         catch (HttpRequestException exception)
         {
@@ -198,13 +198,13 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         try
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(endpoint, cancellationToken);
+            HttpResponseMessage response = await _httpClient.GetAsync(endpoint, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
-                return await MapErrorAsync(response, endpoint, cancellationToken);
+                return await MapErrorAsync(response, endpoint, cancellationToken).ConfigureAwait(false);
             }
 
-            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken).ConfigureAwait(false);
             return result ??
                    (ErrorOr<TResponse>)Error.Failure(description: $"GET {endpoint} returned an empty response.");
         }
@@ -230,13 +230,13 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         try
         {
-            HttpResponseMessage response = await _httpClient.PutAsJsonAsync(endpoint, data);
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync(endpoint, data).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
             {
-                return await MapErrorAsync(response, endpoint, CancellationToken.None);
+                return await MapErrorAsync(response, endpoint, CancellationToken.None).ConfigureAwait(false);
             }
 
-            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>();
+            TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>().ConfigureAwait(false);
             return result ??
                    (ErrorOr<TResponse>)Error.Failure(description: $"PUT {endpoint} returned an empty response.");
         }
@@ -262,10 +262,10 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         try
         {
-            HttpResponseMessage response = await _httpClient.PutAsJsonAsync(endpoint, data);
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync(endpoint, data).ConfigureAwait(false);
             return response.IsSuccessStatusCode
                 ? Result.Success
-                : await MapErrorAsync(response, endpoint, CancellationToken.None);
+                : await MapErrorAsync(response, endpoint, CancellationToken.None).ConfigureAwait(false);
         }
         catch (HttpRequestException exception)
         {
@@ -287,10 +287,10 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         try
         {
-            HttpResponseMessage response = await _httpClient.DeleteAsync(endpoint);
+            HttpResponseMessage response = await _httpClient.DeleteAsync(endpoint).ConfigureAwait(false);
             return response.IsSuccessStatusCode
                 ? Result.Success
-                : await MapErrorAsync(response, endpoint, CancellationToken.None);
+                : await MapErrorAsync(response, endpoint, CancellationToken.None).ConfigureAwait(false);
         }
         catch (HttpRequestException exception)
         {
@@ -325,7 +325,8 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         try
         {
             ApplicationErrorResponse? errorBody = await response.Content
-                .ReadFromJsonAsync<ApplicationErrorResponse>(cancellationToken);
+                .ReadFromJsonAsync<ApplicationErrorResponse>(cancellationToken)
+                .ConfigureAwait(false);
             if (errorBody is not null && !string.IsNullOrWhiteSpace(errorBody.Error))
             {
                 description = errorBody.Error;

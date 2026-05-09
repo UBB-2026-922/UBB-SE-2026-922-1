@@ -2,6 +2,7 @@
 
 using Controllers;
 using Application.DTOs.Transfer;
+using Application.Repositories.Interfaces;
 using Application.Services.Transfers;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
@@ -14,6 +15,7 @@ public sealed class TransferControllerTests
     private const int DefaultTransferId = 50;
 
     private readonly Mock<ITransferService> _transferService = new(MockBehavior.Strict);
+    private readonly Mock<ITransferRepository> _transferRepository = new(MockBehavior.Strict);
 
     [Fact]
     public void CreateTransfer_WhenRequestIsValid_ReturnsCreatedWithTransfer()
@@ -273,7 +275,7 @@ public sealed class TransferControllerTests
 
     private TransferController CreateController()
     {
-        var controller = new TransferController(_transferService.Object);
+        var controller = new TransferController(_transferService.Object, _transferRepository.Object);
         var httpContext = new DefaultHttpContext
         {
             Items =

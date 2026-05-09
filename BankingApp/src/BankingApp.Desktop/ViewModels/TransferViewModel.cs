@@ -15,7 +15,7 @@ using ErrorOr;
 
 /// <summary>
 ///     Drives the multi-step transfer wizard.
-///     Uses <see cref="ITransferClientService" /> for all server communication during the transfer flow.
+///     Uses <see cref="ITransferService" /> for all transfer operations during the transfer flow.
 /// </summary>
 public partial class TransferViewModel : INotifyPropertyChanged
 {
@@ -34,7 +34,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
     private const string DefaultTransferCurrency = "EUR";
     private const int MinimumAccounts = 0;
     private const int FirstAccountIndex = 0;
-    private readonly ITransferClientService _transferClientService;
+    private readonly ITransferService _transferService;
 
     private int _currentStep;
     private ObservableCollection<TransferAccountSelectionResponse> _accounts;
@@ -56,10 +56,10 @@ public partial class TransferViewModel : INotifyPropertyChanged
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferViewModel" /> class.
     /// </summary>
-    /// <param name="transferClientService">The client service used for all transfer-related server calls.</param>
-    public TransferViewModel(ITransferClientService transferClientService)
+    /// <param name="transferService">The transfer service used for transfer-related calls.</param>
+    public TransferViewModel(ITransferService transferService)
     {
-        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
+        _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
         _accounts = new ObservableCollection<TransferAccountSelectionResponse>();
         _currentStep = AccountSelectionStep;
 
@@ -358,7 +358,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
         try
         {
             ErrorOr<List<TransferAccountSelectionResponse>> result =
-                await _transferClientService.GetAccountsAsync();
+                await _transferService.GetAccountsAsync();
 
             if (result.IsError)
             {
@@ -470,7 +470,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
             }
 
             ErrorOr<TransferExecutionResponse> result =
-                await _transferClientService.ExecuteTransferAsync(
+                await _transferService.ExecuteTransferAsync(
                     SelectedAccount.Id,
                     RecipientName,
                     RecipientIban,
@@ -555,7 +555,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
         try
         {
             ErrorOr<TransferIbanValidationResponse> result =
-                await _transferClientService.ValidateIbanAsync(iban);
+                await _transferService.ValidateIbanAsync(iban);
 
             if (result.IsError)
             {
@@ -590,7 +590,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
             }
 
             ErrorOr<TransferForexPreviewResponse> result =
-                await _transferClientService.GetFxPreviewAsync(SelectedAccount.Currency, Currency, Amount);
+                await _transferService.GetFxPreviewAsync(SelectedAccount.Currency, Currency, Amount);
 
             if (result.IsError)
             {

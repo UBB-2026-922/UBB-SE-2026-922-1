@@ -24,20 +24,20 @@ public partial class TransferHistoryViewModel : INotifyPropertyChanged
     private const string FallbackReference = "—";
 
     private readonly ILogger<TransferHistoryViewModel> _logger;
-    private readonly ITransferClientService _transferClientService;
+    private readonly ITransferService _transferService;
     private string _errorMessage = string.Empty;
     private bool _isLoading;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferHistoryViewModel" /> class.
     /// </summary>
-    /// <param name="transferClientService">The client service used to retrieve transfers.</param>
+    /// <param name="transferService">The transfer service used to retrieve transfers.</param>
     /// <param name="logger">Logger for diagnostics.</param>
     public TransferHistoryViewModel(
-        ITransferClientService transferClientService,
+        ITransferService transferService,
         ILogger<TransferHistoryViewModel> logger)
     {
-        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
+        _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Transfers = new ObservableCollection<TransferHistoryDisplayItem>();
     }
@@ -121,7 +121,7 @@ public partial class TransferHistoryViewModel : INotifyPropertyChanged
         try
         {
             ErrorOr<List<TransferResponse>> result =
-                await _transferClientService.GetTransferHistoryAsync();
+                await _transferService.GetTransferHistoryAsync();
 
             if (result.IsError)
             {

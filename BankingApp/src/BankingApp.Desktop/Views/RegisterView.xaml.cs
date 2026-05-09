@@ -62,6 +62,18 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
                 case RegisterState.EmailAlreadyExists:
                     ShowError(UserMessages.Register.EmailAlreadyExists);
                     break;
+                case RegisterState.FullNameRequired:
+                    ShowError(UserMessages.Register.FullNameRequired);
+                    break;
+                case RegisterState.EmailRequired:
+                    ShowError(UserMessages.Register.EmailRequired);
+                    break;
+                case RegisterState.PasswordRequired:
+                    ShowError(UserMessages.Register.PasswordRequired);
+                    break;
+                case RegisterState.ConfirmPasswordRequired:
+                    ShowError(UserMessages.Register.ConfirmPasswordRequired);
+                    break;
                 case RegisterState.InvalidEmail:
                     ShowError(UserMessages.Register.InvalidEmail);
                     break;

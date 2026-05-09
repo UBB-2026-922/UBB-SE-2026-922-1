@@ -1,6 +1,7 @@
 namespace BankingApp.Api.Controllers;
 
 using Application.DTOs.Beneficiaries;
+using Application.Repositories.Interfaces;
 using Application.Services.Beneficiary;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -12,15 +13,18 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public class BeneficiariesController : ApiControllerBase
 {
+    private readonly IBeneficiaryRepository _beneficiaryRepository;
     private readonly IBeneficiaryService _beneficiaryService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BeneficiariesController" /> class.
     /// </summary>
     /// <param name="beneficiaryService">The beneficiary service.</param>
-    public BeneficiariesController(IBeneficiaryService beneficiaryService)
+    /// <param name="beneficiaryRepository">The beneficiary repository used by the raw proxy endpoints.</param>
+    public BeneficiariesController(IBeneficiaryService beneficiaryService, IBeneficiaryRepository beneficiaryRepository)
     {
         _beneficiaryService = beneficiaryService;
+        _beneficiaryRepository = beneficiaryRepository;
     }
 
     /// <summary>
@@ -110,6 +114,60 @@ public class BeneficiariesController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(_beneficiaryService.Delete(id, userId));
+    }
+
+    /// <summary>
+    ///     Returns raw beneficiaries for the supplied user identifier.
+    /// </summary>
+    [HttpGet("raw/{userId:int}")]
+    public IActionResult GetBeneficiariesRaw(int userId)
+    {
+        return ToActionResult(_beneficiaryRepository.FindByUserId(userId), Ok);
+    }
+
+    /// <summary>
+    ///     Returns a raw beneficiary for the supplied user and beneficiary identifiers.
+    /// </summary>
+    [HttpGet("raw/{userId:int}/{beneficiaryId:int}")]
+    public IActionResult GetBeneficiaryRaw(int userId, int beneficiaryId)
+    {
+        return ToActionResult(_beneficiaryRepository.FindById(beneficiaryId, userId), Ok);
+    }
+
+    /// <summary>
+    ///     Returns whether a beneficiary with the supplied IBAN already exists for the user.
+    /// </summary>
+    [HttpGet("raw/{userId:int}/exists")]
+    public IActionResult BeneficiaryExistsRaw(int userId, [FromQuery] string iban)
+    {
+        return ToActionResult(_beneficiaryRepository.ExistsByUserIdAndIban(userId, iban), exists => Ok(exists));
+    }
+
+    /// <summary>
+    ///     Persists a raw beneficiary entity.
+    /// </summary>
+    [HttpPost("raw")]
+    public IActionResult CreateBeneficiaryRaw([FromBody] Beneficiary beneficiary)
+    {
+        return ToActionResult(_beneficiaryRepository.Create(beneficiary), Ok);
+    }
+
+    /// <summary>
+    ///     Updates a raw beneficiary entity.
+    /// </summary>
+    [HttpPut("raw")]
+    public IActionResult UpdateBeneficiaryRaw([FromBody] Beneficiary beneficiary)
+    {
+        return ToActionResult(_beneficiaryRepository.Update(beneficiary));
+    }
+
+    /// <summary>
+    ///     Deletes a raw beneficiary by user and beneficiary identifiers.
+    /// </summary>
+    [HttpDelete("raw/{userId:int}/{beneficiaryId:int}")]
+    public IActionResult DeleteBeneficiaryRaw(int userId, int beneficiaryId)
+    {
+        return ToActionResult(_beneficiaryRepository.Delete(beneficiaryId, userId));
     }
 
     private static BeneficiaryDto MapToDto(Beneficiary beneficiary)

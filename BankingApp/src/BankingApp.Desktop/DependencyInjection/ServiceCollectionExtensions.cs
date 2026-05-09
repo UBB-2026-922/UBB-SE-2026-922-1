@@ -1,6 +1,9 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
+using Application.Repositories.Interfaces;
+using Application.Services.Login;
 using Master;
+using ProxyRepositories;
 using Services;
 using Services.Transfers;
 using Utilities;
@@ -26,19 +29,30 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IApiClient, ApiClient>();
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
+        services.AddSingleton<IOtpAttemptTracker, DesktopOtpAttemptTracker>();
 
         services.AddTransient<IAuthClientService, AuthClientService>();
+        services.AddTransient<IAuthRepository, AuthProxyRepository>();
+        services.AddTransient<SecurityProxyRepository>();
+        services.AddTransient<IUserRepository, UserProxyRepository>();
         services.AddTransient<IDashboardClientService, DashboardClientService>();
         services.AddTransient<IProfileClientService, ProfileClientService>();
+        services.AddTransient<IExchangeRepository, ExchangeProxyRepository>();
         services.AddTransient<IForexClientService, ForexClientService>();
+        services.AddTransient<IRateAlertRepository, RateAlertProxyRepository>();
         services.AddTransient<IRateAlertClientService, RateAlertClientService>();
+        services.AddTransient<IBillerRepository, BillerProxyRepository>();
+        services.AddTransient<IBillPaymentRepository, BillPaymentProxyRepository>();
+        services.AddTransient<IRecurringPaymentRepository, RecurringPaymentProxyRepository>();
         services.AddTransient<IBillPaymentClientService, BillPaymentClientService>();
-        services.AddTransient<ITransferClientService, TransferClientService>();
+        services.AddTransient<IDashboardRepository, DashboardProxyRepository>();
+        services.AddTransient<IBeneficiaryRepository, BeneficiaryProxyRepository>();
+        services.AddTransient<ITransferService, TransferService>();
 
         services.AddTransient<IPasswordRecoveryManager>(provider =>
         {
-            IApiClient apiClient = provider.GetRequiredService<IApiClient>();
-            return new PasswordRecoveryManager(apiClient, new SystemClock());
+            IAuthClientService authClientService = provider.GetRequiredService<IAuthClientService>();
+            return new PasswordRecoveryManager(authClientService, new SystemClock());
         });
 
         services.AddTransient<ICountdownTimer, DispatcherCountdownTimer>();

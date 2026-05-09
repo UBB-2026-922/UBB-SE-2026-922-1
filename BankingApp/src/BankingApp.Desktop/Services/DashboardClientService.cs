@@ -1,30 +1,120 @@
 namespace BankingApp.Desktop.Services;
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Application.DTOs.Dashboard;
-using Utilities;
+using Application.Repositories.Interfaces;
+using Domain.Entities;
 using ErrorOr;
+using BankingApp.Desktop.Utilities;
 
 /// <summary>
-///     Implements <see cref="IDashboardClientService" /> using the shared desktop API client.
+///     Implements <see cref="IDashboardClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
 internal sealed class DashboardClientService : IDashboardClientService
 {
+    private const int DefaultRecentTransactionLimit = 5;
     private readonly IApiClient _apiClient;
+    private readonly IDashboardRepository _dashboardRepository;
+    private readonly IUserRepository _userRepository;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="DashboardClientService" /> class.
-    /// </summary>
-    public DashboardClientService(IApiClient apiClient)
+    public DashboardClientService(
+        IApiClient apiClient,
+        IDashboardRepository dashboardRepository,
+        IUserRepository userRepository)
     {
         _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _dashboardRepository = dashboardRepository ?? throw new ArgumentNullException(nameof(dashboardRepository));
+        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<DashboardDto>> GetDashboardAsync(CancellationToken cancellationToken = default)
     {
-        return _apiClient.GetAsync<DashboardDto>(ApiEndpoints.Dashboard, cancellationToken);
+        int? userId = _apiClient.GetCurrentUserId();
+        if (userId is null)
+        {
+            return Task.FromResult<ErrorOr<DashboardDto>>(Error.Unauthorized(description: "User is not authenticated."));
+        }
+
+        ErrorOr<User> userResult = _userRepository.FindById(userId.Value);
+        if (userResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<DashboardDto>>(userResult.FirstError);
+        }
+
+        ErrorOr<List<Card>> cardsResult = _dashboardRepository.GetCardsByUser(userId.Value);
+        ErrorOr<int> notifCountResult = _dashboardRepository.GetUnreadNotificationCount(userId.Value);
+        var allTransactions = new List<Transaction>();
+        var accountsById = new Dictionary<int, Account>();
+
+        ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId.Value);
+        if (!accountsResult.IsError)
+        {
+            accountsById = accountsResult.Value.ToDictionary(account => account.Id);
+            foreach (Account account in accountsResult.Value)
+            {
+                ErrorOr<List<Transaction>> transactionsResult =
+                    _dashboardRepository.GetRecentTransactions(account.Id, DefaultRecentTransactionLimit);
+                if (!transactionsResult.IsError)
+                {
+                    allTransactions.AddRange(transactionsResult.Value);
+                }
+            }
+
+            allTransactions = allTransactions
+                .OrderByDescending(transaction => transaction.CreatedAt)
+                .Take(DefaultRecentTransactionLimit)
+                .ToList();
+        }
+
+        var dashboard = new DashboardDto
+        {
+            CurrentUser = new UserSummaryDto
+            {
+                FullName = userResult.Value.FullName,
+                Email = userResult.Value.Email,
+                PhoneNumber = userResult.Value.PhoneNumber,
+                Is2FaEnabled = userResult.Value.Is2FaEnabled,
+            },
+            Cards = cardsResult.IsError
+                ? []
+                : cardsResult.Value.Select(card => new CardDto
+                {
+                    CardNumber = card.GetMaskedNumber(),
+                    CardholderName = card.CardholderName,
+                    CardType = card.CardType,
+                    CardBrand = card.CardBrand,
+                    ExpiryDate = card.ExpiryDate,
+                    Status = card.Status,
+                    IsContactlessEnabled = card.IsContactlessEnabled,
+                    IsOnlineEnabled = card.IsOnlineEnabled,
+                    AccountName = card.Account?.AccountName
+                        ?? (card.Account is not null && accountsById.TryGetValue(card.Account.Id, out Account? account)
+                            ? account.AccountName
+                            : null),
+                    AccountBalance = card.Account?.Balance
+                        ?? (card.Account is not null && accountsById.TryGetValue(card.Account.Id, out Account? linkedAccount)
+                            ? linkedAccount.Balance
+                            : null),
+                }).ToList(),
+            RecentTransactions = allTransactions.Select(transaction => new TransactionDto
+            {
+                Id = transaction.Id,
+                Direction = transaction.Direction,
+                Amount = transaction.Amount,
+                Currency = transaction.Currency,
+                Description = transaction.Description,
+                MerchantName = transaction.MerchantName,
+                CounterpartyName = transaction.CounterpartyName,
+                Status = transaction.Status,
+                CreatedAt = transaction.CreatedAt,
+            }).ToList(),
+            UnreadNotificationCount = notifCountResult.IsError ? 0 : notifCountResult.Value,
+        };
+
+        return Task.FromResult<ErrorOr<DashboardDto>>(dashboard);
     }
 }

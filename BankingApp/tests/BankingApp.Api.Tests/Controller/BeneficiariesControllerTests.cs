@@ -1,6 +1,7 @@
 ﻿namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
+using Application.Repositories.Interfaces;
 using Application.Services.Beneficiary;
 using Domain.Entities;
 using ErrorOr;
@@ -16,6 +17,7 @@ public sealed class BeneficiariesControllerTests
     private const int DefaultBeneficiaryId = 42;
 
     private readonly Mock<IBeneficiaryService> _beneficiaryService = new(MockBehavior.Strict);
+    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepository = new(MockBehavior.Strict);
 
     [Fact]
     public void GetBeneficiaries_WhenServiceReturnsList_ReturnsOkWithMappedDtos()
@@ -291,7 +293,7 @@ public sealed class BeneficiariesControllerTests
 
     private BeneficiariesController CreateController()
     {
-        var controller = new BeneficiariesController(_beneficiaryService.Object);
+        var controller = new BeneficiariesController(_beneficiaryService.Object, _beneficiaryRepository.Object);
         var httpContext = new DefaultHttpContext
         {
             Items = { ["UserId"] = DefaultUserId },

@@ -44,4 +44,24 @@ public interface IAuthClientService
     ///     Requests a new OTP for the specified user.
     /// </summary>
     public Task<ErrorOr<object>> ResendOtpAsync(int userId);
+
+    /// <summary>
+    ///     Requests a password-reset flow for the supplied email address.
+    /// </summary>
+    public Task<ErrorOr<Success>> RequestPasswordResetAsync(string email);
+
+    /// <summary>
+    ///     Checks whether a password-reset token is valid and still usable.
+    /// </summary>
+    public Task<ErrorOr<Success>> VerifyResetTokenAsync(string token);
+
+    /// <summary>
+    ///     Resets the password using a previously issued token.
+    /// </summary>
+    public Task<ErrorOr<Success>> ResetPasswordAsync(string token, string newPassword);
+
+    /// <summary>
+    ///     Validates a password against the client-side strength rules.
+    /// </summary>
+    public bool IsPasswordValid(string password);
 }

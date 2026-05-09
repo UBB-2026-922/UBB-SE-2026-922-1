@@ -1,6 +1,7 @@
 ﻿namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
+using Application.Repositories.Interfaces;
 using Application.Services.Dashboard;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,7 @@ using Application.DTOs.Dashboard;
 public sealed class DashboardControllerTests
 {
     private readonly Mock<IDashboardService> _dashboardService = MockFactory.CreateDashboardService();
+    private readonly Mock<IDashboardRepository> _dashboardRepository = new(MockBehavior.Strict);
 
     /// <summary>
     ///     Verifies the GetDashboard_WhenSuccess_ReturnsOkWithData scenario.
@@ -59,7 +61,7 @@ public sealed class DashboardControllerTests
 
     private DashboardController CreateController(int authenticatedUserId)
     {
-        var controller = new DashboardController(_dashboardService.Object);
+        var controller = new DashboardController(_dashboardService.Object, _dashboardRepository.Object);
         var httpContext = new DefaultHttpContext
         {
             Items =

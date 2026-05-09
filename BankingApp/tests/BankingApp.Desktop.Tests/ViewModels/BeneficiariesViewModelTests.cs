@@ -14,13 +14,13 @@ using Xunit;
 
 public class BeneficiariesViewModelTests
 {
-    private readonly Mock<ITransferClientService> _transferClientService;
+    private readonly Mock<ITransferService> _transferService;
     private readonly BeneficiariesViewModel _viewModel;
 
     public BeneficiariesViewModelTests()
     {
-        _transferClientService = new Mock<ITransferClientService>(MockBehavior.Strict);
-        _viewModel = new BeneficiariesViewModel(_transferClientService.Object, Mock.Of<IAppNavigationService>(),
+        _transferService = new Mock<ITransferService>(MockBehavior.Strict);
+        _viewModel = new BeneficiariesViewModel(_transferService.Object, Mock.Of<IAppNavigationService>(),
             NullLogger<BeneficiariesViewModel>.Instance);
     }
 
@@ -33,7 +33,7 @@ public class BeneficiariesViewModelTests
             new BeneficiaryDto { Id = 2, Name = "Bob", Iban = "DE456", BankName = "Bank B" }
         };
 
-        _transferClientService
+        _transferService
             .Setup(service => service.GetBeneficiariesAsync(default))
             .ReturnsAsync(data);
 
@@ -47,7 +47,7 @@ public class BeneficiariesViewModelTests
     [Fact]
     public async Task LoadBeneficiaries_WhenUnauthorized_SetsErrorMessage()
     {
-        _transferClientService
+        _transferService
             .Setup(service => service.GetBeneficiariesAsync(default))
             .ReturnsAsync(Error.Unauthorized());
 

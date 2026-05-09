@@ -22,7 +22,7 @@ public class RegisterViewModelTests
         await viewModel.Register(string.Empty, "pass", "pass", "Name");
 
         // Assert
-        viewModel.State.Value.Should().Be(RegisterState.Error);
+        viewModel.State.Value.Should().Be(RegisterState.EmailRequired);
     }
 
     [Fact]
