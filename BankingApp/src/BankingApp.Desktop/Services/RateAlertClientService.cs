@@ -7,21 +7,16 @@ using Application.DTOs.RateAlerts;
 using Application.Repositories.Interfaces;
 using Domain.Entities;
 using ErrorOr;
-using BankingApp.Desktop.Utilities;
+using Utilities;
 
 /// <summary>
 ///     Implements <see cref="IRateAlertClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class RateAlertClientService : IRateAlertClientService
+internal sealed class RateAlertClientService(IApiClient apiClient, IRateAlertRepository rateAlertRepository)
+    : IRateAlertClientService
 {
-    private readonly IApiClient _apiClient;
-    private readonly IRateAlertRepository _rateAlertRepository;
-
-    public RateAlertClientService(IApiClient apiClient, IRateAlertRepository rateAlertRepository)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _rateAlertRepository = rateAlertRepository ?? throw new ArgumentNullException(nameof(rateAlertRepository));
-    }
+    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly IRateAlertRepository _rateAlertRepository = rateAlertRepository ?? throw new ArgumentNullException(nameof(rateAlertRepository));
 
     public int? CurrentUserId => _apiClient.CurrentUserId;
 

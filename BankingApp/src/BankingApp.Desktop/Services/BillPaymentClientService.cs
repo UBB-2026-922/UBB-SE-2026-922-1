@@ -12,12 +12,17 @@ using Application.Repositories.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
-using BankingApp.Desktop.Utilities;
+using Utilities;
 
 /// <summary>
 ///     Implements <see cref="IBillPaymentClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class BillPaymentClientService : IBillPaymentClientService
+internal sealed class BillPaymentClientService(
+    IApiClient apiClient,
+    IBillerRepository billerRepository,
+    IBillPaymentRepository billPaymentRepository,
+    IRecurringPaymentRepository recurringPaymentRepository)
+    : IBillPaymentClientService
 {
     private const decimal SmallPaymentThreshold = 100m;
     private const decimal SmallPaymentFee = 0.50m;
@@ -25,22 +30,10 @@ internal sealed class BillPaymentClientService : IBillPaymentClientService
     private const decimal TwoFaAmountThreshold = 1000m;
     private const int ReceiptUniqueSuffixLength = 6;
 
-    private readonly IApiClient _apiClient;
-    private readonly IBillerRepository _billerRepository;
-    private readonly IBillPaymentRepository _billPaymentRepository;
-    private readonly IRecurringPaymentRepository _recurringPaymentRepository;
-
-    public BillPaymentClientService(
-        IApiClient apiClient,
-        IBillerRepository billerRepository,
-        IBillPaymentRepository billPaymentRepository,
-        IRecurringPaymentRepository recurringPaymentRepository)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _billerRepository = billerRepository ?? throw new ArgumentNullException(nameof(billerRepository));
-        _billPaymentRepository = billPaymentRepository ?? throw new ArgumentNullException(nameof(billPaymentRepository));
-        _recurringPaymentRepository = recurringPaymentRepository ?? throw new ArgumentNullException(nameof(recurringPaymentRepository));
-    }
+    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly IBillerRepository _billerRepository = billerRepository ?? throw new ArgumentNullException(nameof(billerRepository));
+    private readonly IBillPaymentRepository _billPaymentRepository = billPaymentRepository ?? throw new ArgumentNullException(nameof(billPaymentRepository));
+    private readonly IRecurringPaymentRepository _recurringPaymentRepository = recurringPaymentRepository ?? throw new ArgumentNullException(nameof(recurringPaymentRepository));
 
     public Task<ErrorOr<List<BillerDto>>> GetBillersAsync(string? search = null, string? category = null)
     {

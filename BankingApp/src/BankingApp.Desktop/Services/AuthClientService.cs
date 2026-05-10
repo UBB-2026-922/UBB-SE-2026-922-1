@@ -8,8 +8,8 @@ using Application.DTOs.Auth;
 using Application.Repositories.Interfaces;
 using Application.Services.Login;
 using Application.Utilities;
-using BankingApp.Desktop.ProxyRepositories;
-using BankingApp.Desktop.Utilities;
+using ProxyRepositories;
+using Utilities;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Errors;
@@ -19,32 +19,24 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 ///     Owns the desktop authentication business logic and persists data through proxy repositories.
 /// </summary>
-internal sealed class AuthClientService : IAuthClientService
+internal sealed class AuthClientService(
+    IApiClient apiClient,
+    IAuthRepository authRepository,
+    SecurityProxyRepository securityProxyRepository,
+    IOtpAttemptTracker otpAttemptTracker,
+    ILogger<AuthClientService> logger)
+    : IAuthClientService
 {
     private const int MaxFailedAttempts = 5;
     private const int LockoutMinutes = 15;
     private const int MaxFailedOtpAttempts = 3;
     private const int PasswordResetTokenExpiryMinutes = 30;
     private const int PasswordResetTokenByteLength = 32;
-    private readonly IApiClient _apiClient;
-    private readonly IAuthRepository _authRepository;
-    private readonly ILogger<AuthClientService> _logger;
-    private readonly IOtpAttemptTracker _otpAttemptTracker;
-    private readonly SecurityProxyRepository _securityProxyRepository;
-
-    public AuthClientService(
-        IApiClient apiClient,
-        IAuthRepository authRepository,
-        SecurityProxyRepository securityProxyRepository,
-        IOtpAttemptTracker otpAttemptTracker,
-        ILogger<AuthClientService> logger)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
-        _securityProxyRepository = securityProxyRepository ?? throw new ArgumentNullException(nameof(securityProxyRepository));
-        _otpAttemptTracker = otpAttemptTracker ?? throw new ArgumentNullException(nameof(otpAttemptTracker));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly IAuthRepository _authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
+    private readonly ILogger<AuthClientService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly IOtpAttemptTracker _otpAttemptTracker = otpAttemptTracker ?? throw new ArgumentNullException(nameof(otpAttemptTracker));
+    private readonly SecurityProxyRepository _securityProxyRepository = securityProxyRepository ?? throw new ArgumentNullException(nameof(securityProxyRepository));
 
     public int? CurrentUserId
     {

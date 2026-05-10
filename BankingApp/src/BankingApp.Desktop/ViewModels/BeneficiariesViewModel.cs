@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.DTOs.Beneficiaries;
 using Master;
-using Services.Transfers;
 using Utilities;
 using Views;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Services;
 
 /// <summary>
 ///     View model for the beneficiaries page in the desktop application.

@@ -9,27 +9,21 @@ using Application.DTOs.Dashboard;
 using Application.Repositories.Interfaces;
 using Domain.Entities;
 using ErrorOr;
-using BankingApp.Desktop.Utilities;
+using Utilities;
 
 /// <summary>
 ///     Implements <see cref="IDashboardClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class DashboardClientService : IDashboardClientService
+internal sealed class DashboardClientService(
+    IApiClient apiClient,
+    IDashboardRepository dashboardRepository,
+    IUserRepository userRepository)
+    : IDashboardClientService
 {
     private const int DefaultRecentTransactionLimit = 5;
-    private readonly IApiClient _apiClient;
-    private readonly IDashboardRepository _dashboardRepository;
-    private readonly IUserRepository _userRepository;
-
-    public DashboardClientService(
-        IApiClient apiClient,
-        IDashboardRepository dashboardRepository,
-        IUserRepository userRepository)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _dashboardRepository = dashboardRepository ?? throw new ArgumentNullException(nameof(dashboardRepository));
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-    }
+    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly IDashboardRepository _dashboardRepository = dashboardRepository ?? throw new ArgumentNullException(nameof(dashboardRepository));
+    private readonly IUserRepository _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
 
     public Task<ErrorOr<DashboardDto>> GetDashboardAsync(CancellationToken cancellationToken = default)
     {

@@ -9,12 +9,16 @@ using Application.Repositories.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using ErrorOr;
-using BankingApp.Desktop.Utilities;
+using Utilities;
 
 /// <summary>
 ///     Implements <see cref="IForexClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class ForexClientService : IForexClientService
+internal sealed class ForexClientService(
+    IApiClient apiClient,
+    IExchangeRepository exchangeRepository,
+    IBillPaymentRepository billPaymentRepository)
+    : IForexClientService
 {
     private const decimal CommissionRate = 0.005m;
     private const decimal MinimumCommission = 0.50m;
@@ -37,19 +41,12 @@ internal sealed class ForexClientService : IForexClientService
 
     private static readonly TimeSpan _cacheDuration = TimeSpan.FromSeconds(CacheDurationSeconds);
 
-    private readonly IApiClient _apiClient;
-    private readonly IBillPaymentRepository _billPaymentRepository;
-    private readonly IExchangeRepository _exchangeRepository;
+    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly IBillPaymentRepository _billPaymentRepository = billPaymentRepository ?? throw new ArgumentNullException(nameof(billPaymentRepository));
+    private readonly IExchangeRepository _exchangeRepository = exchangeRepository ?? throw new ArgumentNullException(nameof(exchangeRepository));
     private readonly Dictionary<int, LockedRate> _lockedRates = [];
     private Dictionary<string, decimal>? _cachedRates;
     private DateTime _ratesLastFetched;
-
-    public ForexClientService(IApiClient apiClient, IExchangeRepository exchangeRepository, IBillPaymentRepository billPaymentRepository)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _exchangeRepository = exchangeRepository ?? throw new ArgumentNullException(nameof(exchangeRepository));
-        _billPaymentRepository = billPaymentRepository ?? throw new ArgumentNullException(nameof(billPaymentRepository));
-    }
 
     public int? CurrentUserId => _apiClient.CurrentUserId;
 

@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Services.Transfers;
+namespace BankingApp.Desktop.Services;
 
 using System;
 using System.Collections.Generic;
@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Application.DTOs.Beneficiaries;
 using Application.DTOs.Transfer;
 using Application.Repositories.Interfaces;
+using Utilities;
 using Domain.Entities;
-using Domain.Enums;
-using BankingApp.Desktop.Utilities;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 
 /// <summary>

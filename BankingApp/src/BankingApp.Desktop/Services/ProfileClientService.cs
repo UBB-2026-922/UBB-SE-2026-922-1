@@ -9,21 +9,15 @@ using Application.Repositories.Interfaces;
 using Application.Utilities;
 using Domain.Entities;
 using ErrorOr;
-using BankingApp.Desktop.Utilities;
+using Utilities;
 
 /// <summary>
 ///     Implements <see cref="IProfileClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class ProfileClientService : IProfileClientService
+internal sealed class ProfileClientService(IApiClient apiClient, IUserRepository userRepository) : IProfileClientService
 {
-    private readonly IApiClient _apiClient;
-    private readonly IUserRepository _userRepository;
-
-    public ProfileClientService(IApiClient apiClient, IUserRepository userRepository)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-    }
+    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly IUserRepository _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
 
     public Task<ErrorOr<ProfileDto>> GetProfileAsync()
     {

@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Services.Transfers;
+namespace BankingApp.Desktop.Services;
 
 using System.Collections.Generic;
 using System.Threading;

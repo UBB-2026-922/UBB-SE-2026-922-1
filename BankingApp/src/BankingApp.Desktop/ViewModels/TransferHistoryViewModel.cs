@@ -8,10 +8,10 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Application.DTOs.Transfer;
-using Services.Transfers;
 using Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Services;
 
 /// <summary>
 ///     Provides data for the transfer history page.

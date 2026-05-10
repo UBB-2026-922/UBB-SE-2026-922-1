@@ -1,16 +1,16 @@
-namespace BankingApp.Desktop.Services.Transfers;
+namespace BankingApp.Desktop.Services;
 
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Application.DTOs.Beneficiaries;
-using Application.DTOs.Transfer;
+using BankingApp.Application.DTOs.Beneficiaries;
+using BankingApp.Application.DTOs.Transfer;
 using ErrorOr;
 
 /// <summary>
-///     Defines the desktop transfer-service boundary after moving orchestration off the view models.
+///     Defines the desktop client-service boundary for transfer and beneficiary workflows.
 /// </summary>
-public interface ITransferService
+public interface ITransferClientService
 {
     /// <summary>
     ///     Loads the authenticated user's selectable source accounts.
@@ -29,12 +29,12 @@ public interface ITransferService
         string? twoFaToken);
 
     /// <summary>
-    ///     Validates a recipient IBAN and returns inferred bank details.
+    ///     Validates a recipient IBAN and returns the inferred bank details.
     /// </summary>
     public Task<ErrorOr<TransferIbanValidationResponse>> ValidateIbanAsync(string iban);
 
     /// <summary>
-    ///     Loads an FX preview for the given currencies and amount.
+    ///     Loads a transfer FX preview for the given currencies and amount.
     /// </summary>
     public Task<ErrorOr<TransferForexPreviewResponse>> GetFxPreviewAsync(
         string fromCurrency,
