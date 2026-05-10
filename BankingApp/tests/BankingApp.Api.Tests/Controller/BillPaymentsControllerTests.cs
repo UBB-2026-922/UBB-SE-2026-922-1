@@ -14,7 +14,7 @@ public sealed class BillPaymentsControllerTests
     public async Task GetBillersAsync_WhenCalled_ReturnsOkWithList()
     {
         var billers = new List<Biller> { new() { Id = 1, Name = "Biller1" } };
-        _billPaymentRepository.Setup(r => r.GetBillersAsync()).ReturnsAsync(billers);
+        _billPaymentRepository.Setup(repository => repository.GetBillersAsync()).ReturnsAsync(billers);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.GetBillersAsync();
@@ -27,7 +27,7 @@ public sealed class BillPaymentsControllerTests
     public async Task GetBillerByIdAsync_WhenFound_ReturnsOkWithBiller()
     {
         var biller = new Biller { Id = 2, Name = "Biller2" };
-        _billPaymentRepository.Setup(r => r.GetBillerByIdAsync(2)).ReturnsAsync(biller);
+        _billPaymentRepository.Setup(repository => repository.GetBillerByIdAsync(2)).ReturnsAsync(biller);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.GetBillerByIdAsync(2);
@@ -39,7 +39,7 @@ public sealed class BillPaymentsControllerTests
     [Fact]
     public async Task GetBillerByIdAsync_WhenNotFound_ReturnsNotFound()
     {
-        _billPaymentRepository.Setup(r => r.GetBillerByIdAsync(99)).ReturnsAsync((Biller?)null);
+        _billPaymentRepository.Setup(repository => repository.GetBillerByIdAsync(99)).ReturnsAsync((Biller?)null);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.GetBillerByIdAsync(99);
@@ -51,7 +51,7 @@ public sealed class BillPaymentsControllerTests
     public async Task AddPaymentAsync_WhenCalled_ReturnsOkWithPayment()
     {
         var payment = new BillPayment { Id = 5, Amount = 100m };
-        _billPaymentRepository.Setup(r => r.AddPaymentAsync(payment)).Returns(Task.CompletedTask);
+        _billPaymentRepository.Setup(repository => repository.AddPaymentAsync(payment)).Returns(Task.CompletedTask);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.AddPaymentAsync(payment);
@@ -64,7 +64,7 @@ public sealed class BillPaymentsControllerTests
     public async Task GetUserPaymentHistoryAsync_WhenCalled_ReturnsOkWithList()
     {
         var payments = new List<BillPayment> { new() { Id = 1 }, new() { Id = 2 } };
-        _billPaymentRepository.Setup(r => r.GetUserPaymentHistoryAsync(1)).ReturnsAsync(payments);
+        _billPaymentRepository.Setup(repository => repository.GetUserPaymentHistoryAsync(1)).ReturnsAsync(payments);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.GetUserPaymentHistoryAsync(1);
@@ -77,7 +77,7 @@ public sealed class BillPaymentsControllerTests
     public async Task GetSavedBillersAsync_WhenCalled_ReturnsOkWithList()
     {
         var saved = new List<SavedBiller> { new() { Id = 1 } };
-        _billPaymentRepository.Setup(r => r.GetSavedBillersAsync(1)).ReturnsAsync(saved);
+        _billPaymentRepository.Setup(repository => repository.GetSavedBillersAsync(1)).ReturnsAsync(saved);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.GetSavedBillersAsync(1);
@@ -90,7 +90,7 @@ public sealed class BillPaymentsControllerTests
     public async Task GetAccountByIdAsync_WhenFound_ReturnsOkWithAccount()
     {
         var account = new Account { Id = 3 };
-        _billPaymentRepository.Setup(r => r.GetAccountByIdAsync(3)).ReturnsAsync(account);
+        _billPaymentRepository.Setup(repository => repository.GetAccountByIdAsync(3)).ReturnsAsync(account);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.GetAccountByIdAsync(3);
@@ -102,7 +102,7 @@ public sealed class BillPaymentsControllerTests
     [Fact]
     public async Task GetAccountByIdAsync_WhenNotFound_ReturnsNotFound()
     {
-        _billPaymentRepository.Setup(r => r.GetAccountByIdAsync(99)).ReturnsAsync((Account?)null);
+        _billPaymentRepository.Setup(repository => repository.GetAccountByIdAsync(99)).ReturnsAsync((Account?)null);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.GetAccountByIdAsync(99);
@@ -114,7 +114,7 @@ public sealed class BillPaymentsControllerTests
     public async Task UpdateAccountAsync_WhenCalled_ReturnsNoContent()
     {
         var account = new Account { Id = 1 };
-        _billPaymentRepository.Setup(r => r.UpdateAccountAsync(account)).Returns(Task.CompletedTask);
+        _billPaymentRepository.Setup(repository => repository.UpdateAccountAsync(account)).Returns(Task.CompletedTask);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.UpdateAccountAsync(account);
@@ -126,7 +126,7 @@ public sealed class BillPaymentsControllerTests
     public async Task AddTransactionAsync_WhenCalled_ReturnsOkWithTransaction()
     {
         var transaction = new Transaction { Id = 7, Amount = 50m };
-        _billPaymentRepository.Setup(r => r.AddTransactionAsync(transaction)).Returns(Task.CompletedTask);
+        _billPaymentRepository.Setup(repository => repository.AddTransactionAsync(transaction)).Returns(Task.CompletedTask);
         BillPaymentsController controller = CreateController();
 
         IActionResult result = await controller.AddTransactionAsync(transaction);

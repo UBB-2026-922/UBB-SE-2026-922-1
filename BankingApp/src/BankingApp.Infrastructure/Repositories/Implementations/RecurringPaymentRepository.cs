@@ -58,9 +58,9 @@ public class RecurringPaymentRepository(AppDatabaseContext context) : IRecurring
             context.SaveChanges();
             return payment;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 
@@ -87,9 +87,9 @@ public class RecurringPaymentRepository(AppDatabaseContext context) : IRecurring
                 .Where(recurringPayment => EF.Property<int>(recurringPayment, "UserId") == userId)
                 .ToList();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 
@@ -105,9 +105,9 @@ public class RecurringPaymentRepository(AppDatabaseContext context) : IRecurring
                 .Where(recurringPayment => recurringPayment.Status == RecurringPaymentStatus.Active && recurringPayment.NextExecutionDate <= asOf)
                 .ToList();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 
@@ -133,9 +133,9 @@ public class RecurringPaymentRepository(AppDatabaseContext context) : IRecurring
             context.SaveChanges();
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 }

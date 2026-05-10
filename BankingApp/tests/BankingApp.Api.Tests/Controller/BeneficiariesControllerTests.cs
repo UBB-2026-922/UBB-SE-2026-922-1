@@ -24,7 +24,7 @@ public sealed class BeneficiariesControllerTests
             BuildBeneficiary(DefaultBeneficiaryId, "Alice", "RO49AAAA1B31007593840000"),
             BuildBeneficiary(DefaultBeneficiaryId + 1, "Bob", "RO49AAAA1B31007593840001"),
         };
-        _beneficiaryRepository.Setup(r => r.FindByUserId(DefaultUserId)).Returns(beneficiaries);
+        _beneficiaryRepository.Setup(repository => repository.FindByUserId(DefaultUserId)).Returns(beneficiaries);
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.GetBeneficiaries();
@@ -34,13 +34,13 @@ public sealed class BeneficiariesControllerTests
         dtos.Should().HaveCount(2);
         dtos[0].Id.Should().Be(DefaultBeneficiaryId);
         dtos[0].Name.Should().Be("Alice");
-        _beneficiaryRepository.Verify(r => r.FindByUserId(DefaultUserId), Times.Once);
+        _beneficiaryRepository.Verify(repository => repository.FindByUserId(DefaultUserId), Times.Once);
     }
 
     [Fact]
     public void GetBeneficiaries_WhenRepositoryFails_ReturnsError()
     {
-        _beneficiaryRepository.Setup(r => r.FindByUserId(DefaultUserId)).Returns(Error.Failure());
+        _beneficiaryRepository.Setup(repository => repository.FindByUserId(DefaultUserId)).Returns(Error.Failure());
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.GetBeneficiaries();
@@ -53,7 +53,7 @@ public sealed class BeneficiariesControllerTests
     public void GetBeneficiaryById_WhenFound_ReturnsOkWithDto()
     {
         Beneficiary beneficiary = BuildBeneficiary(DefaultBeneficiaryId, "Alice", "RO49AAAA1B31007593840000");
-        _beneficiaryRepository.Setup(r => r.FindById(DefaultBeneficiaryId, DefaultUserId)).Returns(beneficiary);
+        _beneficiaryRepository.Setup(repository => repository.FindById(DefaultBeneficiaryId, DefaultUserId)).Returns(beneficiary);
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.GetBeneficiaryById(DefaultBeneficiaryId);
@@ -67,7 +67,7 @@ public sealed class BeneficiariesControllerTests
     [Fact]
     public void GetBeneficiaryById_WhenNotFound_ReturnsNotFound()
     {
-        _beneficiaryRepository.Setup(r => r.FindById(DefaultBeneficiaryId, DefaultUserId)).Returns(Error.NotFound());
+        _beneficiaryRepository.Setup(repository => repository.FindById(DefaultBeneficiaryId, DefaultUserId)).Returns(Error.NotFound());
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.GetBeneficiaryById(DefaultBeneficiaryId);
@@ -81,11 +81,11 @@ public sealed class BeneficiariesControllerTests
         var request = new CreateBeneficiaryRequest { Name = "Alice", Iban = "RO49AAAA1B31007593840000", BankName = "BRD" };
         Beneficiary created = BuildBeneficiary(DefaultBeneficiaryId, "Alice", "RO49AAAA1B31007593840000", "BRD");
         _beneficiaryRepository
-            .Setup(r => r.Create(It.Is<Beneficiary>(b =>
-                b.Name == "Alice" &&
-                b.Iban == "RO49AAAA1B31007593840000" &&
-                b.BankName == "BRD" &&
-                b.User != null && b.User.Id == DefaultUserId)))
+            .Setup(repository => repository.Create(It.Is<Beneficiary>(beneficiary =>
+                beneficiary.Name == "Alice" &&
+                beneficiary.Iban == "RO49AAAA1B31007593840000" &&
+                beneficiary.BankName == "BRD" &&
+                beneficiary.User != null && beneficiary.User.Id == DefaultUserId)))
             .Returns(created);
         BeneficiariesController controller = CreateController();
 
@@ -101,7 +101,7 @@ public sealed class BeneficiariesControllerTests
     public void CreateBeneficiary_WhenRepositoryFails_ReturnsBadRequest()
     {
         var request = new CreateBeneficiaryRequest { Name = "X", Iban = "RO49AAAA1B31007593840000" };
-        _beneficiaryRepository.Setup(r => r.Create(It.IsAny<Beneficiary>())).Returns(Error.Validation());
+        _beneficiaryRepository.Setup(repository => repository.Create(It.IsAny<Beneficiary>())).Returns(Error.Validation());
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.CreateBeneficiary(request);
@@ -114,10 +114,10 @@ public sealed class BeneficiariesControllerTests
     {
         var request = new UpdateBeneficiaryRequest { Name = "Alice Updated", Iban = "RO49AAAA1B31007593840000", BankName = "ING" };
         _beneficiaryRepository
-            .Setup(r => r.Update(It.Is<Beneficiary>(b =>
-                b.Id == DefaultBeneficiaryId &&
-                b.User != null && b.User.Id == DefaultUserId &&
-                b.Name == "Alice Updated")))
+            .Setup(repository => repository.Update(It.Is<Beneficiary>(beneficiary =>
+                beneficiary.Id == DefaultBeneficiaryId &&
+                beneficiary.User != null && beneficiary.User.Id == DefaultUserId &&
+                beneficiary.Name == "Alice Updated")))
             .Returns(Result.Success);
         BeneficiariesController controller = CreateController();
 
@@ -130,7 +130,7 @@ public sealed class BeneficiariesControllerTests
     public void UpdateBeneficiary_WhenNotFound_ReturnsNotFound()
     {
         var request = new UpdateBeneficiaryRequest { Name = "Ghost", Iban = "RO49AAAA1B31007593840099" };
-        _beneficiaryRepository.Setup(r => r.Update(It.IsAny<Beneficiary>())).Returns(Error.NotFound());
+        _beneficiaryRepository.Setup(repository => repository.Update(It.IsAny<Beneficiary>())).Returns(Error.NotFound());
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.UpdateBeneficiary(DefaultBeneficiaryId, request);
@@ -144,32 +144,32 @@ public sealed class BeneficiariesControllerTests
         const int routeId = 99;
         var request = new UpdateBeneficiaryRequest { Id = 1, Name = "Alice", Iban = "RO49AAAA1B31007593840000" };
         _beneficiaryRepository
-            .Setup(r => r.Update(It.Is<Beneficiary>(b => b.Id == routeId)))
+            .Setup(repository => repository.Update(It.Is<Beneficiary>(beneficiary => beneficiary.Id == routeId)))
             .Returns(Result.Success);
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.UpdateBeneficiary(routeId, request);
 
         result.Should().BeOfType<NoContentResult>();
-        _beneficiaryRepository.Verify(r => r.Update(It.Is<Beneficiary>(b => b.Id == routeId)), Times.Once);
+        _beneficiaryRepository.Verify(repository => repository.Update(It.Is<Beneficiary>(beneficiary => beneficiary.Id == routeId)), Times.Once);
     }
 
     [Fact]
     public void DeleteBeneficiary_WhenSuccessful_ReturnsNoContent()
     {
-        _beneficiaryRepository.Setup(r => r.Delete(DefaultBeneficiaryId, DefaultUserId)).Returns(Result.Success);
+        _beneficiaryRepository.Setup(repository => repository.Delete(DefaultBeneficiaryId, DefaultUserId)).Returns(Result.Success);
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.DeleteBeneficiary(DefaultBeneficiaryId);
 
         result.Should().BeOfType<NoContentResult>();
-        _beneficiaryRepository.Verify(r => r.Delete(DefaultBeneficiaryId, DefaultUserId), Times.Once);
+        _beneficiaryRepository.Verify(repository => repository.Delete(DefaultBeneficiaryId, DefaultUserId), Times.Once);
     }
 
     [Fact]
     public void DeleteBeneficiary_WhenNotFound_ReturnsNotFound()
     {
-        _beneficiaryRepository.Setup(r => r.Delete(DefaultBeneficiaryId, DefaultUserId)).Returns(Error.NotFound());
+        _beneficiaryRepository.Setup(repository => repository.Delete(DefaultBeneficiaryId, DefaultUserId)).Returns(Error.NotFound());
         BeneficiariesController controller = CreateController();
 
         IActionResult result = controller.DeleteBeneficiary(DefaultBeneficiaryId);

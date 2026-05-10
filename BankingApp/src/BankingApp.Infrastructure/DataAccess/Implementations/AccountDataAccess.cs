@@ -27,7 +27,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Account> FindById(int id)
     {
-        Account? account = _databaseContext.Accounts.FirstOrDefault(a => a.Id == id);
+        Account? account = _databaseContext.Accounts.FirstOrDefault(accountRecord => accountRecord.Id == id);
         if (account == null)
         {
             return Error.NotFound(description: "Account not found.");
@@ -41,7 +41,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Account>> FindByUserId(int userId)
     {
-        var accounts = _databaseContext.Accounts.Where(a => EF.Property<int>(a, "UserId") == userId).ToList();
+        var accounts = _databaseContext.Accounts.Where(accountRecord => EF.Property<int>(accountRecord, "UserId") == userId).ToList();
         return accounts;
     }
 
@@ -63,9 +63,9 @@ public class AccountDataAccess : IAccountDataAccess
             _databaseContext.SaveChanges();
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 }

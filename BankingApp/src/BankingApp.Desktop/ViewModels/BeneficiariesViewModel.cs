@@ -80,9 +80,9 @@ public class BeneficiariesViewModel
             ErrorMessage = string.Empty;
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.FailedToLoadBeneficiaries(ex);
+            _logger.FailedToLoadBeneficiaries(exception);
             ErrorMessage = "An unexpected error occurred while loading beneficiaries.";
             return Error.Failure();
         }
@@ -105,9 +105,9 @@ public class BeneficiariesViewModel
             Beneficiaries.RemoveAll(beneficiary => beneficiary.Id == id);
             return true;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            _logger.FailedToDeleteBeneficiary(ex, id);
+            _logger.FailedToDeleteBeneficiary(exception, id);
             ErrorMessage = "An unexpected error occurred while deleting the beneficiary.";
             return false;
         }

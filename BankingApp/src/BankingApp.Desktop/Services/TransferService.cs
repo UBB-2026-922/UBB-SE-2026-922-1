@@ -98,7 +98,7 @@ internal sealed class TransferService : ITransferService
             return Task.FromResult<ErrorOr<TransferExecutionResponse>>(accountsResult.FirstError);
         }
 
-        Account? sourceAccount = accountsResult.Value.FirstOrDefault(a => a.Id == sourceAccountId);
+        Account? sourceAccount = accountsResult.Value.FirstOrDefault(account => account.Id == sourceAccountId);
         if (sourceAccount is null)
         {
             return Task.FromResult<ErrorOr<TransferExecutionResponse>>(Error.NotFound(description: "Source account not found."));

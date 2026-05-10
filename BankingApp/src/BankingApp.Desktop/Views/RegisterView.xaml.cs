@@ -110,7 +110,7 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
         RegisterButton.IsEnabled = true;
     }
 
-    private async void RegisterButton_Click(object sender, RoutedEventArgs e)
+    private async void RegisterButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await _viewModel.Register(
             EmailBox.Text,
@@ -119,7 +119,7 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
             FullNameBox.Text);
     }
 
-    private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
+    private void BackToLoginButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _navigationService.NavigateTo<LoginView>();
     }

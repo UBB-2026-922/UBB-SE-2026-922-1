@@ -40,7 +40,7 @@ public class BeneficiariesController(IBeneficiaryRepository beneficiaryRepositor
             BankName = string.IsNullOrWhiteSpace(request.BankName) ? null : request.BankName.Trim(),
             CreatedAt = DateTime.UtcNow,
         };
-        return ToActionResult(beneficiaryRepository.Create(beneficiary), b => Ok(MapToDto(b)));
+        return ToActionResult(beneficiaryRepository.Create(beneficiary), createdBeneficiary => Ok(MapToDto(createdBeneficiary)));
     }
 
     [HttpPut("{id:int}")]

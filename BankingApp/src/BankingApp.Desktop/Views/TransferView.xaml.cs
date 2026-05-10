@@ -30,7 +30,7 @@ public sealed partial class TransferView : Page
     /// </value>
     public TransferViewModel ViewModel { get; }
 
-    private void OnPageLoaded(object sender, RoutedEventArgs e)
+    private void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
     {
         _ = ViewModel.LoadAccountsAsync();
     }

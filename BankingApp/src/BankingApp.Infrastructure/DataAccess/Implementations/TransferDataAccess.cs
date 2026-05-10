@@ -33,9 +33,9 @@ public class TransferDataAccess : ITransferDataAccess
             _databaseContext.SaveChanges();
             return transfer;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 
@@ -78,9 +78,9 @@ public class TransferDataAccess : ITransferDataAccess
             _databaseContext.SaveChanges();
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 }

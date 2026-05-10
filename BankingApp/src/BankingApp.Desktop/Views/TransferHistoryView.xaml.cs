@@ -30,12 +30,12 @@ public sealed partial class TransferHistoryView : Page
     /// </value>
     public TransferHistoryViewModel ViewModel { get; }
 
-    private async void OnPageLoaded(object sender, RoutedEventArgs e)
+    private async void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
     {
         await ViewModel.LoadHistoryAsync();
     }
 
-    private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+    private async void RefreshButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await ViewModel.LoadHistoryAsync();
     }

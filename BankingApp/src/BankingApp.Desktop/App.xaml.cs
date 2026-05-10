@@ -108,29 +108,29 @@ public partial class App
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
     }
 
-    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs unhandledExceptionEventArgs)
     {
-        Log.Fatal(e.Exception, "UI thread unhandled exception.");
+        Log.Fatal(unhandledExceptionEventArgs.Exception, "UI thread unhandled exception.");
         Log.CloseAndFlush();
     }
 
-    private static void OnCurrentDomainUnhandledException(object? sender, System.UnhandledExceptionEventArgs e)
+    private static void OnCurrentDomainUnhandledException(object? sender, System.UnhandledExceptionEventArgs unhandledExceptionEventArgs)
     {
-        if (e.ExceptionObject is Exception exception)
+        if (unhandledExceptionEventArgs.ExceptionObject is Exception exception)
         {
-            Log.Fatal(exception, "AppDomain unhandled exception. IsTerminating={IsTerminating}.", e.IsTerminating);
+            Log.Fatal(exception, "AppDomain unhandled exception. IsTerminating={IsTerminating}.", unhandledExceptionEventArgs.IsTerminating);
         }
         else
         {
-            Log.Fatal("AppDomain unhandled non-exception object. IsTerminating={IsTerminating}.", e.IsTerminating);
+            Log.Fatal("AppDomain unhandled non-exception object. IsTerminating={IsTerminating}.", unhandledExceptionEventArgs.IsTerminating);
         }
 
         Log.CloseAndFlush();
     }
 
-    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs unobservedTaskExceptionEventArgs)
     {
-        Log.Error(e.Exception, "Unobserved task exception.");
+        Log.Error(unobservedTaskExceptionEventArgs.Exception, "Unobserved task exception.");
         Log.CloseAndFlush();
     }
 }

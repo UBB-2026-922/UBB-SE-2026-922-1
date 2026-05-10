@@ -21,17 +21,17 @@ public sealed partial class ForexPage
         DataContext = _viewModel;
     }
 
-    private async void PreviewButton_Click(object sender, RoutedEventArgs e)
+    private async void PreviewButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await _viewModel.LoadPreviewAsync();
     }
 
-    private async void ExecuteButton_Click(object sender, RoutedEventArgs e)
+    private async void ExecuteButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await _viewModel.ExecuteExchangeAsync();
     }
 
-    private void ResetButton_Click(object sender, RoutedEventArgs e)
+    private void ResetButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _viewModel.Reset();
     }

@@ -48,9 +48,9 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
             _databaseContext.SaveChanges();
             return token;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: $"Failed to create password reset token: {ex.Message}");
+            return Error.Failure(description: $"Failed to create password reset token: {exception.Message}");
         }
     }
 
@@ -82,9 +82,9 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
             _databaseContext.SaveChanges();
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: $"Failed to mark password reset token as used: {ex.Message}");
+            return Error.Failure(description: $"Failed to mark password reset token as used: {exception.Message}");
         }
     }
 
@@ -99,9 +99,9 @@ public class PasswordResetTokenDataAccess : IPasswordResetTokenDataAccess
             _databaseContext.SaveChanges();
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: $"Failed to delete expired password reset tokens: {ex.Message}");
+            return Error.Failure(description: $"Failed to delete expired password reset tokens: {exception.Message}");
         }
     }
 }

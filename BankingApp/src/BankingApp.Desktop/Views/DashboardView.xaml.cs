@@ -67,10 +67,14 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
     }
 
     /// <inheritdoc />
-    /// <param name="e">The e value.</param>
-    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    /// <param name="navigationEventArgs">The navigation event arguments.</param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage(
+        "Naming",
+        "CA1725:Parameter names should match base declaration",
+        Justification = "Uses a descriptive parameter name instead of a one-letter identifier.")]
+    protected override void OnNavigatedFrom(NavigationEventArgs navigationEventArgs)
     {
-        base.OnNavigatedFrom(e);
+        base.OnNavigatedFrom(navigationEventArgs);
         Dispose();
     }
 
@@ -87,13 +91,13 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         _disposed = true;
     }
 
-    private void OnPageLoaded(object sender, RoutedEventArgs e)
+    private void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
     {
         AttachObserver();
         _ = RunUiTaskAsync(LoadDashboardAsync);
     }
 
-    private void OnPageUnloaded(object sender, RoutedEventArgs e)
+    private void OnPageUnloaded(object sender, RoutedEventArgs routedEventArgs)
     {
         Dispose();
     }
@@ -230,7 +234,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         CardNumberText.Text = "**** **** **** ****";
     }
 
-    private void PrevCardButton_Click(object sender, RoutedEventArgs e)
+    private void PrevCardButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         if (!_viewModel.NavigatePrevious().IsError)
         {
@@ -238,7 +242,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         }
     }
 
-    private void NextCardButton_Click(object sender, RoutedEventArgs e)
+    private void NextCardButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         if (!_viewModel.NavigateNext().IsError)
         {
@@ -246,32 +250,32 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         }
     }
 
-    private void TransferButton_Click(object sender, RoutedEventArgs e)
+    private void TransferButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _ = RunUiTaskAsync(() => ShowComingSoonAsync("Transfers"));
     }
 
-    private void PayBillButton_Click(object sender, RoutedEventArgs e)
+    private void PayBillButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _ = RunUiTaskAsync(() => ShowComingSoonAsync("Bill Payments"));
     }
 
-    private void ExchangeButton_Click(object sender, RoutedEventArgs e)
+    private void ExchangeButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _ = RunUiTaskAsync(() => ShowComingSoonAsync("Currency Exchange"));
     }
 
-    private void TransactionHistoryButton_Click(object sender, RoutedEventArgs e)
+    private void TransactionHistoryButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _ = RunUiTaskAsync(() => ShowComingSoonAsync("Transaction History"));
     }
 
-    private void RetryButton_Click(object sender, RoutedEventArgs e)
+    private void RetryButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _ = RunUiTaskAsync(LoadDashboardAsync);
     }
 
-    private void CardVisual_PointerPressed(object sender, PointerRoutedEventArgs e)
+    private void CardVisual_PointerPressed(object sender, PointerRoutedEventArgs pointerEventArgs)
     {
         _ = RunUiTaskAsync(ShowCurrentCardDetailsAsync);
     }

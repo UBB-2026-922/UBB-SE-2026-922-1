@@ -31,7 +31,7 @@ public sealed partial class BillPayView : Page
     /// <value>The bill pay view model.</value>
     public BillPayViewModel ViewModel { get; }
 
-    private async void OnPageLoaded(object sender, RoutedEventArgs e)
+    private async void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
     {
         await ViewModel.LoadAsync();
     }

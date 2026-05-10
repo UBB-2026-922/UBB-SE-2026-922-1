@@ -19,7 +19,7 @@ public sealed class DashboardControllerTests
     public void GetAccountsByUserIdRaw_WhenFound_ReturnsOkWithAccounts()
     {
         var accounts = new List<Account> { new() { Id = DefaultAccountId } };
-        _dashboardRepository.Setup(r => r.GetAccountsByUser(DefaultUserId)).Returns(accounts);
+        _dashboardRepository.Setup(repository => repository.GetAccountsByUser(DefaultUserId)).Returns(accounts);
         DashboardController controller = CreateController();
 
         IActionResult result = controller.GetAccountsByUserIdRaw(DefaultUserId);
@@ -31,7 +31,7 @@ public sealed class DashboardControllerTests
     [Fact]
     public void GetAccountsByUserIdRaw_WhenRepositoryFails_ReturnsError()
     {
-        _dashboardRepository.Setup(r => r.GetAccountsByUser(DefaultUserId)).Returns(Error.NotFound());
+        _dashboardRepository.Setup(repository => repository.GetAccountsByUser(DefaultUserId)).Returns(Error.NotFound());
         DashboardController controller = CreateController();
 
         IActionResult result = controller.GetAccountsByUserIdRaw(DefaultUserId);
@@ -43,7 +43,7 @@ public sealed class DashboardControllerTests
     public void GetCardsByUserIdRaw_WhenFound_ReturnsOkWithCards()
     {
         var cards = new List<Card> { new() { Id = 1 } };
-        _dashboardRepository.Setup(r => r.GetCardsByUser(DefaultUserId)).Returns(cards);
+        _dashboardRepository.Setup(repository => repository.GetCardsByUser(DefaultUserId)).Returns(cards);
         DashboardController controller = CreateController();
 
         IActionResult result = controller.GetCardsByUserIdRaw(DefaultUserId);
@@ -56,7 +56,7 @@ public sealed class DashboardControllerTests
     public void GetRecentTransactionsRaw_WhenFound_ReturnsOkWithTransactions()
     {
         var transactions = new List<Transaction> { new() { Id = 1, Amount = 100m } };
-        _dashboardRepository.Setup(r => r.GetRecentTransactions(DefaultAccountId, IDashboardRepository.DefaultRecentTransactionLimit))
+        _dashboardRepository.Setup(repository => repository.GetRecentTransactions(DefaultAccountId, IDashboardRepository.DefaultRecentTransactionLimit))
             .Returns(transactions);
         DashboardController controller = CreateController();
 
@@ -69,7 +69,7 @@ public sealed class DashboardControllerTests
     [Fact]
     public void GetUnreadNotificationCountRaw_WhenFound_ReturnsOkWithCount()
     {
-        _dashboardRepository.Setup(r => r.GetUnreadNotificationCount(DefaultUserId)).Returns(3);
+        _dashboardRepository.Setup(repository => repository.GetUnreadNotificationCount(DefaultUserId)).Returns(3);
         DashboardController controller = CreateController();
 
         IActionResult result = controller.GetUnreadNotificationCountRaw(DefaultUserId);
@@ -81,7 +81,7 @@ public sealed class DashboardControllerTests
     [Fact]
     public void DebitAccountRaw_WhenSuccessful_ReturnsNoContent()
     {
-        _dashboardRepository.Setup(r => r.DebitAccount(DefaultAccountId, 50m)).Returns(Result.Success);
+        _dashboardRepository.Setup(repository => repository.DebitAccount(DefaultAccountId, 50m)).Returns(Result.Success);
         DashboardController controller = CreateController();
 
         IActionResult result = controller.DebitAccountRaw(DefaultAccountId, new DashboardController.DebitAccountRequest { Amount = 50m });
@@ -92,7 +92,7 @@ public sealed class DashboardControllerTests
     [Fact]
     public void DebitAccountRaw_WhenRepositoryFails_ReturnsError()
     {
-        _dashboardRepository.Setup(r => r.DebitAccount(DefaultAccountId, 50m)).Returns(Error.Failure());
+        _dashboardRepository.Setup(repository => repository.DebitAccount(DefaultAccountId, 50m)).Returns(Error.Failure());
         DashboardController controller = CreateController();
 
         IActionResult result = controller.DebitAccountRaw(DefaultAccountId, new DashboardController.DebitAccountRequest { Amount = 50m });
@@ -105,7 +105,7 @@ public sealed class DashboardControllerTests
     public void AddTransactionRaw_WhenSuccessful_ReturnsOkWithTransaction()
     {
         var transaction = new Transaction { Id = 5, Amount = 200m };
-        _dashboardRepository.Setup(r => r.AddTransaction(transaction)).Returns(transaction);
+        _dashboardRepository.Setup(repository => repository.AddTransaction(transaction)).Returns(transaction);
         DashboardController controller = CreateController();
 
         IActionResult result = controller.AddTransactionRaw(transaction);

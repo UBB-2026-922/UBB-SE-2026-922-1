@@ -61,9 +61,9 @@ public class BillPaymentServiceTests
         await _service.ProcessPaymentAsync(request);
 
         // Assert - Persistence check
-        _repositoryMock.Verify(r => r.UpdateAccountAsync(It.IsAny<Account>()), Times.Once);
-        _repositoryMock.Verify(r => r.AddTransactionAsync(It.IsAny<Transaction>()), Times.Once);
-        _repositoryMock.Verify(r => r.AddPaymentAsync(It.IsAny<BillPayment>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.UpdateAccountAsync(It.IsAny<Account>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.AddTransactionAsync(It.IsAny<Transaction>()), Times.Once);
+        _repositoryMock.Verify(repository => repository.AddPaymentAsync(It.IsAny<BillPayment>()), Times.Once);
     }
 
     private static BillPaymentDto CreateValidRequest(decimal amount)

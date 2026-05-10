@@ -100,87 +100,87 @@ public sealed partial class NavView
         selected.Style = (Style)Resources["NavItemActiveStyle"];
     }
 
-    private void NavDashboard_Click(object sender, RoutedEventArgs e)
+    private void NavDashboard_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavDashboard);
         _navigationService.NavigateToContent<DashboardView>();
     }
 
-    private void NavProfile_Click(object sender, RoutedEventArgs e)
+    private void NavProfile_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavProfile);
         _navigationService.NavigateToContent<ProfileView>();
     }
 
-    private void NavBeneficiaries_Click(object sender, RoutedEventArgs e)
+    private void NavBeneficiaries_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavBeneficiaries);
         _navigationService.NavigateToContent<BeneficiariesView>();
     }
 
     // All other nav items show a coming soon alert
-    private void NavTransfers_Click(object sender, RoutedEventArgs e)
+    private void NavTransfers_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavTransfers);
         _navigationService.NavigateToContent<TransferView>();
     }
 
-    private void NavBillPayments_Click(object sender, RoutedEventArgs e)
+    private void NavBillPayments_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavBillPayments);
         _navigationService.NavigateToContent<BillPayView>();
     }
 
-    private void NavRecurringPayments_Click(object sender, RoutedEventArgs e)
+    private void NavRecurringPayments_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavRecurringPayments);
         _navigationService.NavigateToContent<RecurringPaymentView>();
     }
 
-    private async void NavCards_Click(object sender, RoutedEventArgs e)
+    private async void NavCards_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await ShowComingSoonAsync("Cards");
     }
 
-    private void NavTransferHistory_Click(object sender, RoutedEventArgs e)
+    private void NavTransferHistory_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavTransferHistory);
         _navigationService.NavigateToContent<TransferHistoryView>();
     }
 
-    private void NavCurrencyExchange_Click(object sender, RoutedEventArgs e)
+    private void NavCurrencyExchange_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavCurrencyExchange);
         _navigationService.NavigateToContent<ForexPage>();
     }
 
-    private void NavRateAlerts_Click(object sender, RoutedEventArgs e)
+    private void NavRateAlerts_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         SetActiveNav(NavRateAlerts);
         _navigationService.NavigateToContent<RateAlertsPage>();
     }
 
-    private async void NavSavings_Click(object sender, RoutedEventArgs e)
+    private async void NavSavings_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await ShowComingSoonAsync("Savings & Loans");
     }
 
-    private async void NavInvestments_Click(object sender, RoutedEventArgs e)
+    private async void NavInvestments_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await ShowComingSoonAsync("Investments & Trading");
     }
 
-    private async void NavStatistics_Click(object sender, RoutedEventArgs e)
+    private async void NavStatistics_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await ShowComingSoonAsync("Statistics");
     }
 
-    private async void NavSupport_Click(object sender, RoutedEventArgs e)
+    private async void NavSupport_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         await ShowComingSoonAsync("Support");
     }
 
-    private void NotificationBell_PointerPressed(object sender, PointerRoutedEventArgs e)
+    private void NotificationBell_PointerPressed(object sender, PointerRoutedEventArgs pointerEventArgs)
     {
         string message = NotificationBadge.Visibility == Visibility.Visible
             ? $"You have {NotificationBadgeText.Text} unread notifications."
@@ -188,7 +188,7 @@ public sealed partial class NavView
         _ = ShowAlertAsync("Notifications", message);
     }
 
-    private async void LogoutButton_Click(object sender, RoutedEventArgs e)
+    private async void LogoutButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         try
         {

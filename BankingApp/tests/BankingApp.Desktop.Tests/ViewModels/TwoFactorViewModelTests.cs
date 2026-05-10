@@ -32,7 +32,7 @@ public class TwoFactorViewModelTests
         viewModel.State.Value.Should().Be(TwoFactorState.Idle);
         viewModel.HasError.Should().BeTrue();
         _authClientService.Verify(
-            s => s.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()),
+            service => service.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()),
             Times.Never);
     }
 
@@ -123,7 +123,7 @@ public class TwoFactorViewModelTests
 
         // Assert
         _authClientService.Verify(
-            s => s.ResendOtpAsync(It.IsAny<int>()),
+            service => service.ResendOtpAsync(It.IsAny<int>()),
             Times.Once);
     }
 
@@ -144,7 +144,7 @@ public class TwoFactorViewModelTests
         await viewModel.ResendOtp();
 
         // Assert
-        _countdownTimer.Verify(t => t.Start(), Times.Once);
+        _countdownTimer.Verify(timer => timer.Start(), Times.Once);
         viewModel.SecondsRemaining.Should().Be(ExpectedResendCooldownSeconds);
     }
 }
