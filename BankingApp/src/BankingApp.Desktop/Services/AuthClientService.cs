@@ -20,7 +20,7 @@ using Microsoft.Extensions.Logging;
 ///     Owns the desktop authentication business logic and persists data through proxy repositories.
 /// </summary>
 internal sealed class AuthClientService(
-    IApiClient apiClient,
+    ICurrentSession currentSession,
     IAuthRepository authRepository,
     SecurityProxyRepository securityProxyRepository,
     IOtpAttemptTracker otpAttemptTracker,
@@ -32,7 +32,7 @@ internal sealed class AuthClientService(
     private const int MaxFailedOtpAttempts = 3;
     private const int PasswordResetTokenExpiryMinutes = 30;
     private const int PasswordResetTokenByteLength = 32;
-    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
     private readonly IAuthRepository _authRepository = authRepository ?? throw new ArgumentNullException(nameof(authRepository));
     private readonly ILogger<AuthClientService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IOtpAttemptTracker _otpAttemptTracker = otpAttemptTracker ?? throw new ArgumentNullException(nameof(otpAttemptTracker));
@@ -40,13 +40,13 @@ internal sealed class AuthClientService(
 
     public int? CurrentUserId
     {
-        get => _apiClient.CurrentUserId;
-        set => _apiClient.CurrentUserId = value;
+        get => _currentSession.CurrentUserId;
+        set => _currentSession.CurrentUserId = value;
     }
 
-    public ErrorOr<Success> EnsureConfigured() => _apiClient.EnsureConfigured();
+    public ErrorOr<Success> EnsureConfigured() => _currentSession.EnsureConfigured();
 
-    public void SetToken(string token) => _apiClient.SetToken(token);
+    public void SetToken(string token) => _currentSession.SetToken(token);
 
     public async Task<ErrorOr<LoginSuccessResponse>> LoginAsync(string email, string password)
     {

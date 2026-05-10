@@ -16,17 +16,17 @@ using Utilities;
 ///     Implements <see cref="IProfileClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
 internal sealed class ProfileClientService(
-    IApiClient apiClient,
+    ICurrentSession currentSession,
     IUserRepository userRepository,
     SecurityProxyRepository securityRepository) : IProfileClientService
 {
-    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
     private readonly IUserRepository _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
     private readonly SecurityProxyRepository _securityRepository = securityRepository ?? throw new ArgumentNullException(nameof(securityRepository));
 
     public Task<ErrorOr<ProfileDto>> GetProfileAsync()
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<ProfileDto>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -160,7 +160,7 @@ internal sealed class ProfileClientService(
 
     public Task<ErrorOr<Success>> Enable2FaAsync(EnableTwoFaRequest request)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<Success>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -178,7 +178,7 @@ internal sealed class ProfileClientService(
 
     public Task<ErrorOr<Success>> Disable2FaAsync()
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<Success>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -196,7 +196,7 @@ internal sealed class ProfileClientService(
 
     public Task<ErrorOr<List<NotificationPreferenceDto>>> GetNotificationPreferencesAsync()
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<List<NotificationPreferenceDto>>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -224,7 +224,7 @@ internal sealed class ProfileClientService(
 
     public Task<ErrorOr<Success>> UpdateNotificationPreferencesAsync(List<NotificationPreferenceDto> preferences)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<Success>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -246,7 +246,7 @@ internal sealed class ProfileClientService(
 
     public Task<ErrorOr<List<SessionDto>>> GetSessionsAsync()
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<List<SessionDto>>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -272,7 +272,7 @@ internal sealed class ProfileClientService(
 
     public Task<ErrorOr<Success>> RevokeSessionAsync(int sessionId)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<Success>>(Error.Unauthorized(description: "User is not authenticated."));

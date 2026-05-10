@@ -15,7 +15,7 @@ using Utilities;
 ///     Implements <see cref="IForexClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
 internal sealed class ForexClientService(
-    IApiClient apiClient,
+    ICurrentSession currentSession,
     IExchangeRepository exchangeRepository,
     IBillPaymentRepository billPaymentRepository)
     : IForexClientService
@@ -41,14 +41,14 @@ internal sealed class ForexClientService(
 
     private static readonly TimeSpan _cacheDuration = TimeSpan.FromSeconds(CacheDurationSeconds);
 
-    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
     private readonly IBillPaymentRepository _billPaymentRepository = billPaymentRepository ?? throw new ArgumentNullException(nameof(billPaymentRepository));
     private readonly IExchangeRepository _exchangeRepository = exchangeRepository ?? throw new ArgumentNullException(nameof(exchangeRepository));
     private readonly Dictionary<int, LockedRate> _lockedRates = [];
     private Dictionary<string, decimal>? _cachedRates;
     private DateTime _ratesLastFetched;
 
-    public int? CurrentUserId => _apiClient.CurrentUserId;
+    public int? CurrentUserId => _currentSession.CurrentUserId;
 
     public Task<ErrorOr<ExchangeTransactionResponse>> GetPreviewAsync(
         string sourceCurrency,
@@ -75,7 +75,7 @@ internal sealed class ForexClientService(
             return Task.FromResult<ErrorOr<ExchangeTransactionResponse>>(Error.Validation(description: "Amount must be greater than zero."));
         }
 
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is not null)
         {
             ErrorOr<decimal> lockResult = GetRate(sourceCurrency, targetCurrency);

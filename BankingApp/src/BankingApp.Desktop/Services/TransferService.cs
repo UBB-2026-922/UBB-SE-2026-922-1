@@ -31,23 +31,23 @@ internal sealed class TransferService : ITransferService
     private const decimal UsdRonRate = 4.41m;
     private const decimal GbpRonRate = 5.90m;
 
-    private readonly IApiClient _apiClient;
+    private readonly ICurrentSession _currentSession;
     private readonly IBeneficiaryRepository _beneficiaryRepository;
     private readonly IDashboardRepository _dashboardRepository;
 
     public TransferService(
-        IApiClient apiClient,
+        ICurrentSession currentSession,
         IDashboardRepository dashboardRepository,
         IBeneficiaryRepository beneficiaryRepository)
     {
-        _apiClient = apiClient;
+        _currentSession = currentSession;
         _dashboardRepository = dashboardRepository;
         _beneficiaryRepository = beneficiaryRepository;
     }
 
     public Task<ErrorOr<List<TransferAccountSelectionResponse>>> GetAccountsAsync(CancellationToken cancellationToken = default)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<List<TransferAccountSelectionResponse>>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -83,7 +83,7 @@ internal sealed class TransferService : ITransferService
         string currency,
         string? twoFaToken)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<TransferExecutionResponse>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -211,7 +211,7 @@ internal sealed class TransferService : ITransferService
 
     public Task<ErrorOr<List<TransferResponse>>> GetTransferHistoryAsync(CancellationToken cancellationToken = default)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<List<TransferResponse>>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -245,7 +245,7 @@ internal sealed class TransferService : ITransferService
 
     public Task<ErrorOr<List<BeneficiaryDto>>> GetBeneficiariesAsync(CancellationToken cancellationToken = default)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<List<BeneficiaryDto>>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -274,7 +274,7 @@ internal sealed class TransferService : ITransferService
 
     public Task<ErrorOr<Success>> AddBeneficiaryAsync(string name, string iban, string bankName)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<Success>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -318,7 +318,7 @@ internal sealed class TransferService : ITransferService
 
     public Task<ErrorOr<Success>> DeleteBeneficiaryAsync(int beneficiaryId)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<Success>>(Error.Unauthorized(description: "User is not authenticated."));

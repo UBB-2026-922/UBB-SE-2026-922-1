@@ -15,13 +15,13 @@ using Utilities;
 ///     Implements <see cref="IDashboardClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
 internal sealed class DashboardClientService(
-    IApiClient apiClient,
+    ICurrentSession currentSession,
     IDashboardRepository dashboardRepository,
     IUserRepository userRepository)
     : IDashboardClientService
 {
     private const int DefaultRecentTransactionLimit = 5;
-    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
 
     private readonly IDashboardRepository _dashboardRepository =
         dashboardRepository ?? throw new ArgumentNullException(nameof(dashboardRepository));
@@ -31,7 +31,7 @@ internal sealed class DashboardClientService(
 
     public Task<ErrorOr<DashboardDto>> GetDashboardAsync(CancellationToken cancellationToken = default)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<DashboardDto>>(

@@ -25,7 +25,9 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);
-        services.AddSingleton<IApiClient, ApiClient>();
+        services.AddSingleton<ApiClient>();
+        services.AddSingleton<IApiClient>(sp => sp.GetRequiredService<ApiClient>());
+        services.AddSingleton<ICurrentSession>(sp => sp.GetRequiredService<ApiClient>());
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
         services.AddSingleton<IOtpAttemptTracker, DesktopOtpAttemptTracker>();

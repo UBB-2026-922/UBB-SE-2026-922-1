@@ -18,7 +18,7 @@ using Utilities;
 ///     Implements <see cref="IBillPaymentClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
 internal sealed class BillPaymentClientService(
-    IApiClient apiClient,
+    ICurrentSession currentSession,
     IBillerRepository billerRepository,
     IBillPaymentRepository billPaymentRepository,
     IRecurringPaymentRepository recurringPaymentRepository)
@@ -30,7 +30,7 @@ internal sealed class BillPaymentClientService(
     private const decimal TwoFaAmountThreshold = 1000m;
     private const int ReceiptUniqueSuffixLength = 6;
 
-    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
     private readonly IBillerRepository _billerRepository = billerRepository ?? throw new ArgumentNullException(nameof(billerRepository));
     private readonly IBillPaymentRepository _billPaymentRepository = billPaymentRepository ?? throw new ArgumentNullException(nameof(billPaymentRepository));
     private readonly IRecurringPaymentRepository _recurringPaymentRepository = recurringPaymentRepository ?? throw new ArgumentNullException(nameof(recurringPaymentRepository));
@@ -48,7 +48,7 @@ internal sealed class BillPaymentClientService(
 
     public Task<ErrorOr<List<SavedBillerDto>>> GetSavedBillersAsync()
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<List<SavedBillerDto>>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -62,7 +62,7 @@ internal sealed class BillPaymentClientService(
 
     public async Task<ErrorOr<List<AccountDto>>> GetAccountsAsync()
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Error.Unauthorized(description: "User is not authenticated.");
@@ -89,7 +89,7 @@ internal sealed class BillPaymentClientService(
 
     public async Task<ErrorOr<BillPayResponse>> PayBillAsync(BillPayRequest request)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Error.Unauthorized(description: "User is not authenticated.");
@@ -173,7 +173,7 @@ internal sealed class BillPaymentClientService(
 
     public Task<ErrorOr<SavedBillerDto>> SaveBillerAsync(SaveBillerRequest request)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<SavedBillerDto>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -212,7 +212,7 @@ internal sealed class BillPaymentClientService(
 
     public Task<ErrorOr<List<RecurringPaymentResponse>>> GetRecurringPaymentsAsync()
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<List<RecurringPaymentResponse>>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -226,7 +226,7 @@ internal sealed class BillPaymentClientService(
 
     public Task<ErrorOr<RecurringPaymentResponse>> CreateRecurringPaymentAsync(CreateRecurringPaymentRequest request)
     {
-        int? userId = _apiClient.GetCurrentUserId();
+        int? userId = _currentSession.GetCurrentUserId();
         if (userId is null)
         {
             return Task.FromResult<ErrorOr<RecurringPaymentResponse>>(Error.Unauthorized(description: "User is not authenticated."));
@@ -254,13 +254,13 @@ internal sealed class BillPaymentClientService(
     }
 
     public Task<ErrorOr<Success>> PauseRecurringPaymentAsync(int paymentId)
-        => ChangeRecurringPaymentState(paymentId, payment => payment.Pause(_apiClient.GetCurrentUserId() ?? 0));
+        => ChangeRecurringPaymentState(paymentId, payment => payment.Pause(_currentSession.GetCurrentUserId() ?? 0));
 
     public Task<ErrorOr<Success>> ResumeRecurringPaymentAsync(int paymentId)
-        => ChangeRecurringPaymentState(paymentId, payment => payment.Resume(_apiClient.GetCurrentUserId() ?? 0));
+        => ChangeRecurringPaymentState(paymentId, payment => payment.Resume(_currentSession.GetCurrentUserId() ?? 0));
 
     public Task<ErrorOr<Success>> CancelRecurringPaymentAsync(int paymentId)
-        => ChangeRecurringPaymentState(paymentId, payment => payment.Cancel(_apiClient.GetCurrentUserId() ?? 0));
+        => ChangeRecurringPaymentState(paymentId, payment => payment.Cancel(_currentSession.GetCurrentUserId() ?? 0));
 
     private Task<ErrorOr<Success>> ChangeRecurringPaymentState(
         int paymentId,

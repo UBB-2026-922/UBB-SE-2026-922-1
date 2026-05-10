@@ -12,13 +12,13 @@ using Utilities;
 /// <summary>
 ///     Implements <see cref="IRateAlertClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class RateAlertClientService(IApiClient apiClient, IRateAlertRepository rateAlertRepository)
+internal sealed class RateAlertClientService(ICurrentSession currentSession, IRateAlertRepository rateAlertRepository)
     : IRateAlertClientService
 {
-    private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
     private readonly IRateAlertRepository _rateAlertRepository = rateAlertRepository ?? throw new ArgumentNullException(nameof(rateAlertRepository));
 
-    public int? CurrentUserId => _apiClient.CurrentUserId;
+    public int? CurrentUserId => _currentSession.CurrentUserId;
 
     public Task<ErrorOr<List<RateAlertDto>>> GetAlertsAsync(int userId)
     {
