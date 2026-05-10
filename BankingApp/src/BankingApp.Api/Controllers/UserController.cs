@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/raw/users")]
-public class RawUserController : ApiControllerBase
+public class UserController : ApiController
 {
     private readonly IUserRepository _userRepository;
 
-    public RawUserController(IUserRepository userRepository)
+    public UserController(IUserRepository userRepository)
     {
         _userRepository = userRepository;
     }

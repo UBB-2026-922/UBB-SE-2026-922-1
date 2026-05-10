@@ -7,14 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/raw/security")]
-public class RawSecurityController : ApiControllerBase
+public class SecurityController : ApiController
 {
     private readonly IEmailService _emailService;
     private readonly IHashService _hashService;
     private readonly IJsonWebTokenService _jsonWebTokenService;
     private readonly IOtpService _otpService;
 
-    public RawSecurityController(
+    public SecurityController(
         IHashService hashService,
         IJsonWebTokenService jsonWebTokenService,
         IOtpService otpService,

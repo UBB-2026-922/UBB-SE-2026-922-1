@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class DashboardController : ApiControllerBase
+public class DashboardController : ApiController
 {
     private readonly IDashboardRepository _dashboardRepository;
     private readonly IDashboardService _dashboardService;

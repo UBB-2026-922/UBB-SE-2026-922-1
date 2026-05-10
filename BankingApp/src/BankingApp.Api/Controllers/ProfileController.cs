@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class ProfileController : ApiControllerBase
+public class ProfileController : ApiController
 {
     private readonly IProfileService _profileService;
 

@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/raw/billers")]
-public class RawBillerController : ApiControllerBase
+public class BillerController : ApiController
 {
     private readonly IBillerRepository _billerRepository;
 
-    public RawBillerController(IBillerRepository billerRepository)
+    public BillerController(IBillerRepository billerRepository)
     {
         _billerRepository = billerRepository;
     }

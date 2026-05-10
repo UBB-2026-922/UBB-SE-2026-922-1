@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class BeneficiariesController : ApiControllerBase
+public class BeneficiariesController : ApiController
 {
     private readonly IBeneficiaryRepository _beneficiaryRepository;
     private readonly IBeneficiaryService _beneficiaryService;
@@ -39,24 +39,24 @@ public class BeneficiariesController : ApiControllerBase
         int userId = GetAuthenticatedUserId();
 
         return ToActionResult(
-            _beneficiaryService.GetByUserId(userId),
-            beneficiaries => Ok(beneficiaries.Select(MapToDto).ToList()));
+            _beneficiaryRepository.FindByUserId(userId),
+            beneficiaries => Ok(beneficiaries.ConvertAll(MapToDto)));
     }
 
     /// <summary>
     ///     Gets a beneficiary by identifier.
     /// </summary>
-    /// <param name="id">The beneficiary identifier.</param>
+    /// <param name="beneficiaryId">The beneficiary identifier.</param>
     /// <returns>
     ///     200 OK with the beneficiary when found, or an error otherwise.
     /// </returns>
-    [HttpGet("{id:int}")]
-    public IActionResult GetBeneficiaryById(int id)
+    [HttpGet("{beneficiaryId:int}")]
+    public IActionResult GetBeneficiaryById(int beneficiaryId)
     {
         int userId = GetAuthenticatedUserId();
 
         return ToActionResult(
-            _beneficiaryService.GetById(id, userId),
+            _beneficiaryRepository.FindById(beneficiaryId, userId),
             beneficiary => Ok(MapToDto(beneficiary)));
     }
 

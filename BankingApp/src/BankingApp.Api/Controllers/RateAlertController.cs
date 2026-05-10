@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/raw/rate-alerts")]
-public class RawRateAlertController : ApiControllerBase
+public class RateAlertController : ApiController
 {
     private readonly IRateAlertRepository _rateAlertRepository;
 
-    public RawRateAlertController(IRateAlertRepository rateAlertRepository)
+    public RateAlertController(IRateAlertRepository rateAlertRepository)
     {
         _rateAlertRepository = rateAlertRepository;
     }
