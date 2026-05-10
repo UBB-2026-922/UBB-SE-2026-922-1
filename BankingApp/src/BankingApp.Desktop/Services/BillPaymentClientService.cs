@@ -68,7 +68,7 @@ internal sealed class BillPaymentClientService(
             return Error.Unauthorized(description: "User is not authenticated.");
         }
 
-        IEnumerable<Account> accounts = await _billPaymentRepository.GetAccountsByUserIdAsync(userId.Value);
+        IEnumerable<Account> accounts = await _billPaymentRepository.GetAccountsByUserIdAsync(userId.Value).ConfigureAwait(false);
         var mapped = accounts.Select(account => new AccountDto
         {
             Id = account.Id,
@@ -95,13 +95,13 @@ internal sealed class BillPaymentClientService(
             return Error.Unauthorized(description: "User is not authenticated.");
         }
 
-        Biller? biller = await _billPaymentRepository.GetBillerByIdAsync(request.BillerId);
+        Biller? biller = await _billPaymentRepository.GetBillerByIdAsync(request.BillerId).ConfigureAwait(false);
         if (biller is null)
         {
             return Error.NotFound(description: "Biller not found.");
         }
 
-        Account? account = await _billPaymentRepository.GetAccountByIdAsync(request.SourceAccountId);
+        Account? account = await _billPaymentRepository.GetAccountByIdAsync(request.SourceAccountId).ConfigureAwait(false);
         if (account is null)
         {
             return Error.NotFound(description: "Source account not found.");
@@ -125,7 +125,7 @@ internal sealed class BillPaymentClientService(
         }
 
         account.Balance -= totalAmount;
-        await _billPaymentRepository.UpdateAccountAsync(account);
+        await _billPaymentRepository.UpdateAccountAsync(account).ConfigureAwait(false);
 
         var globalTransaction = new Transaction
         {
@@ -144,7 +144,7 @@ internal sealed class BillPaymentClientService(
             Currency = account.Currency,
             BalanceAfter = account.Balance,
         };
-        await _billPaymentRepository.AddTransactionAsync(globalTransaction);
+        await _billPaymentRepository.AddTransactionAsync(globalTransaction).ConfigureAwait(false);
 
         var payment = new BillPayment
         {
@@ -159,7 +159,7 @@ internal sealed class BillPaymentClientService(
             Status = BillPaymentStatus.Completed,
             CreatedAt = DateTime.UtcNow,
         };
-        await _billPaymentRepository.AddPaymentAsync(payment);
+        await _billPaymentRepository.AddPaymentAsync(payment).ConfigureAwait(false);
 
         return new BillPayResponse
         {

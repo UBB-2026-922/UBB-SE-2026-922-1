@@ -49,7 +49,7 @@ public class RegisterViewModel
         State.SetValue(RegisterState.Loading);
         ErrorOr<Success> result = await _authClientService.RegisterAsync(email, password, fullName);
         result.Switch(
-            _ => { State.SetValue(RegisterState.Success); },
+            _ => State.SetValue(RegisterState.Success),
             errors =>
             {
                 Error error = errors.First();

@@ -79,19 +79,25 @@ public class LoginViewModel
             },
             errors =>
             {
-                if (errors.First().Type == ErrorType.Forbidden)
+                switch (errors.First().Type)
                 {
-                    State.SetValue(LoginState.AccountLocked);
+                    case ErrorType.Forbidden:
+                        State.SetValue(LoginState.AccountLocked);
+                        break;
+                    case ErrorType.Unauthorized:
+                        State.SetValue(LoginState.InvalidCredentials);
+                        break;
+                    case ErrorType.Failure:
+                    case ErrorType.Unexpected:
+                    case ErrorType.Validation:
+                    case ErrorType.Conflict:
+                    case ErrorType.NotFound:
+                    default:
+                        _logger.LoginFailed(errors);
+                        State.SetValue(LoginState.Error);
+                        break;
                 }
-                else if (errors.First().Type == ErrorType.Unauthorized)
-                {
-                    State.SetValue(LoginState.InvalidCredentials);
-                }
-                else
-                {
-                    _logger.LoginFailed(errors);
-                    State.SetValue(LoginState.Error);
-                }
-            });
+            }
+        );
     }
 }

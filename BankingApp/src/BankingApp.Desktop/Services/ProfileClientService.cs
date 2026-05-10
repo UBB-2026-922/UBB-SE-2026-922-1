@@ -100,7 +100,7 @@ internal sealed class ProfileClientService(
 
     public async Task<ErrorOr<bool>> VerifyPasswordAsync(string password)
     {
-        ErrorOr<ProfileDto> profileResult = await GetProfileAsync();
+        ErrorOr<ProfileDto> profileResult = await GetProfileAsync().ConfigureAwait(false);
         if (profileResult.IsError || profileResult.Value.UserId is null)
         {
             return profileResult.IsError ? profileResult.FirstError : Error.Unauthorized(description: "User is not authenticated.");
@@ -117,7 +117,7 @@ internal sealed class ProfileClientService(
             return false;
         }
 
-        return await _securityRepository.VerifyHashAsync(password, userResult.Value.PasswordHash);
+        return await _securityRepository.VerifyHashAsync(password, userResult.Value.PasswordHash).ConfigureAwait(false);
     }
 
     public async Task<ErrorOr<Success>> ChangePasswordAsync(ChangePasswordRequest request)
@@ -138,7 +138,7 @@ internal sealed class ProfileClientService(
             return Error.Validation("incorrect_password", "Current password is incorrect.");
         }
 
-        ErrorOr<bool> verifyResult = await _securityRepository.VerifyHashAsync(request.CurrentPassword, userResult.Value.PasswordHash);
+        ErrorOr<bool> verifyResult = await _securityRepository.VerifyHashAsync(request.CurrentPassword, userResult.Value.PasswordHash).ConfigureAwait(false);
         if (verifyResult.IsError)
         {
             return verifyResult.FirstError;
@@ -149,7 +149,7 @@ internal sealed class ProfileClientService(
             return Error.Validation("incorrect_password", "Current password is incorrect.");
         }
 
-        ErrorOr<string> hashResult = await _securityRepository.HashAsync(request.NewPassword);
+        ErrorOr<string> hashResult = await _securityRepository.HashAsync(request.NewPassword).ConfigureAwait(false);
         if (hashResult.IsError)
         {
             return hashResult.FirstError;

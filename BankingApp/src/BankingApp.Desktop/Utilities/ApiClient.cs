@@ -42,6 +42,8 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         else
         {
             _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
+            _httpClient.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
         }
     }
 

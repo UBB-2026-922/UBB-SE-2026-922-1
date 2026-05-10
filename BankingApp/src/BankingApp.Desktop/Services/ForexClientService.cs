@@ -118,7 +118,7 @@ internal sealed class ForexClientService(
 
         if (request.SourceAccountId <= 0 || request.TargetAccountId <= 0)
         {
-            var accounts = (await _billPaymentRepository.GetAccountsByUserIdAsync(request.UserId)).ToList();
+            var accounts = (await _billPaymentRepository.GetAccountsByUserIdAsync(request.UserId).ConfigureAwait(false)).ToList();
             request.SourceAccountId = request.SourceAccountId > 0
                 ? request.SourceAccountId
                 : accounts.FirstOrDefault(account =>

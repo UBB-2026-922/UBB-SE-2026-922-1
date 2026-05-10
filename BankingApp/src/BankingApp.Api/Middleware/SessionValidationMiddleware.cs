@@ -13,7 +13,7 @@ public class SessionValidationMiddleware
 {
     private const string BearerPrefix = "Bearer ";
 
-    private static readonly string[] _publicEndpointPrefixes = ["/api/auth/", "/swagger"];
+    private static readonly string[] _publicEndpointPrefixes = ["/api/auth/", "/api/security/", "/swagger"];
     private readonly RequestDelegate _next;
 
     /// <summary>

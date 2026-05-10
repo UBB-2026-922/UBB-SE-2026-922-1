@@ -73,7 +73,7 @@ internal sealed class AuthClientService(
             return AuthErrors.InvalidCredentials;
         }
 
-        ErrorOr<bool> verifyResult = await _securityProxyRepository.VerifyHashAsync(password, user.PasswordHash);
+        ErrorOr<bool> verifyResult = await _securityProxyRepository.VerifyHashAsync(password, user.PasswordHash).ConfigureAwait(false);
         if (verifyResult.IsError)
         {
             return verifyResult.FirstError;
@@ -81,10 +81,10 @@ internal sealed class AuthClientService(
 
         if (!verifyResult.Value)
         {
-            return await HandleFailedPasswordAsync(user);
+            return await HandleFailedPasswordAsync(user).ConfigureAwait(false);
         }
 
-        return user.Is2FaEnabled ? await HandleTwoFactorAsync(user) : await CompleteLoginAsync(user);
+        return user.Is2FaEnabled ? await HandleTwoFactorAsync(user).ConfigureAwait(false) : await CompleteLoginAsync(user).ConfigureAwait(false);
     }
 
     public async Task<ErrorOr<Success>> RegisterAsync(string email, string password, string fullName)
@@ -115,7 +115,7 @@ internal sealed class AuthClientService(
             return UserErrors.DatabaseError;
         }
 
-        ErrorOr<string> hashResult = await _securityProxyRepository.HashAsync(password);
+        ErrorOr<string> hashResult = await _securityProxyRepository.HashAsync(password).ConfigureAwait(false);
         if (hashResult.IsError)
         {
             return hashResult.FirstError;
@@ -143,7 +143,7 @@ internal sealed class AuthClientService(
         }
 
         User user = userResult.Value;
-        ErrorOr<bool> verifyResult = await VerifyOtpForPreferredMethodAsync(user, otpCode);
+        ErrorOr<bool> verifyResult = await VerifyOtpForPreferredMethodAsync(user, otpCode).ConfigureAwait(false);
         if (verifyResult.IsError)
         {
             return verifyResult.FirstError;
@@ -155,7 +155,7 @@ internal sealed class AuthClientService(
             if (failures >= MaxFailedOtpAttempts)
             {
                 _otpAttemptTracker.Reset(user.Id);
-                await _securityProxyRepository.InvalidateOtpAsync(user.Id);
+                await _securityProxyRepository.InvalidateOtpAsync(user.Id).ConfigureAwait(false);
                 return AuthErrors.OtpAttemptsExceeded;
             }
 
@@ -163,8 +163,8 @@ internal sealed class AuthClientService(
         }
 
         _otpAttemptTracker.Reset(user.Id);
-        await _securityProxyRepository.InvalidateOtpAsync(user.Id);
-        return await CompleteLoginAsync(user);
+        await _securityProxyRepository.InvalidateOtpAsync(user.Id).ConfigureAwait(false);
+        return await CompleteLoginAsync(user).ConfigureAwait(false);
     }
 
     public async Task<ErrorOr<object>> ResendOtpAsync(int userId)
@@ -176,7 +176,7 @@ internal sealed class AuthClientService(
         }
 
         User user = userResult.Value;
-        ErrorOr<string> otpResult = await GenerateOtpForMethodAsync(user);
+        ErrorOr<string> otpResult = await GenerateOtpForMethodAsync(user).ConfigureAwait(false);
         if (otpResult.IsError)
         {
             return otpResult.FirstError;
@@ -184,7 +184,7 @@ internal sealed class AuthClientService(
 
         if (ShouldSendEmailOtp(user))
         {
-            ErrorOr<Success> emailResult = await _securityProxyRepository.SendOtpCodeAsync(user.Email, otpResult.Value);
+            ErrorOr<Success> emailResult = await _securityProxyRepository.SendOtpCodeAsync(user.Email, otpResult.Value).ConfigureAwait(false);
             if (emailResult.IsError)
             {
                 return emailResult.FirstError;
@@ -226,7 +226,7 @@ internal sealed class AuthClientService(
             return PasswordResetErrors.SaveTokenFailed;
         }
 
-        ErrorOr<Success> emailResult = await _securityProxyRepository.SendPasswordResetLinkAsync(user.Email, rawToken);
+        ErrorOr<Success> emailResult = await _securityProxyRepository.SendPasswordResetLinkAsync(user.Email, rawToken).ConfigureAwait(false);
         return emailResult.IsError ? emailResult.FirstError : Result.Success;
     }
 
@@ -238,7 +238,7 @@ internal sealed class AuthClientService(
         }
 
         ErrorOr<PasswordResetToken> tokenResult = _authRepository.FindPasswordResetToken(ComputeSha256Hash(token));
-        return Task.FromResult(tokenResult.IsError ? (ErrorOr<Success>)PasswordResetErrors.TokenInvalid : ValidateResetToken(tokenResult.Value));
+        return Task.FromResult(tokenResult.IsError ? PasswordResetErrors.TokenInvalid : ValidateResetToken(tokenResult.Value));
     }
 
     public async Task<ErrorOr<Success>> ResetPasswordAsync(string token, string newPassword)
@@ -266,7 +266,7 @@ internal sealed class AuthClientService(
             return validationResult.FirstError;
         }
 
-        ErrorOr<string> hashResult = await _securityProxyRepository.HashAsync(newPassword);
+        ErrorOr<string> hashResult = await _securityProxyRepository.HashAsync(newPassword).ConfigureAwait(false);
         if (hashResult.IsError)
         {
             return hashResult.FirstError;
@@ -343,7 +343,7 @@ internal sealed class AuthClientService(
 
     private async Task<ErrorOr<LoginSuccessResponse>> HandleTwoFactorAsync(User user)
     {
-        ErrorOr<string> otpResult = await GenerateOtpForMethodAsync(user);
+        ErrorOr<string> otpResult = await GenerateOtpForMethodAsync(user).ConfigureAwait(false);
         if (otpResult.IsError)
         {
             return otpResult.FirstError;
@@ -351,7 +351,7 @@ internal sealed class AuthClientService(
 
         if (ShouldSendEmailOtp(user))
         {
-            ErrorOr<Success> emailResult = await _securityProxyRepository.SendOtpCodeAsync(user.Email, otpResult.Value);
+            ErrorOr<Success> emailResult = await _securityProxyRepository.SendOtpCodeAsync(user.Email, otpResult.Value).ConfigureAwait(false);
             if (emailResult.IsError)
             {
                 return emailResult.FirstError;
@@ -366,7 +366,7 @@ internal sealed class AuthClientService(
     {
         _ = _authRepository.ResetFailedAttempts(user.Id);
 
-        ErrorOr<string> tokenResult = await _securityProxyRepository.GenerateTokenAsync(user.Id);
+        ErrorOr<string> tokenResult = await _securityProxyRepository.GenerateTokenAsync(user.Id).ConfigureAwait(false);
         if (tokenResult.IsError)
         {
             return tokenResult.FirstError;
@@ -383,7 +383,7 @@ internal sealed class AuthClientService(
             return UserErrors.SessionCreationFailed;
         }
 
-        ErrorOr<Success> alertResult = await _securityProxyRepository.SendLoginAlertAsync(user.Email);
+        ErrorOr<Success> alertResult = await _securityProxyRepository.SendLoginAlertAsync(user.Email).ConfigureAwait(false);
         if (alertResult.IsError)
         {
             _logger.LogWarning(
@@ -398,15 +398,15 @@ internal sealed class AuthClientService(
     private async Task<ErrorOr<string>> GenerateOtpForMethodAsync(User user)
     {
         return user.Preferred2FaMethod == TwoFactorMethod.Authenticator
-            ? await _securityProxyRepository.GenerateTotpAsync(user.Id)
-            : await _securityProxyRepository.GenerateSmsOtpAsync(user.Id);
+            ? await _securityProxyRepository.GenerateTotpAsync(user.Id).ConfigureAwait(false)
+            : await _securityProxyRepository.GenerateSmsOtpAsync(user.Id).ConfigureAwait(false);
     }
 
     private async Task<ErrorOr<bool>> VerifyOtpForPreferredMethodAsync(User user, string code)
     {
         return user.Preferred2FaMethod == TwoFactorMethod.Authenticator
-            ? await _securityProxyRepository.VerifyTotpAsync(user.Id, code)
-            : await _securityProxyRepository.VerifySmsOtpAsync(user.Id, code);
+            ? await _securityProxyRepository.VerifyTotpAsync(user.Id, code).ConfigureAwait(false)
+            : await _securityProxyRepository.VerifySmsOtpAsync(user.Id, code).ConfigureAwait(false);
     }
 
     private async Task<Error> HandleFailedPasswordAsync(User user)
@@ -424,7 +424,7 @@ internal sealed class AuthClientService(
             return AuthErrors.TooManyFailedAttempts;
         }
 
-        ErrorOr<Success> emailResult = await _securityProxyRepository.SendLockNotificationAsync(user.Email);
+        ErrorOr<Success> emailResult = await _securityProxyRepository.SendLockNotificationAsync(user.Email).ConfigureAwait(false);
         if (emailResult.IsError)
         {
             _logger.LogWarning(
