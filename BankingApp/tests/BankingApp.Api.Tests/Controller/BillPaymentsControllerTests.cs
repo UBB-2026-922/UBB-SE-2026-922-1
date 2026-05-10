@@ -1,258 +1,146 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs.Billers;
-using Application.DTOs.BillPayments;
-using Application.Services.BillPayments;
+using Application.Repositories.Interfaces;
 using Domain.Entities;
-using Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-public class BillPaymentsControllerTests
+public sealed class BillPaymentsControllerTests
 {
-    private readonly Mock<IBillPaymentService> _mockBillPaymentService;
-    private readonly BillPaymentsController _controller;
+    private readonly Mock<IBillPaymentRepository> _billPaymentRepository = new(MockBehavior.Strict);
 
-    public BillPaymentsControllerTests()
+    [Fact]
+    public async Task GetBillersAsync_WhenCalled_ReturnsOkWithList()
     {
-        _mockBillPaymentService = new Mock<IBillPaymentService>();
-        _controller = new BillPaymentsController(_mockBillPaymentService.Object);
+        var billers = new List<Biller> { new() { Id = 1, Name = "Biller1" } };
+        _billPaymentRepository.Setup(r => r.GetBillersAsync()).ReturnsAsync(billers);
+        BillPaymentsController controller = CreateController();
 
-        var httpContext = new DefaultHttpContext
+        IActionResult result = await controller.GetBillersAsync();
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().BeEquivalentTo(billers);
+    }
+
+    [Fact]
+    public async Task GetBillerByIdAsync_WhenFound_ReturnsOkWithBiller()
+    {
+        var biller = new Biller { Id = 2, Name = "Biller2" };
+        _billPaymentRepository.Setup(r => r.GetBillerByIdAsync(2)).ReturnsAsync(biller);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.GetBillerByIdAsync(2);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(biller);
+    }
+
+    [Fact]
+    public async Task GetBillerByIdAsync_WhenNotFound_ReturnsNotFound()
+    {
+        _billPaymentRepository.Setup(r => r.GetBillerByIdAsync(99)).ReturnsAsync((Biller?)null);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.GetBillerByIdAsync(99);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task AddPaymentAsync_WhenCalled_ReturnsOkWithPayment()
+    {
+        var payment = new BillPayment { Id = 5, Amount = 100m };
+        _billPaymentRepository.Setup(r => r.AddPaymentAsync(payment)).Returns(Task.CompletedTask);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.AddPaymentAsync(payment);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(payment);
+    }
+
+    [Fact]
+    public async Task GetUserPaymentHistoryAsync_WhenCalled_ReturnsOkWithList()
+    {
+        var payments = new List<BillPayment> { new() { Id = 1 }, new() { Id = 2 } };
+        _billPaymentRepository.Setup(r => r.GetUserPaymentHistoryAsync(1)).ReturnsAsync(payments);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.GetUserPaymentHistoryAsync(1);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().BeEquivalentTo(payments);
+    }
+
+    [Fact]
+    public async Task GetSavedBillersAsync_WhenCalled_ReturnsOkWithList()
+    {
+        var saved = new List<SavedBiller> { new() { Id = 1 } };
+        _billPaymentRepository.Setup(r => r.GetSavedBillersAsync(1)).ReturnsAsync(saved);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.GetSavedBillersAsync(1);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().BeEquivalentTo(saved);
+    }
+
+    [Fact]
+    public async Task GetAccountByIdAsync_WhenFound_ReturnsOkWithAccount()
+    {
+        var account = new Account { Id = 3 };
+        _billPaymentRepository.Setup(r => r.GetAccountByIdAsync(3)).ReturnsAsync(account);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.GetAccountByIdAsync(3);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(account);
+    }
+
+    [Fact]
+    public async Task GetAccountByIdAsync_WhenNotFound_ReturnsNotFound()
+    {
+        _billPaymentRepository.Setup(r => r.GetAccountByIdAsync(99)).ReturnsAsync((Account?)null);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.GetAccountByIdAsync(99);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task UpdateAccountAsync_WhenCalled_ReturnsNoContent()
+    {
+        var account = new Account { Id = 1 };
+        _billPaymentRepository.Setup(r => r.UpdateAccountAsync(account)).Returns(Task.CompletedTask);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.UpdateAccountAsync(account);
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async Task AddTransactionAsync_WhenCalled_ReturnsOkWithTransaction()
+    {
+        var transaction = new Transaction { Id = 7, Amount = 50m };
+        _billPaymentRepository.Setup(r => r.AddTransactionAsync(transaction)).Returns(Task.CompletedTask);
+        BillPaymentsController controller = CreateController();
+
+        IActionResult result = await controller.AddTransactionAsync(transaction);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(transaction);
+    }
+
+    private BillPaymentsController CreateController()
+    {
+        BillPaymentsController controller = new(_billPaymentRepository.Object)
         {
-            Items =
-            {
-                ["UserId"] = 1
-            }
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
-
-        _controller.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContext,
-        };
-    }
-
-    [Fact]
-    public async Task GetBillers_WhenCalled_ReturnsOkResultWithBillers()
-    {
-        // Arrange
-        var expectedBillers = new List<Biller>
-        {
-            new Biller { Id = 1, Name = "Biller1" },
-            new Biller { Id = 2, Name = "Biller2" },
-        };
-        _mockBillPaymentService.Setup(service => service.GetAllBillersAsync()).ReturnsAsync(expectedBillers);
-
-        // Act
-        IActionResult result = await _controller.GetBillers();
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        IEnumerable<Biller> actualBillers = Assert.IsType<IEnumerable<Biller>>(actionResult.Value, exactMatch: false);
-        Assert.Equal(expectedBillers, actualBillers);
-    }
-
-    [Fact]
-    public async Task GetBillers_WhenServiceThrowsException_ReturnsBadRequest()
-    {
-        // Arrange
-        _mockBillPaymentService.Setup(service => service.GetAllBillersAsync())
-            .ThrowsAsync(new InvalidOperationException("Service error"));
-
-        // Act
-        IActionResult result = await _controller.GetBillers();
-
-        // Assert
-        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.NotNull(errorResult.Value);
-    }
-
-    [Fact]
-    public async Task GetAccounts_WhenValidUser_ReturnsOkResultWithMappedAccounts()
-    {
-        // Arrange
-        var accounts = new List<Account>
-        {
-            new Account
-            {
-                Id = 1, Iban = "RO123", Currency = "RON", Balance = 100, AccountName = "Test",
-                Status = AccountStatus.Active
-            },
-        };
-        _mockBillPaymentService.Setup(service => service.GetAccountsForUserAsync(1)).ReturnsAsync(accounts);
-
-        // Act
-        IActionResult result = await _controller.GetAccounts();
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        IEnumerable<AccountDto> actualAccounts =
-            Assert.IsType<IEnumerable<AccountDto>>(actionResult.Value, exactMatch: false);
-        Assert.Single(actualAccounts);
-    }
-
-    [Fact]
-    public async Task GetAccounts_WhenServiceThrowsException_ReturnsBadRequest()
-    {
-        // Arrange
-        _mockBillPaymentService.Setup(service => service.GetAccountsForUserAsync(1))
-            .ThrowsAsync(new InvalidOperationException("Service error"));
-
-        // Act
-        IActionResult result = await _controller.GetAccounts();
-
-        // Assert
-        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.NotNull(errorResult.Value);
-    }
-
-    [Fact]
-    public void CalculateFee_WhenValidAmount_ReturnsOkResultWithFee()
-    {
-        // Arrange
-        const decimal amount = 100m;
-        const decimal expectedFee = 2.5m;
-        _mockBillPaymentService.Setup(service => service.CalculateFee(amount)).Returns(expectedFee);
-
-        // Act
-        IActionResult result = _controller.CalculateFee(amount);
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        FeeResponse response = Assert.IsType<FeeResponse>(actionResult.Value);
-        Assert.Equal(expectedFee, response.Fee);
-    }
-
-    [Fact]
-    public void Requires2Fa_WhenAmountRequires_ReturnsOkResultWithExpectedValue()
-    {
-        // Arrange
-        const decimal amount = 5000m;
-        _mockBillPaymentService.Setup(service => service.Requires2Fa(amount)).Returns(true);
-
-        // Act
-        IActionResult result = _controller.Requires2Fa(amount);
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        RequiresTwoFaResponse response = Assert.IsType<RequiresTwoFaResponse>(actionResult.Value);
-        Assert.True(response.Required);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_WhenValidRequest_ReturnsOkResultWithPaymentDetails()
-    {
-        // Arrange
-        var request = new BillPayRequest
-        {
-            SourceAccountId = 1,
-            BillerId = 2,
-            BillerReference = "REF123",
-            Amount = 100m,
-            IsPayInFull = false,
-            TwoFaToken = "123456",
-        };
-
-        var expectedPayment = new BillPayment
-        {
-            Id = 10,
-            ReceiptNumber = "REC-123",
-            Fee = 2.5m,
-            Amount = 100m,
-            Status = BillPaymentStatus.Completed,
-        };
-
-        _mockBillPaymentService
-            .Setup(service => service.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
-            .ReturnsAsync(expectedPayment);
-
-        // Act
-        IActionResult result = await _controller.ProcessPayment(request);
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        BillPayResponse response = Assert.IsType<BillPayResponse>(actionResult.Value);
-        Assert.Equal(expectedPayment.Id, response.Id);
-        Assert.Equal(expectedPayment.ReceiptNumber, response.ReceiptNumber);
-        Assert.Equal(expectedPayment.Fee, response.Fee);
-        Assert.Equal(expectedPayment.Amount, response.Amount);
-        Assert.Equal(expectedPayment.Status.ToString(), response.Status);
-    }
-
-    [Fact]
-    public async Task ProcessPayment_WhenServiceThrowsException_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new BillPayRequest();
-        _mockBillPaymentService
-            .Setup(service => service.ProcessPaymentAsync(It.IsAny<BillPaymentDto>()))
-            .ThrowsAsync(new InvalidOperationException("Insufficient funds"));
-
-        // Act
-        IActionResult result = await _controller.ProcessPayment(request);
-
-        // Assert
-        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.NotNull(errorResult.Value);
-    }
-
-    [Fact]
-    public async Task SaveBiller_WhenValidRequestAndServiceReturnsTrue_ReturnsOkResult()
-    {
-        // Arrange
-        var request = new SaveBillerRequest
-        {
-            BillerId = 2,
-            Nickname = "My Biller",
-        };
-        _mockBillPaymentService
-            .Setup(service => service.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
-            .ReturnsAsync(true);
-
-        // Act
-        IActionResult result = await _controller.SaveBiller(request);
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        Assert.NotNull(actionResult.Value);
-    }
-
-    [Fact]
-    public async Task SaveBiller_WhenServiceReturnsFalse_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new SaveBillerRequest
-        {
-            BillerId = 2,
-            Nickname = "My Biller",
-        };
-        _mockBillPaymentService
-            .Setup(service => service.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
-            .ReturnsAsync(false);
-
-        // Act
-        IActionResult result = await _controller.SaveBiller(request);
-
-        // Assert
-        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.NotNull(errorResult.Value);
-    }
-
-    [Fact]
-    public async Task SaveBiller_WhenServiceThrowsException_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new SaveBillerRequest { Nickname = "test" };
-        _mockBillPaymentService
-            .Setup(service => service.SaveBillerForUserAsync(1, request.BillerId, request.Nickname))
-            .ThrowsAsync(new InvalidOperationException("Service error"));
-
-        // Act
-        IActionResult result = await _controller.SaveBiller(request);
-
-        // Assert
-        BadRequestObjectResult errorResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.NotNull(errorResult.Value);
+        return controller;
     }
 }

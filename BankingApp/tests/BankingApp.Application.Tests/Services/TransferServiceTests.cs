@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
 using DTOs.Transfer;
 using Repositories.Interfaces;
@@ -10,7 +10,7 @@ using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>
-///     Unit tests for <see cref="TransferService" />.
+///     Unit tests for <see cref="TransferService" /> aligned with the current repository split.
 /// </summary>
 public class TransferServiceTests
 {
@@ -26,363 +26,187 @@ public class TransferServiceTests
     private const string InvalidIban = "INVALID";
 
     private readonly Mock<IDashboardRepository> _dashboardRepository = new(MockBehavior.Strict);
+    private readonly Mock<ITransferRepository> _transferRepository = new(MockBehavior.Strict);
     private readonly Mock<IOtpService> _otpService = MockFactory.CreateOtpService();
     private readonly TransferService _service;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="TransferServiceTests" /> class.
-    /// </summary>
     public TransferServiceTests()
     {
         _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(It.IsAny<int>()))
-            .Returns(new List<Account>
-            {
-                new()
-                {
-                    Id = DefaultAccountId,
-                    User = new User { Id = DefaultUserId },
-                    Balance = DefaultBalance,
-                    Status = AccountStatus.Active,
-                    Currency = DefaultCurrency
-                }
-            });
+            .Setup(repository => repository.GetAccountsByUser(It.IsAny<int>()))
+            .Returns(new List<Account> { CreateAccount(DefaultBalance, AccountStatus.Active) });
         _dashboardRepository
-            .Setup(debitsAccount => debitsAccount.DebitAccount(It.IsAny<int>(), It.IsAny<decimal>()))
+            .Setup(repository => repository.DebitAccount(It.IsAny<int>(), It.IsAny<decimal>()))
             .Returns(Result.Success);
         _dashboardRepository
-            .Setup(addsTransaction => addsTransaction.AddTransaction(It.IsAny<Transaction>()))
+            .Setup(repository => repository.AddTransaction(It.IsAny<Transaction>()))
             .Returns((Transaction transaction) =>
             {
                 transaction.Id = 1;
+                transaction.TransactionRef = "TRF-123";
                 return transaction;
             });
-        _dashboardRepository
-            .Setup(addsTransfer => addsTransfer.AddTransfer(It.IsAny<Transfer>()))
-            .Returns((Transfer transfer) => transfer);
-        _dashboardRepository
-            .Setup(getsByUserId => getsByUserId.GetTransfersByUserId(It.IsAny<int>()))
+
+        _transferRepository
+            .Setup(repository => repository.Create(It.IsAny<Transfer>()))
+            .Returns((Transfer transfer) =>
+            {
+                transfer.Id = 1;
+                return transfer;
+            });
+        _transferRepository
+            .Setup(repository => repository.GetByUserId(It.IsAny<int>()))
             .Returns(new List<Transfer>());
 
         _service = new TransferService(
             _dashboardRepository.Object,
+            _transferRepository.Object,
             _otpService.Object,
             NullLogger<TransferService>.Instance);
     }
 
-    /// <summary>
-    ///     Verifies that an invalid IBAN returns a validation error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenIbanIsInvalid_ReturnsValidationError()
     {
-        // Arrange
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = InvalidIban,
-            Amount = SmallAmount,
-            Currency = DefaultCurrency
-        };
+        CreateTransferRequest request = CreateRequest(iban: InvalidIban);
 
-        // Act
         ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
 
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Validation);
         result.FirstError.Code.Should().Be("transfer.invalid_iban");
     }
 
-    /// <summary>
-    ///     Verifies that a zero amount returns a validation error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenAmountIsZero_ReturnsValidationError()
     {
-        // Arrange
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = 0m,
-            Currency = DefaultCurrency
-        };
+        CreateTransferRequest request = CreateRequest(amount: 0m);
 
-        // Act
         ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
 
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Validation);
         result.FirstError.Code.Should().Be("transfer.invalid_amount");
     }
 
-    /// <summary>
-    ///     Verifies that an invalid currency code returns a validation error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenCurrencyIsInvalid_ReturnsValidationError()
     {
-        // Arrange
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = SmallAmount,
-            Currency = "INVALID"
-        };
+        CreateTransferRequest request = CreateRequest(currency: "INVALID");
 
-        // Act
         ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
 
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Validation);
         result.FirstError.Code.Should().Be("transfer.invalid_currency");
     }
 
-    /// <summary>
-    ///     Verifies that a non-existent account returns a not found error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenAccountNotFound_ReturnsNotFoundError()
     {
-        // Arrange
         _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(DefaultUserId))
+            .Setup(repository => repository.GetAccountsByUser(DefaultUserId))
             .Returns(new List<Account>());
 
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = SmallAmount,
-            Currency = DefaultCurrency
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
         result.FirstError.Code.Should().Be("transfer.account_not_found");
     }
 
-    /// <summary>
-    ///     Verifies that an inactive account returns a forbidden error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenAccountIsNotActive_ReturnsForbiddenError()
     {
-        // Arrange
         _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(DefaultUserId))
-            .Returns(new List<Account>
-            {
-                new()
-                {
-                    Id = DefaultAccountId,
-                    User = new User { Id = DefaultUserId },
-                    Balance = DefaultBalance,
-                    Status = AccountStatus.Suspended,
-                    Currency = DefaultCurrency
-                }
-            });
+            .Setup(repository => repository.GetAccountsByUser(DefaultUserId))
+            .Returns(new List<Account> { CreateAccount(DefaultBalance, AccountStatus.Suspended) });
 
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = SmallAmount,
-            Currency = DefaultCurrency
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
         result.FirstError.Code.Should().Be("transfer.account_not_active");
     }
 
-    /// <summary>
-    ///     Verifies that insufficient funds returns a forbidden error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenInsufficientFunds_ReturnsForbiddenError()
     {
-        // Arrange
         _dashboardRepository
-            .Setup(getsAccountsByUser => getsAccountsByUser.GetAccountsByUser(DefaultUserId))
-            .Returns(new List<Account>
-            {
-                new()
-                {
-                    Id = DefaultAccountId,
-                    User = new User { Id = DefaultUserId },
-                    Balance = 10m,
-                    Status = AccountStatus.Active,
-                    Currency = DefaultCurrency
-                }
-            });
+            .Setup(repository => repository.GetAccountsByUser(DefaultUserId))
+            .Returns(new List<Account> { CreateAccount(10m, AccountStatus.Active) });
 
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = SmallAmount,
-            Currency = DefaultCurrency
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
         result.FirstError.Code.Should().Be("transfer.insufficient_funds");
     }
 
-    /// <summary>
-    ///     Verifies that a large transfer without a 2FA token returns a forbidden error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenAmountRequires2FaAndTokenMissing_ReturnsForbiddenError()
     {
-        // Arrange
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = LargeAmount,
-            Currency = DefaultCurrency,
-            TwoFaToken = null
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(amount: LargeAmount, twoFaToken: null), DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Forbidden);
         result.FirstError.Code.Should().Be("transfer.2fa_required");
     }
 
-    /// <summary>
-    ///     Verifies that a large transfer with an invalid 2FA token returns an unauthorized error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenAmountRequires2FaAndTokenInvalid_ReturnsUnauthorizedError()
     {
-        // Arrange
         _otpService
-            .Setup(verifiesTotp => verifiesTotp.VerifyTotp(DefaultUserId, It.IsAny<string>()))
+            .Setup(service => service.VerifyTotp(DefaultUserId, It.IsAny<string>()))
             .Returns(false);
 
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = LargeAmount,
-            Currency = DefaultCurrency,
-            TwoFaToken = "wrong"
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(amount: LargeAmount, twoFaToken: "wrong"), DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
         result.FirstError.Code.Should().Be("transfer.invalid_2fa_token");
     }
 
-    /// <summary>
-    ///     Verifies that a valid small transfer succeeds and returns the transfer response.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenValidSmallAmount_ReturnsTransferResponse()
     {
-        // Arrange
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = SmallAmount,
-            Currency = DefaultCurrency
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Amount.Should().Be(SmallAmount);
         result.Value.Currency.Should().Be(DefaultCurrency);
         result.Value.RecipientIban.Should().Be(DefaultIban);
         result.Value.RecipientName.Should().Be(DefaultRecipientName);
+        result.Value.TransactionId.Should().Be(1);
+        result.Value.TransactionRef.Should().Be("TRF-123");
+        _transferRepository.Verify(repository => repository.Create(It.IsAny<Transfer>()), Times.Once);
     }
 
-    /// <summary>
-    ///     Verifies that a valid large transfer with a valid 2FA token succeeds.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenValidLargeAmountWithTwoFaToken_ReturnsTransferResponse()
     {
-        // Arrange
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = LargeAmount,
-            Currency = DefaultCurrency,
-            TwoFaToken = ValidTwoFaToken
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(
+            CreateRequest(amount: LargeAmount, twoFaToken: ValidTwoFaToken),
+            DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Amount.Should().Be(LargeAmount);
     }
 
-    /// <summary>
-    ///     Verifies that GetHistory returns an empty list when no transfers exist.
-    /// </summary>
     [Fact]
     public void GetHistory_WhenNoTransfersExist_ReturnsEmptyList()
     {
-        // Act
         ErrorOr<List<TransferResponse>> result = _service.GetHistory(DefaultUserId);
 
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeEmpty();
     }
 
-    /// <summary>
-    ///     Verifies that GetHistory returns mapped transfers when they exist.
-    /// </summary>
     [Fact]
     public void GetHistory_WhenTransfersExist_ReturnsMappedList()
     {
-        // Arrange
-        _dashboardRepository
-            .Setup(getsByUserId => getsByUserId.GetTransfersByUserId(DefaultUserId))
+        _transferRepository
+            .Setup(repository => repository.GetByUserId(DefaultUserId))
             .Returns(new List<Transfer>
             {
                 new()
@@ -390,6 +214,7 @@ public class TransferServiceTests
                     Id = 1,
                     User = new User { Id = DefaultUserId },
                     SourceAccount = new Account { Id = DefaultAccountId },
+                    Transaction = new Transaction { Id = 99, TransactionRef = "TRF-ABC" },
                     RecipientName = DefaultRecipientName,
                     RecipientIban = DefaultIban,
                     Amount = SmallAmount,
@@ -399,60 +224,84 @@ public class TransferServiceTests
                 }
             });
 
-        // Act
         ErrorOr<List<TransferResponse>> result = _service.GetHistory(DefaultUserId);
 
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().ContainSingle();
         result.Value.First().RecipientName.Should().Be(DefaultRecipientName);
         result.Value.First().Amount.Should().Be(SmallAmount);
+        result.Value.First().TransactionId.Should().Be(99);
+        result.Value.First().TransactionRef.Should().BeNull();
     }
 
-    /// <summary>
-    ///     Verifies that GetHistory propagates repository errors.
-    /// </summary>
     [Fact]
     public void GetHistory_WhenRepositoryFails_ReturnsError()
     {
-        // Arrange
-        _dashboardRepository
-            .Setup(getsByUserId => getsByUserId.GetTransfersByUserId(DefaultUserId))
+        _transferRepository
+            .Setup(repository => repository.GetByUserId(DefaultUserId))
             .Returns(Error.Failure());
 
-        // Act
         ErrorOr<List<TransferResponse>> result = _service.GetHistory(DefaultUserId);
 
-        // Assert
         result.IsError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies that a debit failure propagates as a failure error.
-    /// </summary>
     [Fact]
     public void CreateTransfer_WhenDebitFails_ReturnsFailureError()
     {
-        // Arrange
         _dashboardRepository
-            .Setup(debitsAccount => debitsAccount.DebitAccount(It.IsAny<int>(), It.IsAny<decimal>()))
+            .Setup(repository => repository.DebitAccount(It.IsAny<int>(), It.IsAny<decimal>()))
             .Returns(Error.Failure());
 
-        var request = new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = DefaultIban,
-            Amount = SmallAmount,
-            Currency = DefaultCurrency
-        };
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
 
-        // Act
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Failure);
         result.FirstError.Code.Should().Be("transfer.debit_failed");
+    }
+
+    [Fact]
+    public void CreateTransfer_WhenPersistenceFails_ReturnsFailureError()
+    {
+        _transferRepository
+            .Setup(repository => repository.Create(It.IsAny<Transfer>()))
+            .Returns(Error.Failure());
+
+        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Type.Should().Be(ErrorType.Failure);
+        result.FirstError.Code.Should().Be("transfer.persistence_failed");
+    }
+
+    private static Account CreateAccount(decimal balance, AccountStatus status)
+    {
+        return new Account
+        {
+            Id = DefaultAccountId,
+            User = new User { Id = DefaultUserId },
+            Balance = balance,
+            Status = status,
+            Currency = DefaultCurrency,
+            Iban = DefaultIban,
+            AccountName = "Main Account"
+        };
+    }
+
+    private static CreateTransferRequest CreateRequest(
+        string? iban = null,
+        decimal amount = SmallAmount,
+        string currency = DefaultCurrency,
+        string? twoFaToken = null)
+    {
+        return new CreateTransferRequest
+        {
+            SourceAccountId = DefaultAccountId,
+            RecipientName = DefaultRecipientName,
+            RecipientIban = iban ?? DefaultIban,
+            Amount = amount,
+            Currency = currency,
+            TwoFaToken = twoFaToken
+        };
     }
 }

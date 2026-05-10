@@ -3,7 +3,6 @@ namespace BankingApp.Api.Controllers;
 
 using Application.Repositories.Interfaces;
 using Domain.Entities;
-using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]

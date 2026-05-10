@@ -1,319 +1,122 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.DTOs;
-using Application.DTOs.Exchange;
 using Application.Repositories.Interfaces;
-using Application.Services.Exchange;
 using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-public class ExchangeControllerTests
+public sealed class ExchangeControllerTests
 {
-    private readonly Mock<IExchangeService> _mockExchangeService;
-    private readonly Mock<IBillPaymentRepository> _mockBillPaymentRepository;
-    private readonly ExchangeController _controller;
+    private readonly Mock<IExchangeRepository> _exchangeRepository = new(MockBehavior.Strict);
 
-    public ExchangeControllerTests()
+    [Fact]
+    public void GetById_WhenFound_ReturnsOkWithExchange()
     {
-        _mockExchangeService = new Mock<IExchangeService>();
-        _mockBillPaymentRepository = new Mock<IBillPaymentRepository>();
-        _controller = new ExchangeController(_mockExchangeService.Object, _mockBillPaymentRepository.Object);
+        var exchange = new ExchangeTransaction { Id = 1 };
+        _exchangeRepository.Setup(r => r.GetById(1)).Returns(exchange);
+        ExchangeController controller = CreateController();
 
-        var httpContext = new DefaultHttpContext
-        {
-            Items =
-            {
-                ["UserId"] = 1
-            }
-        };
+        IActionResult result = controller.GetById(1);
 
-        _controller.ControllerContext = new ControllerContext
-        {
-            HttpContext = httpContext,
-        };
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(exchange);
     }
 
     [Fact]
-    public void GetPreview_WhenPreviewAndLockBothSucceed_ReturnsOkWithPreviewDto()
+    public void GetById_WhenNotFound_ReturnsNotFound()
     {
-        // Arrange
-        var previewDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
-        var lockedRate = new LockedRate { Rate = 1.2m };
+        _exchangeRepository.Setup(r => r.GetById(99)).Returns(Error.NotFound());
+        ExchangeController controller = CreateController();
 
-        _mockExchangeService
-            .Setup(service => service.GetRatePreview("EUR", "USD", 100m))
-            .Returns(previewDto);
+        IActionResult result = controller.GetById(99);
 
-        _mockExchangeService
-            .Setup(service => service.LockRate(1, "EUR", "USD"))
-            .Returns(lockedRate);
-
-        // Act
-        IActionResult result = _controller.GetPreview("EUR", "USD", 100m);
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        ExchangeTransactionResponse actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
-        Assert.Equal(1.2m, actualDto.ExchangeRate);
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     [Fact]
-    public void GetPreview_WhenGetRatePreviewFails_ReturnsMappedError()
+    public void GetByUserId_WhenExchangesExist_ReturnsOkWithList()
     {
-        // Arrange
-        var error = Error.Validation("Code", "Description");
-        _mockExchangeService
-            .Setup(exchangeService => exchangeService.GetRatePreview("EUR", "USD", 100m))
-            .Returns(error);
+        var exchanges = new List<ExchangeTransaction> { new() { Id = 1 }, new() { Id = 2 } };
+        _exchangeRepository.Setup(r => r.GetByUserId(1)).Returns(exchanges);
+        ExchangeController controller = CreateController();
 
-        // Act
-        IActionResult result = _controller.GetPreview("EUR", "USD", 100m);
+        IActionResult result = controller.GetByUserId(1);
 
-        // Assert
-        BadRequestObjectResult actionResult = Assert.IsType<BadRequestObjectResult>(result);
-        ApplicationErrorResponse errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
-        Assert.Equal("Code", errorResponse.ErrorCode);
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(exchanges);
     }
 
     [Fact]
-    public void GetPreview_WhenLockRateFails_ReturnsMappedError()
+    public void GetByUserId_WhenRepositoryFails_ReturnsError()
     {
-        // Arrange
-        var previewDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
-        var error = Error.Validation("Code", "Description");
+        _exchangeRepository.Setup(r => r.GetByUserId(1)).Returns(Error.Failure());
+        ExchangeController controller = CreateController();
 
-        _mockExchangeService
-            .Setup(service => service.GetRatePreview("EUR", "USD", 100m))
-            .Returns(previewDto);
+        IActionResult result = controller.GetByUserId(1);
 
-        _mockExchangeService
-            .Setup(service => service.LockRate(1, "EUR", "USD"))
-            .Returns(error);
-
-        // Act
-        IActionResult result = _controller.GetPreview("EUR", "USD", 100m);
-
-        // Assert
-        BadRequestObjectResult actionResult = Assert.IsType<BadRequestObjectResult>(result);
-        ApplicationErrorResponse errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
-        Assert.Equal("Code", errorResponse.ErrorCode);
+        ObjectResult obj = result.Should().BeOfType<ObjectResult>().Subject;
+        obj.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 
     [Fact]
-    public async Task Execute_WhenBothAccountIdsAreProvidedAndValid_ReturnsOkWithExchangeDto()
+    public void Create_WhenSuccessful_ReturnsOkWithExchange()
     {
-        // Arrange
-        var request = new ExchangeTransactionRequest
-        {
-            SourceAccountId = 10,
-            TargetAccountId = 20,
-            SourceCurrency = "EUR",
-            TargetCurrency = "USD",
-            SourceAmount = 100m,
-        };
+        var exchange = new ExchangeTransaction { Id = 5, SourceCurrency = "EUR", TargetCurrency = "RON" };
+        _exchangeRepository.Setup(r => r.Create(exchange)).Returns(exchange);
+        ExchangeController controller = CreateController();
 
-        var userAccounts = new List<Account>
-        {
-            new Account { Id = 10, Currency = "EUR" },
-            new Account { Id = 20, Currency = "USD" },
-        };
+        IActionResult result = controller.Create(exchange);
 
-        var responseDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
-
-        _mockBillPaymentRepository
-            .Setup(repository => repository.GetAccountsByUserIdAsync(1))
-            .ReturnsAsync(userAccounts);
-
-        _mockExchangeService
-            .Setup(service => service.ExecuteExchange(request))
-            .Returns(responseDto);
-
-        // Act
-        IActionResult result = await _controller.Execute(request);
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        ExchangeTransactionResponse actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
-        Assert.Equal(1.2m, actualDto.ExchangeRate);
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(exchange);
     }
 
     [Fact]
-    public async Task Execute_WhenAccountIdsAreZeroAndCurrencyMatchFound_ResolvesAccountsAndReturnsOk()
+    public void Create_WhenRepositoryFails_ReturnsError()
     {
-        // Arrange
-        var request = new ExchangeTransactionRequest
-        {
-            SourceAccountId = 0,
-            TargetAccountId = 0,
-            SourceCurrency = "EUR",
-            TargetCurrency = "USD",
-            SourceAmount = 100m,
-        };
+        var exchange = new ExchangeTransaction { SourceCurrency = "EUR", TargetCurrency = "RON" };
+        _exchangeRepository.Setup(r => r.Create(exchange)).Returns(Error.Failure());
+        ExchangeController controller = CreateController();
 
-        var userAccounts = new List<Account>
-        {
-            new Account { Id = 10, Currency = "EUR" },
-            new Account { Id = 20, Currency = "USD" },
-        };
+        IActionResult result = controller.Create(exchange);
 
-        var responseDto = new ExchangeTransactionResponse { ExchangeRate = 1.2m };
-
-        _mockBillPaymentRepository
-            .Setup(repository => repository.GetAccountsByUserIdAsync(1))
-            .ReturnsAsync(userAccounts);
-
-        _mockExchangeService
-            .Setup(service => service.ExecuteExchange(It.Is<ExchangeTransactionRequest>(req => req.SourceAccountId == 10 && req.TargetAccountId == 20)))
-            .Returns(responseDto);
-
-        // Act
-        IActionResult result = await _controller.Execute(request);
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        ExchangeTransactionResponse actualDto = Assert.IsType<ExchangeTransactionResponse>(actionResult.Value);
-        Assert.Equal(1.2m, actualDto.ExchangeRate);
+        ObjectResult obj = result.Should().BeOfType<ObjectResult>().Subject;
+        obj.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
     }
 
     [Fact]
-    public async Task Execute_WhenAccountIdsAreZeroAndNoCurrencyMatchFound_ReturnsNotFound()
+    public void UpdateStatus_WhenSuccessful_ReturnsOkWithUpdatedExchange()
     {
-        // Arrange
-        var request = new ExchangeTransactionRequest
-        {
-            SourceAccountId = 0,
-            TargetAccountId = 0,
-            SourceCurrency = "GBP",
-            TargetCurrency = "JPY",
-            SourceAmount = 100m,
-        };
+        var updated = new ExchangeTransaction { Id = 1, Status = ExchangeTransactionStatus.Completed };
+        _exchangeRepository.Setup(r => r.UpdateStatus(1, ExchangeTransactionStatus.Completed)).Returns(updated);
+        ExchangeController controller = CreateController();
 
-        var userAccounts = new List<Account>
-        {
-            new Account { Id = 10, Currency = "EUR" },
-        };
+        IActionResult result = controller.UpdateStatus(1, new ExchangeController.UpdateStatusRequest { Status = ExchangeTransactionStatus.Completed });
 
-        _mockBillPaymentRepository
-            .Setup(billPaymentRepository => billPaymentRepository.GetAccountsByUserIdAsync(1))
-            .ReturnsAsync(userAccounts);
-
-        // Act
-        IActionResult result = await _controller.Execute(request);
-
-        // Assert
-        NotFoundObjectResult actionResult = Assert.IsType<NotFoundObjectResult>(result);
-        Assert.NotNull(actionResult.Value);
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(updated);
     }
 
     [Fact]
-    public async Task Execute_WhenProvidedAccountsDoNotBelongToUser_ReturnsNotFound()
+    public void UpdateStatus_WhenNotFound_ReturnsNotFound()
     {
-        // Arrange
-        var request = new ExchangeTransactionRequest
-        {
-            SourceAccountId = 10,
-            TargetAccountId = 20,
-            SourceCurrency = "EUR",
-            TargetCurrency = "USD",
-            SourceAmount = 100m,
-        };
+        _exchangeRepository.Setup(r => r.UpdateStatus(99, ExchangeTransactionStatus.Completed)).Returns(Error.NotFound());
+        ExchangeController controller = CreateController();
 
-        var userAccounts = new List<Account>
-        {
-            new Account { Id = 10, Currency = "EUR" },
-        };
+        IActionResult result = controller.UpdateStatus(99, new ExchangeController.UpdateStatusRequest { Status = ExchangeTransactionStatus.Completed });
 
-        _mockBillPaymentRepository
-            .Setup(billPaymentRepository => billPaymentRepository.GetAccountsByUserIdAsync(1))
-            .ReturnsAsync(userAccounts);
-
-        // Act
-        IActionResult result = await _controller.Execute(request);
-
-        // Assert
-        NotFoundObjectResult actionResult = Assert.IsType<NotFoundObjectResult>(result);
-        actionResult.Should().NotBeNull();
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    [Fact]
-    public async Task Execute_WhenExecuteExchangeFails_ReturnsMappedError()
+    private ExchangeController CreateController()
     {
-        // Arrange
-        var request = new ExchangeTransactionRequest
+        ExchangeController controller = new(_exchangeRepository.Object)
         {
-            SourceAccountId = 10,
-            TargetAccountId = 20,
-            SourceCurrency = "EUR",
-            TargetCurrency = "USD",
-            SourceAmount = 100m,
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
-
-        var userAccounts = new List<Account>
-        {
-            new Account { Id = 10, Currency = "EUR" },
-            new Account { Id = 20, Currency = "USD" },
-        };
-
-        var error = Error.Validation("Code", "Description");
-
-        _mockBillPaymentRepository
-            .Setup(repository => repository.GetAccountsByUserIdAsync(1))
-            .ReturnsAsync(userAccounts);
-
-        _mockExchangeService
-            .Setup(service => service.ExecuteExchange(request))
-            .Returns(error);
-
-        // Act
-        IActionResult result = await _controller.Execute(request);
-
-        // Assert
-        BadRequestObjectResult actionResult = Assert.IsType<BadRequestObjectResult>(result);
-        ApplicationErrorResponse errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
-        errorResponse.ErrorCode.Should().Be("Code");
-    }
-
-    [Fact]
-    public void GetHistory_WhenHistoryExistsForUser_ReturnsOkWithList()
-    {
-        // Arrange
-        var historyList = new List<ExchangeTransactionResponse>
-        {
-            new() { Id = 1, SourceCurrency = "EUR", TargetCurrency = "USD" },
-            new() { Id = 2, SourceCurrency = "GBP", TargetCurrency = "EUR" },
-        };
-
-        _mockExchangeService
-            .Setup(service => service.GetExchangeHistory(1))
-            .Returns(historyList);
-
-        // Act
-        IActionResult result = _controller.GetHistory();
-
-        // Assert
-        OkObjectResult actionResult = Assert.IsType<OkObjectResult>(result);
-        List<ExchangeTransactionResponse> actualList = Assert.IsType<List<ExchangeTransactionResponse>>(actionResult.Value);
-        actualList.Count.Should().Be(2);
-    }
-
-    [Fact]
-    public void GetHistory_WhenServiceFails_ReturnsMappedError()
-    {
-        // Arrange
-        var error = Error.Validation("Code", "Description");
-        _mockExchangeService
-            .Setup(service => service.GetExchangeHistory(1))
-            .Returns(error);
-
-        // Act
-        IActionResult result = _controller.GetHistory();
-
-        // Assert
-        BadRequestObjectResult actionResult = Assert.IsType<BadRequestObjectResult>(result);
-        ApplicationErrorResponse errorResponse = Assert.IsType<ApplicationErrorResponse>(actionResult.Value);
-        Assert.Equal("Code", errorResponse.ErrorCode);
+        return controller;
     }
 }
