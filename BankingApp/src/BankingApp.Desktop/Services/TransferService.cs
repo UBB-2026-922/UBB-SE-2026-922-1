@@ -34,15 +34,18 @@ internal sealed class TransferService : ITransferService
     private readonly ICurrentSession _currentSession;
     private readonly IBeneficiaryRepository _beneficiaryRepository;
     private readonly IDashboardRepository _dashboardRepository;
+    private readonly ITransferRepository _transferRepository;
 
     public TransferService(
         ICurrentSession currentSession,
         IDashboardRepository dashboardRepository,
-        IBeneficiaryRepository beneficiaryRepository)
+        IBeneficiaryRepository beneficiaryRepository,
+        ITransferRepository transferRepository)
     {
         _currentSession = currentSession;
         _dashboardRepository = dashboardRepository;
         _beneficiaryRepository = beneficiaryRepository;
+        _transferRepository = transferRepository;
     }
 
     public Task<ErrorOr<List<TransferAccountSelectionResponse>>> GetAccountsAsync(CancellationToken cancellationToken = default)
@@ -149,7 +152,7 @@ internal sealed class TransferService : ITransferService
             CreatedAt = DateTime.UtcNow,
         };
 
-        ErrorOr<Transfer> transferResult = _dashboardRepository.AddTransfer(transfer);
+        ErrorOr<Transfer> transferResult = _transferRepository.Create(transfer);
         if (transferResult.IsError)
         {
             return Task.FromResult<ErrorOr<TransferExecutionResponse>>(transferResult.FirstError);
@@ -217,7 +220,7 @@ internal sealed class TransferService : ITransferService
             return Task.FromResult<ErrorOr<List<TransferResponse>>>(Error.Unauthorized(description: "User is not authenticated."));
         }
 
-        ErrorOr<List<Transfer>> result = _dashboardRepository.GetTransfersByUserId(userId.Value);
+        ErrorOr<List<Transfer>> result = _transferRepository.GetByUserId(userId.Value);
         if (result.IsError)
         {
             return Task.FromResult<ErrorOr<List<TransferResponse>>>(result.FirstError);

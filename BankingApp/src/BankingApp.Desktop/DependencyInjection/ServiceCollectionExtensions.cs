@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IBillPaymentClientService, BillPaymentClientService>();
         services.AddTransient<IDashboardRepository, DashboardProxyRepository>();
         services.AddTransient<IBeneficiaryRepository, BeneficiaryProxyRepository>();
+        services.AddTransient<ITransferRepository, TransferProxyRepository>();
         services.AddTransient<ITransferService, TransferService>();
 
         services.AddTransient<IPasswordRecoveryManager>(provider =>

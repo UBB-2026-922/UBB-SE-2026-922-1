@@ -33,22 +33,6 @@ public interface IDashboardRepository
     public ErrorOr<int> GetUnreadNotificationCount(int userId);
 
     /// <summary>
-    /// Adds a new transfer request for the specified user and source account.
-    /// </summary>
-    /// <param name="transfer">The transfer to add. Required fields include <see cref="Transfer.User"/>, <see cref="Transfer.SourceAccount"/>, and <see cref="Transfer.Amount"/>.</param>
-    /// <returns>
-    /// The added <see cref="Transfer"/> on success, or an <see cref="ErrorOr{T}"/> containing errors if the operation fails.
-    /// </returns>
-    public ErrorOr<Transfer> AddTransfer(Transfer transfer);
-
-    /// <summary>
-    /// Gets all transfers created by the specified user.
-    /// </summary>
-    /// <param name="userId">The user identifier whose transfers will be returned.</param>
-    /// <returns>A list of <see cref="Transfer"/> instances or errors.</returns>
-    public ErrorOr<List<Transfer>> GetTransfersByUserId(int userId);
-
-    /// <summary>
     /// Debits the specified account by the given amount.
     /// </summary>
     /// <param name="accountId">The account identifier to debit.</param>

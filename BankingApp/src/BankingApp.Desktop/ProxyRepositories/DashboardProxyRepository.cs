@@ -30,12 +30,6 @@ internal sealed class DashboardProxyRepository : IDashboardRepository
     public ErrorOr<int> GetUnreadNotificationCount(int userId)
         => _apiClient.GetAsync<int>($"/api/dashboard/notifications/{userId}/unread-count").GetAwaiter().GetResult();
 
-    public ErrorOr<Transfer> AddTransfer(Transfer transfer)
-        => _apiClient.PostAsync<Transfer, Transfer>("/api/dashboard/transfers", transfer).GetAwaiter().GetResult();
-
-    public ErrorOr<List<Transfer>> GetTransfersByUserId(int userId)
-        => _apiClient.GetAsync<List<Transfer>>($"/api/dashboard/transfers/{userId}").GetAwaiter().GetResult();
-
     public ErrorOr<Success> DebitAccount(int accountId, decimal amount)
         => _apiClient.PostAsync("/api/dashboard/accounts/" + accountId + "/debit", new DebitAccountRequest { Amount = amount })
             .GetAwaiter()

@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Infrastructure.Repositories.Implementations;
+namespace BankingApp.Infrastructure.Repositories.Implementations;
 
 using BankingApp.Application.Repositories.Interfaces;
 using Domain.Entities;
@@ -14,7 +14,6 @@ public class DashboardRepository : IDashboardRepository
     private readonly ICardDataAccess _cardDataAccess;
     private readonly INotificationDataAccess _notificationDataAccess;
     private readonly ITransactionDataAccess _transactionDataAccess;
-    private readonly ITransferDataAccess _transferDataAccess;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="DashboardRepository" /> class.
@@ -23,19 +22,16 @@ public class DashboardRepository : IDashboardRepository
     /// <param name="cardDataAccess">The card data access component.</param>
     /// <param name="transactionDataAccess">The transaction data access component.</param>
     /// <param name="notificationDataAccess">The notification data access component.</param>
-    /// <param name="transferDataAccess">The transfer data access component.</param>
     public DashboardRepository(
         IAccountDataAccess accountDataAccess,
         ICardDataAccess cardDataAccess,
         ITransactionDataAccess transactionDataAccess,
-        INotificationDataAccess notificationDataAccess,
-        ITransferDataAccess transferDataAccess)
+        INotificationDataAccess notificationDataAccess)
     {
         _accountDataAccess = accountDataAccess;
         _cardDataAccess = cardDataAccess;
         _transactionDataAccess = transactionDataAccess;
         _notificationDataAccess = notificationDataAccess;
-        _transferDataAccess = transferDataAccess;
     }
 
     /// <inheritdoc />
@@ -71,22 +67,6 @@ public class DashboardRepository : IDashboardRepository
     public ErrorOr<int> GetUnreadNotificationCount(int userId)
     {
         return _notificationDataAccess.CountUnreadByUserId(userId);
-    }
-
-    /// <inheritdoc />
-    /// <param name="transfer">The transfer value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<Transfer> AddTransfer(Transfer transfer)
-    {
-        return _transferDataAccess.Add(transfer);
-    }
-
-    /// <inheritdoc />
-    /// <param name="userId">The userId value.</param>
-    /// <returns>The result of the operation.</returns>
-    public ErrorOr<List<Transfer>> GetTransfersByUserId(int userId)
-    {
-        return _transferDataAccess.FindByUserId(userId);
     }
 
     /// <inheritdoc />

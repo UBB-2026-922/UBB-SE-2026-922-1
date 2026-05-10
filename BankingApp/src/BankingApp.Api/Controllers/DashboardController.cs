@@ -49,15 +49,6 @@ public class DashboardController(IDashboardRepository dashboardRepository) : Api
     }
 
     /// <summary>
-    ///     Returns transfers for the supplied user identifier.
-    /// </summary>
-    [HttpGet("transfers/{userId:int}")]
-    public IActionResult GetTransfersByUserIdRaw(int userId)
-    {
-        return ToActionResult(dashboardRepository.GetTransfersByUserId(userId), Ok);
-    }
-
-    /// <summary>
     ///     Debits the specified account by the supplied amount.
     /// </summary>
     [HttpPost("accounts/{accountId:int}/debit")]
@@ -73,15 +64,6 @@ public class DashboardController(IDashboardRepository dashboardRepository) : Api
     public IActionResult AddTransactionRaw([FromBody] Transaction transaction)
     {
         return ToActionResult(dashboardRepository.AddTransaction(transaction), Ok);
-    }
-
-    /// <summary>
-    ///     Persists a transfer entity.
-    /// </summary>
-    [HttpPost("transfers")]
-    public IActionResult AddTransferRaw([FromBody] Transfer transfer)
-    {
-        return ToActionResult(dashboardRepository.AddTransfer(transfer), Ok);
     }
 
     /// <summary>

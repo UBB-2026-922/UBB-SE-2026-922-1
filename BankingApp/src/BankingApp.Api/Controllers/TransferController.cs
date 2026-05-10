@@ -22,7 +22,7 @@ public class TransferController(ITransferRepository transferRepository) : ApiCon
     public IActionResult Create([FromBody] Transfer transfer)
         => ToActionResult(transferRepository.Create(transfer), result => CreatedAtAction(nameof(GetById), new { id = result.Id }, result));
 
-    [HttpPatch("{transferId:int}/status")]
+    [HttpPut("{transferId:int}/status")]
     public IActionResult UpdateStatus(int transferId, [FromQuery] TransferStatus status)
         => ToActionResult(transferRepository.UpdateStatus(transferId, status), Ok);
 }
