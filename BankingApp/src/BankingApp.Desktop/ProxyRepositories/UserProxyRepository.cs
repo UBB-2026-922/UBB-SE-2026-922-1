@@ -19,7 +19,7 @@ internal sealed class UserProxyRepository : IUserRepository
         => _apiClient.GetAsync<User>($"/api/users/{userId}").GetAwaiter().GetResult();
 
     public ErrorOr<Success> UpdateUser(User user)
-        => _apiClient.PutAsync("/api/raw/users", user).GetAwaiter().GetResult();
+        => _apiClient.PutAsync("/api/users", user).GetAwaiter().GetResult();
 
     public ErrorOr<Success> UpdatePassword(int userId, string newPasswordHash)
         => _apiClient.PutAsync($"/api/users/{userId}/password", new UpdatePasswordRequest { NewPasswordHash = newPasswordHash })

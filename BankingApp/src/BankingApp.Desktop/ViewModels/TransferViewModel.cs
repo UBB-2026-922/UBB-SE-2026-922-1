@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.ViewModels;
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,8 @@ using Application.DTOs.Transfer;
 using Utilities;
 using ErrorOr;
 using Services;
+using Master;
+using Views;
 
 /// <summary>
 ///     Drives the multi-step transfer wizard.
@@ -35,6 +37,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
     private const int MinimumAccounts = 0;
     private const int FirstAccountIndex = 0;
     private readonly ITransferService _transferService;
+    private readonly IAppNavigationService _navigationService;
 
     private int _currentStep;
     private ObservableCollection<TransferAccountSelectionResponse> _accounts;
@@ -57,9 +60,11 @@ public partial class TransferViewModel : INotifyPropertyChanged
     ///     Initializes a new instance of the <see cref="TransferViewModel" /> class.
     /// </summary>
     /// <param name="transferService">The transfer service used for transfer-related calls.</param>
-    public TransferViewModel(ITransferService transferService)
+    /// <param name="navigationService">The navigation service used for view navigation.</param>
+    public TransferViewModel(ITransferService transferService, IAppNavigationService navigationService)
     {
         _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
+        _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _accounts = new ObservableCollection<TransferAccountSelectionResponse>();
         _currentStep = AccountSelectionStep;
 
@@ -541,8 +546,7 @@ public partial class TransferViewModel : INotifyPropertyChanged
 
     private void ExecuteCancel()
     {
-        // TODO: implement.
-        throw new NotImplementedException();
+        _navigationService.NavigateToContent<DashboardView>();
     }
 
     /// <summary>

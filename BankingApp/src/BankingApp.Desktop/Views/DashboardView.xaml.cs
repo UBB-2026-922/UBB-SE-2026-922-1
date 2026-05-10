@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Enums;
 using Utilities;
 using ViewModels;
+using Master;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -43,6 +44,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         DotBlueChannel);
 
     private readonly DashboardViewModel _viewModel;
+    private readonly IAppNavigationService _navigationService;
     private bool _disposed;
     private bool _isObserverAttached;
     private CancellationTokenSource? _loadCancellationTokenSource;
@@ -51,10 +53,12 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
     ///     Initializes a new instance of the <see cref="DashboardView" /> class.
     /// </summary>
     /// <param name="viewModel">The view model that loads account data and exposes dashboard state.</param>
-    public DashboardView(DashboardViewModel viewModel)
+    /// <param name="navigationService">The navigation service used for button actions.</param>
+    public DashboardView(DashboardViewModel viewModel, IAppNavigationService navigationService)
     {
         InitializeComponent();
         _viewModel = viewModel;
+        _navigationService = navigationService;
         Loaded += OnPageLoaded;
         Unloaded += OnPageUnloaded;
     }
@@ -252,22 +256,22 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
 
     private void TransferButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Transfers"));
+        _navigationService.NavigateToContent<TransferView>();
     }
 
     private void PayBillButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Bill Payments"));
+        _navigationService.NavigateToContent<BillPayView>();
     }
 
     private void ExchangeButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Currency Exchange"));
+        _navigationService.NavigateToContent<ForexPage>();
     }
 
     private void TransactionHistoryButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Transaction History"));
+        _navigationService.NavigateToContent<TransferHistoryView>();
     }
 
     private void RetryButton_Click(object sender, RoutedEventArgs routedEventArgs)
