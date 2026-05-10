@@ -6,6 +6,7 @@ using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Services;
+using BankingApp.Desktop.Master;
 
 /// <summary>
 ///     Tests for the <see cref="TransferViewModel" />.
@@ -21,6 +22,7 @@ public class TransferViewModelTests
     private const int TransferErrorStep = 7;
 
     private readonly Mock<ITransferService> _transferService;
+    private readonly Mock<IAppNavigationService> _navigationService;
     private readonly TransferViewModel _viewModel;
 
     /// <summary>
@@ -30,7 +32,8 @@ public class TransferViewModelTests
     public TransferViewModelTests()
     {
         _transferService = new Mock<ITransferService>(MockBehavior.Loose);
-        _viewModel = new TransferViewModel(_transferService.Object);
+        _navigationService = new Mock<IAppNavigationService>(MockBehavior.Loose);
+        _viewModel = new TransferViewModel(_transferService.Object, _navigationService.Object);
     }
 
     /// <summary>
