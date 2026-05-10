@@ -2,6 +2,7 @@ namespace BankingApp.Desktop.Services;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ using Application.DTOs.Transfer;
 using Application.Repositories.Interfaces;
 using Utilities;
 using Domain.Entities;
-using BankingApp.Domain.Enums;
+using Domain.Enums;
 using ErrorOr;
 
 /// <summary>
@@ -82,17 +83,82 @@ internal sealed class TransferService : ITransferService
         string currency,
         string? twoFaToken)
     {
-        var request = new CreateTransferRequest
+        int? userId = _apiClient.GetCurrentUserId();
+        if (userId is null)
         {
-            SourceAccountId = sourceAccountId,
-            RecipientName = recipientName,
-            RecipientIban = recipientIban,
+            return Task.FromResult<ErrorOr<TransferExecutionResponse>>(Error.Unauthorized(description: "User is not authenticated."));
+        }
+
+        ErrorOr<List<Account>> accountsResult = _dashboardRepository.GetAccountsByUser(userId.Value);
+        if (accountsResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<TransferExecutionResponse>>(accountsResult.FirstError);
+        }
+
+        Account? sourceAccount = accountsResult.Value.FirstOrDefault(a => a.Id == sourceAccountId);
+        if (sourceAccount is null)
+        {
+            return Task.FromResult<ErrorOr<TransferExecutionResponse>>(Error.NotFound(description: "Source account not found."));
+        }
+
+        if (sourceAccount.Balance < amount)
+        {
+            return Task.FromResult<ErrorOr<TransferExecutionResponse>>(Error.Forbidden(description: "Insufficient funds."));
+        }
+
+        ErrorOr<Success> debitResult = _dashboardRepository.DebitAccount(sourceAccountId, amount);
+        if (debitResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<TransferExecutionResponse>>(debitResult.FirstError);
+        }
+
+        string transactionRef = GenerateTransactionRef();
+        var transaction = new Transaction
+        {
+            Account = sourceAccount,
             Amount = amount,
+            Fee = 0,
             Currency = currency,
-            TwoFaToken = twoFaToken,
+            Description = $"Transfer to {recipientName}",
+            CounterpartyName = recipientName,
+            Direction = TransactionDirection.Out,
+            Status = TransactionStatus.Completed,
+            Type = "Transfer",
+            TransactionRef = transactionRef,
+            CreatedAt = DateTime.UtcNow,
+            BalanceAfter = sourceAccount.Balance - amount,
         };
 
-        return _apiClient.PostAsync<CreateTransferRequest, TransferExecutionResponse>(ApiEndpoints.TransferExecute, request);
+        ErrorOr<Transaction> transactionResult = _dashboardRepository.AddTransaction(transaction);
+        if (transactionResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<TransferExecutionResponse>>(transactionResult.FirstError);
+        }
+
+        var transfer = new Transfer
+        {
+            User = new User { Id = userId.Value },
+            SourceAccount = sourceAccount,
+            Transaction = transactionResult.Value,
+            RecipientName = recipientName,
+            RecipientIban = recipientIban.Trim().ToUpperInvariant(),
+            RecipientBankName = Transfer.InferRecipientBankName(recipientIban),
+            Amount = amount,
+            Currency = currency,
+            Status = TransferStatus.Completed,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        ErrorOr<Transfer> transferResult = _dashboardRepository.AddTransfer(transfer);
+        if (transferResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<TransferExecutionResponse>>(transferResult.FirstError);
+        }
+
+        return Task.FromResult<ErrorOr<TransferExecutionResponse>>(new TransferExecutionResponse
+        {
+            TransactionRef = transactionRef,
+        });
     }
 
     public Task<ErrorOr<TransferIbanValidationResponse>> ValidateIbanAsync(string iban)
@@ -260,6 +326,11 @@ internal sealed class TransferService : ITransferService
 
         return Task.FromResult(_beneficiaryRepository.Delete(beneficiaryId, userId.Value));
     }
+
+    private static string GenerateTransactionRef()
+        => string.Create(
+            CultureInfo.InvariantCulture,
+            $"TXN-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)[..12].ToUpperInvariant()}");
 
     private static bool ValidateBeneficiaryIban(string iban)
     {

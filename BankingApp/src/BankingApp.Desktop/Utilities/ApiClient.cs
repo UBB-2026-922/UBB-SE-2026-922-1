@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Application.DTOs;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 /// <summary>
 ///     Provides a thin wrapper around <see cref="HttpClient" /> for the application's API calls.
@@ -19,7 +18,6 @@ public sealed partial class ApiClient : IApiClient, IDisposable
 {
     private readonly Error? _configurationError;
     private readonly HttpClient _httpClient;
-    private readonly ILogger<ApiClient> _logger;
     private bool _disposed;
 
     /// <summary>
@@ -30,17 +28,14 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     ///     If the key is absent the client starts in a degraded state — callers must check
     ///     <see cref="EnsureConfigured" /> before issuing requests.
     /// </param>
-    /// <param name="logger">Logger for HTTP errors and configuration warnings.</param>
-    public ApiClient(IConfiguration configuration, ILogger<ApiClient> logger)
+    public ApiClient(IConfiguration configuration)
     {
-        _logger = logger;
         string? baseUrl = configuration["ApiBaseUrl"];
         if (baseUrl is null)
         {
             _configurationError = Error.Failure(
                 "ApiClient.MissingBaseUrl",
                 "ApiBaseUrl is missing from configuration.");
-            _logger.ApiBaseUrlMissing();
             // Dummy client — requests must not be issued when configurationError is set.
             _httpClient = new HttpClient();
         }
@@ -312,7 +307,6 @@ public sealed partial class ApiClient : IApiClient, IDisposable
 
         _httpClient.Dispose();
         _disposed = true;
-        GC.SuppressFinalize(obj: this);
     }
 
     private static async Task<Error> MapErrorAsync(

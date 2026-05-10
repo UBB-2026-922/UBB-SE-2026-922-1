@@ -9,15 +9,20 @@ using Application.Repositories.Interfaces;
 using Application.Utilities;
 using Domain.Entities;
 using ErrorOr;
+using ProxyRepositories;
 using Utilities;
 
 /// <summary>
 ///     Implements <see cref="IProfileClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class ProfileClientService(IApiClient apiClient, IUserRepository userRepository) : IProfileClientService
+internal sealed class ProfileClientService(
+    IApiClient apiClient,
+    IUserRepository userRepository,
+    SecurityProxyRepository securityRepository) : IProfileClientService
 {
     private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
     private readonly IUserRepository _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+    private readonly SecurityProxyRepository _securityRepository = securityRepository ?? throw new ArgumentNullException(nameof(securityRepository));
 
     public Task<ErrorOr<ProfileDto>> GetProfileAsync()
     {
@@ -112,11 +117,7 @@ internal sealed class ProfileClientService(IApiClient apiClient, IUserRepository
             return false;
         }
 
-        return await _apiClient.PostAsync<object, bool>("/api/raw/security/verify-hash", new
-        {
-            Input = password,
-            Hash = userResult.Value.PasswordHash,
-        });
+        return await _securityRepository.VerifyHashAsync(password, userResult.Value.PasswordHash);
     }
 
     public async Task<ErrorOr<Success>> ChangePasswordAsync(ChangePasswordRequest request)
@@ -137,11 +138,7 @@ internal sealed class ProfileClientService(IApiClient apiClient, IUserRepository
             return Error.Validation("incorrect_password", "Current password is incorrect.");
         }
 
-        ErrorOr<bool> verifyResult = await _apiClient.PostAsync<object, bool>("/api/raw/security/verify-hash", new
-        {
-            Input = request.CurrentPassword,
-            Hash = userResult.Value.PasswordHash,
-        });
+        ErrorOr<bool> verifyResult = await _securityRepository.VerifyHashAsync(request.CurrentPassword, userResult.Value.PasswordHash);
         if (verifyResult.IsError)
         {
             return verifyResult.FirstError;
@@ -152,10 +149,7 @@ internal sealed class ProfileClientService(IApiClient apiClient, IUserRepository
             return Error.Validation("incorrect_password", "Current password is incorrect.");
         }
 
-        ErrorOr<string> hashResult = await _apiClient.PostAsync<object, string>("/api/raw/security/hash", new
-        {
-            Input = request.NewPassword,
-        });
+        ErrorOr<string> hashResult = await _securityRepository.HashAsync(request.NewPassword);
         if (hashResult.IsError)
         {
             return hashResult.FirstError;

@@ -22,15 +22,20 @@ internal sealed class DashboardClientService(
 {
     private const int DefaultRecentTransactionLimit = 5;
     private readonly IApiClient _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-    private readonly IDashboardRepository _dashboardRepository = dashboardRepository ?? throw new ArgumentNullException(nameof(dashboardRepository));
-    private readonly IUserRepository _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+
+    private readonly IDashboardRepository _dashboardRepository =
+        dashboardRepository ?? throw new ArgumentNullException(nameof(dashboardRepository));
+
+    private readonly IUserRepository _userRepository =
+        userRepository ?? throw new ArgumentNullException(nameof(userRepository));
 
     public Task<ErrorOr<DashboardDto>> GetDashboardAsync(CancellationToken cancellationToken = default)
     {
         int? userId = _apiClient.GetCurrentUserId();
         if (userId is null)
         {
-            return Task.FromResult<ErrorOr<DashboardDto>>(Error.Unauthorized(description: "User is not authenticated."));
+            return Task.FromResult<ErrorOr<DashboardDto>>(
+                Error.Unauthorized(description: "User is not authenticated."));
         }
 
         ErrorOr<User> userResult = _userRepository.FindById(userId.Value);
@@ -48,14 +53,12 @@ internal sealed class DashboardClientService(
         if (!accountsResult.IsError)
         {
             accountsById = accountsResult.Value.ToDictionary(account => account.Id);
-            foreach (Account account in accountsResult.Value)
+            foreach (ErrorOr<List<Transaction>> transactionsResult in accountsResult.Value
+                         .Select(account =>
+                             _dashboardRepository.GetRecentTransactions(account.Id, DefaultRecentTransactionLimit))
+                         .Where(transactionsResult => !transactionsResult.IsError))
             {
-                ErrorOr<List<Transaction>> transactionsResult =
-                    _dashboardRepository.GetRecentTransactions(account.Id, DefaultRecentTransactionLimit);
-                if (!transactionsResult.IsError)
-                {
-                    allTransactions.AddRange(transactionsResult.Value);
-                }
+                allTransactions.AddRange(transactionsResult.Value);
             }
 
             allTransactions = allTransactions
@@ -86,13 +89,15 @@ internal sealed class DashboardClientService(
                     IsContactlessEnabled = card.IsContactlessEnabled,
                     IsOnlineEnabled = card.IsOnlineEnabled,
                     AccountName = card.Account?.AccountName
-                        ?? (card.Account is not null && accountsById.TryGetValue(card.Account.Id, out Account? account)
-                            ? account.AccountName
-                            : null),
+                                  ?? (card.Account is not null &&
+                                      accountsById.TryGetValue(card.Account.Id, out Account? account)
+                                      ? account.AccountName
+                                      : null),
                     AccountBalance = card.Account?.Balance
-                        ?? (card.Account is not null && accountsById.TryGetValue(card.Account.Id, out Account? linkedAccount)
-                            ? linkedAccount.Balance
-                            : null),
+                                     ?? (card.Account is not null &&
+                                         accountsById.TryGetValue(card.Account.Id, out Account? linkedAccount)
+                                         ? linkedAccount.Balance
+                                         : null),
                 }).ToList(),
             RecentTransactions = allTransactions.Select(transaction => new TransactionDto
             {

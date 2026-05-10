@@ -7,43 +7,36 @@ using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/raw/users")]
-public class UserController : ApiController
+[Route("api/users")]
+public class UserController(IUserRepository userRepository) : ApiController
 {
-    private readonly IUserRepository _userRepository;
-
-    public UserController(IUserRepository userRepository)
-    {
-        _userRepository = userRepository;
-    }
-
     [HttpGet("{userId:int}")]
     public IActionResult FindById(int userId)
-        => ToActionResult(_userRepository.FindById(userId), Ok);
+        => ToActionResult(userRepository.FindById(userId), Ok);
 
     [HttpPut]
     public IActionResult UpdateUser([FromBody] User user)
-        => ToActionResult(_userRepository.UpdateUser(user));
+        => ToActionResult(userRepository.UpdateUser(user));
 
     [HttpPut("{userId:int}/password")]
     public IActionResult UpdatePassword(int userId, [FromBody] UpdatePasswordRequest request)
-        => ToActionResult(_userRepository.UpdatePassword(userId, request.NewPasswordHash));
+        => ToActionResult(userRepository.UpdatePassword(userId, request.NewPasswordHash));
 
     [HttpGet("{userId:int}/sessions")]
     public IActionResult GetActiveSessions(int userId)
-        => ToActionResult(_userRepository.GetActiveSessions(userId), Ok);
+        => ToActionResult(userRepository.GetActiveSessions(userId), Ok);
 
     [HttpDelete("{userId:int}/sessions/{sessionId:int}")]
     public IActionResult RevokeSession(int userId, int sessionId)
-        => ToActionResult(_userRepository.RevokeSession(userId, sessionId));
+        => ToActionResult(userRepository.RevokeSession(userId, sessionId));
 
     [HttpGet("{userId:int}/notification-preferences")]
     public IActionResult GetNotificationPreferences(int userId)
-        => ToActionResult(_userRepository.GetNotificationPreferences(userId), Ok);
+        => ToActionResult(userRepository.GetNotificationPreferences(userId), Ok);
 
     [HttpPut("{userId:int}/notification-preferences")]
     public IActionResult UpdateNotificationPreferences(int userId, [FromBody] List<NotificationPreference> preferences)
-        => ToActionResult(_userRepository.UpdateNotificationPreferences(userId, preferences));
+        => ToActionResult(userRepository.UpdateNotificationPreferences(userId, preferences));
 
     public sealed class UpdatePasswordRequest
     {

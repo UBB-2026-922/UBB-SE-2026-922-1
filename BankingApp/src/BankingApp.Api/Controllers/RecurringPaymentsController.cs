@@ -6,34 +6,27 @@ using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/raw/recurring-payments")]
-public class RecurringPaymentsController : ApiController
+[Route("api/recurring-payments")]
+public class RecurringPaymentsController(IRecurringPaymentRepository recurringPaymentRepository) : ApiController
 {
-    private readonly IRecurringPaymentRepository _recurringPaymentRepository;
-
-    public RecurringPaymentsController(IRecurringPaymentRepository recurringPaymentRepository)
-    {
-        _recurringPaymentRepository = recurringPaymentRepository;
-    }
-
     [HttpGet("{id:int}")]
     public IActionResult GetById(int id)
-        => ToActionResult(_recurringPaymentRepository.GetById(id), Ok);
+        => ToActionResult(recurringPaymentRepository.GetById(id), Ok);
 
     [HttpGet("user/{userId:int}")]
     public IActionResult GetByUserId(int userId)
-        => ToActionResult(_recurringPaymentRepository.GetByUserId(userId), Ok);
+        => ToActionResult(recurringPaymentRepository.GetByUserId(userId), Ok);
 
     [HttpGet("due")]
     public IActionResult GetDuePayments([FromQuery] DateTime asOf)
-        => ToActionResult(_recurringPaymentRepository.GetDuePayments(asOf), Ok);
+        => ToActionResult(recurringPaymentRepository.GetDuePayments(asOf), Ok);
 
     [HttpPost]
     public IActionResult Create([FromBody] RecurringPayment payment)
-        => ToActionResult(_recurringPaymentRepository.Create(payment), Ok);
+        => ToActionResult(recurringPaymentRepository.Create(payment), Ok);
 
     [HttpPut]
     public IActionResult Update([FromBody] RecurringPayment payment)
-        => ToActionResult(_recurringPaymentRepository.Update(payment));
+        => ToActionResult(recurringPaymentRepository.Update(payment));
 }
 #pragma warning restore CS1591

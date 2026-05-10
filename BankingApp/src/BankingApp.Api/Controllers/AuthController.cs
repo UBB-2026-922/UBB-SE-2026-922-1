@@ -1,37 +1,53 @@
-#pragma warning disable CS1591
 namespace BankingApp.Api.Controllers;
 
 using Application.Repositories.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
+/// <summary>
+/// TODO: add docs.
+/// </summary>
+/// <param name="authRepository"></param>
 [ApiController]
-[Route("api/raw/auth")]
-public class AuthController : ApiController
+[Route("api/auth")]
+public class AuthController(IAuthRepository authRepository) : ApiController
 {
-    private readonly IAuthRepository _authRepository;
-
-    public AuthController(IAuthRepository authRepository)
-    {
-        _authRepository = authRepository;
-    }
-
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns></returns>
     [HttpGet("users/by-email")]
     public IActionResult FindUserByEmail([FromQuery] string email)
-        => ToActionResult(_authRepository.FindUserByEmail(email), Ok);
+        => ToActionResult(authRepository.FindUserByEmail(email), Ok);
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     [HttpGet("users/{userId:int}")]
     public IActionResult FindUserById(int userId)
-        => ToActionResult(_authRepository.FindUserById(userId), Ok);
+        => ToActionResult(authRepository.FindUserById(userId), Ok);
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns></returns>
     [HttpPost("users")]
     public IActionResult CreateUser([FromBody] User user)
-        => ToActionResult(_authRepository.CreateUser(user));
+        => ToActionResult(authRepository.CreateUser(user));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("sessions")]
     public IActionResult CreateSession([FromBody] CreateSessionRequest request)
         => ToActionResult(
-            _authRepository.CreateSession(
+            authRepository.CreateSession(
                 request.UserId,
                 request.Token,
                 request.DeviceInfo,
@@ -39,30 +55,60 @@ public class AuthController : ApiController
                 request.RemoteIpAddress),
             Ok);
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
     [HttpGet("sessions/by-token")]
     public IActionResult FindSessionByToken([FromQuery] string token)
-        => ToActionResult(_authRepository.FindSessionByToken(token), Ok);
+        => ToActionResult(authRepository.FindSessionByToken(token), Ok);
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
     [HttpGet("sessions/active")]
     public IActionResult IsSessionActive([FromQuery] string token)
-        => ToActionResult(_authRepository.IsSessionActive(token), isActive => Ok(isActive));
+        => ToActionResult(authRepository.IsSessionActive(token), isActive => Ok(isActive));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     [HttpGet("users/{userId:int}/sessions")]
     public IActionResult FindSessionsByUserId(int userId)
-        => ToActionResult(_authRepository.FindSessionsByUserId(userId), Ok);
+        => ToActionResult(authRepository.FindSessionsByUserId(userId), Ok);
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="sessionId"></param>
+    /// <returns></returns>
     [HttpPut("sessions/{sessionId:int}/revoke")]
     public IActionResult RevokeSession(int sessionId)
-        => ToActionResult(_authRepository.UpdateSessionToken(sessionId));
+        => ToActionResult(authRepository.UpdateSessionToken(sessionId));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     [HttpPut("users/{userId:int}/invalidate-sessions")]
     public IActionResult InvalidateAllSessions(int userId)
-        => ToActionResult(_authRepository.InvalidateAllSessions(userId));
+        => ToActionResult(authRepository.InvalidateAllSessions(userId));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("password-reset-tokens")]
     public IActionResult SavePasswordResetToken([FromBody] SavePasswordResetTokenRequest request)
         => ToActionResult(
-            _authRepository.SavePasswordResetToken(
+            authRepository.SavePasswordResetToken(
                 new PasswordResetToken
                 {
                     User = new User { Id = request.UserId },
@@ -71,66 +117,146 @@ public class AuthController : ApiController
                     CreatedAt = request.CreatedAt,
                 }));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="tokenHash"></param>
+    /// <returns></returns>
     [HttpGet("password-reset-tokens/by-hash")]
     public IActionResult FindPasswordResetToken([FromQuery] string tokenHash)
-        => ToActionResult(_authRepository.FindPasswordResetToken(tokenHash), Ok);
+        => ToActionResult(authRepository.FindPasswordResetToken(tokenHash), Ok);
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="tokenId"></param>
+    /// <returns></returns>
     [HttpPut("password-reset-tokens/{tokenId:int}/mark-used")]
     public IActionResult MarkPasswordResetTokenAsUsed(int tokenId)
-        => ToActionResult(_authRepository.MarkPasswordResetTokenAsUsed(tokenId));
+        => ToActionResult(authRepository.MarkPasswordResetTokenAsUsed(tokenId));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <returns></returns>
     [HttpDelete("password-reset-tokens/expired")]
     public IActionResult DeleteExpiredPasswordResetTokens()
-        => ToActionResult(_authRepository.DeleteExpiredPasswordResetTokens());
+        => ToActionResult(authRepository.DeleteExpiredPasswordResetTokens());
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     [HttpPut("users/{userId:int}/failed-attempts/increment")]
     public IActionResult IncrementFailedAttempts(int userId)
-        => ToActionResult(_authRepository.IncrementFailedAttempts(userId));
+        => ToActionResult(authRepository.IncrementFailedAttempts(userId));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     [HttpPut("users/{userId:int}/failed-attempts/reset")]
     public IActionResult ResetFailedAttempts(int userId)
-        => ToActionResult(_authRepository.ResetFailedAttempts(userId));
+        => ToActionResult(authRepository.ResetFailedAttempts(userId));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPut("users/{userId:int}/lock")]
     public IActionResult LockAccount(int userId, [FromBody] LockAccountRequest request)
-        => ToActionResult(_authRepository.LockAccount(userId, request.LockoutEnd));
+        => ToActionResult(authRepository.LockAccount(userId, request.LockoutEnd));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPut("users/{userId:int}/password")]
     public IActionResult UpdatePassword(int userId, [FromBody] UpdatePasswordRequest request)
-        => ToActionResult(_authRepository.UpdatePassword(userId, request.NewPasswordHash));
+        => ToActionResult(authRepository.UpdatePassword(userId, request.NewPasswordHash));
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
     public sealed class CreateSessionRequest
     {
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public int UserId { get; set; }
 
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public string Token { get; set; } = string.Empty;
 
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public string? DeviceInfo { get; set; }
 
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public string? Browser { get; set; }
 
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public string? RemoteIpAddress { get; set; }
     }
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
     public sealed class SavePasswordResetTokenRequest
     {
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public int UserId { get; set; }
 
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public string TokenHash { get; set; } = string.Empty;
 
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public DateTime ExpiresAt { get; set; }
 
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public DateTime CreatedAt { get; set; }
     }
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
     public sealed class LockAccountRequest
     {
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public DateTime LockoutEnd { get; set; }
     }
 
+    /// <summary>
+    /// TODO: add docs.
+    /// </summary>
     public sealed class UpdatePasswordRequest
     {
+        /// <summary>
+        /// TODO: add docs.
+        /// </summary>
         public string NewPasswordHash { get; set; } = string.Empty;
     }
 }
-#pragma warning restore CS1591
