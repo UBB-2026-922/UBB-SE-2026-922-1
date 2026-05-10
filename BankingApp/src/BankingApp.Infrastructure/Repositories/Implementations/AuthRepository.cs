@@ -144,7 +144,7 @@ public class AuthRepository : IAuthRepository
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Success> SavePasswordResetToken(PasswordResetToken token)
     {
-        return _passwordResetTokenDataAccess.Create(token.UserId, token.TokenHash, token.ExpiresAt)
+        return _passwordResetTokenDataAccess.Create(token.User?.Id ?? 0, token.TokenHash, token.ExpiresAt)
             .Then(_ => Result.Success);
     }
 

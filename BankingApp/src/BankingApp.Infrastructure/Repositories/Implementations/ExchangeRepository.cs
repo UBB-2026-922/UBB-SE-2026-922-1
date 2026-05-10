@@ -5,6 +5,7 @@ using Domain.Entities;
 using Domain.Enums;
 using DataAccess;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 /// <summary>
@@ -28,7 +29,12 @@ public class ExchangeRepository : IExchangeRepository
     public ErrorOr<ExchangeTransaction> GetById(int id)
     {
         ExchangeTransaction? exchange =
-            _databaseContext.ExchangeTransactions.FirstOrDefault(transaction => transaction.Id == id);
+            _databaseContext.ExchangeTransactions
+                .Include(transaction => transaction.User)
+                .Include(transaction => transaction.SourceAccount)
+                .Include(transaction => transaction.TargetAccount)
+                .Include(transaction => transaction.Transaction)
+                .FirstOrDefault(transaction => transaction.Id == id);
         if (exchange is null)
         {
             return Error.NotFound(description: "Exchange transaction not found.");
@@ -43,7 +49,11 @@ public class ExchangeRepository : IExchangeRepository
         try
         {
             return _databaseContext.ExchangeTransactions
-                .Where(transaction => transaction.UserId == userId)
+                .Include(transaction => transaction.User)
+                .Include(transaction => transaction.SourceAccount)
+                .Include(transaction => transaction.TargetAccount)
+                .Include(transaction => transaction.Transaction)
+                .Where(transaction => EF.Property<int>(transaction, "UserId") == userId)
                 .OrderByDescending(transaction => transaction.CreatedAt)
                 .ToList();
         }
@@ -61,14 +71,14 @@ public class ExchangeRepository : IExchangeRepository
         try
         {
             Account? sourceAccount =
-                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.SourceAccountId);
+                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.SourceAccount!.Id);
             if (sourceAccount is null)
             {
                 return Error.NotFound(description: "Source account not found.");
             }
 
             Account? targetAccount =
-                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.TargetAccountId);
+                _databaseContext.Accounts.FirstOrDefault(account => account.Id == exchange.TargetAccount!.Id);
             if (targetAccount is null)
             {
                 return Error.NotFound(description: "Target account not found.");
@@ -85,7 +95,7 @@ public class ExchangeRepository : IExchangeRepository
 
             var ledgerTransaction = new Transaction
             {
-                AccountId = sourceAccount.Id,
+                Account = sourceAccount,
                 TransactionRef = $"FX-{Guid.NewGuid():N}"[..20].ToUpperInvariant(),
                 Type = ExchangeRelatedEntityType,
                 Direction = TransactionDirection.Out,
@@ -103,7 +113,7 @@ public class ExchangeRepository : IExchangeRepository
             _databaseContext.Transactions.Add(ledgerTransaction);
             _databaseContext.SaveChanges();
 
-            exchange.TransactionId = ledgerTransaction.Id;
+            exchange.Transaction = ledgerTransaction;
             _databaseContext.ExchangeTransactions.Add(exchange);
             _databaseContext.SaveChanges();
             databaseTransaction.Commit();

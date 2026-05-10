@@ -69,15 +69,15 @@ public class BillerService : IBillerService
 
         ErrorOr<List<SavedBiller>> existingResult = _billerRepository.GetSavedBillers(userId);
         if (!existingResult.IsError &&
-            existingResult.Value.Any(savedBiller => savedBiller.BillerId == request.BillerId))
+            existingResult.Value.Any(savedBiller => savedBiller.Biller?.Id == request.BillerId))
         {
             return BillerErrors.BillerAlreadySaved;
         }
 
         var savedBiller = new SavedBiller
         {
-            UserId = userId,
-            BillerId = request.BillerId,
+            User = new User { Id = userId },
+            Biller = billerResult.Value,
             Nickname = request.Nickname,
             DefaultReference = request.DefaultReference,
             CreatedAt = DateTime.UtcNow
@@ -128,8 +128,8 @@ public class BillerService : IBillerService
         return new SavedBillerDto
         {
             Id = savedBiller.Id,
-            UserId = savedBiller.UserId,
-            BillerId = savedBiller.BillerId,
+            UserId = savedBiller.User?.Id ?? 0,
+            BillerId = savedBiller.Biller?.Id ?? 0,
             BillerName = savedBiller.Biller?.Name ?? string.Empty,
             BillerCategory = savedBiller.Biller?.Category ?? string.Empty,
             LogoUrl = savedBiller.Biller?.LogoUrl,

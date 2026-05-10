@@ -460,7 +460,7 @@ public class ProfileServiceTests
             .Returns(
                 new List<NotificationPreference>
                 {
-                    new() { Id = 1, UserId = userId, Category = NotificationType.Payment, EmailEnabled = true }
+                    new() { Id = 1, User = new User { Id = userId }, Category = NotificationType.Payment, EmailEnabled = true }
                 });
 
         // Act
@@ -501,7 +501,7 @@ public class ProfileServiceTests
             .Returns(
                 new List<Session>
                 {
-                    new() { Id = 1, UserId = userId, Token = "token1", DeviceInfo = "Chrome/Windows" }
+                    new() { Id = 1, User = new User { Id = userId }, Token = "token1", DeviceInfo = "Chrome/Windows" }
                 });
 
         // Act

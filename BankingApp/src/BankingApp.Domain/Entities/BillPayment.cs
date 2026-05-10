@@ -14,19 +14,9 @@ public class BillPayment
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the user who initiated the payment.
-    /// </summary>
-    public int UserId { get; set; }
-
-    /// <summary>
     /// Gets or sets the user associated with this payment.
     /// </summary>
     public User? User { get; set; }
-
-    /// <summary>
-    /// Gets or sets the identifier of the source account from which the funds are drawn.
-    /// </summary>
-    public int SourceAccountId { get; set; }
 
     /// <summary>
     /// Gets or sets the source account associated with this payment.
@@ -34,19 +24,9 @@ public class BillPayment
     public Account? SourceAccount { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the biller receiving the payment.
-    /// </summary>
-    public int BillerId { get; set; }
-
-    /// <summary>
     /// Gets or sets the biller associated with this payment.
     /// </summary>
     public Biller? Biller { get; set; }
-
-    /// <summary>
-    /// Gets or sets the optional identifier of the overarching transaction.
-    /// </summary>
-    public int? TransactionId { get; set; }
 
     /// <summary>
     /// Gets or sets the overarching transaction associated with this payment.

@@ -216,7 +216,7 @@ public class AuthService : IAuthService
         string tokenHashForDb = ComputeSha256Hash(rawToken);
         var resetToken = new PasswordResetToken
         {
-            UserId = user.Id,
+            User = user,
             TokenHash = tokenHashForDb,
             ExpiresAt = DateTime.UtcNow.AddMinutes(PasswordResetTokenExpiryMinutes),
             CreatedAt = DateTime.UtcNow
@@ -252,39 +252,40 @@ public class AuthService : IAuthService
         }
 
         PasswordResetToken resetToken = tokenResult.Value;
+        int resetUserId = resetToken.User?.Id ?? 0;
         ErrorOr<Success> validationResult = ValidateResetToken(resetToken);
         if (validationResult.IsError)
         {
-            _logger.PasswordResetValidationFailed(resetToken.UserId, validationResult.FirstError.Code);
+            _logger.PasswordResetValidationFailed(resetUserId, validationResult.FirstError.Code);
             return validationResult.FirstError;
         }
 
         ErrorOr<string> hashResult = _hashService.GetHash(newPassword);
         if (hashResult.IsError)
         {
-            _logger.PasswordResetHashGenerationFailed(resetToken.UserId);
+            _logger.PasswordResetHashGenerationFailed(resetUserId);
             return hashResult.FirstError;
         }
 
-        if (_authRepository.UpdatePassword(resetToken.UserId, hashResult.Value).IsError)
+        if (_authRepository.UpdatePassword(resetUserId, hashResult.Value).IsError)
         {
-            _logger.PasswordUpdateFailed(resetToken.UserId);
+            _logger.PasswordUpdateFailed(resetUserId);
             return PasswordResetErrors.TokenInvalid;
         }
 
         if (_authRepository.MarkPasswordResetTokenAsUsed(resetToken.Id).IsError)
         {
-            _logger.PasswordResetMarkUsedFailed(resetToken.UserId);
+            _logger.PasswordResetMarkUsedFailed(resetUserId);
             return PasswordResetErrors.ResetFailedTokenNotInvalidated;
         }
 
-        if (_authRepository.InvalidateAllSessions(resetToken.UserId).IsError)
+        if (_authRepository.InvalidateAllSessions(resetUserId).IsError)
         {
-            _logger.PasswordResetInvalidateSessionsFailed(resetToken.UserId);
+            _logger.PasswordResetInvalidateSessionsFailed(resetUserId);
             return PasswordResetErrors.ResetFailedSessionsNotInvalidated;
         }
 
-        _logger.PasswordResetSucceeded(resetToken.UserId);
+        _logger.PasswordResetSucceeded(resetUserId);
         return Result.Success;
     }
 
@@ -321,7 +322,7 @@ public class AuthService : IAuthService
         }
 
         _ = _authRepository.UpdateSessionToken(sessionResult.Value.Id);
-        _logger.UserLoggedOut(sessionResult.Value.UserId);
+        _logger.UserLoggedOut(sessionResult.Value.User?.Id ?? 0);
         return Result.Success;
     }
 

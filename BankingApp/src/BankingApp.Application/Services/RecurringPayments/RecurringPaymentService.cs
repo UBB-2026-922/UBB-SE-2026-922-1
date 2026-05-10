@@ -134,9 +134,9 @@ public class RecurringPaymentService : IRecurringPaymentService
         return new RecurringPaymentResponse
         {
             Id = payment.Id,
-            UserId = payment.UserId,
-            BillerId = payment.BillerId,
-            SourceAccountId = payment.SourceAccountId,
+            UserId = payment.User?.Id ?? 0,
+            BillerId = payment.Biller?.Id ?? 0,
+            SourceAccountId = payment.SourceAccount?.Id ?? 0,
             Amount = payment.Amount,
             IsPayInFull = payment.IsPayInFull,
             Frequency = payment.Frequency,

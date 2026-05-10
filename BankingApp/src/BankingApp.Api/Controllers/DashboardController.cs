@@ -1,7 +1,7 @@
 ﻿namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.Dashboard;
-using Application.Services.Dashboard;
+using Application.Repositories.Interfaces;
+using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
@@ -10,32 +10,70 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class DashboardController : ApiControllerBase
+public class DashboardController(IDashboardRepository dashboardRepository) : ApiController
 {
-    private readonly IDashboardService _dashboardService;
-
     /// <summary>
-    ///     Initializes a new instance of the <see cref="DashboardController" /> class.
+    ///     Returns accounts for the supplied user identifier.
     /// </summary>
-    /// <param name="dashboardService">The dashboard service used to handle business logic.</param>
-    /// <returns>The result of the operation.</returns>
-    public DashboardController(IDashboardService dashboardService)
+    [HttpGet("accounts/{userId:int}")]
+    public IActionResult GetAccountsByUserIdRaw(int userId)
     {
-        _dashboardService = dashboardService;
+        return ToActionResult(dashboardRepository.GetAccountsByUser(userId), Ok);
     }
 
     /// <summary>
-    ///     Retrieves the dashboard data for the currently authenticated user.
-    ///     The user ID is extracted from the HTTP context, set by the authentication middleware.
+    ///     Returns cards for the supplied user identifier.
     /// </summary>
-    /// <returns>
-    ///     200 OK with a <see cref="DashboardDto" /> on success,
-    ///     or 404 Not Found if the user does not exist.
-    /// </returns>
-    [HttpGet]
-    public IActionResult GetDashboard()
+    [HttpGet("cards/{userId:int}")]
+    public IActionResult GetCardsByUserIdRaw(int userId)
     {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(_dashboardService.GetDashboardData(userId), Ok);
+        return ToActionResult(dashboardRepository.GetCardsByUser(userId), Ok);
+    }
+
+    /// <summary>
+    ///     Returns recent transactions for the supplied account identifier.
+    /// </summary>
+    [HttpGet("transactions/{accountId:int}")]
+    public IActionResult GetRecentTransactionsRaw(int accountId, [FromQuery] int limit = IDashboardRepository.DefaultRecentTransactionLimit)
+    {
+        return ToActionResult(dashboardRepository.GetRecentTransactions(accountId, limit), Ok);
+    }
+
+    /// <summary>
+    ///     Returns the unread notification count for the supplied user identifier.
+    /// </summary>
+    [HttpGet("notifications/{userId:int}/unread-count")]
+    public IActionResult GetUnreadNotificationCountRaw(int userId)
+    {
+        return ToActionResult(dashboardRepository.GetUnreadNotificationCount(userId), count => Ok(count));
+    }
+
+    /// <summary>
+    ///     Debits the specified account by the supplied amount.
+    /// </summary>
+    [HttpPost("accounts/{accountId:int}/debit")]
+    public IActionResult DebitAccountRaw(int accountId, [FromBody] DebitAccountRequest request)
+    {
+        return ToActionResult(dashboardRepository.DebitAccount(accountId, request.Amount));
+    }
+
+    /// <summary>
+    ///     Persists a transaction entity.
+    /// </summary>
+    [HttpPost("transactions")]
+    public IActionResult AddTransactionRaw([FromBody] Transaction transaction)
+    {
+        return ToActionResult(dashboardRepository.AddTransaction(transaction), Ok);
+    }
+
+    /// <summary>
+    ///     Request body for account debit operations.
+    /// </summary>
+    public sealed class DebitAccountRequest
+    {
+        /// <summary>
+        ///     Gets or sets the amount to debit.
+        /// </summary>
+        public decimal Amount { get; set; }
     }
 }

@@ -189,7 +189,7 @@ public class LoginService : ILoginService
         }
 
         _ = _authRepository.UpdateSessionToken(sessionResult.Value.Id);
-        _logger.UserLoggedOut(sessionResult.Value.UserId);
+        _logger.UserLoggedOut(sessionResult.Value.User?.Id ?? 0);
         return Result.Success;
     }
 

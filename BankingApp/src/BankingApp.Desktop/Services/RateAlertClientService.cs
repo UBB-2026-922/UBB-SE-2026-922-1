@@ -4,43 +4,67 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.DTOs.RateAlerts;
-using Utilities;
+using Application.Repositories.Interfaces;
+using Domain.Entities;
 using ErrorOr;
+using Utilities;
 
 /// <summary>
-///     Implements <see cref="IRateAlertClientService" /> using the shared desktop API client.
+///     Implements <see cref="IRateAlertClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class RateAlertClientService : IRateAlertClientService
+internal sealed class RateAlertClientService(ICurrentSession currentSession, IRateAlertRepository rateAlertRepository)
+    : IRateAlertClientService
 {
-    private readonly IApiClient _apiClient;
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
+    private readonly IRateAlertRepository _rateAlertRepository = rateAlertRepository ?? throw new ArgumentNullException(nameof(rateAlertRepository));
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RateAlertClientService" /> class.
-    /// </summary>
-    public RateAlertClientService(IApiClient apiClient)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-    }
+    public int? CurrentUserId => _currentSession.CurrentUserId;
 
-    /// <inheritdoc />
-    public int? CurrentUserId => _apiClient.CurrentUserId;
-
-    /// <inheritdoc />
     public Task<ErrorOr<List<RateAlertDto>>> GetAlertsAsync(int userId)
     {
-        string endpoint = $"{ApiEndpoints.RateAlerts}?userId={userId}";
-        return _apiClient.GetAsync<List<RateAlertDto>>(endpoint);
+        ErrorOr<List<RateAlert>> result = _rateAlertRepository.GetByUserId(userId);
+        if (result.IsError)
+        {
+            return Task.FromResult<ErrorOr<List<RateAlertDto>>>(result.FirstError);
+        }
+
+        List<RateAlertDto> alerts = result.Value.ConvertAll(MapToDto);
+        return Task.FromResult<ErrorOr<List<RateAlertDto>>>(alerts);
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<RateAlertDto>> CreateAlertAsync(RateAlertDto alert)
     {
-        return _apiClient.PostAsync<RateAlertDto, RateAlertDto>(ApiEndpoints.RateAlerts, alert);
+        ErrorOr<RateAlert> alertResult = RateAlert.Create(
+            alert.UserId,
+            alert.BaseCurrency,
+            alert.TargetCurrency,
+            alert.TargetRate,
+            alert.IsBuyAlert,
+            DateTime.UtcNow);
+        if (alertResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<RateAlertDto>>(alertResult.FirstError);
+        }
+
+        ErrorOr<RateAlert> createResult = _rateAlertRepository.Create(alertResult.Value);
+        return Task.FromResult<ErrorOr<RateAlertDto>>(createResult.IsError ? createResult.FirstError : MapToDto(createResult.Value));
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<Success>> DeleteAlertAsync(int alertId)
+        => Task.FromResult(_rateAlertRepository.Delete(alertId));
+
+    private static RateAlertDto MapToDto(RateAlert alert)
     {
-        return _apiClient.DeleteAsync($"{ApiEndpoints.RateAlerts}/{alertId}");
+        return new RateAlertDto
+        {
+            Id = alert.Id,
+            UserId = alert.User?.Id ?? 0,
+            BaseCurrency = alert.BaseCurrency,
+            TargetCurrency = alert.TargetCurrency,
+            TargetRate = alert.TargetRate,
+            IsBuyAlert = alert.IsBuyAlert,
+            IsTriggered = alert.IsTriggered,
+            CreatedAt = alert.CreatedAt,
+        };
     }
 }

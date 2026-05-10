@@ -17,10 +17,12 @@ using Microsoft.Extensions.Logging;
 ///     Initializes a new instance of the <see cref="TransferService" /> class.
 /// </remarks>
 /// <param name="dashboardRepository">The dashboard repository.</param>
+/// <param name="transferRepository">The transfer repository.</param>
 /// <param name="otpService">The OTP service for 2FA verification.</param>
 /// <param name="logger">The logger.</param>
 public class TransferService(
     IDashboardRepository dashboardRepository,
+    ITransferRepository transferRepository,
     IOtpService otpService,
     ILogger<TransferService> logger)
     : ITransferService
@@ -39,6 +41,7 @@ public class TransferService(
     private const decimal GbpRonRate = 5.90m;
 
     private readonly IDashboardRepository _dashboardRepository = dashboardRepository;
+    private readonly ITransferRepository _transferRepository = transferRepository;
     private readonly IOtpService _otpService = otpService;
     private readonly ILogger<TransferService> _logger = logger;
 
@@ -169,7 +172,7 @@ public class TransferService(
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<TransferResponse>> GetHistory(int userId)
     {
-        ErrorOr<List<Transfer>> result = _dashboardRepository.GetTransfersByUserId(userId);
+        ErrorOr<List<Transfer>> result = _transferRepository.GetByUserId(userId);
         if (result.IsError)
         {
             _logger.TransferHistoryFetchFailed(userId);
@@ -191,8 +194,8 @@ public class TransferService(
         return new TransferResponse
         {
             Id = transfer.Id,
-            SourceAccountId = transfer.SourceAccountId,
-            TransactionId = transfer.TransactionId,
+            SourceAccountId = transfer.SourceAccount?.Id ?? 0,
+            TransactionId = transfer.Transaction?.Id,
             TransactionRef = null,
             RecipientName = transfer.RecipientName,
             RecipientIban = transfer.RecipientIban,
@@ -276,7 +279,7 @@ public class TransferService(
 
         var transaction = new Transaction
         {
-            AccountId = account.Id,
+            Account = account,
             TransactionRef = GenerateTransactionRef(),
             Direction = TransactionDirection.Out,
             Amount = request.Amount,
@@ -299,9 +302,9 @@ public class TransferService(
 
         var transfer = new Transfer
         {
-            UserId = userId,
-            SourceAccountId = account.Id,
-            TransactionId = logResult.Value.Id,
+            User = new User { Id = userId },
+            SourceAccount = account,
+            Transaction = logResult.Value,
             RecipientName = request.RecipientName,
             RecipientIban = request.RecipientIban,
             RecipientBankName = Transfer.InferRecipientBankName(request.RecipientIban),
@@ -313,7 +316,7 @@ public class TransferService(
             CreatedAt = DateTime.UtcNow
         };
 
-        ErrorOr<Transfer> persistResult = _dashboardRepository.AddTransfer(transfer);
+        ErrorOr<Transfer> persistResult = _transferRepository.Create(transfer);
         if (persistResult.IsError)
         {
             _logger.TransferPersistenceFailed(userId);
@@ -324,8 +327,8 @@ public class TransferService(
         return new TransferResponse
         {
             Id = persistedTransfer.Id,
-            SourceAccountId = persistedTransfer.SourceAccountId,
-            TransactionId = persistedTransfer.TransactionId,
+            SourceAccountId = persistedTransfer.SourceAccount?.Id ?? 0,
+            TransactionId = persistedTransfer.Transaction?.Id,
             TransactionRef = logResult.Value.TransactionRef,
             RecipientName = persistedTransfer.RecipientName,
             RecipientIban = persistedTransfer.RecipientIban,

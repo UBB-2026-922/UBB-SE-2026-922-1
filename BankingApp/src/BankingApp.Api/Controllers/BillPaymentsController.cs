@@ -1,168 +1,70 @@
+#pragma warning disable CS1591
 namespace BankingApp.Api.Controllers;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Application.DTOs.Billers;
-using Application.DTOs.BillPayments;
-using Application.Services.BillPayments;
+using Application.Repositories.Interfaces;
 using Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-/// Controller for managing and processing bill payments.
-/// </summary>
 [ApiController]
-[Route("api/bill-payment")]
-[Authorize]
-public class BillPaymentsController : ApiControllerBase
+[Route("api/bill-payments")]
+public class BillPaymentsController(IBillPaymentRepository billPaymentRepository) : ApiController
 {
-    private readonly IBillPaymentService _billPaymentService;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="BillPaymentsController"/> class.
-    /// </summary>
-    /// <param name="billPaymentService">The bill payment service.</param>
-    public BillPaymentsController(IBillPaymentService billPaymentService)
-    {
-        _billPaymentService = billPaymentService;
-    }
-
-    /// <summary>
-    /// Retrieves all available billers from the system.
-    /// </summary>
-    /// <returns>A list of billers.</returns>
     [HttpGet("billers")]
-    public async Task<IActionResult> GetBillers()
+    public async Task<IActionResult> GetBillersAsync()
+        => Ok((await billPaymentRepository.GetBillersAsync()).ToList());
+
+    [HttpGet("billers/{billerId:int}")]
+    public async Task<IActionResult> GetBillerByIdAsync(int billerId)
     {
-        try
-        {
-            IEnumerable<Biller> billers = await _billPaymentService.GetAllBillersAsync();
-            return Ok(billers);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+        Biller? biller = await billPaymentRepository.GetBillerByIdAsync(billerId);
+        return biller is null ? NotFound() : Ok(biller);
     }
 
-    /// <summary>
-    /// Retrieves accounts available for the authenticated user's bill payments.
-    /// </summary>
-    /// <returns>The user's accounts.</returns>
-    [HttpGet("accounts")]
-    public async Task<IActionResult> GetAccounts()
+    [HttpPost("payments")]
+    public async Task<IActionResult> AddPaymentAsync([FromBody] BillPayment payment)
     {
-        try
-        {
-            int userId = GetAuthenticatedUserId();
-            IEnumerable<Account> accounts = await _billPaymentService.GetAccountsForUserAsync(userId);
-            return Ok(accounts.Select(MapAccount).ToList());
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+        await billPaymentRepository.AddPaymentAsync(payment);
+        return Ok(payment);
     }
 
-    /// <summary>
-    /// Calculates the processing fee for a payment amount.
-    /// </summary>
-    /// <param name="amount">The payment amount.</param>
-    /// <returns>The calculated fee.</returns>
-    [HttpGet("fee")]
-    public IActionResult CalculateFee([FromQuery] decimal amount)
+    [HttpGet("payments/user/{userId:int}")]
+    public async Task<IActionResult> GetUserPaymentHistoryAsync(int userId)
+        => Ok((await billPaymentRepository.GetUserPaymentHistoryAsync(userId)).ToList());
+
+    [HttpGet("saved-billers/{userId:int}")]
+    public async Task<IActionResult> GetSavedBillersAsync(int userId)
+        => Ok((await billPaymentRepository.GetSavedBillersAsync(userId)).ToList());
+
+    [HttpPost("saved-billers")]
+    public async Task<IActionResult> AddSavedBillerAsync([FromBody] SavedBiller savedBiller)
     {
-        return Ok(new FeeResponse { Fee = _billPaymentService.CalculateFee(amount) });
+        await billPaymentRepository.AddSavedBillerAsync(savedBiller);
+        return Ok(savedBiller);
     }
 
-    /// <summary>
-    /// Checks whether the supplied payment amount requires 2FA.
-    /// </summary>
-    /// <param name="amount">The payment amount.</param>
-    /// <returns>The 2FA requirement response.</returns>
-    [HttpGet("requires-2fa")]
-    public IActionResult Requires2Fa([FromQuery] decimal amount)
+    [HttpGet("accounts/{accountId:int}")]
+    public async Task<IActionResult> GetAccountByIdAsync(int accountId)
     {
-        return Ok(new RequiresTwoFaResponse { Required = _billPaymentService.Requires2Fa(amount) });
+        Account? account = await billPaymentRepository.GetAccountByIdAsync(accountId);
+        return account is null ? NotFound() : Ok(account);
     }
 
-    /// <summary>
-    /// Processes a new bill payment transaction.
-    /// </summary>
-    /// <param name="request">The payment request details.</param>
-    /// <returns>The processed bill payment record.</returns>
-    [HttpPost("pay")]
-    public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequest request)
-    {
-        try
-        {
-            int userId = GetAuthenticatedUserId();
-            BillPayment payment = await _billPaymentService.ProcessPaymentAsync(new BillPaymentDto
-            {
-                UserId = userId,
-                SourceAccountId = request.SourceAccountId,
-                BillerId = request.BillerId,
-                BillerReference = request.BillerReference,
-                Amount = request.Amount,
-                IsPayInFull = request.IsPayInFull,
-            });
+    [HttpGet("accounts/user/{userId:int}")]
+    public async Task<IActionResult> GetAccountsByUserIdAsync(int userId)
+        => Ok((await billPaymentRepository.GetAccountsByUserIdAsync(userId)).ToList());
 
-            return Ok(new BillPayResponse
-            {
-                Id = payment.Id,
-                ReceiptNumber = payment.ReceiptNumber,
-                Fee = payment.Fee,
-                Amount = payment.Amount,
-                Status = payment.Status.ToString(),
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+    [HttpPut("accounts")]
+    public async Task<IActionResult> UpdateAccountAsync([FromBody] Account account)
+    {
+        await billPaymentRepository.UpdateAccountAsync(account);
+        return NoContent();
     }
 
-    /// <summary>
-    /// Saves a specific biller to the user's quick-pay list.
-    /// </summary>
-    /// <param name="request">The save biller request details.</param>
-    /// <returns>A success message.</returns>
-    [HttpPost("save-biller")]
-    public async Task<IActionResult> SaveBiller([FromBody] SaveBillerRequest request)
+    [HttpPost("transactions")]
+    public async Task<IActionResult> AddTransactionAsync([FromBody] Transaction transaction)
     {
-        try
-        {
-            int userId = GetAuthenticatedUserId();
-            bool success = await _billPaymentService.SaveBillerForUserAsync(
-                userId,
-                request.BillerId,
-                request.Nickname ?? string.Empty);
-
-            if (success)
-            {
-                return Ok(new { message = "Biller saved successfully." });
-            }
-
-            return BadRequest(new { error = "Failed to save the biller." });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
-    }
-
-    private static AccountDto MapAccount(Account account)
-    {
-        return new AccountDto
-        {
-            Id = account.Id,
-            Iban = account.Iban,
-            Currency = account.Currency,
-            Balance = account.Balance,
-            AccountName = account.AccountName ?? string.Empty,
-        };
+        await billPaymentRepository.AddTransactionAsync(transaction);
+        return Ok(transaction);
     }
 }
+#pragma warning restore CS1591

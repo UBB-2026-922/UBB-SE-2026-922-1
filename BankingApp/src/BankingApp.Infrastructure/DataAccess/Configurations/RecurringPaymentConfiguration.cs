@@ -18,9 +18,9 @@ public class RecurringPaymentConfiguration : IEntityTypeConfiguration<RecurringP
 
         builder.HasKey(recurringPayment => recurringPayment.Id);
 
-        builder.Property(recurringPayment => recurringPayment.UserId).IsRequired();
-        builder.Property(recurringPayment => recurringPayment.BillerId).IsRequired();
-        builder.Property(recurringPayment => recurringPayment.SourceAccountId).IsRequired();
+        builder.Property<int>("UserId").IsRequired();
+        builder.Property<int>("BillerId").IsRequired();
+        builder.Property<int>("SourceAccountId").IsRequired();
 
         builder.Property(recurringPayment => recurringPayment.Amount)
             .IsRequired()
@@ -60,19 +60,19 @@ public class RecurringPaymentConfiguration : IEntityTypeConfiguration<RecurringP
         builder.Property(recurringPayment => recurringPayment.CreatedAt)
             .HasDefaultValueSql("GETUTCDATE()");
 
-        builder.HasIndex(recurringPayment => recurringPayment.BillerId);
-        builder.HasIndex(recurringPayment => recurringPayment.SourceAccountId);
-        builder.HasIndex(recurringPayment => recurringPayment.UserId);
+        builder.HasIndex("BillerId");
+        builder.HasIndex("SourceAccountId");
+        builder.HasIndex("UserId");
 
         builder.HasOne(recurringPayment => recurringPayment.Biller)
             .WithMany()
-            .HasForeignKey(recurringPayment => recurringPayment.BillerId);
+            .HasForeignKey("BillerId");
 
         builder.HasOne(recurringPayment => recurringPayment.SourceAccount)
             .WithMany()
-            .HasForeignKey(recurringPayment => recurringPayment.SourceAccountId)
+            .HasForeignKey("SourceAccountId")
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(recurringPayment => recurringPayment.User).WithMany().HasForeignKey(recurringPayment => recurringPayment.UserId);
+        builder.HasOne(recurringPayment => recurringPayment.User).WithMany().HasForeignKey("UserId");
     }
 }

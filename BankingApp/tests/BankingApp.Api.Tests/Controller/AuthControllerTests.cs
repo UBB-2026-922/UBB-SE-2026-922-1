@@ -1,363 +1,212 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.Services.Login;
-using Application.Services.PasswordRecovery;
-using Application.Services.Registration;
+using Application.Repositories.Interfaces;
+using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-using Application.DTOs.Auth;
-
 [Trait("Category", "Unit")]
 public sealed class AuthControllerTests
 {
-    private readonly Mock<ILoginService> _loginService = MockFactory.CreateLoginService();
-
-    private readonly Mock<IPasswordRecoveryService> _passwordRecoveryService =
-        MockFactory.CreatePasswordRecoveryService();
-
-    private readonly Mock<IRegistrationService> _registrationService = MockFactory.CreateRegistrationService();
+    private readonly Mock<IAuthRepository> _authRepository = new(MockBehavior.Strict);
 
     [Fact]
-    public void Login_WhenSuccessWithFullLogin_ShouldReturnOkWithToken()
+    public void FindUserByEmail_WhenUserExists_ReturnsOkWithUser()
     {
-        // Arrange
-        const int validUserId = 1;
-        var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
-        _loginService
-            .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
-            .Returns((ErrorOr<LoginSuccess>)new FullLogin(validUserId, "jwt-token"));
+        var user = new User { Id = 1, Email = "user@test.com" };
+        _authRepository.Setup(r => r.FindUserByEmail("user@test.com")).Returns(user);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Login(request);
+        IActionResult result = controller.FindUserByEmail("user@test.com");
 
-        // Assert
-        OkObjectResult? ok = result.Should().BeOfType<OkObjectResult>().Subject;
-        ok.StatusCode.Should().Be(200);
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(user);
     }
 
     [Fact]
-    public void Login_WhenRequires2FA_ShouldReturnOk()
+    public void FindUserByEmail_WhenUserNotFound_ReturnsNotFound()
     {
-        // Arrange
-        const int validUserId = 1;
-        var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
-        _loginService
-            .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
-            .Returns((ErrorOr<LoginSuccess>)new RequiresTwoFactor(validUserId));
+        _authRepository.Setup(r => r.FindUserByEmail("missing@test.com"))
+            .Returns(Error.NotFound());
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Login(request);
+        IActionResult result = controller.FindUserByEmail("missing@test.com");
 
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     [Fact]
-    public void Login_WhenInvalidCredentials_ShouldReturnUnauthorized()
+    public void FindUserById_WhenUserExists_ReturnsOkWithUser()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "user@test.com", Password = "wrong" };
-        _loginService
-            .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
-            .Returns(Error.Unauthorized("invalid_credentials", "Invalid credentials."));
+        var user = new User { Id = 5 };
+        _authRepository.Setup(r => r.FindUserById(5)).Returns(user);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Login(request);
+        IActionResult result = controller.FindUserById(5);
 
-        // Assert
-        UnauthorizedObjectResult? unauthorized = result.Should().BeOfType<UnauthorizedObjectResult>().Subject;
-        unauthorized.StatusCode.Should().Be(401);
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(user);
     }
 
     [Fact]
-    public void Login_WhenAccountLocked_ShouldReturnForbidden()
+    public void FindUserById_WhenUserNotFound_ReturnsNotFound()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "user@test.com", Password = "Pass123!" };
-        _loginService
-            .Setup(login => login.Login(request, It.IsAny<SessionMetadata?>()))
-            .Returns(Error.Forbidden("account_locked", "Account is locked."));
+        _authRepository.Setup(r => r.FindUserById(99)).Returns(Error.NotFound());
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Login(request);
+        IActionResult result = controller.FindUserById(99);
 
-        // Assert
-        ObjectResult? obj = result.Should().BeOfType<ObjectResult>().Subject;
-        obj.StatusCode.Should().Be(403);
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     [Fact]
-    public void Register_WhenSuccess_ShouldReturnNoContent()
+    public void CreateUser_WhenSuccessful_ReturnsNoContent()
     {
-        // Arrange
-        var request = new RegisterRequest { Email = "new@test.com", Password = "Pass123!", FullName = "Test User" };
-        _registrationService.Setup(register => register.Register(request)).Returns(Result.Success);
+        var user = new User { Email = "new@test.com" };
+        _authRepository.Setup(r => r.CreateUser(user)).Returns(Result.Success);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Register(request);
+        IActionResult result = controller.CreateUser(user);
 
-        // Assert
         result.Should().BeOfType<NoContentResult>();
     }
 
     [Fact]
-    public void Register_WhenConflict_ShouldReturnConflict()
+    public void CreateUser_WhenConflict_ReturnsConflict()
     {
-        // Arrange
-        var request = new RegisterRequest { Email = "dup@test.com", Password = "Pass123!", FullName = "Test" };
-        _registrationService
-            .Setup(register => register.Register(request))
-            .Returns(Error.Conflict("email_registered", "Email already registered."));
+        var user = new User { Email = "dup@test.com" };
+        _authRepository.Setup(r => r.CreateUser(user)).Returns(Error.Conflict());
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Register(request);
+        IActionResult result = controller.CreateUser(user);
 
-        // Assert
         result.Should().BeOfType<ConflictObjectResult>();
     }
 
     [Fact]
-    public void Register_WhenServiceFails_ReturnsInternalServerError()
+    public void FindSessionByToken_WhenFound_ReturnsOkWithSession()
     {
-        // Arrange
-        var request = new RegisterRequest { Email = "new@test.com", Password = "Pass123!", FullName = "Test" };
-        _registrationService
-            .Setup(register => register.Register(request))
-            .Returns(Error.Failure("database_error", "Service unavailable."));
+        var session = new Session { Token = "tok" };
+        _authRepository.Setup(r => r.FindSessionByToken("tok")).Returns(session);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Register(request);
+        IActionResult result = controller.FindSessionByToken("tok");
 
-        // Assert
-        ObjectResult? obj = result.Should().BeOfType<ObjectResult>().Subject;
-        obj.StatusCode.Should().Be(500);
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(session);
     }
 
     [Fact]
-    public void VerifyOTP_WhenSuccess_ShouldReturnOk()
+    public void IsSessionActive_WhenActive_ReturnsOkTrue()
     {
-        // Arrange
-        const int validUserId = 1;
-        var request = new VerifyOtpRequest { UserId = validUserId, OtpCode = "123456" };
-        _loginService
-            .Setup(verifiesOtp => verifiesOtp.VerifyOtp(request, It.IsAny<SessionMetadata?>()))
-            .Returns((ErrorOr<LoginSuccess>)new FullLogin(validUserId, "jwt-token"));
+        _authRepository.Setup(r => r.IsSessionActive("tok")).Returns(true);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.VerifyOtp(request);
+        IActionResult result = controller.IsSessionActive("tok");
 
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(true);
     }
 
     [Fact]
-    public void VerifyOtp_WhenInvalidOtp_ShouldReturnUnauthorized()
+    public void RevokeSession_WhenSuccessful_ReturnsNoContent()
     {
-        // Arrange
-        const int validUserId = 1;
-        var request = new VerifyOtpRequest { UserId = validUserId, OtpCode = "000000" };
-        _loginService
-            .Setup(verifiesOtp => verifiesOtp.VerifyOtp(request, It.IsAny<SessionMetadata?>()))
-            .Returns(Error.Unauthorized("invalid_otp", "Invalid OTP."));
+        _authRepository.Setup(r => r.UpdateSessionToken(7)).Returns(Result.Success);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.VerifyOtp(request);
+        IActionResult result = controller.RevokeSession(7);
 
-        // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
-
-    [Fact]
-    public void ForgotPassword_WhenEmailProvided_ShouldReturnOk()
-    {
-        // Arrange
-        _passwordRecoveryService
-            .Setup(requestsPasswordReset => requestsPasswordReset.RequestPasswordReset("user@test.com"))
-            .Returns(Result.Success);
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.ForgotPassword(new ForgotPasswordRequest { Email = "user@test.com" });
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public void ForgotPassword_WhenEmailEmpty_ShouldReturnBadRequest()
-    {
-        // Arrange
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.ForgotPassword(new ForgotPasswordRequest { Email = string.Empty });
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public void ResetPassword_WhenSuccess_ShouldReturnNoContent()
-    {
-        // Arrange
-        _passwordRecoveryService
-            .Setup(resetsPassword => resetsPassword.ResetPassword("valid-token", "NewPass123!"))
-            .Returns(Result.Success);
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.ResetPassword(
-            new ResetPasswordRequest
-                { Token = "valid-token", NewPassword = "NewPass123!" });
-
-        // Assert
         result.Should().BeOfType<NoContentResult>();
     }
 
     [Fact]
-    public void ResetPassword_WhenTokenMissing_ShouldReturnBadRequest()
+    public void InvalidateAllSessions_WhenSuccessful_ReturnsNoContent()
     {
-        // Arrange
+        _authRepository.Setup(r => r.InvalidateAllSessions(1)).Returns(Result.Success);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.ResetPassword(
-            new ResetPasswordRequest
-                { Token = string.Empty, NewPassword = "Pass123!" });
+        IActionResult result = controller.InvalidateAllSessions(1);
 
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public void ResetPassword_WhenWeakPassword_ShouldReturnBadRequest()
-    {
-        // Arrange
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.ResetPassword(
-            new ResetPasswordRequest
-                { Token = "token", NewPassword = "weak" });
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public void ResetPassword_WhenServiceFails_ShouldReturnMappedError()
-    {
-        // Arrange
-        _passwordRecoveryService
-            .Setup(resetsPassword => resetsPassword.ResetPassword("bad-token", "NewPass123!"))
-            .Returns(Error.Validation("token_expired", "Token has expired."));
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.ResetPassword(
-            new ResetPasswordRequest
-                { Token = "bad-token", NewPassword = "NewPass123!" });
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public void Logout_WhenValidToken_ShouldReturnNoContent()
-    {
-        // Arrange
-        _loginService.Setup(logout => logout.Logout("jwt-token")).Returns(Result.Success);
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.Logout("Bearer jwt-token");
-
-        // Assert
         result.Should().BeOfType<NoContentResult>();
     }
 
     [Fact]
-    public void Logout_WhenNoAuthorizationHeader_ShouldReturnBadRequest()
+    public void IncrementFailedAttempts_WhenSuccessful_ReturnsNoContent()
     {
-        // Arrange
+        _authRepository.Setup(r => r.IncrementFailedAttempts(1)).Returns(Result.Success);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.Logout(string.Empty);
+        IActionResult result = controller.IncrementFailedAttempts(1);
 
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public void ResendOTP_ShouldAlwaysReturnOk()
-    {
-        // Arrange
-        const int validUserId = 1;
-        _loginService.Setup(resendOtp => resendOtp.ResendOtp(validUserId, "email")).Returns(Result.Success);
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.ResendOtp(validUserId);
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public void VerifyResetToken_WhenValid_ShouldReturnNoContent()
-    {
-        // Arrange
-        _passwordRecoveryService
-            .Setup(verifiesResetToken => verifiesResetToken.VerifyResetToken("valid-token"))
-            .Returns(Result.Success);
-        AuthController controller = CreateController();
-
-        // Act
-        IActionResult result = controller.VerifyResetToken(new VerifyResetTokenRequest { Token = "valid-token" });
-
-        // Assert
         result.Should().BeOfType<NoContentResult>();
     }
 
     [Fact]
-    public void VerifyResetToken_WhenTokenEmpty_ShouldReturnBadRequest()
+    public void ResetFailedAttempts_WhenSuccessful_ReturnsNoContent()
     {
-        // Arrange
+        _authRepository.Setup(r => r.ResetFailedAttempts(1)).Returns(Result.Success);
         AuthController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.VerifyResetToken(new VerifyResetTokenRequest { Token = string.Empty });
+        IActionResult result = controller.ResetFailedAttempts(1);
 
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public void LockAccount_WhenSuccessful_ReturnsNoContent()
+    {
+        DateTime lockoutEnd = DateTime.UtcNow.AddMinutes(30);
+        _authRepository.Setup(r => r.LockAccount(1, lockoutEnd)).Returns(Result.Success);
+        AuthController controller = CreateController();
+
+        IActionResult result = controller.LockAccount(1, new AuthController.LockAccountRequest { LockoutEnd = lockoutEnd });
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public void UpdatePassword_WhenSuccessful_ReturnsNoContent()
+    {
+        _authRepository.Setup(r => r.UpdatePassword(1, "newHash")).Returns(Result.Success);
+        AuthController controller = CreateController();
+
+        IActionResult result = controller.UpdatePassword(1, new AuthController.UpdatePasswordRequest { NewPasswordHash = "newHash" });
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public void FindPasswordResetToken_WhenFound_ReturnsOk()
+    {
+        var token = new PasswordResetToken { TokenHash = "hash" };
+        _authRepository.Setup(r => r.FindPasswordResetToken("hash")).Returns(token);
+        AuthController controller = CreateController();
+
+        IActionResult result = controller.FindPasswordResetToken("hash");
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(token);
+    }
+
+    [Fact]
+    public void DeleteExpiredPasswordResetTokens_WhenSuccessful_ReturnsNoContent()
+    {
+        _authRepository.Setup(r => r.DeleteExpiredPasswordResetTokens()).Returns(Result.Success);
+        AuthController controller = CreateController();
+
+        IActionResult result = controller.DeleteExpiredPasswordResetTokens();
+
+        result.Should().BeOfType<NoContentResult>();
     }
 
     private AuthController CreateController()
     {
-        var controller = new AuthController(
-            _loginService.Object,
-            _registrationService.Object,
-            _passwordRecoveryService.Object)
+        AuthController controller = new(_authRepository.Object)
         {
-            ControllerContext = new ControllerContext
-            {
-                HttpContext = new DefaultHttpContext()
-            }
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
         };
-
         return controller;
     }
 }

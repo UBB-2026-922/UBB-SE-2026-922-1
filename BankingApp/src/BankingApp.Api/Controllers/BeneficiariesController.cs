@@ -1,129 +1,104 @@
+#pragma warning disable CS1591
 namespace BankingApp.Api.Controllers;
 
 using Application.DTOs.Beneficiaries;
-using Application.Services.Beneficiary;
+using Application.Repositories.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-///     Controller responsible for managing beneficiaries for the authenticated user.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class BeneficiariesController : ApiControllerBase
+public class BeneficiariesController(IBeneficiaryRepository beneficiaryRepository) : ApiController
 {
-    private readonly IBeneficiaryService _beneficiaryService;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="BeneficiariesController" /> class.
-    /// </summary>
-    /// <param name="beneficiaryService">The beneficiary service.</param>
-    public BeneficiariesController(IBeneficiaryService beneficiaryService)
-    {
-        _beneficiaryService = beneficiaryService;
-    }
-
-    /// <summary>
-    ///     Gets all beneficiaries for the authenticated user.
-    /// </summary>
-    /// <returns>
-    ///     200 OK with the user's beneficiaries, or an error otherwise.
-    /// </returns>
     [HttpGet]
     public IActionResult GetBeneficiaries()
     {
         int userId = GetAuthenticatedUserId();
-
         return ToActionResult(
-            _beneficiaryService.GetByUserId(userId),
-            beneficiaries => Ok(beneficiaries.Select(MapToDto).ToList()));
+            beneficiaryRepository.FindByUserId(userId),
+            beneficiaries => Ok(beneficiaries.ConvertAll(MapToDto)));
     }
 
-    /// <summary>
-    ///     Gets a beneficiary by identifier.
-    /// </summary>
-    /// <param name="id">The beneficiary identifier.</param>
-    /// <returns>
-    ///     200 OK with the beneficiary when found, or an error otherwise.
-    /// </returns>
-    [HttpGet("{id:int}")]
-    public IActionResult GetBeneficiaryById(int id)
+    [HttpGet("{beneficiaryId:int}")]
+    public IActionResult GetBeneficiaryById(int beneficiaryId)
     {
         int userId = GetAuthenticatedUserId();
-
         return ToActionResult(
-            _beneficiaryService.GetById(id, userId),
+            beneficiaryRepository.FindById(beneficiaryId, userId),
             beneficiary => Ok(MapToDto(beneficiary)));
     }
 
-    /// <summary>
-    ///     Creates a new beneficiary for the authenticated user.
-    /// </summary>
-    /// <param name="request">The beneficiary creation request.</param>
-    /// <returns>
-    ///     200 OK with the created beneficiary, or an error otherwise.
-    /// </returns>
     [HttpPost]
     public IActionResult CreateBeneficiary([FromBody] CreateBeneficiaryRequest request)
     {
         int userId = GetAuthenticatedUserId();
-
-        return ToActionResult(
-            _beneficiaryService.Create(userId, request.Name, request.Iban, request.BankName),
-            beneficiary => Ok(MapToDto(beneficiary)));
+        var beneficiary = new Beneficiary
+        {
+            User = new User { Id = userId },
+            Name = request.Name.Trim(),
+            Iban = request.Iban.Trim().ToUpperInvariant(),
+            BankName = string.IsNullOrWhiteSpace(request.BankName) ? null : request.BankName.Trim(),
+            CreatedAt = DateTime.UtcNow,
+        };
+        return ToActionResult(beneficiaryRepository.Create(beneficiary), b => Ok(MapToDto(b)));
     }
 
-    /// <summary>
-    ///     Updates an existing beneficiary.
-    /// </summary>
-    /// <param name="id">The beneficiary identifier from the route.</param>
-    /// <param name="request">The beneficiary update request.</param>
-    /// <returns>
-    ///     204 No Content on success, or an error otherwise.
-    /// </returns>
     [HttpPut("{id:int}")]
     public IActionResult UpdateBeneficiary(int id, [FromBody] UpdateBeneficiaryRequest request)
     {
         int userId = GetAuthenticatedUserId();
-
         var beneficiary = new Beneficiary
         {
             Id = id,
-            UserId = userId,
+            User = new User { Id = userId },
             Name = request.Name,
             Iban = request.Iban,
             BankName = request.BankName,
         };
-
-        return ToActionResult(_beneficiaryService.Update(beneficiary));
+        return ToActionResult(beneficiaryRepository.Update(beneficiary));
     }
 
-    /// <summary>
-    ///     Deletes a beneficiary by identifier.
-    /// </summary>
-    /// <param name="id">The beneficiary identifier.</param>
-    /// <returns>
-    ///     204 No Content on success, or an error otherwise.
-    /// </returns>
     [HttpDelete("{id:int}")]
     public IActionResult DeleteBeneficiary(int id)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(_beneficiaryService.Delete(id, userId));
+        return ToActionResult(beneficiaryRepository.Delete(id, userId));
     }
 
-    private static BeneficiaryDto MapToDto(Beneficiary beneficiary)
+    [HttpGet("raw/{userId:int}")]
+    public IActionResult GetBeneficiariesRaw(int userId)
+        => ToActionResult(beneficiaryRepository.FindByUserId(userId), Ok);
+
+    [HttpGet("raw/{userId:int}/{beneficiaryId:int}")]
+    public IActionResult GetBeneficiaryRaw(int userId, int beneficiaryId)
+        => ToActionResult(beneficiaryRepository.FindById(beneficiaryId, userId), Ok);
+
+    [HttpGet("raw/{userId:int}/exists")]
+    public IActionResult BeneficiaryExistsRaw(int userId, [FromQuery] string iban)
+        => ToActionResult(beneficiaryRepository.ExistsByUserIdAndIban(userId, iban), exists => Ok(exists));
+
+    [HttpPost("raw")]
+    public IActionResult CreateBeneficiaryRaw([FromBody] Beneficiary beneficiary)
+        => ToActionResult(beneficiaryRepository.Create(beneficiary), Ok);
+
+    [HttpPut("raw")]
+    public IActionResult UpdateBeneficiaryRaw([FromBody] Beneficiary beneficiary)
+        => ToActionResult(beneficiaryRepository.Update(beneficiary));
+
+    [HttpDelete("raw/{userId:int}/{beneficiaryId:int}")]
+    public IActionResult DeleteBeneficiaryRaw(int userId, int beneficiaryId)
+        => ToActionResult(beneficiaryRepository.Delete(beneficiaryId, userId));
+
+    private static BeneficiaryDto MapToDto(Beneficiary beneficiary) => new()
     {
-        return new BeneficiaryDto
-        {
-            Id = beneficiary.Id,
-            Name = beneficiary.Name,
-            Iban = beneficiary.Iban,
-            BankName = beneficiary.BankName,
-            LastTransferDate = beneficiary.LastTransferDate,
-            TotalAmountSent = beneficiary.TotalAmountSent,
-            TransferCount = beneficiary.TransferCount,
-            CreatedAt = beneficiary.CreatedAt,
-        };
-    }
+        Id = beneficiary.Id,
+        Name = beneficiary.Name,
+        Iban = beneficiary.Iban,
+        BankName = beneficiary.BankName,
+        LastTransferDate = beneficiary.LastTransferDate,
+        TotalAmountSent = beneficiary.TotalAmountSent,
+        TransferCount = beneficiary.TransferCount,
+        CreatedAt = beneficiary.CreatedAt,
+    };
 }
+#pragma warning restore CS1591

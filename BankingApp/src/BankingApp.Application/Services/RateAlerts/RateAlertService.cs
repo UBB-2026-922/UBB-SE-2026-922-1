@@ -88,7 +88,7 @@ public class RateAlertService : IRateAlertService
         return new RateAlertDto
         {
             Id = alert.Id,
-            UserId = alert.UserId,
+            UserId = alert.User?.Id ?? 0,
             BaseCurrency = alert.BaseCurrency,
             TargetCurrency = alert.TargetCurrency,
             TargetRate = alert.TargetRate,

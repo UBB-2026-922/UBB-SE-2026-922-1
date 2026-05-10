@@ -16,14 +16,6 @@ public class NotificationPreference
     public int Id { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the user this preference belongs to.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public int UserId { get; set; }
-
-    /// <summary>
     ///     Gets or sets the user this preference belongs to.
     /// </summary>
     public User? User { get; set; }

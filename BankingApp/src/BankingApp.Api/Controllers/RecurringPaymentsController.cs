@@ -1,111 +1,32 @@
-﻿namespace BankingApp.Api.Controllers;
+#pragma warning disable CS1591
+namespace BankingApp.Api.Controllers;
 
-using Application.DTOs.RecurringPayments;
-using Application.Services.RecurringPayments;
-using ErrorOr;
+using Application.Repositories.Interfaces;
+using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-///     Controller responsible for managing recurring payment schedules.
-///     All endpoints are accessible under the /api/recurring_payments route
-///     and require an authenticated session.
-/// </summary>
 [ApiController]
-[Route("api/recurring_payments")]
-public class RecurringPaymentsController : ApiControllerBase
+[Route("api/recurring-payments")]
+public class RecurringPaymentsController(IRecurringPaymentRepository recurringPaymentRepository) : ApiController
 {
-    private readonly IRecurringPaymentService _recurringPaymentService;
+    [HttpGet("{id:int}")]
+    public IActionResult GetById(int id)
+        => ToActionResult(recurringPaymentRepository.GetById(id), Ok);
 
-    /// <summary>Initializes a new instance of the <see cref="RecurringPaymentsController" /> class.</summary>
-    /// <param name="recurringPaymentService">The recurring payment service.</param>
-    public RecurringPaymentsController(IRecurringPaymentService recurringPaymentService)
-    {
-        _recurringPaymentService = recurringPaymentService;
-    }
+    [HttpGet("user/{userId:int}")]
+    public IActionResult GetByUserId(int userId)
+        => ToActionResult(recurringPaymentRepository.GetByUserId(userId), Ok);
 
-    /// <summary>
-    ///     Returns all recurring payment schedules owned by the authenticated user.
-    /// </summary>
-    /// <returns>
-    ///     200 OK with a list of <see cref="RecurringPaymentResponse" /> on success,
-    ///     or an appropriate error response.
-    /// </returns>
-    [HttpGet]
-    public IActionResult GetAll()
-    {
-        int userId = GetAuthenticatedUserId();
-        ErrorOr<List<RecurringPaymentResponse>> result = _recurringPaymentService.GetByUser(userId);
-        return ToActionResult(result, Ok);
-    }
+    [HttpGet("due")]
+    public IActionResult GetDuePayments([FromQuery] DateTime asOf)
+        => ToActionResult(recurringPaymentRepository.GetDuePayments(asOf), Ok);
 
-    /// <summary>
-    ///     Creates a new recurring payment schedule for the authenticated user.
-    /// </summary>
-    /// <param name="request">The creation request containing schedule details.</param>
-    /// <returns>
-    ///     201 Created with the new <see cref="RecurringPaymentResponse" /> on success,
-    ///     400 Bad Request if validation fails,
-    ///     or an appropriate error response.
-    /// </returns>
     [HttpPost]
-    public IActionResult Create([FromBody] CreateRecurringPaymentRequest request)
-    {
-        int userId = GetAuthenticatedUserId();
-        ErrorOr<RecurringPaymentResponse> result = _recurringPaymentService.Create(userId, request);
-        return ToActionResult(result, payment => CreatedAtAction(nameof(GetAll), new { }, payment));
-    }
+    public IActionResult Create([FromBody] RecurringPayment payment)
+        => ToActionResult(recurringPaymentRepository.Create(payment), Ok);
 
-    /// <summary>
-    ///     Pauses an active recurring payment schedule.
-    /// </summary>
-    /// <param name="id">The identifier of the recurring payment to pause.</param>
-    /// <returns>
-    ///     204 No Content on success,
-    ///     404 Not Found if the schedule does not exist,
-    ///     403 Forbidden if the schedule belongs to another user,
-    ///     or an appropriate error response.
-    /// </returns>
-    [HttpPut("{id}/pause")]
-    public IActionResult Pause(int id)
-    {
-        int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.Pause(userId, id);
-        return ToActionResult(result);
-    }
-
-    /// <summary>
-    ///     Resumes a paused recurring payment schedule.
-    /// </summary>
-    /// <param name="id">The identifier of the recurring payment to resume.</param>
-    /// <returns>
-    ///     204 No Content on success,
-    ///     404 Not Found if the schedule does not exist,
-    ///     403 Forbidden if the schedule belongs to another user,
-    ///     or an appropriate error response.
-    /// </returns>
-    [HttpPut("{id}/resume")]
-    public IActionResult ResumePayment(int id)
-    {
-        int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.ResumeRecurringPayment(userId, id);
-        return ToActionResult(result);
-    }
-
-    /// <summary>
-    ///     Permanently cancels a recurring payment schedule.
-    /// </summary>
-    /// <param name="id">The identifier of the recurring payment to cancel.</param>
-    /// <returns>
-    ///     204 No Content on success,
-    ///     404 Not Found if the schedule does not exist,
-    ///     403 Forbidden if the schedule belongs to another user,
-    ///     or an appropriate error response.
-    /// </returns>
-    [HttpDelete("{id}")]
-    public IActionResult Cancel(int id)
-    {
-        int userId = GetAuthenticatedUserId();
-        ErrorOr<Success> result = _recurringPaymentService.Cancel(userId, id);
-        return ToActionResult(result);
-    }
+    [HttpPut]
+    public IActionResult Update([FromBody] RecurringPayment payment)
+        => ToActionResult(recurringPaymentRepository.Update(payment));
 }
+#pragma warning restore CS1591

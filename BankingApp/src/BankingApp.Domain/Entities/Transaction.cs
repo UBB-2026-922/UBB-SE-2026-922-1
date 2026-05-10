@@ -16,25 +16,9 @@ public class Transaction
     public int Id { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the account this transaction belongs to.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public int AccountId { get; set; }
-
-    /// <summary>
     ///     Gets or sets the account this transaction belongs to.
     /// </summary>
     public Account? Account { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the identifier of the card used for this transaction, if any.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public int? CardId { get; set; }
 
     /// <summary>
     ///     Gets or sets the card used for this transaction, if any.
@@ -112,14 +96,6 @@ public class Transaction
     ///     Gets or sets the current value.
     /// </value>
     public string? MerchantName { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the identifier of the transaction category.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public int? CategoryId { get; set; }
 
     /// <summary>
     ///     Gets or sets the category assigned to this transaction, if any.

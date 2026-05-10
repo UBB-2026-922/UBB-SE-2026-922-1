@@ -2,111 +2,340 @@ namespace BankingApp.Desktop.Services;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Application.DTOs.BillPayments;
 using Application.DTOs.Billers;
 using Application.DTOs.RecurringPayments;
-using Utilities;
+using Application.Repositories.Interfaces;
+using Domain.Entities;
+using Domain.Enums;
 using ErrorOr;
+using Utilities;
 
 /// <summary>
-///     Implements <see cref="IBillPaymentClientService" /> using the shared desktop API client.
+///     Implements <see cref="IBillPaymentClientService" /> with desktop-side business logic and proxy repositories.
 /// </summary>
-internal sealed class BillPaymentClientService : IBillPaymentClientService
+internal sealed class BillPaymentClientService(
+    ICurrentSession currentSession,
+    IBillerRepository billerRepository,
+    IBillPaymentRepository billPaymentRepository,
+    IRecurringPaymentRepository recurringPaymentRepository)
+    : IBillPaymentClientService
 {
-    private readonly IApiClient _apiClient;
+    private const decimal SmallPaymentThreshold = 100m;
+    private const decimal SmallPaymentFee = 0.50m;
+    private const decimal StandardPaymentFee = 1.00m;
+    private const decimal TwoFaAmountThreshold = 1000m;
+    private const int ReceiptUniqueSuffixLength = 6;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="BillPaymentClientService" /> class.
-    /// </summary>
-    public BillPaymentClientService(IApiClient apiClient)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-    }
+    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
+    private readonly IBillerRepository _billerRepository = billerRepository ?? throw new ArgumentNullException(nameof(billerRepository));
+    private readonly IBillPaymentRepository _billPaymentRepository = billPaymentRepository ?? throw new ArgumentNullException(nameof(billPaymentRepository));
+    private readonly IRecurringPaymentRepository _recurringPaymentRepository = recurringPaymentRepository ?? throw new ArgumentNullException(nameof(recurringPaymentRepository));
 
-    /// <inheritdoc />
     public Task<ErrorOr<List<BillerDto>>> GetBillersAsync(string? search = null, string? category = null)
     {
-        string endpoint = ApiEndpoints.BillPayBillers;
-        string separator = "?";
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            endpoint += $"{separator}search={Uri.EscapeDataString(search)}";
-            separator = "&";
-        }
+        ErrorOr<List<Biller>> result = string.IsNullOrWhiteSpace(search) && string.IsNullOrWhiteSpace(category)
+            ? _billerRepository.GetAllBillers()
+            : _billerRepository.SearchBillers(search ?? string.Empty, category);
 
-        if (!string.IsNullOrWhiteSpace(category))
-        {
-            endpoint += $"{separator}category={Uri.EscapeDataString(category)}";
-        }
-
-        return _apiClient.GetAsync<List<BillerDto>>(endpoint);
+        return Task.FromResult<ErrorOr<List<BillerDto>>>(result.IsError
+            ? result.FirstError
+            : result.Value.ConvertAll(ToDto));
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<List<SavedBillerDto>>> GetSavedBillersAsync()
     {
-        return _apiClient.GetAsync<List<SavedBillerDto>>(ApiEndpoints.BillPaySavedBillers);
+        int? userId = _currentSession.GetCurrentUserId();
+        if (userId is null)
+        {
+            return Task.FromResult<ErrorOr<List<SavedBillerDto>>>(Error.Unauthorized(description: "User is not authenticated."));
+        }
+
+        ErrorOr<List<SavedBiller>> result = _billerRepository.GetSavedBillers(userId.Value);
+        return Task.FromResult<ErrorOr<List<SavedBillerDto>>>(result.IsError
+            ? result.FirstError
+            : result.Value.ConvertAll(ToSavedDto));
     }
 
-    /// <inheritdoc />
-    public Task<ErrorOr<List<AccountDto>>> GetAccountsAsync()
+    public async Task<ErrorOr<List<AccountDto>>> GetAccountsAsync()
     {
-        return _apiClient.GetAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts);
+        int? userId = _currentSession.GetCurrentUserId();
+        if (userId is null)
+        {
+            return Error.Unauthorized(description: "User is not authenticated.");
+        }
+
+        IEnumerable<Account> accounts = await _billPaymentRepository.GetAccountsByUserIdAsync(userId.Value);
+        var mapped = accounts.Select(account => new AccountDto
+        {
+            Id = account.Id,
+            Iban = account.Iban,
+            Currency = account.Currency,
+            Balance = account.Balance,
+            AccountName = account.AccountName ?? string.Empty,
+        }).ToList();
+
+        return mapped;
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<FeeResponse>> GetFeeAsync(decimal amount)
-    {
-        return _apiClient.GetAsync<FeeResponse>($"{ApiEndpoints.BillPayFee}?amount={amount}");
-    }
+        => Task.FromResult<ErrorOr<FeeResponse>>(new FeeResponse { Fee = CalculateFee(amount) });
 
-    /// <inheritdoc />
     public Task<ErrorOr<RequiresTwoFaResponse>> GetRequires2FaAsync(decimal amount)
+        => Task.FromResult<ErrorOr<RequiresTwoFaResponse>>(new RequiresTwoFaResponse { Required = amount >= TwoFaAmountThreshold });
+
+    public async Task<ErrorOr<BillPayResponse>> PayBillAsync(BillPayRequest request)
     {
-        return _apiClient.GetAsync<RequiresTwoFaResponse>($"{ApiEndpoints.BillPayRequires2Fa}?amount={amount}");
+        int? userId = _currentSession.GetCurrentUserId();
+        if (userId is null)
+        {
+            return Error.Unauthorized(description: "User is not authenticated.");
+        }
+
+        Biller? biller = await _billPaymentRepository.GetBillerByIdAsync(request.BillerId);
+        if (biller is null)
+        {
+            return Error.NotFound(description: "Biller not found.");
+        }
+
+        Account? account = await _billPaymentRepository.GetAccountByIdAsync(request.SourceAccountId);
+        if (account is null)
+        {
+            return Error.NotFound(description: "Source account not found.");
+        }
+
+        if (account.User?.Id != userId.Value)
+        {
+            return Error.Forbidden(description: "Source account does not belong to the authenticated user.");
+        }
+
+        if (request.Amount <= 0)
+        {
+            return Error.Validation(description: "Payment amount must be greater than zero.");
+        }
+
+        decimal fee = CalculateFee(request.Amount);
+        decimal totalAmount = request.Amount + fee;
+        if (account.Balance < totalAmount)
+        {
+            return Error.Forbidden(description: "Insufficient funds to pay this bill (including fees).");
+        }
+
+        account.Balance -= totalAmount;
+        await _billPaymentRepository.UpdateAccountAsync(account);
+
+        var globalTransaction = new Transaction
+        {
+            Account = account,
+            Category = null,
+            Amount = request.Amount,
+            Fee = fee,
+            Description = $"Bill Payment to {biller.Name} - Ref: {request.BillerReference}",
+            CreatedAt = DateTime.UtcNow,
+            Direction = TransactionDirection.Out,
+            Status = TransactionStatus.Completed,
+            TransactionRef = string.Create(
+                CultureInfo.InvariantCulture,
+                $"TXN-{Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)[..8].ToUpperInvariant()}"),
+            Type = "BillPayment",
+            Currency = account.Currency,
+            BalanceAfter = account.Balance,
+        };
+        await _billPaymentRepository.AddTransactionAsync(globalTransaction);
+
+        var payment = new BillPayment
+        {
+            User = new User { Id = userId.Value },
+            SourceAccount = account,
+            Biller = biller,
+            Transaction = globalTransaction,
+            BillerReference = request.BillerReference,
+            Amount = request.Amount,
+            Fee = fee,
+            ReceiptNumber = GenerateReceiptNumber(),
+            Status = BillPaymentStatus.Completed,
+            CreatedAt = DateTime.UtcNow,
+        };
+        await _billPaymentRepository.AddPaymentAsync(payment);
+
+        return new BillPayResponse
+        {
+            Id = payment.Id,
+            ReceiptNumber = payment.ReceiptNumber,
+            Fee = payment.Fee,
+            Amount = payment.Amount,
+            Status = payment.Status.ToString(),
+        };
     }
 
-    /// <inheritdoc />
-    public Task<ErrorOr<BillPayResponse>> PayBillAsync(BillPayRequest request)
-    {
-        return _apiClient.PostAsync<BillPayRequest, BillPayResponse>(ApiEndpoints.BillPayPay, request);
-    }
-
-    /// <inheritdoc />
     public Task<ErrorOr<SavedBillerDto>> SaveBillerAsync(SaveBillerRequest request)
     {
-        return _apiClient.PostAsync<SaveBillerRequest, SavedBillerDto>(ApiEndpoints.BillPaySaveBiller, request);
+        int? userId = _currentSession.GetCurrentUserId();
+        if (userId is null)
+        {
+            return Task.FromResult<ErrorOr<SavedBillerDto>>(Error.Unauthorized(description: "User is not authenticated."));
+        }
+
+        ErrorOr<Biller> billerResult = _billerRepository.GetBillerById(request.BillerId);
+        if (billerResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<SavedBillerDto>>(Error.NotFound(description: "Biller not found."));
+        }
+
+        ErrorOr<List<SavedBiller>> existingResult = _billerRepository.GetSavedBillers(userId.Value);
+        if (!existingResult.IsError && existingResult.Value.Any(saved => saved.Biller?.Id == request.BillerId))
+        {
+            return Task.FromResult<ErrorOr<SavedBillerDto>>(Error.Conflict(description: "Biller already saved."));
+        }
+
+        var savedBiller = new SavedBiller
+        {
+            User = new User { Id = userId.Value },
+            Biller = billerResult.Value,
+            Nickname = request.Nickname,
+            DefaultReference = request.DefaultReference,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        ErrorOr<SavedBiller> saveResult = _billerRepository.SaveBiller(savedBiller);
+        if (saveResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<SavedBillerDto>>(saveResult.FirstError);
+        }
+
+        saveResult.Value.Biller = billerResult.Value;
+        return Task.FromResult<ErrorOr<SavedBillerDto>>(ToSavedDto(saveResult.Value));
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<List<RecurringPaymentResponse>>> GetRecurringPaymentsAsync()
     {
-        return _apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments);
+        int? userId = _currentSession.GetCurrentUserId();
+        if (userId is null)
+        {
+            return Task.FromResult<ErrorOr<List<RecurringPaymentResponse>>>(Error.Unauthorized(description: "User is not authenticated."));
+        }
+
+        ErrorOr<List<RecurringPayment>> result = _recurringPaymentRepository.GetByUserId(userId.Value);
+        return Task.FromResult<ErrorOr<List<RecurringPaymentResponse>>>(result.IsError
+            ? result.FirstError
+            : result.Value.ConvertAll(MapToRecurringResponse));
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<RecurringPaymentResponse>> CreateRecurringPaymentAsync(CreateRecurringPaymentRequest request)
     {
-        return _apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(
-            ApiEndpoints.RecurringPayments, request);
+        int? userId = _currentSession.GetCurrentUserId();
+        if (userId is null)
+        {
+            return Task.FromResult<ErrorOr<RecurringPaymentResponse>>(Error.Unauthorized(description: "User is not authenticated."));
+        }
+
+        ErrorOr<RecurringPayment> paymentResult = RecurringPayment.Create(
+            userId.Value,
+            request.BillerId,
+            request.SourceAccountId,
+            request.Amount,
+            request.IsPayInFull,
+            request.Frequency,
+            request.StartDate,
+            request.EndDate,
+            DateTime.UtcNow);
+        if (paymentResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<RecurringPaymentResponse>>(paymentResult.FirstError);
+        }
+
+        ErrorOr<RecurringPayment> createResult = _recurringPaymentRepository.Create(paymentResult.Value);
+        return Task.FromResult<ErrorOr<RecurringPaymentResponse>>(createResult.IsError
+            ? createResult.FirstError
+            : MapToRecurringResponse(createResult.Value));
     }
 
-    /// <inheritdoc />
     public Task<ErrorOr<Success>> PauseRecurringPaymentAsync(int paymentId)
-    {
-        return _apiClient.PutAsync<object>($"{ApiEndpoints.RecurringPayments}/{paymentId}/pause", new { });
-    }
+        => ChangeRecurringPaymentState(paymentId, payment => payment.Pause(_currentSession.GetCurrentUserId() ?? 0));
 
-    /// <inheritdoc />
     public Task<ErrorOr<Success>> ResumeRecurringPaymentAsync(int paymentId)
+        => ChangeRecurringPaymentState(paymentId, payment => payment.Resume(_currentSession.GetCurrentUserId() ?? 0));
+
+    public Task<ErrorOr<Success>> CancelRecurringPaymentAsync(int paymentId)
+        => ChangeRecurringPaymentState(paymentId, payment => payment.Cancel(_currentSession.GetCurrentUserId() ?? 0));
+
+    private Task<ErrorOr<Success>> ChangeRecurringPaymentState(
+        int paymentId,
+        Func<RecurringPayment, ErrorOr<Success>> transition)
     {
-        return _apiClient.PutAsync<object>($"{ApiEndpoints.RecurringPayments}/{paymentId}/resume", new { });
+        ErrorOr<RecurringPayment> findResult = _recurringPaymentRepository.GetById(paymentId);
+        if (findResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<Success>>(findResult.FirstError);
+        }
+
+        ErrorOr<Success> transitionResult = transition(findResult.Value);
+        if (transitionResult.IsError)
+        {
+            return Task.FromResult<ErrorOr<Success>>(transitionResult.FirstError);
+        }
+
+        return Task.FromResult(_recurringPaymentRepository.Update(findResult.Value));
     }
 
-    /// <inheritdoc />
-    public Task<ErrorOr<Success>> CancelRecurringPaymentAsync(int paymentId)
+    private static decimal CalculateFee(decimal amount)
+        => amount <= SmallPaymentThreshold ? SmallPaymentFee : StandardPaymentFee;
+
+    private static string GenerateReceiptNumber()
     {
-        return _apiClient.DeleteAsync($"{ApiEndpoints.RecurringPayments}/{paymentId}");
+        string uniqueSuffix = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture)[..ReceiptUniqueSuffixLength]
+            .ToUpperInvariant();
+        return $"RCP-{DateTime.UtcNow:yyyyMMdd}-{uniqueSuffix}";
+    }
+
+    private static BillerDto ToDto(Biller biller)
+    {
+        return new BillerDto
+        {
+            Id = biller.Id,
+            Name = biller.Name,
+            Category = biller.Category,
+            LogoUrl = biller.LogoUrl,
+            IsActive = biller.IsActive,
+        };
+    }
+
+    private static SavedBillerDto ToSavedDto(SavedBiller savedBiller)
+    {
+        return new SavedBillerDto
+        {
+            Id = savedBiller.Id,
+            UserId = savedBiller.User?.Id ?? 0,
+            BillerId = savedBiller.Biller?.Id ?? 0,
+            BillerName = savedBiller.Biller?.Name ?? string.Empty,
+            BillerCategory = savedBiller.Biller?.Category ?? string.Empty,
+            LogoUrl = savedBiller.Biller?.LogoUrl,
+            Nickname = savedBiller.Nickname,
+            DefaultReference = savedBiller.DefaultReference,
+            CreatedAt = savedBiller.CreatedAt,
+            Biller = savedBiller.Biller is null ? null : ToDto(savedBiller.Biller),
+        };
+    }
+
+    private static RecurringPaymentResponse MapToRecurringResponse(RecurringPayment payment)
+    {
+        return new RecurringPaymentResponse
+        {
+            Id = payment.Id,
+            UserId = payment.User?.Id ?? 0,
+            BillerId = payment.Biller?.Id ?? 0,
+            SourceAccountId = payment.SourceAccount?.Id ?? 0,
+            Amount = payment.Amount,
+            IsPayInFull = payment.IsPayInFull,
+            Frequency = payment.Frequency,
+            StartDate = payment.StartDate,
+            EndDate = payment.EndDate,
+            NextExecutionDate = payment.NextExecutionDate,
+            Status = payment.Status,
+            CreatedAt = payment.CreatedAt,
+        };
     }
 }

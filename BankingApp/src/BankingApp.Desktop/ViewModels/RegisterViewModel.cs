@@ -75,12 +75,24 @@ public class RegisterViewModel
 
     private static RegisterState? ValidateLocally(string email, string password, string confirmPassword, string fullName)
     {
-        if (string.IsNullOrWhiteSpace(fullName)
-            || string.IsNullOrWhiteSpace(email)
-            || string.IsNullOrWhiteSpace(password)
-            || string.IsNullOrWhiteSpace(confirmPassword))
+        if (string.IsNullOrWhiteSpace(fullName))
         {
-            return RegisterState.Error;
+            return RegisterState.FullNameRequired;
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return RegisterState.EmailRequired;
+        }
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return RegisterState.PasswordRequired;
+        }
+
+        if (string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            return RegisterState.ConfirmPasswordRequired;
         }
 
         if (!email.Contains('@', StringComparison.Ordinal))

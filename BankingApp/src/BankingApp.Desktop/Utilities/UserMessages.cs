@@ -51,6 +51,18 @@ internal static class UserMessages
 
         /// <summary>Shown when one or more required fields are left blank.</summary>
         internal const string AllFieldsRequired = "Please fill in all fields.";
+
+        /// <summary>Shown when the full name field is blank.</summary>
+        internal const string FullNameRequired = "Please enter your full name.";
+
+        /// <summary>Shown when the email field is blank.</summary>
+        internal const string EmailRequired = "Please enter your email address.";
+
+        /// <summary>Shown when the password field is blank.</summary>
+        internal const string PasswordRequired = "Please enter a password.";
+
+        /// <summary>Shown when the confirmation password field is blank.</summary>
+        internal const string ConfirmPasswordRequired = "Please confirm your password.";
     }
 
     /// <summary>Messages shown in the profile view.</summary>

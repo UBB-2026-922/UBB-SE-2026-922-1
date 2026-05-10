@@ -41,6 +41,26 @@ public enum RegisterState
     PasswordMismatch,
 
     /// <summary>
+    ///     The full name field is required.
+    /// </summary>
+    FullNameRequired,
+
+    /// <summary>
+    ///     The email field is required.
+    /// </summary>
+    EmailRequired,
+
+    /// <summary>
+    ///     The password field is required.
+    /// </summary>
+    PasswordRequired,
+
+    /// <summary>
+    ///     The confirmation password field is required.
+    /// </summary>
+    ConfirmPasswordRequired,
+
+    /// <summary>
     ///     An unexpected error occurred during registration.
     /// </summary>
     Error,

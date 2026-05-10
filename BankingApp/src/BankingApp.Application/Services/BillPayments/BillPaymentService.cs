@@ -43,7 +43,7 @@ public class BillPaymentService : IBillPaymentService
         Account account = await _billRepository.GetAccountByIdAsync(request.SourceAccountId) ??
                            throw new KeyNotFoundException("Source account not found.");
 
-        if (account.UserId != request.UserId)
+        if (account.User?.Id != request.UserId)
         {
             throw new InvalidOperationException("Source account does not belong to the authenticated user.");
         }
@@ -67,8 +67,8 @@ public class BillPaymentService : IBillPaymentService
 
         var globalTransaction = new Transaction
         {
-            AccountId = account.Id,
-            CategoryId = null,
+            Account = account,
+            Category = null,
             Amount = request.Amount,
             Fee = fee,
             Description = $"Bill Payment to {biller.Name} - Ref: {request.BillerReference}",
@@ -87,10 +87,10 @@ public class BillPaymentService : IBillPaymentService
 
         var payment = new BillPayment
         {
-            UserId = request.UserId,
-            SourceAccountId = request.SourceAccountId,
-            BillerId = request.BillerId,
-            TransactionId = globalTransaction.Id,
+            User = new User { Id = request.UserId },
+            SourceAccount = account,
+            Biller = biller,
+            Transaction = globalTransaction,
             BillerReference = request.BillerReference,
             Amount = request.Amount,
             Fee = fee,
@@ -121,8 +121,8 @@ public class BillPaymentService : IBillPaymentService
     {
         var saved = new SavedBiller
         {
-            UserId = userId,
-            BillerId = billerId,
+            User = new User { Id = userId },
+            Biller = new Biller { Id = billerId },
             Nickname = nickname,
             CreatedAt = DateTime.UtcNow
         };

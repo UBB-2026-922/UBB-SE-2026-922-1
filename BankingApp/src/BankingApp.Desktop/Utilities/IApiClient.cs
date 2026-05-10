@@ -1,110 +1,42 @@
-﻿namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Utilities;
 
 using System.Threading;
 using System.Threading.Tasks;
 using ErrorOr;
 
 /// <summary>
-///     Defines the client-side boundary for authenticated API communication.
+///     HTTP transport layer for proxy repositories. Extends <see cref="ICurrentSession" /> so that
+///     the single <see cref="ApiClient" /> singleton can satisfy both interfaces.
 /// </summary>
-public interface IApiClient
+public interface IApiClient : ICurrentSession
 {
-    /// <summary>
-    ///     Gets or sets the identifier of the currently authenticated user.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public int? CurrentUserId { get; set; }
-
-    /// <summary>
-    ///     Gets the currently configured bearer token.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public string? Token { get; }
-
-    /// <summary>
-    ///     Returns <see cref="Success" /> when the client is correctly configured.
-    /// </summary>
-    /// <returns>A success result when configured; otherwise, a configuration error.</returns>
-    public ErrorOr<Success> EnsureConfigured();
-
-    /// <summary>
-    ///     Gets the identifier of the currently authenticated user.
-    /// </summary>
-    /// <returns>The authenticated user identifier, if one exists.</returns>
-    public int? GetCurrentUserId();
-
-    /// <summary>
-    ///     Sets the identifier of the currently authenticated user.
-    /// </summary>
-    /// <param name="userId">The authenticated user identifier.</param>
-    public void SetCurrentUserId(int userId);
-
-    /// <summary>
-    ///     Sets the bearer token used for authenticated requests.
-    /// </summary>
-    /// <param name="tokenStr">The token value.</param>
-    public void SetToken(string tokenStr);
-
-    /// <summary>
-    ///     Clears the stored authentication state from the client.
-    /// </summary>
-    public void ClearToken();
-
     /// <summary>
     ///     Sends a POST request and deserializes the response body into <typeparamref name="TResponse" />.
     /// </summary>
-    /// <typeparam name="TRequest">The request model type.</typeparam>
-    /// <typeparam name="TResponse">The response model type.</typeparam>
-    /// <param name="endpoint">The relative endpoint to call.</param>
-    /// <param name="data">The request body to serialize.</param>
-    /// <returns>The deserialized response body, or an <see cref="Error" /> if the request fails.</returns>
     public Task<ErrorOr<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, object? data);
 
     /// <summary>
     ///     Sends a POST request and returns <see cref="Success" /> when the server responds with a 2xx status.
     /// </summary>
-    /// <typeparam name="TRequest">The request model type.</typeparam>
-    /// <param name="endpoint">The relative endpoint to call.</param>
-    /// <param name="data">The request body to serialize.</param>
-    /// <returns><see cref="Result.Success" /> on a 2xx response, or an <see cref="Error" /> otherwise.</returns>
     public Task<ErrorOr<Success>> PostAsync<TRequest>(string endpoint, TRequest data);
 
     /// <summary>
-    ///     Sends a GET request to the provided endpoint and deserializes the response body.
+    ///     Sends a GET request and deserializes the response body.
     /// </summary>
-    /// <typeparam name="TResponse">The response model type.</typeparam>
-    /// <param name="endpoint">The relative endpoint to call.</param>
-    /// <param name="cancellationToken">Used to cancel the in-flight HTTP request.</param>
-    /// <returns>The deserialized response body, or an <see cref="Error" /> if the request fails.</returns>
     public Task<ErrorOr<TResponse>> GetAsync<TResponse>(string endpoint, CancellationToken cancellationToken = default);
 
     /// <summary>
     ///     Sends a PUT request and deserializes the response body into <typeparamref name="TResponse" />.
     /// </summary>
-    /// <typeparam name="TRequest">The request model type.</typeparam>
-    /// <typeparam name="TResponse">The response model type.</typeparam>
-    /// <param name="endpoint">The relative endpoint to call.</param>
-    /// <param name="data">The request body to serialize.</param>
-    /// <returns>The deserialized response body, or an <see cref="Error" /> if the request fails.</returns>
     public Task<ErrorOr<TResponse>> PutAsync<TRequest, TResponse>(string endpoint, TRequest data);
 
     /// <summary>
     ///     Sends a PUT request and returns <see cref="Success" /> when the server responds with a 2xx status.
     /// </summary>
-    /// <typeparam name="TRequest">The request model type.</typeparam>
-    /// <param name="endpoint">The relative endpoint to call.</param>
-    /// <param name="data">The request body to serialize.</param>
-    /// <returns><see cref="Result.Success" /> on a 2xx response, or an <see cref="Error" /> otherwise.</returns>
     public Task<ErrorOr<Success>> PutAsync<TRequest>(string endpoint, TRequest data);
 
     /// <summary>
     ///     Sends a DELETE request and returns <see cref="Success" /> when the server responds with a 2xx status.
     /// </summary>
-    /// <param name="endpoint">The relative endpoint to call.</param>
-    /// <returns><see cref="Result.Success" /> on a 2xx response, or an <see cref="Error" /> otherwise.</returns>
     public Task<ErrorOr<Success>> DeleteAsync(string endpoint);
 }

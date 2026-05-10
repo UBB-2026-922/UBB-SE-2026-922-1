@@ -1,73 +1,128 @@
-﻿namespace BankingApp.Api.Tests.Controller;
+namespace BankingApp.Api.Tests.Controller;
 
 using Controllers;
-using Application.Services.Dashboard;
+using Application.Repositories.Interfaces;
+using Domain.Entities;
 using ErrorOr;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Application.DTOs.Dashboard;
 
-/// <summary>
-///     Unit tests for <see cref="DashboardController" /> verifying route contracts
-///     and protected endpoint behavior.
-/// </summary>
 [Trait("Category", "Unit")]
 public sealed class DashboardControllerTests
 {
-    private readonly Mock<IDashboardService> _dashboardService = MockFactory.CreateDashboardService();
+    private const int DefaultUserId = 1;
+    private const int DefaultAccountId = 10;
 
-    /// <summary>
-    ///     Verifies the GetDashboard_WhenSuccess_ReturnsOkWithData scenario.
-    /// </summary>
+    private readonly Mock<IDashboardRepository> _dashboardRepository = new(MockBehavior.Strict);
+
     [Fact]
-    public void GetDashboard_WhenSuccess_ReturnsOkWithData()
+    public void GetAccountsByUserIdRaw_WhenFound_ReturnsOkWithAccounts()
     {
-        // Arrange
-        const int validUserId = 1;
-        var response = new DashboardDto();
-        _dashboardService.Setup(getsDashboardData => getsDashboardData.GetDashboardData(validUserId)).Returns(response);
-        DashboardController controller = CreateController(validUserId);
+        var accounts = new List<Account> { new() { Id = DefaultAccountId } };
+        _dashboardRepository.Setup(r => r.GetAccountsByUser(DefaultUserId)).Returns(accounts);
+        DashboardController controller = CreateController();
 
-        // Act
-        IActionResult result = controller.GetDashboard();
+        IActionResult result = controller.GetAccountsByUserIdRaw(DefaultUserId);
 
-        // Assert
-        OkObjectResult? successResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        successResult.Value.Should().Be(response);
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(accounts);
     }
 
-    /// <summary>
-    ///     Verifies the GetDashboard_WhenUserNotFound_ReturnsNotFound scenario.
-    /// </summary>
     [Fact]
-    public void GetDashboard_WhenUserNotFound_ReturnsNotFound()
+    public void GetAccountsByUserIdRaw_WhenRepositoryFails_ReturnsError()
     {
-        // Arrange
-        const int nonExistentUserId = 99;
-        _dashboardService
-            .Setup(getsDashboardData => getsDashboardData.GetDashboardData(nonExistentUserId))
-            .Returns(Error.NotFound("user_not_found", "User not found."));
+        _dashboardRepository.Setup(r => r.GetAccountsByUser(DefaultUserId)).Returns(Error.NotFound());
+        DashboardController controller = CreateController();
 
-        DashboardController controller = CreateController(nonExistentUserId);
+        IActionResult result = controller.GetAccountsByUserIdRaw(DefaultUserId);
 
-        // Act
-        IActionResult result = controller.GetDashboard();
-
-        // Assert
         result.Should().BeOfType<NotFoundObjectResult>();
     }
 
-    private DashboardController CreateController(int authenticatedUserId)
+    [Fact]
+    public void GetCardsByUserIdRaw_WhenFound_ReturnsOkWithCards()
     {
-        var controller = new DashboardController(_dashboardService.Object);
-        var httpContext = new DefaultHttpContext
+        var cards = new List<Card> { new() { Id = 1 } };
+        _dashboardRepository.Setup(r => r.GetCardsByUser(DefaultUserId)).Returns(cards);
+        DashboardController controller = CreateController();
+
+        IActionResult result = controller.GetCardsByUserIdRaw(DefaultUserId);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(cards);
+    }
+
+    [Fact]
+    public void GetRecentTransactionsRaw_WhenFound_ReturnsOkWithTransactions()
+    {
+        var transactions = new List<Transaction> { new() { Id = 1, Amount = 100m } };
+        _dashboardRepository.Setup(r => r.GetRecentTransactions(DefaultAccountId, IDashboardRepository.DefaultRecentTransactionLimit))
+            .Returns(transactions);
+        DashboardController controller = CreateController();
+
+        IActionResult result = controller.GetRecentTransactionsRaw(DefaultAccountId);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(transactions);
+    }
+
+    [Fact]
+    public void GetUnreadNotificationCountRaw_WhenFound_ReturnsOkWithCount()
+    {
+        _dashboardRepository.Setup(r => r.GetUnreadNotificationCount(DefaultUserId)).Returns(3);
+        DashboardController controller = CreateController();
+
+        IActionResult result = controller.GetUnreadNotificationCountRaw(DefaultUserId);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(3);
+    }
+
+    [Fact]
+    public void DebitAccountRaw_WhenSuccessful_ReturnsNoContent()
+    {
+        _dashboardRepository.Setup(r => r.DebitAccount(DefaultAccountId, 50m)).Returns(Result.Success);
+        DashboardController controller = CreateController();
+
+        IActionResult result = controller.DebitAccountRaw(DefaultAccountId, new DashboardController.DebitAccountRequest { Amount = 50m });
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public void DebitAccountRaw_WhenRepositoryFails_ReturnsError()
+    {
+        _dashboardRepository.Setup(r => r.DebitAccount(DefaultAccountId, 50m)).Returns(Error.Failure());
+        DashboardController controller = CreateController();
+
+        IActionResult result = controller.DebitAccountRaw(DefaultAccountId, new DashboardController.DebitAccountRequest { Amount = 50m });
+
+        ObjectResult obj = result.Should().BeOfType<ObjectResult>().Subject;
+        obj.StatusCode.Should().Be(StatusCodes.Status500InternalServerError);
+    }
+
+    [Fact]
+    public void AddTransactionRaw_WhenSuccessful_ReturnsOkWithTransaction()
+    {
+        var transaction = new Transaction { Id = 5, Amount = 200m };
+        _dashboardRepository.Setup(r => r.AddTransaction(transaction)).Returns(transaction);
+        DashboardController controller = CreateController();
+
+        IActionResult result = controller.AddTransactionRaw(transaction);
+
+        OkObjectResult ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(transaction);
+    }
+
+    private DashboardController CreateController()
+    {
+        DashboardController controller = new(_dashboardRepository.Object)
         {
-            Items =
+            ControllerContext = new ControllerContext
             {
-                ["UserId"] = authenticatedUserId
+                HttpContext = new DefaultHttpContext { Items = { ["UserId"] = DefaultUserId } }
             }
         };
-        controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return controller;
     }
 }

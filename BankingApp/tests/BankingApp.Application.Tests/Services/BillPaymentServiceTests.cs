@@ -87,7 +87,7 @@ public class BillPaymentServiceTests
             .ReturnsAsync(new Account
             {
                 Id = request.SourceAccountId,
-                UserId = request.UserId,
+                User = new User { Id = request.UserId },
                 Balance = 5000,
                 Currency = "RON"
             });

@@ -21,14 +21,6 @@ public class Beneficiary
     public int Id { get; set; }
 
     /// <summary>
-    ///     Gets or sets the identifier of the user who owns this beneficiary.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public int UserId { get; set; }
-
-    /// <summary>
     ///     Gets or sets the user who owns this beneficiary.
     /// </summary>
     public User? User { get; set; }

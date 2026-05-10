@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public abstract class ApiControllerBase : ControllerBase
+public abstract class ApiController : ControllerBase
 {
     /// <summary>
     ///     Extracts the authenticated user's ID from the HTTP context,

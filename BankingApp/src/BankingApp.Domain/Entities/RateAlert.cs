@@ -8,8 +8,7 @@ using ErrorOr;
 ///     Maps to the SQL table <c>RateAlert</c> introduced by Team B.
 /// </summary>
 /// <remarks>
-///     Reuses the base entity <see cref="User" /> via <see cref="UserId" /> (Many-to-One):
-///     each alert belongs to exactly one user and monitors a single currency pair.
+///     Reuses the base entity <see cref="User" /> as the owner of the alert.
 /// </remarks>
 public class RateAlert
 {
@@ -18,10 +17,6 @@ public class RateAlert
     /// <summary>Gets or sets the unique identifier for this rate alert.</summary>
     /// <value>Gets or sets the current value.</value>
     public int Id { get; set; }
-
-    /// <summary>Gets or sets the identifier of the <see cref="User" /> who created this alert.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int UserId { get; set; }
 
     /// <summary>Gets or sets the user who created this alert.</summary>
     public User? User { get; set; }
@@ -96,7 +91,7 @@ public class RateAlert
 
         return new RateAlert
         {
-            UserId = userId,
+            User = new User { Id = userId },
             BaseCurrency = baseCurrency,
             TargetCurrency = targetCurrency,
             TargetRate = targetRate,

@@ -109,10 +109,14 @@ public class DashboardService : IDashboardService
                         Status = card.Status,
                         IsContactlessEnabled = card.IsContactlessEnabled,
                         IsOnlineEnabled = card.IsOnlineEnabled,
-                        AccountName = accountsById.TryGetValue(card.AccountId, out Account? account)
-                            ? account.AccountName
-                            : null,
-                        AccountBalance = account?.Balance
+                        AccountName = card.Account?.AccountName
+                            ?? (card.Account is not null && accountsById.TryGetValue(card.Account.Id, out Account? account)
+                                ? account.AccountName
+                                : null),
+                        AccountBalance = card.Account?.Balance
+                            ?? (card.Account is not null && accountsById.TryGetValue(card.Account.Id, out Account? linkedAccount)
+                                ? linkedAccount.Balance
+                                : null)
                     })
                     .ToList(),
             RecentTransactions = allTransactions

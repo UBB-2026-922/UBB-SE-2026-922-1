@@ -146,9 +146,6 @@ namespace BankingApp.Infrastructure.Migrations
                     b.Property<int>("BillerId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("BillerId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("BillerReference")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -172,9 +169,6 @@ namespace BankingApp.Infrastructure.Migrations
                     b.Property<int>("SourceAccountId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SourceAccountId1")
-                        .HasColumnType("int");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -183,32 +177,18 @@ namespace BankingApp.Infrastructure.Migrations
                     b.Property<int?>("TransactionId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TransactionId1")
-                        .HasColumnType("int");
-
                     b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("UserId1")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BillerId");
 
-                    b.HasIndex("BillerId1");
-
                     b.HasIndex("SourceAccountId");
-
-                    b.HasIndex("SourceAccountId1");
 
                     b.HasIndex("TransactionId");
 
-                    b.HasIndex("TransactionId1");
-
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("BillPayment", (string)null);
                 });
@@ -689,9 +669,6 @@ namespace BankingApp.Infrastructure.Migrations
                     b.Property<int>("BillerId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("BillerId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -708,18 +685,11 @@ namespace BankingApp.Infrastructure.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("UserId1")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BillerId");
 
-                    b.HasIndex("BillerId1");
-
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("SavedBiller", (string)null);
                 });
@@ -1063,62 +1033,50 @@ namespace BankingApp.Infrastructure.Migrations
 
             modelBuilder.Entity("BankingApp.Domain.Entities.Account", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.Beneficiary", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.BillPayment", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Biller", null)
+                    b.HasOne("BankingApp.Domain.Entities.Biller", "Biller")
                         .WithMany()
                         .HasForeignKey("BillerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Biller", "Biller")
-                        .WithMany()
-                        .HasForeignKey("BillerId1");
-
-                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                    b.HasOne("BankingApp.Domain.Entities.Account", "SourceAccount")
                         .WithMany()
                         .HasForeignKey("SourceAccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Account", "SourceAccount")
-                        .WithMany()
-                        .HasForeignKey("SourceAccountId1");
-
-                    b.HasOne("BankingApp.Domain.Entities.Transaction", null)
+                    b.HasOne("BankingApp.Domain.Entities.Transaction", "Transaction")
                         .WithMany()
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("BankingApp.Domain.Entities.Transaction", "Transaction")
-                        .WithMany()
-                        .HasForeignKey("TransactionId1");
-
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("BankingApp.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId1");
 
                     b.Navigation("Biller");
 
@@ -1131,132 +1089,141 @@ namespace BankingApp.Infrastructure.Migrations
 
             modelBuilder.Entity("BankingApp.Domain.Entities.Card", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                    b.HasOne("BankingApp.Domain.Entities.Account", "Account")
                         .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.ExchangeTransaction", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                    b.HasOne("BankingApp.Domain.Entities.Account", "SourceAccount")
                         .WithMany()
                         .HasForeignKey("SourceAccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                    b.HasOne("BankingApp.Domain.Entities.Account", "TargetAccount")
                         .WithMany()
                         .HasForeignKey("TargetAccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Transaction", null)
+                    b.HasOne("BankingApp.Domain.Entities.Transaction", "Transaction")
                         .WithMany()
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("SourceAccount");
+
+                    b.Navigation("TargetAccount");
+
+                    b.Navigation("Transaction");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.Notification", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.NotificationPreference", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.PasswordResetToken", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.RateAlert", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
 
-            modelBuilder.Entity("BankingApp.Domain.Entities.RateAlert", b =>
-                {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.RecurringPayment", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Biller", null)
+                    b.HasOne("BankingApp.Domain.Entities.Biller", "Biller")
                         .WithMany()
                         .HasForeignKey("BillerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                    b.HasOne("BankingApp.Domain.Entities.Account", "SourceAccount")
                         .WithMany()
                         .HasForeignKey("SourceAccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Biller");
+
+                    b.Navigation("SourceAccount");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.SavedBiller", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Biller", null)
+                    b.HasOne("BankingApp.Domain.Entities.Biller", "Biller")
                         .WithMany()
                         .HasForeignKey("BillerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Biller", "Biller")
-                        .WithMany()
-                        .HasForeignKey("BillerId1");
-
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("BankingApp.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId1");
 
                     b.Navigation("Biller");
 
@@ -1265,71 +1232,91 @@ namespace BankingApp.Infrastructure.Migrations
 
             modelBuilder.Entity("BankingApp.Domain.Entities.Session", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.Transaction", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                    b.HasOne("BankingApp.Domain.Entities.Account", "Account")
                         .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Card", null)
+                    b.HasOne("BankingApp.Domain.Entities.Card", "Card")
                         .WithMany()
                         .HasForeignKey("CardId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("BankingApp.Domain.Entities.Category", null)
+                    b.HasOne("BankingApp.Domain.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Card");
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.TransactionCategoryOverride", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Category", null)
+                    b.HasOne("BankingApp.Domain.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Transaction", null)
+                    b.HasOne("BankingApp.Domain.Entities.Transaction", "Transaction")
                         .WithMany()
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Transaction");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BankingApp.Domain.Entities.Transfer", b =>
                 {
-                    b.HasOne("BankingApp.Domain.Entities.Account", null)
+                    b.HasOne("BankingApp.Domain.Entities.Account", "SourceAccount")
                         .WithMany()
                         .HasForeignKey("SourceAccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("BankingApp.Domain.Entities.Transaction", null)
+                    b.HasOne("BankingApp.Domain.Entities.Transaction", "Transaction")
                         .WithMany()
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("BankingApp.Domain.Entities.User", null)
+                    b.HasOne("BankingApp.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("SourceAccount");
+
+                    b.Navigation("Transaction");
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

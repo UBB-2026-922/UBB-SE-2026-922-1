@@ -3,6 +3,7 @@
 using Domain.Entities;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides SQL Server data access for user session records.
@@ -39,9 +40,15 @@ public class SessionDataAccess : ISessionDataAccess
     {
         try
         {
+            User? user = _databaseContext.Users.Find(userId);
+            if (user is null)
+            {
+                return Error.NotFound(description: "User not found.");
+            }
+
             Session session = new()
             {
-                UserId = userId,
+                User = user,
                 Token = token,
                 DeviceInfo = deviceInfo,
                 Browser = browser,
@@ -64,7 +71,9 @@ public class SessionDataAccess : ISessionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Session> FindByToken(string token)
     {
-        Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Token == token && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow);
+        Session? session = _databaseContext.Sessions
+            .Include(existingSession => existingSession.User)
+            .FirstOrDefault(session => session.Token == token && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow);
         return session ?? (ErrorOr<Session>)Error.NotFound(description: "Session not found.");
     }
 
@@ -73,7 +82,7 @@ public class SessionDataAccess : ISessionDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Session>> FindByUserId(int userId)
     {
-        var sessions = _databaseContext.Sessions.Where(session => session.UserId == userId && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow).ToList();
+        var sessions = _databaseContext.Sessions.Where(session => EF.Property<int>(session, "UserId") == userId && !session.IsRevoked && session.ExpiresAt > DateTime.UtcNow).ToList();
         return sessions;
     }
 
@@ -108,7 +117,7 @@ public class SessionDataAccess : ISessionDataAccess
     {
         try
         {
-            Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Id == sessionId && session.UserId == userId && !session.IsRevoked);
+            Session? session = _databaseContext.Sessions.FirstOrDefault(session => session.Id == sessionId && EF.Property<int>(session, "UserId") == userId && !session.IsRevoked);
             if (session is null)
             {
                 return Error.NotFound(description: "Session not found.");
@@ -131,7 +140,7 @@ public class SessionDataAccess : ISessionDataAccess
     {
         try
         {
-            Session[] sessions = _databaseContext.Sessions.Where(session => session.UserId == userId && !session.IsRevoked).ToArray();
+            Session[] sessions = _databaseContext.Sessions.Where(session => EF.Property<int>(session, "UserId") == userId && !session.IsRevoked).ToArray();
             foreach (Session session in sessions)
             {
                 session.IsRevoked = true;

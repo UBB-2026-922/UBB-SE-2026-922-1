@@ -59,9 +59,9 @@ public class RecurringPaymentProcessingService : IRecurringPaymentProcessingServ
             {
                 await _billPaymentService.ProcessPaymentAsync(new BillPaymentDto
                 {
-                    UserId = payment.UserId,
-                    SourceAccountId = payment.SourceAccountId,
-                    BillerId = payment.BillerId,
+                    UserId = payment.User?.Id ?? 0,
+                    SourceAccountId = payment.SourceAccount?.Id ?? 0,
+                    BillerId = payment.Biller?.Id ?? 0,
                     BillerReference = string.Empty,
                     Amount = payment.Amount,
                     IsPayInFull = payment.IsPayInFull

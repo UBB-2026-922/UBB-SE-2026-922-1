@@ -2,10 +2,10 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Collections.Generic;
 using Application.DTOs.Transfer;
-using Services.Transfers;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
+using Services;
 
 /// <summary>
 ///     Tests for the <see cref="TransferViewModel" />.
@@ -20,7 +20,7 @@ public class TransferViewModelTests
     private const int TransferCompletedStep = 6;
     private const int TransferErrorStep = 7;
 
-    private readonly Mock<ITransferClientService> _transferClientService;
+    private readonly Mock<ITransferService> _transferService;
     private readonly TransferViewModel _viewModel;
 
     /// <summary>
@@ -29,8 +29,8 @@ public class TransferViewModelTests
     /// </summary>
     public TransferViewModelTests()
     {
-        _transferClientService = new Mock<ITransferClientService>(MockBehavior.Loose);
-        _viewModel = new TransferViewModel(_transferClientService.Object);
+        _transferService = new Mock<ITransferService>(MockBehavior.Loose);
+        _viewModel = new TransferViewModel(_transferService.Object);
     }
 
     /// <summary>
@@ -48,7 +48,7 @@ public class TransferViewModelTests
             new TransferAccountSelectionResponse { Id = 2, AccountName = "Savings", Currency = "USD", Balance = 500m }
         };
 
-        _transferClientService
+        _transferService
             .Setup(service => service.GetAccountsAsync(default))
             .ReturnsAsync(accounts);
 
@@ -71,7 +71,7 @@ public class TransferViewModelTests
     public async Task LoadAccountsAsync_WhenApiFails_SetsErrorMessage()
     {
         // Arrange
-        _transferClientService
+        _transferService
             .Setup(service => service.GetAccountsAsync(default))
             .ReturnsAsync(Error.Failure());
 
@@ -190,7 +190,7 @@ public class TransferViewModelTests
         _viewModel.Amount = 250m;
         _viewModel.Currency = "EUR";
 
-        _transferClientService
+        _transferService
             .Setup(service => service.ExecuteTransferAsync(
                 It.IsAny<int>(),
                 It.IsAny<string>(),
@@ -221,7 +221,7 @@ public class TransferViewModelTests
         const string errorDescription = "Insufficient funds.";
         _viewModel.SelectedAccount = new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR" };
 
-        _transferClientService
+        _transferService
             .Setup(service => service.ExecuteTransferAsync(
                 It.IsAny<int>(),
                 It.IsAny<string>(),
@@ -251,7 +251,7 @@ public class TransferViewModelTests
             new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR" }
         };
 
-        _transferClientService
+        _transferService
             .Setup(service => service.GetAccountsAsync(default))
             .ReturnsAsync(accounts);
 

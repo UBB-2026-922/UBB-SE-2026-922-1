@@ -292,9 +292,9 @@ public class RecurringPaymentProcessingServiceTests
         new()
         {
             Id = 1,
-            UserId = userId,
-            SourceAccountId = sourceAccountId,
-            BillerId = billerId,
+            User = new User { Id = userId },
+            SourceAccount = new Account { Id = sourceAccountId },
+            Biller = new Biller { Id = billerId },
             Amount = amount,
             IsPayInFull = isPayInFull,
             Frequency = frequency,

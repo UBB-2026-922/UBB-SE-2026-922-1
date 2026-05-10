@@ -37,7 +37,7 @@ public class DomainBusinessRulesTests
     {
         var payment = new RecurringPayment
         {
-            UserId = 42,
+            User = new User { Id = 42 },
             Status = RecurringPaymentStatus.Active
         };
 

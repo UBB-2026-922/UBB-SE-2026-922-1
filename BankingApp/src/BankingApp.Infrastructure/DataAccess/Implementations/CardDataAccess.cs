@@ -3,6 +3,7 @@
 using Domain.Entities;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides SQL Server data access for payment card records.
@@ -40,7 +41,7 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Card>> FindByUserId(int userId)
     {
-        var cards = _databaseContext.Cards.Where(card => card.UserId == userId).ToList();
+        var cards = _databaseContext.Cards.Where(card => EF.Property<int>(card, "UserId") == userId).ToList();
         return cards;
     }
 }

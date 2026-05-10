@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.DTOs.Beneficiaries;
 using Master;
-using Services.Transfers;
 using Utilities;
 using Views;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Services;
 
 /// <summary>
 ///     View model for the beneficiaries page in the desktop application.
@@ -19,18 +19,18 @@ public class BeneficiariesViewModel
 {
     private readonly ILogger<BeneficiariesViewModel> _logger;
     private readonly IAppNavigationService _navigationService;
-    private readonly ITransferClientService _transferClientService;
+    private readonly ITransferService _transferService;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="BeneficiariesViewModel"/> class.
     /// </summary>
-    /// <param name="transferClientService">The transfer client service used to call backend endpoints.</param>
+    /// <param name="transferService">The transfer service used to call backend endpoints.</param>
     /// <param name="navigationService">The navigation service used for view navigation.</param>
     /// <param name="logger">Logger instance for diagnostics.</param>
-    public BeneficiariesViewModel(ITransferClientService transferClientService, IAppNavigationService navigationService,
+    public BeneficiariesViewModel(ITransferService transferService, IAppNavigationService navigationService,
         ILogger<BeneficiariesViewModel> logger)
     {
-        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
+        _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Beneficiaries = new List<BeneficiaryDto>();
@@ -68,7 +68,7 @@ public class BeneficiariesViewModel
         try
         {
             ErrorOr<List<BeneficiaryDto>> result =
-                await _transferClientService.GetBeneficiariesAsync();
+                await _transferService.GetBeneficiariesAsync();
 
             if (result.IsError)
             {
@@ -95,7 +95,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            ErrorOr<Success> result = await _transferClientService.DeleteBeneficiaryAsync(id);
+            ErrorOr<Success> result = await _transferService.DeleteBeneficiaryAsync(id);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to delete beneficiary.";
@@ -119,7 +119,7 @@ public class BeneficiariesViewModel
     {
         try
         {
-            ErrorOr<Success> result = await _transferClientService.AddBeneficiaryAsync(NewName, NewIban, NewBankName);
+            ErrorOr<Success> result = await _transferService.AddBeneficiaryAsync(NewName, NewIban, NewBankName);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to save beneficiary.";

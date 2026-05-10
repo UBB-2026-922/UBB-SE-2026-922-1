@@ -5,31 +5,30 @@ using System.Linq;
 using System.Threading.Tasks;
 using Enums;
 using ErrorOr;
-
-using Application.DTOs.Auth;
+using Services;
 
 /// <summary>
-///     Implements <see cref="IPasswordRecoveryManager" /> by delegating network calls
-///     to <see cref="IApiClient" /> and managing resend-throttling via <see cref="ISystemClock" />.
+///     Implements <see cref="IPasswordRecoveryManager" /> by delegating auth work
+///     to <see cref="IAuthClientService" /> and managing resend-throttling via <see cref="ISystemClock" />.
 /// </summary>
 public class PasswordRecoveryManager : IPasswordRecoveryManager
 {
     private const int ResendCooldownSeconds = 60;
     private const int NoSecondsRemaining = 0;
-    private readonly IApiClient _apiClient;
+    private readonly IAuthClientService _authClientService;
     private readonly ISystemClock _clock;
     private DateTime? _lastCodeRequestedAt;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="PasswordRecoveryManager" /> class.
     /// </summary>
-    /// <param name="apiClient">The HTTP client used to reach the auth API.</param>
+    /// <param name="authClientService">The desktop auth service.</param>
     /// <param name="clock">The system clock abstraction used for throttle calculations.</param>
     /// <exception cref="ArgumentNullException">Thrown when any parameter is null.</exception>
     /// <returns>The result of the operation.</returns>
-    public PasswordRecoveryManager(IApiClient apiClient, ISystemClock clock)
+    public PasswordRecoveryManager(IAuthClientService authClientService, ISystemClock clock)
     {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
+        _authClientService = authClientService ?? throw new ArgumentNullException(nameof(authClientService));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
     }
 
@@ -78,20 +77,12 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
             return ForgotPasswordState.EmailSent;
         }
 
-        var request = new ForgotPasswordRequest { Email = email };
-        ErrorOr<ApiResponse> result = await _apiClient.PostAsync<ForgotPasswordRequest, ApiResponse>(
-            ApiEndpoints.ForgotPassword,
-            request);
+        ErrorOr<Success> result = await _authClientService.RequestPasswordResetAsync(email);
         return result.Match(
-            response =>
+            _ =>
             {
-                if (response.Error == null)
-                {
-                    _lastCodeRequestedAt = _clock.UtcNow;
-                    return ForgotPasswordState.EmailSent;
-                }
-
-                return ForgotPasswordState.Error;
+                _lastCodeRequestedAt = _clock.UtcNow;
+                return ForgotPasswordState.EmailSent;
             },
             _ => ForgotPasswordState.Error);
     }
@@ -106,7 +97,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
             return ForgotPasswordState.Error;
         }
 
-        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.VerifyResetToken, new { Token = token });
+        ErrorOr<Success> result = await _authClientService.VerifyResetTokenAsync(token);
         return result.Match(
             _ => ForgotPasswordState.TokenValid,
             errors => MapError(errors.First()));
@@ -123,12 +114,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
             return ForgotPasswordState.Error;
         }
 
-        var request = new ResetPasswordRequest
-        {
-            Token = token,
-            NewPassword = newPassword
-        };
-        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.ResetPassword, request);
+        ErrorOr<Success> result = await _authClientService.ResetPasswordAsync(token, newPassword);
         return result.Match(
             _ => ForgotPasswordState.PasswordResetSuccess,
             errors => MapError(errors.First()));
@@ -139,7 +125,7 @@ public class PasswordRecoveryManager : IPasswordRecoveryManager
     /// <returns>The result of the operation.</returns>
     public bool IsPasswordValid(string password)
     {
-        return PasswordValidator.IsStrong(password);
+        return _authClientService.IsPasswordValid(password);
     }
 
     private static ForgotPasswordState MapError(Error error)

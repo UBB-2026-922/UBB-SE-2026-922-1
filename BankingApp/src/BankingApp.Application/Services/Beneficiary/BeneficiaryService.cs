@@ -77,7 +77,7 @@ public partial class BeneficiaryService : IBeneficiaryService
 
         var beneficiary = new Beneficiary
         {
-            UserId = userId,
+            User = new User { Id = userId },
             Name = normalizedName,
             Iban = normalizedIban,
             BankName = normalizedBankName,
@@ -122,18 +122,18 @@ public partial class BeneficiaryService : IBeneficiaryService
             : beneficiary.BankName.Trim();
 
         ErrorOr<Beneficiary> existingBeneficiaryResult =
-            _beneficiaryRepository.FindById(beneficiary.Id, beneficiary.UserId);
+            _beneficiaryRepository.FindById(beneficiary.Id, beneficiary.User?.Id ?? 0);
         if (existingBeneficiaryResult.IsError)
         {
             return existingBeneficiaryResult.FirstError;
         }
 
         ErrorOr<List<Beneficiary>> userBeneficiariesResult =
-            _beneficiaryRepository.FindByUserId(beneficiary.UserId);
+            _beneficiaryRepository.FindByUserId(beneficiary.User?.Id ?? 0);
 
         if (userBeneficiariesResult.IsError)
         {
-            _logger.BeneficiariesLoadForUpdateFailed(beneficiary.UserId);
+            _logger.BeneficiariesLoadForUpdateFailed(beneficiary.User?.Id ?? 0);
             return userBeneficiariesResult.FirstError;
         }
 

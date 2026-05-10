@@ -3,6 +3,7 @@
 using Domain.Entities;
 using Interfaces;
 using ErrorOr;
+using Microsoft.EntityFrameworkCore;
 
 /// <summary>
 ///     Provides SQL Server data access for bank account records.
@@ -40,7 +41,7 @@ public class AccountDataAccess : IAccountDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<List<Account>> FindByUserId(int userId)
     {
-        var accounts = _databaseContext.Accounts.Where(a => a.UserId == userId).ToList();
+        var accounts = _databaseContext.Accounts.Where(a => EF.Property<int>(a, "UserId") == userId).ToList();
         return accounts;
     }
 

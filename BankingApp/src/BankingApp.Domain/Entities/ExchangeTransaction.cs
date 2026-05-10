@@ -7,19 +7,8 @@ using Enums;
 ///     Maps to the SQL table <c>ExchangeTransaction</c> introduced by Team B.
 /// </summary>
 /// <remarks>
-///     <para>
-///         Reuses the base entity <see cref="User" /> via <see cref="UserId" /> (Many-to-One).
-///     </para>
-///     <para>
-///         Reuses the base entity <see cref="Account" /> twice:
-///         via <see cref="SourceAccountId" /> (the account debited in the source currency)
-///         and via <see cref="TargetAccountId" /> (the account credited in the target currency).
-///         Both foreign keys use <c>DeleteBehavior.NoAction</c> to avoid cascade conflicts.
-///     </para>
-///     <para>
-///         Optionally references the base entity <see cref="Transaction" /> via <see cref="TransactionId" />
-///         (One-to-One, nullable): linked after the exchange is executed in the ledger.
-///     </para>
+    ///     Reuses the base entities <see cref="User" />, source and target <see cref="Account" /> records,
+    ///     and an optional linked <see cref="Transaction" /> ledger entry.
 /// </remarks>
 public class ExchangeTransaction
 {
@@ -27,33 +16,14 @@ public class ExchangeTransaction
     /// <value>Gets or sets the current value.</value>
     public int Id { get; set; }
 
-    /// <summary>Gets or sets the identifier of the <see cref="User" /> who initiated this exchange.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int UserId { get; set; }
-
     /// <summary>Gets or sets the user who initiated this exchange.</summary>
     public User? User { get; set; }
-
-    /// <summary>Gets or sets the identifier of the source <see cref="Account" /> debited in the source currency.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int SourceAccountId { get; set; }
 
     /// <summary>Gets or sets the source account debited in the source currency.</summary>
     public Account? SourceAccount { get; set; }
 
-    /// <summary>Gets or sets the identifier of the target <see cref="Account" /> credited in the target currency.</summary>
-    /// <value>Gets or sets the current value.</value>
-    public int TargetAccountId { get; set; }
-
     /// <summary>Gets or sets the target account credited in the target currency.</summary>
     public Account? TargetAccount { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the identifier of the linked <see cref="Transaction" /> ledger entry,
-    ///     or <see langword="null" /> when the exchange has not yet been executed.
-    /// </summary>
-    /// <value>Gets or sets the current value.</value>
-    public int? TransactionId { get; set; }
 
     /// <summary>
     ///     Gets or sets the linked ledger transaction, or <see langword="null" /> when none exists.
