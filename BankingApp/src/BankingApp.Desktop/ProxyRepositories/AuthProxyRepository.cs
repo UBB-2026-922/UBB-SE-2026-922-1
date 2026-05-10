@@ -18,12 +18,12 @@ internal sealed class AuthProxyRepository : IAuthRepository
     }
 
     public ErrorOr<User> FindUserByEmail(string email)
-        => _apiClient.GetAsync<User>($"/api/raw/auth/users/by-email?email={Uri.EscapeDataString(email)}")
+        => _apiClient.GetAsync<User>($"/api/auth/users/by-email?email={Uri.EscapeDataString(email)}")
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<Success> CreateUser(User user)
-        => _apiClient.PostAsync("/api/raw/auth/users", user).GetAwaiter().GetResult();
+        => _apiClient.PostAsync("/api/auth/users", user).GetAwaiter().GetResult();
 
     public ErrorOr<Session> CreateSession(
         int userId,
@@ -32,7 +32,7 @@ internal sealed class AuthProxyRepository : IAuthRepository
         string? browser,
         string? remoteIpAddress)
         => _apiClient.PostAsync<CreateSessionRequest, Session>(
-                "/api/raw/auth/sessions",
+                "/api/auth/sessions",
                 new CreateSessionRequest
                 {
                     UserId = userId,
@@ -45,18 +45,18 @@ internal sealed class AuthProxyRepository : IAuthRepository
             .GetResult();
 
     public ErrorOr<Session> FindSessionByToken(string token)
-        => _apiClient.GetAsync<Session>($"/api/raw/auth/sessions/by-token?token={Uri.EscapeDataString(token)}")
+        => _apiClient.GetAsync<Session>($"/api/auth/sessions/by-token?token={Uri.EscapeDataString(token)}")
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<bool> IsSessionActive(string token)
-        => _apiClient.GetAsync<bool>($"/api/raw/auth/sessions/active?token={Uri.EscapeDataString(token)}")
+        => _apiClient.GetAsync<bool>($"/api/auth/sessions/active?token={Uri.EscapeDataString(token)}")
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<Success> SavePasswordResetToken(PasswordResetToken token)
         => _apiClient.PostAsync(
-                "/api/raw/auth/password-reset-tokens",
+                "/api/auth/password-reset-tokens",
                 new SavePasswordResetTokenRequest
                 {
                     UserId = token.User?.Id ?? 0,
@@ -69,52 +69,52 @@ internal sealed class AuthProxyRepository : IAuthRepository
 
     public ErrorOr<PasswordResetToken> FindPasswordResetToken(string tokenHash)
         => _apiClient.GetAsync<PasswordResetToken>(
-                $"/api/raw/auth/password-reset-tokens/by-hash?tokenHash={Uri.EscapeDataString(tokenHash)}")
+                $"/api/auth/password-reset-tokens/by-hash?tokenHash={Uri.EscapeDataString(tokenHash)}")
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<Success> MarkPasswordResetTokenAsUsed(int tokenId)
-        => _apiClient.PutAsync($"/api/raw/auth/password-reset-tokens/{tokenId}/mark-used", new { })
+        => _apiClient.PutAsync($"/api/auth/password-reset-tokens/{tokenId}/mark-used", new { })
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<Success> DeleteExpiredPasswordResetTokens()
-        => _apiClient.DeleteAsync("/api/raw/auth/password-reset-tokens/expired").GetAwaiter().GetResult();
+        => _apiClient.DeleteAsync("/api/auth/password-reset-tokens/expired").GetAwaiter().GetResult();
 
     public ErrorOr<Success> InvalidateAllSessions(int userId)
-        => _apiClient.PutAsync($"/api/raw/auth/users/{userId}/invalidate-sessions", new { })
+        => _apiClient.PutAsync($"/api/auth/users/{userId}/invalidate-sessions", new { })
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<User> FindUserById(int id)
-        => _apiClient.GetAsync<User>($"/api/raw/auth/users/{id}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<User>($"/api/auth/users/{id}").GetAwaiter().GetResult();
 
     public ErrorOr<Success> UpdatePassword(int userId, string newPasswordHash)
         => _apiClient.PutAsync(
-                $"/api/raw/auth/users/{userId}/password",
+                $"/api/auth/users/{userId}/password",
                 new UpdatePasswordRequest { NewPasswordHash = newPasswordHash })
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<List<Session>> FindSessionsByUserId(int userId)
-        => _apiClient.GetAsync<List<Session>>($"/api/raw/auth/users/{userId}/sessions").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<Session>>($"/api/auth/users/{userId}/sessions").GetAwaiter().GetResult();
 
     public ErrorOr<Success> UpdateSessionToken(int sessionId)
-        => _apiClient.PutAsync($"/api/raw/auth/sessions/{sessionId}/revoke", new { }).GetAwaiter().GetResult();
+        => _apiClient.PutAsync($"/api/auth/sessions/{sessionId}/revoke", new { }).GetAwaiter().GetResult();
 
     public ErrorOr<Success> IncrementFailedAttempts(int userId)
-        => _apiClient.PutAsync($"/api/raw/auth/users/{userId}/failed-attempts/increment", new { })
+        => _apiClient.PutAsync($"/api/auth/users/{userId}/failed-attempts/increment", new { })
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<Success> ResetFailedAttempts(int userId)
-        => _apiClient.PutAsync($"/api/raw/auth/users/{userId}/failed-attempts/reset", new { })
+        => _apiClient.PutAsync($"/api/auth/users/{userId}/failed-attempts/reset", new { })
             .GetAwaiter()
             .GetResult();
 
     public ErrorOr<Success> LockAccount(int userId, DateTime lockoutEnd)
         => _apiClient.PutAsync(
-                $"/api/raw/auth/users/{userId}/lock",
+                $"/api/auth/users/{userId}/lock",
                 new LockAccountRequest { LockoutEnd = lockoutEnd })
             .GetAwaiter()
             .GetResult();

@@ -17,17 +17,17 @@ internal sealed class RecurringPaymentProxyRepository : IRecurringPaymentReposit
     }
 
     public ErrorOr<RecurringPayment> GetById(int id)
-        => _apiClient.GetAsync<RecurringPayment>($"/api/raw/recurring-payments/{id}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<RecurringPayment>($"/api/recurring-payments/{id}").GetAwaiter().GetResult();
 
     public ErrorOr<List<RecurringPayment>> GetByUserId(int userId)
-        => _apiClient.GetAsync<List<RecurringPayment>>($"/api/raw/recurring-payments/user/{userId}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<RecurringPayment>>($"/api/recurring-payments/user/{userId}").GetAwaiter().GetResult();
 
     public ErrorOr<List<RecurringPayment>> GetDuePayments(DateTime asOf)
-        => _apiClient.GetAsync<List<RecurringPayment>>($"/api/raw/recurring-payments/due?asOf={Uri.EscapeDataString(asOf.ToString("O"))}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<RecurringPayment>>($"/api/recurring-payments/due?asOf={Uri.EscapeDataString(asOf.ToString("O"))}").GetAwaiter().GetResult();
 
     public ErrorOr<RecurringPayment> Create(RecurringPayment payment)
-        => _apiClient.PostAsync<RecurringPayment, RecurringPayment>("/api/raw/recurring-payments", payment).GetAwaiter().GetResult();
+        => _apiClient.PostAsync<RecurringPayment, RecurringPayment>("/api/recurring-payments", payment).GetAwaiter().GetResult();
 
     public ErrorOr<Success> Update(RecurringPayment payment)
-        => _apiClient.PutAsync("/api/raw/recurring-payments", payment).GetAwaiter().GetResult();
+        => _apiClient.PutAsync("/api/recurring-payments", payment).GetAwaiter().GetResult();
 }

@@ -17,16 +17,16 @@ internal sealed class ExchangeProxyRepository : IExchangeRepository
     }
 
     public ErrorOr<ExchangeTransaction> GetById(int id)
-        => _apiClient.GetAsync<ExchangeTransaction>($"/api/raw/exchanges/{id}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<ExchangeTransaction>($"/api/exchanges/{id}").GetAwaiter().GetResult();
 
     public ErrorOr<List<ExchangeTransaction>> GetByUserId(int userId)
-        => _apiClient.GetAsync<List<ExchangeTransaction>>($"/api/raw/exchanges/user/{userId}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<ExchangeTransaction>>($"/api/exchanges/user/{userId}").GetAwaiter().GetResult();
 
     public ErrorOr<ExchangeTransaction> Create(ExchangeTransaction exchange)
-        => _apiClient.PostAsync<ExchangeTransaction, ExchangeTransaction>("/api/raw/exchanges", exchange).GetAwaiter().GetResult();
+        => _apiClient.PostAsync<ExchangeTransaction, ExchangeTransaction>("/api/exchanges", exchange).GetAwaiter().GetResult();
 
     public ErrorOr<ExchangeTransaction> UpdateStatus(int exchangeId, ExchangeTransactionStatus status)
-        => _apiClient.PutAsync<object, ExchangeTransaction>($"/api/raw/exchanges/{exchangeId}/status", new UpdateStatusRequest { Status = status })
+        => _apiClient.PutAsync<object, ExchangeTransaction>($"/api/exchanges/{exchangeId}/status", new UpdateStatusRequest { Status = status })
             .GetAwaiter()
             .GetResult();
 

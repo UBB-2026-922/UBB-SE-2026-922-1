@@ -14,54 +14,54 @@ internal sealed class SecurityProxyRepository
     }
 
     public Task<ErrorOr<string>> HashAsync(string input)
-        => _apiClient.PostAsync<HashRequest, string>("/api/raw/security/hash", new HashRequest { Input = input });
+        => _apiClient.PostAsync<HashRequest, string>("/api/security/hash", new HashRequest { Input = input });
 
     public Task<ErrorOr<bool>> VerifyHashAsync(string input, string hash)
         => _apiClient.PostAsync<VerifyHashRequest, bool>(
-            "/api/raw/security/verify-hash",
+            "/api/security/verify-hash",
             new VerifyHashRequest { Input = input, Hash = hash });
 
     public Task<ErrorOr<string>> GenerateTokenAsync(int userId)
         => _apiClient.PostAsync<GenerateTokenRequest, string>(
-            "/api/raw/security/jwt/generate",
+            "/api/security/jwt/generate",
             new GenerateTokenRequest { UserId = userId });
 
     public Task<ErrorOr<string>> GenerateTotpAsync(int userId)
         => _apiClient.PostAsync<OtpUserRequest, string>(
-            "/api/raw/security/otp/generate-totp",
+            "/api/security/otp/generate-totp",
             new OtpUserRequest { UserId = userId });
 
     public Task<ErrorOr<bool>> VerifyTotpAsync(int userId, string code)
         => _apiClient.PostAsync<VerifyOtpRequest, bool>(
-            "/api/raw/security/otp/verify-totp",
+            "/api/security/otp/verify-totp",
             new VerifyOtpRequest { UserId = userId, Code = code });
 
     public Task<ErrorOr<string>> GenerateSmsOtpAsync(int userId)
         => _apiClient.PostAsync<OtpUserRequest, string>(
-            "/api/raw/security/otp/generate-sms",
+            "/api/security/otp/generate-sms",
             new OtpUserRequest { UserId = userId });
 
     public Task<ErrorOr<bool>> VerifySmsOtpAsync(int userId, string code)
         => _apiClient.PostAsync<VerifyOtpRequest, bool>(
-            "/api/raw/security/otp/verify-sms",
+            "/api/security/otp/verify-sms",
             new VerifyOtpRequest { UserId = userId, Code = code });
 
     public Task<ErrorOr<Success>> InvalidateOtpAsync(int userId)
-        => _apiClient.PostAsync("/api/raw/security/otp/invalidate", new OtpUserRequest { UserId = userId });
+        => _apiClient.PostAsync("/api/security/otp/invalidate", new OtpUserRequest { UserId = userId });
 
     public Task<ErrorOr<Success>> SendPasswordResetLinkAsync(string email, string token)
         => _apiClient.PostAsync(
-            "/api/raw/security/email/send-password-reset-link",
+            "/api/security/email/send-password-reset-link",
             new PasswordResetEmailRequest { Email = email, Token = token });
 
     public Task<ErrorOr<Success>> SendOtpCodeAsync(string email, string code)
-        => _apiClient.PostAsync("/api/raw/security/email/send-otp", new OtpEmailRequest { Email = email, Code = code });
+        => _apiClient.PostAsync("/api/security/email/send-otp", new OtpEmailRequest { Email = email, Code = code });
 
     public Task<ErrorOr<Success>> SendLoginAlertAsync(string email)
-        => _apiClient.PostAsync("/api/raw/security/email/send-login-alert", new EmailRequest { Email = email });
+        => _apiClient.PostAsync("/api/security/email/send-login-alert", new EmailRequest { Email = email });
 
     public Task<ErrorOr<Success>> SendLockNotificationAsync(string email)
-        => _apiClient.PostAsync("/api/raw/security/email/send-lock-notification", new EmailRequest { Email = email });
+        => _apiClient.PostAsync("/api/security/email/send-lock-notification", new EmailRequest { Email = email });
 
     private sealed class HashRequest
     {

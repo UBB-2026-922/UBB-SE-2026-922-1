@@ -17,11 +17,11 @@ internal sealed class BillerProxyRepository : IBillerRepository
     }
 
     public ErrorOr<List<Biller>> GetAllBillers(bool activeOnly = true)
-        => _apiClient.GetAsync<List<Biller>>($"/api/raw/billers?activeOnly={activeOnly}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<Biller>>($"/api/billers?activeOnly={activeOnly}").GetAwaiter().GetResult();
 
     public ErrorOr<List<Biller>> SearchBillers(string searchTerm, string? category = null, bool activeOnly = true)
     {
-        string endpoint = $"/api/raw/billers/search?searchTerm={Uri.EscapeDataString(searchTerm)}&activeOnly={activeOnly}";
+        string endpoint = $"/api/billers/search?searchTerm={Uri.EscapeDataString(searchTerm)}&activeOnly={activeOnly}";
         if (!string.IsNullOrWhiteSpace(category))
         {
             endpoint += $"&category={Uri.EscapeDataString(category)}";
@@ -31,14 +31,14 @@ internal sealed class BillerProxyRepository : IBillerRepository
     }
 
     public ErrorOr<Biller> GetBillerById(int billerId)
-        => _apiClient.GetAsync<Biller>($"/api/raw/billers/{billerId}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<Biller>($"/api/billers/{billerId}").GetAwaiter().GetResult();
 
     public ErrorOr<List<SavedBiller>> GetSavedBillers(int userId)
-        => _apiClient.GetAsync<List<SavedBiller>>($"/api/raw/billers/saved/{userId}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<SavedBiller>>($"/api/billers/saved/{userId}").GetAwaiter().GetResult();
 
     public ErrorOr<SavedBiller> SaveBiller(SavedBiller savedBiller)
-        => _apiClient.PostAsync<SavedBiller, SavedBiller>("/api/raw/billers/saved", savedBiller).GetAwaiter().GetResult();
+        => _apiClient.PostAsync<SavedBiller, SavedBiller>("/api/billers/saved", savedBiller).GetAwaiter().GetResult();
 
     public ErrorOr<Success> DeleteSavedBiller(int savedBillerId)
-        => _apiClient.DeleteAsync($"/api/raw/billers/saved/{savedBillerId}").GetAwaiter().GetResult();
+        => _apiClient.DeleteAsync($"/api/billers/saved/{savedBillerId}").GetAwaiter().GetResult();
 }

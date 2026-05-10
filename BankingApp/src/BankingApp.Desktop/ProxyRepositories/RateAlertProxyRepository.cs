@@ -16,20 +16,20 @@ internal sealed class RateAlertProxyRepository : IRateAlertRepository
     }
 
     public ErrorOr<RateAlert> GetById(int id)
-        => _apiClient.GetAsync<RateAlert>($"/api/raw/rate-alerts/{id}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<RateAlert>($"/api/rate-alerts/{id}").GetAwaiter().GetResult();
 
     public ErrorOr<List<RateAlert>> GetByUserId(int userId)
-        => _apiClient.GetAsync<List<RateAlert>>($"/api/raw/rate-alerts/user/{userId}").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<RateAlert>>($"/api/rate-alerts/user/{userId}").GetAwaiter().GetResult();
 
     public ErrorOr<List<RateAlert>> GetUntriggeredAlerts()
-        => _apiClient.GetAsync<List<RateAlert>>("/api/raw/rate-alerts/untriggered").GetAwaiter().GetResult();
+        => _apiClient.GetAsync<List<RateAlert>>("/api/rate-alerts/untriggered").GetAwaiter().GetResult();
 
     public ErrorOr<RateAlert> Create(RateAlert alert)
-        => _apiClient.PostAsync<RateAlert, RateAlert>("/api/raw/rate-alerts", alert).GetAwaiter().GetResult();
+        => _apiClient.PostAsync<RateAlert, RateAlert>("/api/rate-alerts", alert).GetAwaiter().GetResult();
 
     public ErrorOr<RateAlert> MarkTriggered(int alertId)
-        => _apiClient.PutAsync<object, RateAlert>($"/api/raw/rate-alerts/{alertId}/mark-triggered", new { }).GetAwaiter().GetResult();
+        => _apiClient.PutAsync<object, RateAlert>($"/api/rate-alerts/{alertId}/mark-triggered", new { }).GetAwaiter().GetResult();
 
     public ErrorOr<Success> Delete(int id)
-        => _apiClient.DeleteAsync($"/api/raw/rate-alerts/{id}").GetAwaiter().GetResult();
+        => _apiClient.DeleteAsync($"/api/rate-alerts/{id}").GetAwaiter().GetResult();
 }
