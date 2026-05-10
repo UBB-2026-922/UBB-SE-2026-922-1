@@ -19,7 +19,7 @@ public sealed class RecurringPaymentsControllerTests
     public void GetById_WhenFound_ReturnsOkWithPayment()
     {
         var payment = new RecurringPayment { Id = DefaultPaymentId };
-        _recurringPaymentRepository.Setup(r => r.GetById(DefaultPaymentId)).Returns(payment);
+        _recurringPaymentRepository.Setup(repository => repository.GetById(DefaultPaymentId)).Returns(payment);
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.GetById(DefaultPaymentId);
@@ -31,7 +31,7 @@ public sealed class RecurringPaymentsControllerTests
     [Fact]
     public void GetById_WhenNotFound_ReturnsNotFound()
     {
-        _recurringPaymentRepository.Setup(r => r.GetById(99)).Returns(Error.NotFound());
+        _recurringPaymentRepository.Setup(repository => repository.GetById(99)).Returns(Error.NotFound());
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.GetById(99);
@@ -43,7 +43,7 @@ public sealed class RecurringPaymentsControllerTests
     public void GetByUserId_WhenPaymentsExist_ReturnsOkWithList()
     {
         var payments = new List<RecurringPayment> { new() { Id = 1 }, new() { Id = 2 } };
-        _recurringPaymentRepository.Setup(r => r.GetByUserId(1)).Returns(payments);
+        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(1)).Returns(payments);
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.GetByUserId(1);
@@ -55,7 +55,7 @@ public sealed class RecurringPaymentsControllerTests
     [Fact]
     public void GetByUserId_WhenRepositoryFails_ReturnsError()
     {
-        _recurringPaymentRepository.Setup(r => r.GetByUserId(1)).Returns(Error.Failure());
+        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(1)).Returns(Error.Failure());
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.GetByUserId(1);
@@ -69,7 +69,7 @@ public sealed class RecurringPaymentsControllerTests
     {
         DateTime asOf = new(2026, 6, 1);
         var duePayments = new List<RecurringPayment> { new() { Id = 1 } };
-        _recurringPaymentRepository.Setup(r => r.GetDuePayments(asOf)).Returns(duePayments);
+        _recurringPaymentRepository.Setup(repository => repository.GetDuePayments(asOf)).Returns(duePayments);
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.GetDuePayments(asOf);
@@ -82,7 +82,7 @@ public sealed class RecurringPaymentsControllerTests
     public void Create_WhenSuccessful_ReturnsOkWithPayment()
     {
         var payment = new RecurringPayment { Id = DefaultPaymentId, Amount = 100m, Frequency = RecurringFrequency.Monthly };
-        _recurringPaymentRepository.Setup(r => r.Create(payment)).Returns(payment);
+        _recurringPaymentRepository.Setup(repository => repository.Create(payment)).Returns(payment);
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.Create(payment);
@@ -95,7 +95,7 @@ public sealed class RecurringPaymentsControllerTests
     public void Create_WhenRepositoryFails_ReturnsError()
     {
         var payment = new RecurringPayment { Amount = -1m };
-        _recurringPaymentRepository.Setup(r => r.Create(payment)).Returns(Error.Validation());
+        _recurringPaymentRepository.Setup(repository => repository.Create(payment)).Returns(Error.Validation());
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.Create(payment);
@@ -107,7 +107,7 @@ public sealed class RecurringPaymentsControllerTests
     public void Update_WhenSuccessful_ReturnsNoContent()
     {
         var payment = new RecurringPayment { Id = DefaultPaymentId, Amount = 200m };
-        _recurringPaymentRepository.Setup(r => r.Update(payment)).Returns(Result.Success);
+        _recurringPaymentRepository.Setup(repository => repository.Update(payment)).Returns(Result.Success);
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.Update(payment);
@@ -119,7 +119,7 @@ public sealed class RecurringPaymentsControllerTests
     public void Update_WhenNotFound_ReturnsNotFound()
     {
         var payment = new RecurringPayment { Id = 99 };
-        _recurringPaymentRepository.Setup(r => r.Update(payment)).Returns(Error.NotFound());
+        _recurringPaymentRepository.Setup(repository => repository.Update(payment)).Returns(Error.NotFound());
         RecurringPaymentsController controller = CreateController();
 
         IActionResult result = controller.Update(payment);

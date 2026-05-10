@@ -27,7 +27,7 @@ public class CardDataAccess : ICardDataAccess
     /// <returns>The result of the operation.</returns>
     public ErrorOr<Card> FindById(int id)
     {
-        Card? card = _databaseContext.Cards.FirstOrDefault(c => c.Id == id);
+        Card? card = _databaseContext.Cards.FirstOrDefault(cardRecord => cardRecord.Id == id);
         if (card == null)
         {
             return Error.NotFound(description: "Card not found.");

@@ -685,7 +685,7 @@ public partial class BillPayViewModel : INotifyPropertyChanged
             return;
         }
 
-        SavedBillerDto? matchingSaved = SavedBillers.FirstOrDefault(s => s.BillerId == SelectedBiller.Id);
+        SavedBillerDto? matchingSaved = SavedBillers.FirstOrDefault(savedBiller => savedBiller.BillerId == SelectedBiller.Id);
 
         if (matchingSaved != null &&
             string.IsNullOrWhiteSpace(BillerReference) &&

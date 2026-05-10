@@ -97,14 +97,14 @@ public sealed partial class ForgotPasswordView : IStateObserver<ForgotPasswordSt
         });
     }
 
-    private async void SendCodeButton_Click(object sender, RoutedEventArgs e)
+    private async void SendCodeButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
         await _viewModel.ForgotPassword(EmailBox.Text.Trim());
     }
 
-    private async void ResetPasswordButton_Click(object sender, RoutedEventArgs e)
+    private async void ResetPasswordButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         StatusInfoBar.IsOpen = false;
         if (NewPasswordBox.Password != ConfirmPasswordBox.Password)
@@ -117,21 +117,21 @@ public sealed partial class ForgotPasswordView : IStateObserver<ForgotPasswordSt
         await _viewModel.ResetPassword(NewPasswordBox.Password, TokenBox.Text.Trim());
     }
 
-    private async void VerifyTokenButton_Click(object sender, RoutedEventArgs e)
+    private async void VerifyTokenButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
         await _viewModel.VerifyToken(TokenBox.Text.Trim());
     }
 
-    private async void ResendCodeButton_Click(object sender, RoutedEventArgs e)
+    private async void ResendCodeButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
         await _viewModel.ForgotPassword(EmailBox.Text.Trim());
     }
 
-    private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
+    private void BackToLoginButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _navigationService.NavigateTo<LoginView>();
     }

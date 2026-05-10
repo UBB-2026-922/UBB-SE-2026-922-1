@@ -82,13 +82,13 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         }
     }
 
-    private async void VerifyButton_Click(object sender, RoutedEventArgs e)
+    private async void VerifyButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         // Validation (6-digit length check) is enforced inside the ViewModel.
         await ViewModel.VerifyOtp();
     }
 
-    private async void ResendButton_Click(object sender, RoutedEventArgs e)
+    private async void ResendButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         // Guard against premature resend is enforced inside the ViewModel.
         await ViewModel.ResendOtp();
@@ -99,13 +99,13 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
     ///     is always in sync without requiring a Two-Way binding.
     /// </summary>
     /// <param name="sender">The sender value.</param>
-    /// <param name="e">The e value.</param>
-    private void OtpBox_TextChanged(object sender, TextChangedEventArgs e)
+    /// <param name="textChangedEventArgs">The text changed event arguments.</param>
+    private void OtpBox_TextChanged(object sender, TextChangedEventArgs textChangedEventArgs)
     {
         ViewModel.OtpCode = OtpBox.Text;
     }
 
-    private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
+    private void BackToLoginButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _apiClient.ClearToken();
         _navigationService.NavigateTo<LoginView>();

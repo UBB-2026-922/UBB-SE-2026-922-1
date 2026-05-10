@@ -118,7 +118,7 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         LoadingRing.Visibility = Visibility.Collapsed;
     }
 
-    private async void SignInButton_Click(object sender, RoutedEventArgs e)
+    private async void SignInButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         string? email = EmailBox.Text;
         string? password = PasswordBox.Password;
@@ -131,12 +131,12 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         await _viewModel.Login(email, password);
     }
 
-    private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)
+    private void ForgotPasswordButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _navigationService.NavigateTo<ForgotPasswordView>();
     }
 
-    private void CreateAccountButton_Click(object sender, RoutedEventArgs e)
+    private void CreateAccountButton_Click(object sender, RoutedEventArgs routedEventArgs)
     {
         _navigationService.NavigateTo<RegisterView>();
     }

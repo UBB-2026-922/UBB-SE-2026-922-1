@@ -16,7 +16,7 @@ public sealed class ExchangeControllerTests
     public void GetById_WhenFound_ReturnsOkWithExchange()
     {
         var exchange = new ExchangeTransaction { Id = 1 };
-        _exchangeRepository.Setup(r => r.GetById(1)).Returns(exchange);
+        _exchangeRepository.Setup(repository => repository.GetById(1)).Returns(exchange);
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.GetById(1);
@@ -28,7 +28,7 @@ public sealed class ExchangeControllerTests
     [Fact]
     public void GetById_WhenNotFound_ReturnsNotFound()
     {
-        _exchangeRepository.Setup(r => r.GetById(99)).Returns(Error.NotFound());
+        _exchangeRepository.Setup(repository => repository.GetById(99)).Returns(Error.NotFound());
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.GetById(99);
@@ -40,7 +40,7 @@ public sealed class ExchangeControllerTests
     public void GetByUserId_WhenExchangesExist_ReturnsOkWithList()
     {
         var exchanges = new List<ExchangeTransaction> { new() { Id = 1 }, new() { Id = 2 } };
-        _exchangeRepository.Setup(r => r.GetByUserId(1)).Returns(exchanges);
+        _exchangeRepository.Setup(repository => repository.GetByUserId(1)).Returns(exchanges);
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.GetByUserId(1);
@@ -52,7 +52,7 @@ public sealed class ExchangeControllerTests
     [Fact]
     public void GetByUserId_WhenRepositoryFails_ReturnsError()
     {
-        _exchangeRepository.Setup(r => r.GetByUserId(1)).Returns(Error.Failure());
+        _exchangeRepository.Setup(repository => repository.GetByUserId(1)).Returns(Error.Failure());
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.GetByUserId(1);
@@ -65,7 +65,7 @@ public sealed class ExchangeControllerTests
     public void Create_WhenSuccessful_ReturnsOkWithExchange()
     {
         var exchange = new ExchangeTransaction { Id = 5, SourceCurrency = "EUR", TargetCurrency = "RON" };
-        _exchangeRepository.Setup(r => r.Create(exchange)).Returns(exchange);
+        _exchangeRepository.Setup(repository => repository.Create(exchange)).Returns(exchange);
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.Create(exchange);
@@ -78,7 +78,7 @@ public sealed class ExchangeControllerTests
     public void Create_WhenRepositoryFails_ReturnsError()
     {
         var exchange = new ExchangeTransaction { SourceCurrency = "EUR", TargetCurrency = "RON" };
-        _exchangeRepository.Setup(r => r.Create(exchange)).Returns(Error.Failure());
+        _exchangeRepository.Setup(repository => repository.Create(exchange)).Returns(Error.Failure());
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.Create(exchange);
@@ -91,7 +91,7 @@ public sealed class ExchangeControllerTests
     public void UpdateStatus_WhenSuccessful_ReturnsOkWithUpdatedExchange()
     {
         var updated = new ExchangeTransaction { Id = 1, Status = ExchangeTransactionStatus.Completed };
-        _exchangeRepository.Setup(r => r.UpdateStatus(1, ExchangeTransactionStatus.Completed)).Returns(updated);
+        _exchangeRepository.Setup(repository => repository.UpdateStatus(1, ExchangeTransactionStatus.Completed)).Returns(updated);
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.UpdateStatus(1, new ExchangeController.UpdateStatusRequest { Status = ExchangeTransactionStatus.Completed });
@@ -103,7 +103,7 @@ public sealed class ExchangeControllerTests
     [Fact]
     public void UpdateStatus_WhenNotFound_ReturnsNotFound()
     {
-        _exchangeRepository.Setup(r => r.UpdateStatus(99, ExchangeTransactionStatus.Completed)).Returns(Error.NotFound());
+        _exchangeRepository.Setup(repository => repository.UpdateStatus(99, ExchangeTransactionStatus.Completed)).Returns(Error.NotFound());
         ExchangeController controller = CreateController();
 
         IActionResult result = controller.UpdateStatus(99, new ExchangeController.UpdateStatusRequest { Status = ExchangeTransactionStatus.Completed });

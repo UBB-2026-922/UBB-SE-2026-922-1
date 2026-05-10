@@ -49,9 +49,9 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
             _databaseContext.SaveChanges();
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: $"Failed to create notification preference: {ex.Message}");
+            return Error.Failure(description: $"Failed to create notification preference: {exception.Message}");
         }
     }
 
@@ -89,9 +89,9 @@ internal class NotificationPreferenceDataAccess : INotificationPreferenceDataAcc
             _databaseContext.SaveChanges();
             return Result.Success;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 }

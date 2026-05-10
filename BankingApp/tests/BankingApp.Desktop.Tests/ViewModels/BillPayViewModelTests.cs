@@ -347,7 +347,7 @@ public class BillPayViewModelTests
         await vm.ExecutePayBillAsync();
 
         _billPaymentClientService.Verify(
-            s => s.SaveBillerAsync(It.IsAny<SaveBillerRequest>()),
+            service => service.SaveBillerAsync(It.IsAny<SaveBillerRequest>()),
             Times.Once);
         vm.SavedBillers.Should().HaveCount(1);
     }

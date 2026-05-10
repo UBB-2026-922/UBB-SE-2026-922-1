@@ -39,9 +39,9 @@ public class TransactionDataAccess : ITransactionDataAccess
             _databaseContext.SaveChanges();
             return transaction;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure(description: ex.Message);
+            return Error.Failure(description: exception.Message);
         }
     }
 

@@ -29,10 +29,10 @@ public class TransferRepository : ITransferRepository
         try
         {
             Transfer? transfer = _context.Transfers
-                .Include(t => t.User)
-                .Include(t => t.SourceAccount)
-                .Include(t => t.Transaction)
-                .FirstOrDefault(t => t.Id == id);
+                .Include(transferRecord => transferRecord.User)
+                .Include(transferRecord => transferRecord.SourceAccount)
+                .Include(transferRecord => transferRecord.Transaction)
+                .FirstOrDefault(transferRecord => transferRecord.Id == id);
             if (transfer is null)
             {
                 return Error.NotFound("Transfer.NotFound", $"Transfer with id {id} was not found.");
@@ -40,9 +40,9 @@ public class TransferRepository : ITransferRepository
 
             return transfer;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure("Transfer.GetById.Failed", ex.Message);
+            return Error.Failure("Transfer.GetById.Failed", exception.Message);
         }
     }
 
@@ -52,18 +52,18 @@ public class TransferRepository : ITransferRepository
         try
         {
             var transfers = _context.Transfers
-                .Include(t => t.User)
-                .Include(t => t.SourceAccount)
-                .Include(t => t.Transaction)
-                .Where(t => EF.Property<int>(t, "UserId") == userId)
-                .OrderByDescending(t => t.CreatedAt)
+                .Include(transferRecord => transferRecord.User)
+                .Include(transferRecord => transferRecord.SourceAccount)
+                .Include(transferRecord => transferRecord.Transaction)
+                .Where(transferRecord => EF.Property<int>(transferRecord, "UserId") == userId)
+                .OrderByDescending(transferRecord => transferRecord.CreatedAt)
                 .ToList();
 
             return transfers;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure("Transfer.GetByUserId.Failed", ex.Message);
+            return Error.Failure("Transfer.GetByUserId.Failed", exception.Message);
         }
     }
 
@@ -113,9 +113,9 @@ public class TransferRepository : ITransferRepository
             _context.SaveChanges();
             return transfer;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure("Transfer.Create.Failed", ex.Message);
+            return Error.Failure("Transfer.Create.Failed", exception.Message);
         }
     }
 
@@ -124,7 +124,7 @@ public class TransferRepository : ITransferRepository
     {
         try
         {
-            Transfer? transfer = _context.Transfers.FirstOrDefault(t => t.Id == transferId);
+            Transfer? transfer = _context.Transfers.FirstOrDefault(transferRecord => transferRecord.Id == transferId);
             if (transfer is null)
             {
                 return Error.NotFound("Transfer.NotFound", $"Transfer with id {transferId} was not found.");
@@ -134,9 +134,9 @@ public class TransferRepository : ITransferRepository
             _context.SaveChanges();
             return transfer;
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return Error.Failure("Transfer.UpdateStatus.Failed", ex.Message);
+            return Error.Failure("Transfer.UpdateStatus.Failed", exception.Message);
         }
     }
 }

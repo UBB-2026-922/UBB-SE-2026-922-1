@@ -16,7 +16,7 @@ public sealed class AuthControllerTests
     public void FindUserByEmail_WhenUserExists_ReturnsOkWithUser()
     {
         var user = new User { Id = 1, Email = "user@test.com" };
-        _authRepository.Setup(r => r.FindUserByEmail("user@test.com")).Returns(user);
+        _authRepository.Setup(repository => repository.FindUserByEmail("user@test.com")).Returns(user);
         AuthController controller = CreateController();
 
         IActionResult result = controller.FindUserByEmail("user@test.com");
@@ -28,7 +28,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void FindUserByEmail_WhenUserNotFound_ReturnsNotFound()
     {
-        _authRepository.Setup(r => r.FindUserByEmail("missing@test.com"))
+        _authRepository.Setup(repository => repository.FindUserByEmail("missing@test.com"))
             .Returns(Error.NotFound());
         AuthController controller = CreateController();
 
@@ -41,7 +41,7 @@ public sealed class AuthControllerTests
     public void FindUserById_WhenUserExists_ReturnsOkWithUser()
     {
         var user = new User { Id = 5 };
-        _authRepository.Setup(r => r.FindUserById(5)).Returns(user);
+        _authRepository.Setup(repository => repository.FindUserById(5)).Returns(user);
         AuthController controller = CreateController();
 
         IActionResult result = controller.FindUserById(5);
@@ -53,7 +53,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void FindUserById_WhenUserNotFound_ReturnsNotFound()
     {
-        _authRepository.Setup(r => r.FindUserById(99)).Returns(Error.NotFound());
+        _authRepository.Setup(repository => repository.FindUserById(99)).Returns(Error.NotFound());
         AuthController controller = CreateController();
 
         IActionResult result = controller.FindUserById(99);
@@ -65,7 +65,7 @@ public sealed class AuthControllerTests
     public void CreateUser_WhenSuccessful_ReturnsNoContent()
     {
         var user = new User { Email = "new@test.com" };
-        _authRepository.Setup(r => r.CreateUser(user)).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.CreateUser(user)).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.CreateUser(user);
@@ -77,7 +77,7 @@ public sealed class AuthControllerTests
     public void CreateUser_WhenConflict_ReturnsConflict()
     {
         var user = new User { Email = "dup@test.com" };
-        _authRepository.Setup(r => r.CreateUser(user)).Returns(Error.Conflict());
+        _authRepository.Setup(repository => repository.CreateUser(user)).Returns(Error.Conflict());
         AuthController controller = CreateController();
 
         IActionResult result = controller.CreateUser(user);
@@ -89,7 +89,7 @@ public sealed class AuthControllerTests
     public void FindSessionByToken_WhenFound_ReturnsOkWithSession()
     {
         var session = new Session { Token = "tok" };
-        _authRepository.Setup(r => r.FindSessionByToken("tok")).Returns(session);
+        _authRepository.Setup(repository => repository.FindSessionByToken("tok")).Returns(session);
         AuthController controller = CreateController();
 
         IActionResult result = controller.FindSessionByToken("tok");
@@ -101,7 +101,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void IsSessionActive_WhenActive_ReturnsOkTrue()
     {
-        _authRepository.Setup(r => r.IsSessionActive("tok")).Returns(true);
+        _authRepository.Setup(repository => repository.IsSessionActive("tok")).Returns(true);
         AuthController controller = CreateController();
 
         IActionResult result = controller.IsSessionActive("tok");
@@ -113,7 +113,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void RevokeSession_WhenSuccessful_ReturnsNoContent()
     {
-        _authRepository.Setup(r => r.UpdateSessionToken(7)).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.UpdateSessionToken(7)).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.RevokeSession(7);
@@ -124,7 +124,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void InvalidateAllSessions_WhenSuccessful_ReturnsNoContent()
     {
-        _authRepository.Setup(r => r.InvalidateAllSessions(1)).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.InvalidateAllSessions(1)).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.InvalidateAllSessions(1);
@@ -135,7 +135,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void IncrementFailedAttempts_WhenSuccessful_ReturnsNoContent()
     {
-        _authRepository.Setup(r => r.IncrementFailedAttempts(1)).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.IncrementFailedAttempts(1)).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.IncrementFailedAttempts(1);
@@ -146,7 +146,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void ResetFailedAttempts_WhenSuccessful_ReturnsNoContent()
     {
-        _authRepository.Setup(r => r.ResetFailedAttempts(1)).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.ResetFailedAttempts(1)).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.ResetFailedAttempts(1);
@@ -158,7 +158,7 @@ public sealed class AuthControllerTests
     public void LockAccount_WhenSuccessful_ReturnsNoContent()
     {
         DateTime lockoutEnd = DateTime.UtcNow.AddMinutes(30);
-        _authRepository.Setup(r => r.LockAccount(1, lockoutEnd)).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.LockAccount(1, lockoutEnd)).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.LockAccount(1, new AuthController.LockAccountRequest { LockoutEnd = lockoutEnd });
@@ -169,7 +169,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void UpdatePassword_WhenSuccessful_ReturnsNoContent()
     {
-        _authRepository.Setup(r => r.UpdatePassword(1, "newHash")).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.UpdatePassword(1, "newHash")).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.UpdatePassword(1, new AuthController.UpdatePasswordRequest { NewPasswordHash = "newHash" });
@@ -181,7 +181,7 @@ public sealed class AuthControllerTests
     public void FindPasswordResetToken_WhenFound_ReturnsOk()
     {
         var token = new PasswordResetToken { TokenHash = "hash" };
-        _authRepository.Setup(r => r.FindPasswordResetToken("hash")).Returns(token);
+        _authRepository.Setup(repository => repository.FindPasswordResetToken("hash")).Returns(token);
         AuthController controller = CreateController();
 
         IActionResult result = controller.FindPasswordResetToken("hash");
@@ -193,7 +193,7 @@ public sealed class AuthControllerTests
     [Fact]
     public void DeleteExpiredPasswordResetTokens_WhenSuccessful_ReturnsNoContent()
     {
-        _authRepository.Setup(r => r.DeleteExpiredPasswordResetTokens()).Returns(Result.Success);
+        _authRepository.Setup(repository => repository.DeleteExpiredPasswordResetTokens()).Returns(Result.Success);
         AuthController controller = CreateController();
 
         IActionResult result = controller.DeleteExpiredPasswordResetTokens();

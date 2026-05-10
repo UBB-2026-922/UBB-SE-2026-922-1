@@ -20,7 +20,7 @@ public sealed class TransferControllerTests
     public void GetById_WhenFound_ReturnsOkWithTransfer()
     {
         var transfer = new Transfer { Id = DefaultTransferId, Amount = 200m };
-        _transferRepository.Setup(r => r.GetById(DefaultTransferId)).Returns(transfer);
+        _transferRepository.Setup(repository => repository.GetById(DefaultTransferId)).Returns(transfer);
         TransferController controller = CreateController();
 
         IActionResult result = controller.GetById(DefaultTransferId);
@@ -32,7 +32,7 @@ public sealed class TransferControllerTests
     [Fact]
     public void GetById_WhenNotFound_ReturnsNotFound()
     {
-        _transferRepository.Setup(r => r.GetById(99)).Returns(Error.NotFound());
+        _transferRepository.Setup(repository => repository.GetById(99)).Returns(Error.NotFound());
         TransferController controller = CreateController();
 
         IActionResult result = controller.GetById(99);
@@ -44,7 +44,7 @@ public sealed class TransferControllerTests
     public void GetByUserId_WhenTransfersExist_ReturnsOkWithList()
     {
         var transfers = new List<Transfer> { new() { Id = 1, Amount = 100m } };
-        _transferRepository.Setup(r => r.GetByUserId(DefaultUserId)).Returns(transfers);
+        _transferRepository.Setup(repository => repository.GetByUserId(DefaultUserId)).Returns(transfers);
         TransferController controller = CreateController();
 
         IActionResult result = controller.GetByUserId(DefaultUserId);
@@ -56,7 +56,7 @@ public sealed class TransferControllerTests
     [Fact]
     public void GetByUserId_WhenRepositoryFails_ReturnsError()
     {
-        _transferRepository.Setup(r => r.GetByUserId(DefaultUserId)).Returns(Error.Failure());
+        _transferRepository.Setup(repository => repository.GetByUserId(DefaultUserId)).Returns(Error.Failure());
         TransferController controller = CreateController();
 
         IActionResult result = controller.GetByUserId(DefaultUserId);
@@ -70,7 +70,7 @@ public sealed class TransferControllerTests
     {
         var transfer = new Transfer { Amount = 300m, Currency = "RON" };
         var created = new Transfer { Id = DefaultTransferId, Amount = 300m, Currency = "RON" };
-        _transferRepository.Setup(r => r.Create(transfer)).Returns(created);
+        _transferRepository.Setup(repository => repository.Create(transfer)).Returns(created);
         TransferController controller = CreateController();
 
         IActionResult result = controller.Create(transfer);
@@ -84,7 +84,7 @@ public sealed class TransferControllerTests
     public void Create_WhenRepositoryFails_ReturnsError()
     {
         var transfer = new Transfer { Amount = -1m };
-        _transferRepository.Setup(r => r.Create(transfer)).Returns(Error.Validation());
+        _transferRepository.Setup(repository => repository.Create(transfer)).Returns(Error.Validation());
         TransferController controller = CreateController();
 
         IActionResult result = controller.Create(transfer);
@@ -96,7 +96,7 @@ public sealed class TransferControllerTests
     public void UpdateStatus_WhenSuccessful_ReturnsOkWithUpdatedTransfer()
     {
         var updated = new Transfer { Id = DefaultTransferId, Status = TransferStatus.Completed };
-        _transferRepository.Setup(r => r.UpdateStatus(DefaultTransferId, TransferStatus.Completed)).Returns(updated);
+        _transferRepository.Setup(repository => repository.UpdateStatus(DefaultTransferId, TransferStatus.Completed)).Returns(updated);
         TransferController controller = CreateController();
 
         IActionResult result = controller.UpdateStatus(DefaultTransferId, TransferStatus.Completed);
@@ -108,7 +108,7 @@ public sealed class TransferControllerTests
     [Fact]
     public void UpdateStatus_WhenNotFound_ReturnsNotFound()
     {
-        _transferRepository.Setup(r => r.UpdateStatus(99, TransferStatus.Completed)).Returns(Error.NotFound());
+        _transferRepository.Setup(repository => repository.UpdateStatus(99, TransferStatus.Completed)).Returns(Error.NotFound());
         TransferController controller = CreateController();
 
         IActionResult result = controller.UpdateStatus(99, TransferStatus.Completed);
