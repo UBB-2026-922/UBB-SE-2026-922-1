@@ -1,264 +1,564 @@
 namespace BankingApp.Application.Tests;
 
-using BankingApp.Domain.Enums;
+using Domain.Enums;
 using ErrorOr;
 using Currency = NodaMoney.Currency;
 
+/// <summary>
+///     Creates commonly used mocks and domain test objects for application-layer unit tests.
+/// </summary>
+/// <remarks>
+///     These helpers provide explicit default behavior for dependencies used by handlers and services.
+///     Tests should still override or verify behavior that is important to the scenario being tested.
+/// </remarks>
 internal static class MockFactory
 {
-    internal static Mock<IUserRepository> CreateUserRepository()
+    private static readonly DateTime _defaultUtcNow = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    /// <summary>
+    ///     Creates a user repository mock whose read operations return no users by default
+    ///     and whose write operations complete successfully.
+    /// </summary>
+    internal static Mock<IUserRepository> CreateUserRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IUserRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByEmailAsync(It.IsAny<Email>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IUserRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByEmailAsync(
+                It.IsAny<Email>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
-        mock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.GetByIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
-        mock.Setup(r => r.AddAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<User>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.UpdateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.UpdateAsync(
+                It.IsAny<User>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IIdentityRepository> CreateIdentityRepository()
+    /// <summary>
+    ///     Creates an identity repository mock whose read operations return no identity account by default
+    ///     and whose write operations complete successfully.
+    /// </summary>
+    internal static Mock<IIdentityRepository> CreateIdentityRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IIdentityRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IIdentityRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((IdentityAccount?)null);
-        mock.Setup(r => r.GetBySessionTokenAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.GetBySessionTokenAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((IdentityAccount?)null);
-        mock.Setup(r => r.GetByResetTokenHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.GetByResetTokenHashAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((IdentityAccount?)null);
-        mock.Setup(r => r.AddAsync(It.IsAny<IdentityAccount>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<IdentityAccount>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.UpdateAsync(It.IsAny<IdentityAccount>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.UpdateAsync(
+                It.IsAny<IdentityAccount>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IHashService> CreateHashService()
+    /// <summary>
+    ///     Creates a hash service mock that hashes input as "hashed_{input}" and accepts all password verifications.
+    /// </summary>
+    /// <remarks>
+    ///     Override <c>Verify</c> in tests where password validity is part of the tested behavior.
+    /// </remarks>
+    internal static Mock<IHashService> CreateHashServiceMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IHashService>(MockBehavior.Loose);
-        mock.Setup(s => s.GetHash(It.IsAny<string>()))
+        var mock = new Mock<IHashService>(behavior);
+
+        mock.Setup(service => service.GetHash(It.IsAny<string>()))
             .Returns((string input) => (ErrorOr<string>)$"hashed_{input}");
-        mock.Setup(s => s.Verify(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((ErrorOr<bool>)true);
+
+        mock.Setup(service => service.Verify(
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .Returns(true);
+
         return mock;
     }
 
-    internal static Mock<IJsonWebTokenService> CreateJwtService()
+    /// <summary>
+    ///     Creates a JWT service mock that always returns the fixed token "jwt-token".
+    /// </summary>
+    internal static Mock<IJsonWebTokenService> CreateJwtServiceMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IJsonWebTokenService>(MockBehavior.Loose);
-        mock.Setup(s => s.GenerateToken(It.IsAny<int>()))
+        var mock = new Mock<IJsonWebTokenService>(behavior);
+
+        mock.Setup(service => service.GenerateToken(It.IsAny<int>()))
             .Returns((ErrorOr<string>)"jwt-token");
+
         return mock;
     }
 
-    internal static Mock<IOtpService> CreateOtpService()
+    /// <summary>
+    ///     Creates an OTP service mock that generates "123456", accepts all OTP verifications,
+    ///     and allows OTP invalidation.
+    /// </summary>
+    /// <remarks>
+    ///     Override verification methods in tests that cover invalid or expired OTP flows.
+    /// </remarks>
+    internal static Mock<IOtpService> CreateOtpServiceMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IOtpService>(MockBehavior.Loose);
-        mock.Setup(s => s.GenerateTotp(It.IsAny<int>()))
+        var mock = new Mock<IOtpService>(behavior);
+
+        mock.Setup(service => service.GenerateTotp(It.IsAny<int>()))
             .Returns((ErrorOr<string>)"123456");
-        mock.Setup(s => s.GenerateSmsOtp(It.IsAny<int>()))
+
+        mock.Setup(service => service.GenerateSmsOtp(It.IsAny<int>()))
             .Returns((ErrorOr<string>)"123456");
-        mock.Setup(s => s.VerifyTotp(It.IsAny<int>(), It.IsAny<string>()))
-            .Returns((ErrorOr<bool>)true);
-        mock.Setup(s => s.VerifySmsOtp(It.IsAny<int>(), It.IsAny<string>()))
-            .Returns((ErrorOr<bool>)true);
-        mock.Setup(s => s.InvalidateOtp(It.IsAny<int>()));
+
+        mock.Setup(service => service.VerifyTotp(
+                It.IsAny<int>(),
+                It.IsAny<string>()))
+            .Returns(true);
+
+        mock.Setup(service => service.VerifySmsOtp(
+                It.IsAny<int>(),
+                It.IsAny<string>()))
+            .Returns(true);
+
+        mock.Setup(service => service.InvalidateOtp(It.IsAny<int>()));
+
         return mock;
     }
 
-    internal static Mock<IOtpAttemptTracker> CreateOtpAttemptTracker()
+    /// <summary>
+    ///     Creates an OTP attempt tracker mock whose first recorded failure returns attempt count 1
+    ///     and whose reset operation succeeds.
+    /// </summary>
+    internal static Mock<IOtpAttemptTracker> CreateOtpAttemptTrackerMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IOtpAttemptTracker>(MockBehavior.Loose);
-        mock.Setup(t => t.RecordFailure(It.IsAny<int>())).Returns(1);
-        mock.Setup(t => t.Reset(It.IsAny<int>()));
+        var mock = new Mock<IOtpAttemptTracker>(behavior);
+
+        mock.Setup(tracker => tracker.RecordFailure(It.IsAny<int>()))
+            .Returns(1);
+
+        mock.Setup(tracker => tracker.Reset(It.IsAny<int>()));
+
         return mock;
     }
 
-    internal static Mock<IEmailService> CreateEmailService()
+    /// <summary>
+    ///     Creates an email service mock whose supported send operations complete successfully.
+    /// </summary>
+    internal static Mock<IEmailService> CreateEmailServiceMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IEmailService>(MockBehavior.Loose);
-        mock.Setup(s => s.SendOtpCodeAsync(It.IsAny<string>(), It.IsAny<string>()))
+        var mock = new Mock<IEmailService>(behavior);
+
+        mock.Setup(service => service.SendOtpCodeAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(s => s.SendLoginAlertAsync(It.IsAny<string>()))
+
+        mock.Setup(service => service.SendLoginAlertAsync(It.IsAny<string>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(s => s.SendPasswordResetLinkAsync(It.IsAny<string>(), It.IsAny<string>()))
+
+        mock.Setup(service => service.SendPasswordResetLinkAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IUnitOfWork> CreateUnitOfWork()
+    /// <summary>
+    ///     Creates a unit of work mock whose save operation completes successfully.
+    /// </summary>
+    internal static Mock<IUnitOfWork> CreateUnitOfWorkMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IUnitOfWork>(MockBehavior.Loose);
-        mock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        var mock = new Mock<IUnitOfWork>(behavior);
+
+        mock.Setup(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<ISystemClock> CreateSystemClock(DateTime? fixedTime = null)
+    /// <summary>
+    ///     Creates a system clock mock that returns a fixed UTC time.
+    /// </summary>
+    /// <param name="fixedTime">
+    ///     The UTC time returned by the clock. If omitted, a deterministic default test time is used.
+    /// </param>
+    /// <param name="behavior">
+    ///     Mocking behavior passed to the <see cref="Mock"/> constructor.
+    /// </param>
+    internal static Mock<ISystemClock> CreateSystemClockMock(
+        DateTime? fixedTime = null,
+        MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<ISystemClock>(MockBehavior.Loose);
-        mock.SetupGet(c => c.UtcNow).Returns(fixedTime ?? DateTime.UtcNow);
+        var mock = new Mock<ISystemClock>(behavior);
+
+        mock.SetupGet(clock => clock.UtcNow)
+            .Returns(fixedTime ?? _defaultUtcNow);
+
         return mock;
     }
 
-    internal static Mock<IAccountRepository> CreateAccountRepository()
+    /// <summary>
+    ///     Creates an account repository mock whose read operations return no accounts by default
+    ///     and whose update operation completes successfully.
+    /// </summary>
+    internal static Mock<IAccountRepository> CreateAccountRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IAccountRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IAccountRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((Account?)null);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<Account>)Array.Empty<Account>());
-        mock.Setup(r => r.UpdateAsync(It.IsAny<Account>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Account>());
+
+        mock.Setup(repository => repository.UpdateAsync(
+                It.IsAny<Account>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IBeneficiaryRepository> CreateBeneficiaryRepository()
+    /// <summary>
+    ///     Creates a beneficiary repository mock whose read operations return no beneficiaries by default
+    ///     and whose write operations complete successfully.
+    /// </summary>
+    internal static Mock<IBeneficiaryRepository> CreateBeneficiaryRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IBeneficiaryRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IBeneficiaryRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((Beneficiary?)null);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<Beneficiary>)Array.Empty<Beneficiary>());
-        mock.Setup(r => r.AddAsync(It.IsAny<Beneficiary>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Beneficiary>());
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<Beneficiary>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.UpdateAsync(It.IsAny<Beneficiary>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.UpdateAsync(
+                It.IsAny<Beneficiary>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.DeleteAsync(It.IsAny<Beneficiary>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.DeleteAsync(
+                It.IsAny<Beneficiary>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<ITransferRepository> CreateTransferRepository()
+    /// <summary>
+    ///     Creates a transfer repository mock whose list operation returns no transfers by default
+    ///     and whose add operation completes successfully.
+    /// </summary>
+    internal static Mock<ITransferRepository> CreateTransferRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<ITransferRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<Transfer>)Array.Empty<Transfer>());
-        mock.Setup(r => r.AddAsync(It.IsAny<Transfer>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<ITransferRepository>(behavior);
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Transfer>());
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<Transfer>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IBillPaymentRepository> CreateBillPaymentRepository()
+    /// <summary>
+    ///     Creates a bill payment repository mock whose list operation returns no bill payments by default
+    ///     and whose add operation completes successfully.
+    /// </summary>
+    internal static Mock<IBillPaymentRepository> CreateBillPaymentRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IBillPaymentRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<BillPayment>)Array.Empty<BillPayment>());
-        mock.Setup(r => r.AddAsync(It.IsAny<BillPayment>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IBillPaymentRepository>(behavior);
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<BillPayment>());
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<BillPayment>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IRecurringPaymentRepository> CreateRecurringPaymentRepository()
+    /// <summary>
+    ///     Creates a recurring payment repository mock whose read operations return no recurring payments by default
+    ///     and whose write operations complete successfully.
+    /// </summary>
+    internal static Mock<IRecurringPaymentRepository> CreateRecurringPaymentRepositoryMock(
+        MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IRecurringPaymentRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IRecurringPaymentRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((RecurringPayment?)null);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<RecurringPayment>)Array.Empty<RecurringPayment>());
-        mock.Setup(r => r.ListDueAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<RecurringPayment>)Array.Empty<RecurringPayment>());
-        mock.Setup(r => r.AddAsync(It.IsAny<RecurringPayment>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<RecurringPayment>());
+
+        mock.Setup(repository => repository.ListDueAsync(
+                It.IsAny<DateTime>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<RecurringPayment>());
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<RecurringPayment>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.UpdateAsync(It.IsAny<RecurringPayment>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.UpdateAsync(
+                It.IsAny<RecurringPayment>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IBillerRepository> CreateBillerRepository()
+    /// <summary>
+    ///     Creates a biller repository mock whose single-item lookup returns no biller
+    ///     and whose active list operation returns an empty list.
+    /// </summary>
+    internal static Mock<IBillerRepository> CreateBillerRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IBillerRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IBillerRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((Biller?)null);
-        mock.Setup(r => r.ListActiveAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<Biller>)Array.Empty<Biller>());
+
+        mock.Setup(repository => repository.ListActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Biller>());
+
         return mock;
     }
 
-    internal static Mock<ISavedBillerRepository> CreateSavedBillerRepository()
+    /// <summary>
+    ///     Creates a saved biller repository mock whose read operations return no saved billers by default
+    ///     and whose write operations complete successfully.
+    /// </summary>
+    internal static Mock<ISavedBillerRepository> CreateSavedBillerRepositoryMock(
+        MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<ISavedBillerRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<ISavedBillerRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((SavedBiller?)null);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<SavedBiller>)Array.Empty<SavedBiller>());
-        mock.Setup(r => r.AddAsync(It.IsAny<SavedBiller>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<SavedBiller>());
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<SavedBiller>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.DeleteAsync(It.IsAny<SavedBiller>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.DeleteAsync(
+                It.IsAny<SavedBiller>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IForexRepository> CreateForexRepository()
+    /// <summary>
+    ///     Creates a forex repository mock whose list operation returns no forex transactions by default
+    ///     and whose add operation completes successfully.
+    /// </summary>
+    internal static Mock<IForexRepository> CreateForexRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IForexRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<ForexTransaction>)Array.Empty<ForexTransaction>());
-        mock.Setup(r => r.AddAsync(It.IsAny<ForexTransaction>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IForexRepository>(behavior);
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<ForexTransaction>());
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<ForexTransaction>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IRateAlertRepository> CreateRateAlertRepository()
+    /// <summary>
+    ///     Creates a rate alert repository mock whose read operations return no alerts by default
+    ///     and whose write operations complete successfully.
+    /// </summary>
+    internal static Mock<IRateAlertRepository> CreateRateAlertRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IRateAlertRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+        var mock = new Mock<IRateAlertRepository>(behavior);
+
+        mock.Setup(repository => repository.GetByIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync((RateAlert?)null);
-        mock.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<RateAlert>)Array.Empty<RateAlert>());
-        mock.Setup(r => r.ListAllUntriggeredAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<RateAlert>)Array.Empty<RateAlert>());
-        mock.Setup(r => r.AddAsync(It.IsAny<RateAlert>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.ListByUserIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<RateAlert>());
+
+        mock.Setup(repository => repository.ListAllUntriggeredAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<RateAlert>());
+
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<RateAlert>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.UpdateAsync(It.IsAny<RateAlert>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.UpdateAsync(
+                It.IsAny<RateAlert>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
-        mock.Setup(r => r.DeleteAsync(It.IsAny<RateAlert>(), It.IsAny<CancellationToken>()))
+
+        mock.Setup(repository => repository.DeleteAsync(
+                It.IsAny<RateAlert>(),
+                It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
+
         return mock;
     }
 
-    internal static Mock<IExchangeRateService> CreateExchangeRateService()
+    /// <summary>
+    ///     Creates an exchange rate service mock that always returns the fixed exchange rate 1.15.
+    /// </summary>
+    internal static Mock<IExchangeRateService> CreateExchangeRateServiceMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<IExchangeRateService>(MockBehavior.Loose);
-        mock.Setup(s => s.GetRate(It.IsAny<Currency>(), It.IsAny<Currency>()))
-            .Returns((ErrorOr<decimal>)1.15m);
+        var mock = new Mock<IExchangeRateService>(behavior);
+
+        mock.Setup(service => service.GetRate(
+                It.IsAny<Currency>(),
+                It.IsAny<Currency>()))
+            .Returns(1.15m);
+
         return mock;
     }
 
-    internal static Mock<ILockedRateCache> CreateLockedRateCache()
+    /// <summary>
+    ///     Creates a locked rate cache mock that starts empty and allows store/remove operations.
+    /// </summary>
+    internal static Mock<ILockedRateCache> CreateLockedRateCacheMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<ILockedRateCache>(MockBehavior.Loose);
-        mock.Setup(c => c.TryGet(It.IsAny<int>())).Returns((LockedRate?)null);
-        mock.Setup(c => c.Store(It.IsAny<int>(), It.IsAny<Currency>(), It.IsAny<Currency>(), It.IsAny<decimal>(), It.IsAny<DateTime>()));
-        mock.Setup(c => c.Remove(It.IsAny<int>()));
+        var mock = new Mock<ILockedRateCache>(behavior);
+
+        mock.Setup(cache => cache.TryGet(It.IsAny<int>()))
+            .Returns((LockedRate?)null);
+
+        mock.Setup(cache => cache.Store(
+            It.IsAny<int>(),
+            It.IsAny<Currency>(),
+            It.IsAny<Currency>(),
+            It.IsAny<decimal>(),
+            It.IsAny<DateTime>()));
+
+        mock.Setup(cache => cache.Remove(It.IsAny<int>()));
+
         return mock;
     }
 
-    internal static Mock<ITransactionRepository> CreateTransactionRepository()
+    /// <summary>
+    ///     Creates a transaction repository mock whose account transaction list operation returns an empty list.
+    /// </summary>
+    internal static Mock<ITransactionRepository> CreateTransactionRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
     {
-        var mock = new Mock<ITransactionRepository>(MockBehavior.Loose);
-        mock.Setup(r => r.ListByAccountIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyCollection<Transaction>)Array.Empty<Transaction>());
+        var mock = new Mock<ITransactionRepository>(behavior);
+
+        mock.Setup(repository => repository.ListByAccountIdAsync(
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Transaction>());
+
         return mock;
     }
 
-    internal static (User User, IdentityAccount Identity) CreateAuthenticatedPair(
+    /// <summary>
+    ///     Creates a registered user together with the matching identity account.
+    /// </summary>
+    /// <param name="email">
+    ///     Email address used to create the user.
+    /// </param>
+    /// <param name="passwordHash">
+    ///     Password hash wrapped in the identity account.
+    /// </param>
+    /// <param name="twoFactorEnabled">
+    ///     Whether two-factor authentication should be enabled on the identity account.
+    /// </param>
+    /// <param name="twoFactorMethod">
+    ///     Two-factor method to enable when <paramref name="twoFactorEnabled"/> is true.
+    /// </param>
+    /// <param name="registeredAt">
+    ///     Registration time. If omitted, a deterministic default UTC test time is used.
+    /// </param>
+    internal static (User User, IdentityAccount IdentityAccount) CreateUserWithIdentityAccount(
         string email = "test@test.com",
         string passwordHash = "test-hash",
-        bool is2FaEnabled = false,
-        TwoFactorMethod? method = null)
+        bool twoFactorEnabled = false,
+        TwoFactorMethod? twoFactorMethod = null,
+        DateTime? registeredAt = null)
     {
-        var emailValue = Email.Create(email).Value;
-        var user = User.Register(emailValue, "Test User", DateTime.UtcNow);
-        var identity = IdentityAccount.Create(user.Id, HashedPassword.Wrap(passwordHash));
-        if (is2FaEnabled && method.HasValue)
+        Email emailValue = Email.Create(email).Value;
+        var user = User.Register(emailValue, "Test User", registeredAt ?? _defaultUtcNow);
+        var identityAccount = IdentityAccount.Create(user.Id, HashedPassword.Wrap(passwordHash));
+
+        if (twoFactorEnabled && twoFactorMethod.HasValue)
         {
-            identity.Enable2Fa(method.Value);
+            identityAccount.Enable2Fa(twoFactorMethod.Value);
         }
 
-        return (user, identity);
+        return (user, identityAccount);
     }
 }
