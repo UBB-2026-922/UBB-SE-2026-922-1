@@ -2,11 +2,11 @@ namespace BankingApp.Desktop.Views;
 
 using System;
 using Enums;
-using Master;
 using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Navigation;
 
 /// <summary>
 ///     Displays the account recovery flow for requesting a reset code and setting a new password.

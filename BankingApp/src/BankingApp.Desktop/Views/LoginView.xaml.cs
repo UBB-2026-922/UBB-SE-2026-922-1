@@ -2,10 +2,10 @@ namespace BankingApp.Desktop.Views;
 
 using System;
 using Enums;
-using Master;
 using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
+using Navigation;
 
 /// <summary>
 ///     Displays the login form and reacts to authentication state changes produced by <see cref="LoginViewModel" />.
@@ -67,7 +67,7 @@ public sealed partial class LoginView
                     break;
                 case LoginState.Success:
                     EnableForm();
-                    _navigationService.NavigateTo<NavView>();
+                    _navigationService.NavigateTo<NavigationView>();
                     break;
                 case LoginState.Require2Fa:
                     EnableForm();

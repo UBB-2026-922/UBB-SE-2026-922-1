@@ -22,28 +22,6 @@
         <PublishProfile>win-x64.pubxml</PublishProfile>
     </PropertyGroup>
     <ItemGroup>
-        <None Remove="Views\DashboardView.xaml"/>
-        <None Remove="Views\LoginView.xaml"/>
-        <None Remove="Views\NavView.xaml"/>
-        <None Remove="Views\RegisterView.xaml"/>
-        <None Remove="Views\ProfileView.xaml"/>
-        <None Remove="Views\TwoFactorView.xaml"/>
-        <None Remove="Views\FXPage.xaml"/>
-        <None Remove="Views\RateAlertsPage.xaml"/>
-        <None Remove="Views\BillPayView.xaml"/>
-        <None Remove="Views\RecurringPaymentView.xaml"/>
-        <None Remove="Views\TransferView.xaml"/>
-        <None Remove="Views\TransferHistoryView.xaml"/>
-    </ItemGroup>
-
-    <!-- Legacy folders excluded from compilation — files have been moved to organized locations -->
-    <ItemGroup>
-        <Compile Remove="_Utilities\**\*.cs"/>
-        <Compile Remove="_Enums\**\*.cs"/>
-        <Compile Remove="Common\Commands\**\*.cs"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <Content Include="Assets\SplashScreen.scale-200.png"/>
         <Content Include="Assets\LockScreenLogo.scale-200.png"/>
         <Content Include="Assets\Square150x150Logo.scale-200.png"/>
@@ -51,6 +29,16 @@
         <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png"/>
         <Content Include="Assets\StoreLogo.png"/>
         <Content Include="Assets\Wide310x150Logo.scale-200.png"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+
+        <None Update="appsettings.Local.json" Condition="Exists('appsettings.Local.json')">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -80,15 +68,6 @@
         <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705"/>
         <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005"/>
     </ItemGroup>
-
-    <ItemGroup>
-        <!-- appsettings.json must be copied to the output directory so ConfigurationBuilder
-             can find it at runtime next to the executable. PreserveNewest avoids unnecessary
-             copies on incremental builds. -->
-        <Content Include="appsettings.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj"/>
     </ItemGroup>
@@ -98,7 +77,7 @@
         </AssemblyAttribute>
     </ItemGroup>
     <ItemGroup>
-        <Page Update="Views\NavView.xaml">
+        <Page Update="Views\NavigationView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\DashboardView.xaml">
@@ -111,13 +90,13 @@
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\ForgotPasswordView.xaml">
-            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\ProfileView.xaml">
-            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\TwoFactorView.xaml">
-            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\ForexPage.xaml">
             <Generator>MSBuild:Compile</Generator>
@@ -126,7 +105,7 @@
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\TransferView.xaml">
-            <SubType>Designer</SubType>
+            <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\BillPayView.xaml">
             <Generator>MSBuild:Compile</Generator>
@@ -137,10 +116,6 @@
         <Page Update="Views\TransferHistoryView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Common\Logging\" />
-      <Folder Include="Http\" />
     </ItemGroup>
 
     <!--

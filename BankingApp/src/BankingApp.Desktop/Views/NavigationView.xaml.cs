@@ -4,17 +4,17 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using Master;
 using BankingApp.Application.Common.Utilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Navigation;
 
 /// <summary>
 ///     Hosts the application shell after login: renders the sidebar and manages the inner content frame
 ///     where feature pages (Dashboard, Profile, etc.) are displayed.
 /// </summary>
-public sealed partial class NavView
+public sealed partial class NavigationView
 {
     private const int MaximumInlineNotificationBadgeCount = 99;
     private const string OverflowNotificationBadgeText = "99+";
@@ -23,11 +23,11 @@ public sealed partial class NavView
     private readonly IAppNavigationService _navigationService;
 
     /// <summary>
-    ///     Initializes a new instance of the <see cref="NavView" /> class.
+    ///     Initializes a new instance of the <see cref="NavigationView" /> class.
     /// </summary>
     /// <param name="apiClient">Used to clear authentication state when the user logs out.</param>
     /// <param name="navigationService">Bound to the inner content frame to drive feature-page navigation.</param>
-    public NavView(IApiClient apiClient, IAppNavigationService navigationService)
+    public NavigationView(IApiClient apiClient, IAppNavigationService navigationService)
     {
         InitializeComponent();
         Current = this;
@@ -45,13 +45,13 @@ public sealed partial class NavView
     }
 
     /// <summary>
-    ///     Gets the most recently created <see cref="NavView" /> instance.
+    ///     Gets the most recently created <see cref="NavigationView" /> instance.
     ///     Used by content pages to call shell-level operations such as updating the notification badge.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public static NavView? Current { get; private set; }
+    public static NavigationView? Current { get; private set; }
 
     /// <summary>
     ///     Updates the notification badge on the bell icon to reflect the number of unread notifications.
@@ -60,7 +60,7 @@ public sealed partial class NavView
     /// <param name="count">The number of unread notifications to display.</param>
     public void UpdateNotificationBadge(int count)
     {
-        if (count <= default(int))
+        if (count <= 0)
         {
             NotificationBadge.Visibility = Visibility.Collapsed;
             return;

@@ -1,7 +1,6 @@
-﻿namespace BankingApp.Desktop;
+﻿namespace BankingApp.Desktop.Views;
 
-using Master;
-using Views;
+using Navigation;
 
 /// <summary>
 ///     Hosts the application's root frame and initializes the first navigated view.

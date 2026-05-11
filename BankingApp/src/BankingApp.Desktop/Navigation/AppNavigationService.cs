@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.Master;
+﻿namespace BankingApp.Desktop.Navigation;
 
 using System;
 using Microsoft.Extensions.DependencyInjection;

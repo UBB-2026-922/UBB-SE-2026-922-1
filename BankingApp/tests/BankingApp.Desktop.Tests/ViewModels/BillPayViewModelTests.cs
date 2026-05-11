@@ -3,10 +3,10 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 using System.Collections.Generic;
 using BankingApp.Application.Features.Billers.Dtos;
 using BankingApp.Application.Features.BillPayments.Dtos;
-using Master;
 using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
+using Navigation;
 
 public class BillPayViewModelTests
 {

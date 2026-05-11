@@ -3,13 +3,13 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BankingApp.Application.Features.Beneficiaries.Dtos;
-using Master;
 using Services.Transfers;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Navigation;
 using Xunit;
 
 public class BeneficiariesViewModelTests

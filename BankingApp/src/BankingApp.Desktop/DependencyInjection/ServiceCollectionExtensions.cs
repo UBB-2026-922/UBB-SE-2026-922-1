@@ -1,12 +1,12 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
-using Master;
 using BankingApp.Desktop.Services;
 using Services.Transfers;
 using ViewModels;
 using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Navigation;
 
 /// <summary>Registers the desktop application's client services, view models, and views.</summary>
 public static class ServiceCollectionExtensions
@@ -60,7 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<RegisterView>();
         services.AddTransient<TwoFactorView>();
         services.AddTransient<ForgotPasswordView>();
-        services.AddTransient<NavView>();
+        services.AddTransient<NavigationView>();
         services.AddTransient<DashboardView>();
         services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();

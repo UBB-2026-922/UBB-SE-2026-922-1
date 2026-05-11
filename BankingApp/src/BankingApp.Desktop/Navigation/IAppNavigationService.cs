@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.Master;
+﻿namespace BankingApp.Desktop.Navigation;
 
 using Microsoft.UI.Xaml.Controls;
 

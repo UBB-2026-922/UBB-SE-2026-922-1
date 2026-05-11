@@ -3,13 +3,12 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.Beneficiaries.Dtos;
-using Master;
+using Application.Features.Beneficiaries.Dtos;
 using Services.Transfers;
-using BankingApp.Application.Common.Utilities;
 using Views;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Navigation;
 
 /// <summary>
 ///     View model for the beneficiaries page in the desktop application.
@@ -30,7 +29,7 @@ public partial class BeneficiariesViewModel : ObservableObject
         _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        Beneficiaries = new List<BeneficiaryDto>();
+        Beneficiaries = [];
     }
 
     /// <summary>Gets the currently loaded list of beneficiaries.</summary>
@@ -38,7 +37,7 @@ public partial class BeneficiariesViewModel : ObservableObject
 
     /// <summary>Gets or sets a value indicating whether the add-beneficiary form is visible.</summary>
     [ObservableProperty]
-    public partial bool IsAddFormVisible { get; set; } = default!;
+    public partial bool IsAddFormVisible { get; set; } = false;
 
     /// <summary>Gets or sets the name entered for a new beneficiary.</summary>
     [ObservableProperty]
@@ -138,6 +137,6 @@ public partial class BeneficiariesViewModel : ObservableObject
             return;
         }
 
-        _navigationService.NavigateTo<NavView>();
+        _navigationService.NavigateTo<NavigationView>();
     }
 }

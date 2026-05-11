@@ -1,10 +1,10 @@
 namespace BankingApp.Desktop.Views;
 
 using Enums;
-using Master;
 using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
+using Navigation;
 
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.
@@ -59,7 +59,7 @@ public sealed partial class RegisterView
                     _navigationService.NavigateTo<LoginView>();
                     break;
                 case RegisterState.AutoLoggedIn:
-                    _navigationService.NavigateTo<NavView>();
+                    _navigationService.NavigateTo<NavigationView>();
                     break;
                 case RegisterState.EmailAlreadyExists:
                     ShowError(UserMessages.Register.EmailAlreadyExists);

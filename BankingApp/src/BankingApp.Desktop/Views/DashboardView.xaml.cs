@@ -151,7 +151,7 @@ public sealed partial class DashboardView : IDisposable
             _viewModel.HasTransactions ? Visibility.Collapsed : Visibility.Visible;
         BuildCardDots();
         ShowCard();
-        NavView.Current?.UpdateNotificationBadge(_viewModel.UnreadNotificationCount);
+        NavigationView.Current?.UpdateNotificationBadge(_viewModel.UnreadNotificationCount);
     }
 
     /// <summary>
@@ -307,9 +307,9 @@ public sealed partial class DashboardView : IDisposable
 
     private async Task ShowComingSoonAsync(string feature)
     {
-        if (NavView.Current != null)
+        if (NavigationView.Current != null)
         {
-            await NavView.Current.ShowComingSoonAsync(feature);
+            await NavigationView.Current.ShowComingSoonAsync(feature);
             return;
         }
 

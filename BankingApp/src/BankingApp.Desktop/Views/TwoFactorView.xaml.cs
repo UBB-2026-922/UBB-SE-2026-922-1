@@ -2,11 +2,11 @@ namespace BankingApp.Desktop.Views;
 
 using System;
 using Enums;
-using Master;
 using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Navigation;
 
 /// <summary>
 ///     Displays the OTP verification step of the login flow.
@@ -70,7 +70,7 @@ public sealed partial class TwoFactorView
         switch (state)
         {
             case TwoFactorState.Success:
-                _navigationService.NavigateTo<NavView>();
+                _navigationService.NavigateTo<NavigationView>();
                 break;
             case TwoFactorState.Idle:
             case TwoFactorState.Verifying:
