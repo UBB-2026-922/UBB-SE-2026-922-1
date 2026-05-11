@@ -104,4 +104,21 @@ public class LoginViewModelTests
         // Assert
         viewModel.State.Value.Should().Be(LoginState.Error);
     }
+
+    [Fact]
+    public async Task Login_WhenForbidden_SetsStateToAccountLocked()
+    {
+        // Arrange
+        var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
+
+        _authClientService
+            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(Error.Forbidden());
+
+        // Act
+        await viewModel.Login("test@test.com", "password");
+
+        // Assert
+        viewModel.State.Should().Be(LoginState.AccountLocked);
+    }
 }
