@@ -33,7 +33,7 @@ public class SessionsViewModelTests
 
         // Assert
         success.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.Idle);
+        viewModel.State.Should().Be(ProfileState.Idle);
         viewModel.ActiveSessions.Should().BeSameAs(sessions);
     }
 
@@ -53,7 +53,7 @@ public class SessionsViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
         viewModel.ActiveSessions.Should().BeEmpty();
     }
 
@@ -73,7 +73,7 @@ public class SessionsViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
         viewModel.ActiveSessions.Should().BeEmpty();
     }
 
@@ -93,7 +93,7 @@ public class SessionsViewModelTests
 
         // Assert
         success.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.Idle);
+        viewModel.State.Should().Be(ProfileState.Idle);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public class SessionsViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -131,6 +131,6 @@ public class SessionsViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 }

@@ -29,7 +29,7 @@ public class TwoFactorViewModelTests
         await viewModel.VerifyOtp();
 
         // Assert
-        viewModel.State.Value.Should().Be(TwoFactorState.Idle);
+        viewModel.State.Should().Be(TwoFactorState.Idle);
         viewModel.HasError.Should().BeTrue();
         _authClientService.Verify(
             s => s.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()),
@@ -51,7 +51,7 @@ public class TwoFactorViewModelTests
         await viewModel.VerifyOtp();
 
         // Assert
-        viewModel.State.Value.Should().Be(TwoFactorState.InvalidOtp);
+        viewModel.State.Should().Be(TwoFactorState.InvalidOtp);
         viewModel.HasError.Should().BeTrue();
     }
 
@@ -76,7 +76,7 @@ public class TwoFactorViewModelTests
         await viewModel.VerifyOtp();
 
         // Assert
-        viewModel.State.Value.Should().Be(TwoFactorState.Success);
+        viewModel.State.Should().Be(TwoFactorState.Success);
         viewModel.HasError.Should().BeFalse();
     }
 
@@ -99,7 +99,7 @@ public class TwoFactorViewModelTests
         await viewModel.VerifyOtp();
 
         // Assert
-        viewModel.State.Value.Should().Be(TwoFactorState.InvalidOtp);
+        viewModel.State.Should().Be(TwoFactorState.InvalidOtp);
         viewModel.HasError.Should().BeTrue();
     }
 

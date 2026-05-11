@@ -37,7 +37,7 @@ public class ProfileViewModelTests
 
         // Assert
         success.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
         viewModel.ProfileInfo.FullName.Should().Be(fullName);
         viewModel.ProfileInfo.Email.Should().Be(email);
     }
@@ -57,7 +57,7 @@ public class ProfileViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class ProfileViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class ProfileViewModelTests
         // Assert
         success.Should().BeFalse();
         error.Should().Be(UserMessages.Security.MinimumLengthRequired);
-        viewModel.State.Value.Should().Be(ProfileState.Idle);
+        viewModel.State.Should().Be(ProfileState.Idle);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class ProfileViewModelTests
         // Assert
         success.Should().BeFalse();
         error.Should().Be(UserMessages.Security.PasswordMismatch);
-        viewModel.State.Value.Should().Be(ProfileState.Idle);
+        viewModel.State.Should().Be(ProfileState.Idle);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class ProfileViewModelTests
         // Assert
         success.Should().BeTrue();
         error.Should().BeEmpty();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class ProfileViewModelTests
         // Assert
         success.Should().BeFalse();
         error.Should().Be(UserMessages.Security.IncorrectPassword);
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -197,7 +197,7 @@ public class ProfileViewModelTests
 
         // Assert
         result.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class ProfileViewModelTests
 
         // Assert
         result.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -233,7 +233,7 @@ public class ProfileViewModelTests
 
         // Assert
         result.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class ProfileViewModelTests
         // Assert
         success.Should().BeTrue();
         notificationPreference.EmailEnabled.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -314,7 +314,7 @@ public class ProfileViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        profileVm.State.Value.Should().Be(ProfileState.Error);
+        profileVm.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]

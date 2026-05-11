@@ -26,7 +26,7 @@ public class ForgotPasswordViewModelTests
         await viewModel.ForgotPassword(string.Empty);
 
         // Assert
-        viewModel.State.Value.Should().Be(ForgotPasswordState.Error);
+        viewModel.State.Should().Be(ForgotPasswordState.Error);
         viewModel.ValidationError.Should().NotBeEmpty();
     }
 
@@ -48,7 +48,7 @@ public class ForgotPasswordViewModelTests
         await viewModel.ForgotPassword("test@bank.com");
 
         // Assert
-        viewModel.State.Value.Should().Be(ForgotPasswordState.EmailSent);
+        viewModel.State.Should().Be(ForgotPasswordState.EmailSent);
         viewModel.ValidationError.Should().BeEmpty();
     }
 
@@ -67,7 +67,7 @@ public class ForgotPasswordViewModelTests
         await viewModel.ResetPassword(string.Empty, string.Empty);
 
         // Assert
-        viewModel.State.Value.Should().Be(ForgotPasswordState.Error);
+        viewModel.State.Should().Be(ForgotPasswordState.Error);
         viewModel.ValidationError.Should().NotBeEmpty();
     }
 
@@ -89,7 +89,7 @@ public class ForgotPasswordViewModelTests
         await viewModel.ResetPassword("weak", "123456");
 
         // Assert
-        viewModel.State.Value.Should().Be(ForgotPasswordState.Error);
+        viewModel.State.Should().Be(ForgotPasswordState.Error);
         viewModel.ValidationError.Should().NotBeEmpty();
     }
 
@@ -115,7 +115,7 @@ public class ForgotPasswordViewModelTests
         await viewModel.ResetPassword("StrongP@ss1", "123456");
 
         // Assert
-        viewModel.State.Value.Should().Be(ForgotPasswordState.PasswordResetSuccess);
+        viewModel.State.Should().Be(ForgotPasswordState.PasswordResetSuccess);
         viewModel.ValidationError.Should().BeEmpty();
     }
 
@@ -134,7 +134,7 @@ public class ForgotPasswordViewModelTests
         await viewModel.VerifyToken(string.Empty);
 
         // Assert
-        viewModel.State.Value.Should().Be(ForgotPasswordState.Error);
+        viewModel.State.Should().Be(ForgotPasswordState.Error);
         viewModel.ValidationError.Should().NotBeEmpty();
     }
 
@@ -156,7 +156,7 @@ public class ForgotPasswordViewModelTests
         await viewModel.VerifyToken("123456");
 
         // Assert
-        viewModel.State.Value.Should().Be(ForgotPasswordState.TokenValid);
+        viewModel.State.Should().Be(ForgotPasswordState.TokenValid);
         viewModel.ValidationError.Should().BeEmpty();
     }
 }
