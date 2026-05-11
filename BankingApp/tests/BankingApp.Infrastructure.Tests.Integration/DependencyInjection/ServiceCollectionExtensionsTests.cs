@@ -1,0 +1,33 @@
+namespace BankingApp.Infrastructure.Tests.Integration.DependencyInjection;
+
+using BankingApp.Infrastructure.Tests.Integration.TestSupport;
+
+[Collection(IntegrationTestCollectionNames.Name)]
+public sealed class ServiceCollectionExtensionsTests(SqlServerDatabaseFixture databaseFixture)
+    : IntegrationTestBase(databaseFixture)
+{
+    [Fact(Skip = "Not implemented yet.")]
+    public void AddInfrastructure_WhenConfigurationContainsRequiredSettings_ShouldRegisterCoreInfrastructureServices()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet.")]
+    public void AddInfrastructure_WhenConfigurationContainsRequiredSettings_ShouldRegisterRepositoryImplementations()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet.")]
+    public void AddInfrastructure_WhenConnectionStringIsMissing_ShouldThrowInvalidOperationException()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet.")]
+    public void AddInfrastructure_WhenJwtSecretIsMissing_ShouldThrowInvalidOperationException()
+    {
+    }
+
+    [Fact(Skip = "Not implemented yet.")]
+    public void AddInfrastructure_WhenOtpSecretIsMissing_ShouldThrowInvalidOperationException()
+    {
+    }
+}
