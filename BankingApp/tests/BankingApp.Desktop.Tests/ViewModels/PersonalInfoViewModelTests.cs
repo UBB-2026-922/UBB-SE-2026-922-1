@@ -39,7 +39,7 @@ public class PersonalInfoViewModelTests
         // Assert
         success.Should().BeTrue();
         viewModel.ProfileInfo.Should().BeSameAs(profile);
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
         viewModel.HasPhoneNumber.Should().BeTrue();
         viewModel.TwoFactorPhoneDisplay.Should().Be(phoneNumber);
     }
@@ -59,7 +59,7 @@ public class PersonalInfoViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
         viewModel.ProfileInfo.UserId.Should().BeNull();
         viewModel.HasPhoneNumber.Should().BeFalse();
         viewModel.TwoFactorPhoneDisplay.Should().Be(UserMessages.Profile.NoPhoneNumber);
@@ -76,7 +76,7 @@ public class PersonalInfoViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class PersonalInfoViewModelTests
         viewModel.ProfileInfo.FullName.Should().Be("Updated Name");
         viewModel.ProfileInfo.PhoneNumber.Should().Be("0712345678");
         viewModel.ProfileInfo.Address.Should().Be("123 Main St");
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class PersonalInfoViewModelTests
         viewModel.ProfileInfo.PhoneNumber.Should().BeNull();
         viewModel.ProfileInfo.Address.Should().BeNull();
         viewModel.ProfileInfo.FullName.Should().Be("Existing Name");
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public class PersonalInfoViewModelTests
         viewModel.ProfileInfo.FullName.Should().Be("Existing Name");
         viewModel.ProfileInfo.PhoneNumber.Should().Be("0711");
         viewModel.ProfileInfo.Address.Should().Be("Old Address");
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -201,7 +201,7 @@ public class PersonalInfoViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class PersonalInfoViewModelTests
 
         // Assert
         success.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class PersonalInfoViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -273,6 +273,6 @@ public class PersonalInfoViewModelTests
 
         // Assert
         success.Should().BeFalse();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 }

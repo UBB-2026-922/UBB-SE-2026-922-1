@@ -36,7 +36,7 @@ public class NotificationsViewModelTests
         // Assert
         success.Should().BeTrue();
         preference.EmailEnabled.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public class NotificationsViewModelTests
         // Assert
         success.Should().BeFalse();
         preference.EmailEnabled.Should().BeTrue();
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class NotificationsViewModelTests
         // Assert
         success.Should().BeTrue();
         viewModel.NotificationPreferences.Should().BeSameAs(preferences);
-        viewModel.State.Value.Should().Be(ProfileState.Idle);
+        viewModel.State.Should().Be(ProfileState.Idle);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class NotificationsViewModelTests
         // Assert
         success.Should().BeFalse();
         viewModel.NotificationPreferences.Should().ContainSingle().Which.Should().BeSameAs(existingPreference);
-        viewModel.State.Value.Should().Be(ProfileState.Idle);
+        viewModel.State.Should().Be(ProfileState.Idle);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class NotificationsViewModelTests
         // Assert
         success.Should().BeTrue();
         viewModel.NotificationPreferences.Should().BeSameAs(updatedPreferences);
-        viewModel.State.Value.Should().Be(ProfileState.UpdateSuccess);
+        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
     }
 
     [Fact]
@@ -170,6 +170,6 @@ public class NotificationsViewModelTests
         // Assert
         success.Should().BeFalse();
         viewModel.NotificationPreferences.Should().ContainSingle().Which.Should().BeSameAs(existingPreference);
-        viewModel.State.Value.Should().Be(ProfileState.Error);
+        viewModel.State.Should().Be(ProfileState.Error);
     }
 }

@@ -8,6 +8,7 @@ using BankingApp.Application.Features.Billers.Dtos;
 using BankingApp.Application.Features.RecurringPayments.Dtos;
 using BankingApp.Desktop.Services;
 using BankingApp.Domain.Enums;
+using Microsoft.UI.Xaml;
 
 /// <summary>Manages recurring bill payment creation and lifecycle actions for the desktop client.</summary>
 public partial class RecurringPaymentViewModel : ObservableObject
@@ -84,10 +85,15 @@ public partial class RecurringPaymentViewModel : ObservableObject
     /// <summary>Gets or sets the current user-facing error message.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyPropertyChangedFor(nameof(ErrorMessageVisibility))]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>Gets a value indicating whether an error message is currently available.</summary>
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+
+    /// <summary>Gets the visibility of the error message panel.</summary>
+    public Visibility ErrorMessageVisibility =>
+        HasError ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>Gets or sets the accounts available as funding sources.</summary>
     [ObservableProperty]

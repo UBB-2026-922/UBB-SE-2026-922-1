@@ -48,7 +48,7 @@ public class LoginViewModelTests
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.Success);
+        viewModel.State.Should().Be(LoginState.Success);
         _authClientService.Object.CurrentUserId.Should().Be(1);
     }
 
@@ -67,7 +67,7 @@ public class LoginViewModelTests
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.Require2Fa);
+        viewModel.State.Should().Be(LoginState.Require2Fa);
         _authClientService.Object.CurrentUserId.Should().Be(1);
     }
 
@@ -85,7 +85,7 @@ public class LoginViewModelTests
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.InvalidCredentials);
+        viewModel.State.Should().Be(LoginState.InvalidCredentials);
     }
 
     [Fact]
@@ -102,6 +102,23 @@ public class LoginViewModelTests
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.Error);
+        viewModel.State.Should().Be(LoginState.Error);
+    }
+
+    [Fact]
+    public async Task Login_WhenForbidden_SetsStateToAccountLocked()
+    {
+        // Arrange
+        var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
+
+        _authClientService
+            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync(Error.Forbidden());
+
+        // Act
+        await viewModel.Login("test@test.com", "password");
+
+        // Assert
+        viewModel.State.Should().Be(LoginState.AccountLocked);
     }
 }

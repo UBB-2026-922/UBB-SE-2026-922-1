@@ -22,7 +22,7 @@ public class RegisterViewModelTests
         await viewModel.Register(string.Empty, "pass", "pass", "Name");
 
         // Assert
-        viewModel.State.Value.Should().Be(RegisterState.Error);
+        viewModel.State.Should().Be(RegisterState.Error);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class RegisterViewModelTests
         await viewModel.Register("test@test.com", "Password123!", "Password123", "Name");
 
         // Assert
-        viewModel.State.Value.Should().Be(RegisterState.PasswordMismatch);
+        viewModel.State.Should().Be(RegisterState.PasswordMismatch);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class RegisterViewModelTests
         await viewModel.Register("test@test.com", "weak", "weak", "Name");
 
         // Assert
-        viewModel.State.Value.Should().Be(RegisterState.WeakPassword);
+        viewModel.State.Should().Be(RegisterState.WeakPassword);
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public class RegisterViewModelTests
         await viewModel.Register("test@test.com", "StrongP@ss1", "StrongP@ss1", "Name");
 
         // Assert
-        viewModel.State.Value.Should().Be(RegisterState.Success);
+        viewModel.State.Should().Be(RegisterState.Success);
     }
 
     [Fact]
@@ -90,6 +90,6 @@ public class RegisterViewModelTests
         await viewModel.Register("test@test.com", "StrongP@ss1", "StrongP@ss1", "Name");
 
         // Assert
-        viewModel.State.Value.Should().Be(RegisterState.EmailAlreadyExists);
+        viewModel.State.Should().Be(RegisterState.EmailAlreadyExists);
     }
 }
