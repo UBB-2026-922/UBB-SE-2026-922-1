@@ -2,13 +2,13 @@ namespace BankingApp.Domain.Tests.Aggregates.SavedBillerAggregate;
 
 public sealed class SavedBillerTests
 {
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Update_WhenCalled_ShouldUpdateNickname()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Update_WhenCalled_ShouldUpdateDefaultReference()
     {
         throw new NotImplementedException();

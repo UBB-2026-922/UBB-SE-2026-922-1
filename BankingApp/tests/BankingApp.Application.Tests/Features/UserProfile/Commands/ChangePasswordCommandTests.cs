@@ -2,37 +2,37 @@ namespace BankingApp.Application.Tests.Features.UserProfile.Commands;
 
 public sealed class ChangePasswordCommandTests
 {
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenUserNotFound_ShouldReturnNotFoundError()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenIdentityNotFound_ShouldReturnNotFoundError()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenCurrentPasswordVerificationFails_ShouldReturnIncorrectPasswordError()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenPasswordHashingFails_ShouldReturnHashFailureError()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenValid_ShouldUpdatePasswordHash()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenValid_ShouldSaveChanges()
     {
         throw new NotImplementedException();

@@ -2,25 +2,25 @@ namespace BankingApp.Application.Tests.Features.UserProfile.Queries;
 
 public sealed class VerifyPasswordQueryTests
 {
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenUserNotFound_ShouldReturnNotFoundError()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenIdentityNotFound_ShouldReturnNotFoundError()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenPasswordDoesNotMatch_ShouldReturnFalse()
     {
         throw new NotImplementedException();
     }
 
-    [Fact]
+    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenPasswordMatches_ShouldReturnTrue()
     {
         throw new NotImplementedException();
