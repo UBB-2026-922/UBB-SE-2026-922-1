@@ -2,7 +2,7 @@ namespace BankingApp.Desktop.Services;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.Profile;
+using BankingApp.Application.Features.UserProfile.Dtos;
 using ErrorOr;
 
 /// <summary>

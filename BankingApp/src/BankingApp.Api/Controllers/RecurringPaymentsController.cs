@@ -1,32 +1,59 @@
-#pragma warning disable CS1591
 namespace BankingApp.Api.Controllers;
 
-using Application.Repositories.Interfaces;
-using Domain.Entities;
+using BankingApp.Application.Features.RecurringPayments.Commands;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
+using BankingApp.Application.Features.RecurringPayments.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/recurring-payments")]
-public class RecurringPaymentsController(IRecurringPaymentRepository recurringPaymentRepository) : ApiController
+[Authorize]
+[Route("api/recurring_payments")]
+public class RecurringPaymentsController : ApiControllerBase
 {
-    [HttpGet("{id:int}")]
-    public IActionResult GetById(int id)
-        => ToActionResult(recurringPaymentRepository.GetById(id), Ok);
-
-    [HttpGet("user/{userId:int}")]
-    public IActionResult GetByUserId(int userId)
-        => ToActionResult(recurringPaymentRepository.GetByUserId(userId), Ok);
-
-    [HttpGet("due")]
-    public IActionResult GetDuePayments([FromQuery] DateTime asOf)
-        => ToActionResult(recurringPaymentRepository.GetDuePayments(asOf), Ok);
+    [HttpGet]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+    {
+        int userId = GetAuthenticatedUserId();
+        return ToActionResult(await Sender.Send(new GetRecurringPaymentsQuery(userId), cancellationToken), Ok);
+    }
 
     [HttpPost]
-    public IActionResult Create([FromBody] RecurringPayment payment)
-        => ToActionResult(recurringPaymentRepository.Create(payment), Ok);
+    public async Task<IActionResult> Create([FromBody] CreateRecurringPaymentRequest request, CancellationToken cancellationToken)
+    {
+        int userId = GetAuthenticatedUserId();
+        var command = new CreateRecurringPaymentCommand(
+            userId,
+            request.BillerId,
+            request.SourceAccountId,
+            request.Amount,
+            request.IsPayInFull,
+            request.Frequency,
+            request.StartDate,
+            request.EndDate);
+        return ToActionResult(
+            await Sender.Send(command, cancellationToken),
+            payment => CreatedAtAction(nameof(GetAll), new { }, payment));
+    }
 
-    [HttpPut]
-    public IActionResult Update([FromBody] RecurringPayment payment)
-        => ToActionResult(recurringPaymentRepository.Update(payment));
+    [HttpPut("{id}/pause")]
+    public async Task<IActionResult> Pause(int id, CancellationToken cancellationToken)
+    {
+        int userId = GetAuthenticatedUserId();
+        return ToActionResult(await Sender.Send(new PauseRecurringPaymentCommand(userId, id), cancellationToken));
+    }
+
+    [HttpPut("{id}/resume")]
+    public async Task<IActionResult> ResumePayment(int id, CancellationToken cancellationToken)
+    {
+        int userId = GetAuthenticatedUserId();
+        return ToActionResult(await Sender.Send(new ResumeRecurringPaymentCommand(userId, id), cancellationToken));
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
+    {
+        int userId = GetAuthenticatedUserId();
+        return ToActionResult(await Sender.Send(new CancelRecurringPaymentCommand(userId, id), cancellationToken));
+    }
 }
-#pragma warning restore CS1591

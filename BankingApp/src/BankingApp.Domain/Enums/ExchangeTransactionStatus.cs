@@ -1,4 +1,4 @@
-namespace BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Enums;
 
 /// <summary>
 ///     Represents the processing status of a foreign-exchange conversion transaction.

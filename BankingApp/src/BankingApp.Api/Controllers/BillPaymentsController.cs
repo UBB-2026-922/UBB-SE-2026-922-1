@@ -1,70 +1,51 @@
-#pragma warning disable CS1591
 namespace BankingApp.Api.Controllers;
 
-using Application.Repositories.Interfaces;
-using Domain.Entities;
+using BankingApp.Application.Features.BillPayments.Commands;
+using BankingApp.Application.Features.BillPayments.Dtos;
+using BankingApp.Application.Features.BillPayments.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/bill-payments")]
-public class BillPaymentsController(IBillPaymentRepository billPaymentRepository) : ApiController
+[Route("api/bill-payment")]
+[Authorize]
+public class BillPaymentsController : ApiControllerBase
 {
-    [HttpGet("billers")]
-    public async Task<IActionResult> GetBillersAsync()
-        => Ok((await billPaymentRepository.GetBillersAsync()).ToList());
+    private const decimal LowTierFee = 0.50m;
+    private const decimal HighTierFee = 1.00m;
+    private const decimal FeeThreshold = 100m;
 
-    [HttpGet("billers/{billerId:int}")]
-    public async Task<IActionResult> GetBillerByIdAsync(int billerId)
+    [HttpGet("fee")]
+    public IActionResult CalculateFee([FromQuery] decimal amount)
     {
-        Biller? biller = await billPaymentRepository.GetBillerByIdAsync(billerId);
-        return biller is null ? NotFound() : Ok(biller);
+        decimal fee = amount <= FeeThreshold ? LowTierFee : HighTierFee;
+        return Ok(new FeeResponse { Fee = fee });
     }
 
-    [HttpPost("payments")]
-    public async Task<IActionResult> AddPaymentAsync([FromBody] BillPayment payment)
+    [HttpGet("requires-2fa")]
+    public IActionResult Requires2Fa([FromQuery] decimal amount)
     {
-        await billPaymentRepository.AddPaymentAsync(payment);
-        return Ok(payment);
+        return Ok(new RequiresTwoFaResponse { Required = false });
     }
 
-    [HttpGet("payments/user/{userId:int}")]
-    public async Task<IActionResult> GetUserPaymentHistoryAsync(int userId)
-        => Ok((await billPaymentRepository.GetUserPaymentHistoryAsync(userId)).ToList());
-
-    [HttpGet("saved-billers/{userId:int}")]
-    public async Task<IActionResult> GetSavedBillersAsync(int userId)
-        => Ok((await billPaymentRepository.GetSavedBillersAsync(userId)).ToList());
-
-    [HttpPost("saved-billers")]
-    public async Task<IActionResult> AddSavedBillerAsync([FromBody] SavedBiller savedBiller)
+    [HttpPost("pay")]
+    public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequest request, CancellationToken cancellationToken)
     {
-        await billPaymentRepository.AddSavedBillerAsync(savedBiller);
-        return Ok(savedBiller);
+        int userId = GetAuthenticatedUserId();
+        var command = new ProcessBillPaymentCommand(
+            userId,
+            request.SourceAccountId,
+            request.BillerId,
+            request.BillerReference,
+            request.Amount,
+            request.TwoFaToken);
+        return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
     }
 
-    [HttpGet("accounts/{accountId:int}")]
-    public async Task<IActionResult> GetAccountByIdAsync(int accountId)
+    [HttpGet("history")]
+    public async Task<IActionResult> GetHistory(CancellationToken cancellationToken)
     {
-        Account? account = await billPaymentRepository.GetAccountByIdAsync(accountId);
-        return account is null ? NotFound() : Ok(account);
-    }
-
-    [HttpGet("accounts/user/{userId:int}")]
-    public async Task<IActionResult> GetAccountsByUserIdAsync(int userId)
-        => Ok((await billPaymentRepository.GetAccountsByUserIdAsync(userId)).ToList());
-
-    [HttpPut("accounts")]
-    public async Task<IActionResult> UpdateAccountAsync([FromBody] Account account)
-    {
-        await billPaymentRepository.UpdateAccountAsync(account);
-        return NoContent();
-    }
-
-    [HttpPost("transactions")]
-    public async Task<IActionResult> AddTransactionAsync([FromBody] Transaction transaction)
-    {
-        await billPaymentRepository.AddTransactionAsync(transaction);
-        return Ok(transaction);
+        int userId = GetAuthenticatedUserId();
+        return ToActionResult(await Sender.Send(new GetBillPaymentHistoryQuery(userId), cancellationToken), Ok);
     }
 }
-#pragma warning restore CS1591

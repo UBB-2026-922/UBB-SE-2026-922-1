@@ -3,65 +3,45 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.DTOs.Auth;
+using BankingApp.Application.Features.Authentication.Dtos;
 using Enums;
-using Services;
-using Utilities;
+using BankingApp.Desktop.Services;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 
-/// <summary>
-/// Coordinates interactive sign-in for the desktop client.
-/// </summary>
-public class LoginViewModel
+/// <summary>Coordinates interactive sign-in for the desktop client.</summary>
+public partial class LoginViewModel : ObservableObject
 {
     private readonly IAuthClientService _authClientService;
     private readonly ILogger<LoginViewModel> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="LoginViewModel"/> class.
-    /// </summary>
-    /// <param name="authClientService">Provides login and session configuration operations.</param>
-    /// <param name="logger">Writes operational diagnostics for sign-in failures.</param>
+    /// <summary>Initializes a new instance of the <see cref="LoginViewModel"/> class.</summary>
     public LoginViewModel(IAuthClientService authClientService, ILogger<LoginViewModel> logger)
     {
         _authClientService = authClientService ?? throw new ArgumentNullException(nameof(authClientService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        LoginState initialState = _authClientService.EnsureConfigured().Match(
+        State = _authClientService.EnsureConfigured().Match(
             _ => LoginState.Idle,
             errors =>
             {
                 _logger.LoginUnavailableApiClientNotConfigured(errors.Count);
                 return LoginState.ServerNotConfigured;
             });
-        State = new ObservableState<LoginState>(initialState);
     }
 
-    /// <summary>
-    /// Gets the observable state of the current login flow.
-    /// </summary>
-    public ObservableState<LoginState> State { get; }
+    /// <summary>Gets or sets the current login workflow state.</summary>
+    [ObservableProperty]
+    public partial LoginState State { get; set; } = default!;
 
-    /// <summary>
-    /// Determines whether the provided credentials are sufficient to submit a login request.
-    /// </summary>
-    /// <param name="email">The email entered by the user.</param>
-    /// <param name="password">The password entered by the user.</param>
-    /// <returns><see langword="true"/> when both inputs contain non-whitespace content; otherwise, <see langword="false"/>.</returns>
-    public static bool CanLogin(string email, string password)
-    {
-        return !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password);
-    }
+    /// <summary>Returns true when both email and password contain non-whitespace content.</summary>
+    public static bool CanLogin(string email, string password) =>
+        !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password);
 
-    /// <summary>
-    /// Attempts to sign the user in with the supplied credentials.
-    /// </summary>
-    /// <param name="email">The email entered by the user.</param>
-    /// <param name="password">The password entered by the user.</param>
-    /// <returns>A task that completes when the login attempt finishes.</returns>
+    /// <summary>Attempts to sign the user in with the supplied credentials.</summary>
     public async Task Login(string email, string password)
     {
-        State.SetValue(LoginState.Loading);
+        State = LoginState.Loading;
         ErrorOr<LoginSuccessResponse> result = await _authClientService.LoginAsync(email.Trim(), password);
         result.Switch(
             response =>
@@ -69,35 +49,29 @@ public class LoginViewModel
                 if (response.Requires2Fa)
                 {
                     _authClientService.CurrentUserId = response.UserId;
-                    State.SetValue(LoginState.Require2Fa);
+                    State = LoginState.Require2Fa;
                     return;
                 }
 
                 _authClientService.SetToken(response.Token!);
                 _authClientService.CurrentUserId = response.UserId;
-                State.SetValue(LoginState.Success);
+                State = LoginState.Success;
             },
             errors =>
             {
-                switch (errors.First().Type)
+                if (errors.First().Type == ErrorType.Forbidden)
                 {
-                    case ErrorType.Forbidden:
-                        State.SetValue(LoginState.AccountLocked);
-                        break;
-                    case ErrorType.Unauthorized:
-                        State.SetValue(LoginState.InvalidCredentials);
-                        break;
-                    case ErrorType.Failure:
-                    case ErrorType.Unexpected:
-                    case ErrorType.Validation:
-                    case ErrorType.Conflict:
-                    case ErrorType.NotFound:
-                    default:
-                        _logger.LoginFailed(errors);
-                        State.SetValue(LoginState.Error);
-                        break;
+                    State = LoginState.AccountLocked;
                 }
-            }
-        );
+                else if (errors.First().Type == ErrorType.Unauthorized)
+                {
+                    State = LoginState.InvalidCredentials;
+                }
+                else
+                {
+                    _logger.LoginFailed(errors);
+                    State = LoginState.Error;
+                }
+            });
     }
 }

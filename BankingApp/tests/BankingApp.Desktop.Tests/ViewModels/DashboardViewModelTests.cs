@@ -1,9 +1,9 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Globalization;
-using Application.DTOs.Dashboard;
+using BankingApp.Application.Features.AccountOverview.Dtos;
 using Enums;
-using Services;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
@@ -38,7 +38,7 @@ public class DashboardViewModelTests
         const decimal transactionAmount = 12.5m;
         const int unreadCount = 4;
 
-        var response = new DashboardDto
+        var response = new AccountOverviewDto
         {
             CurrentUser = new UserSummaryDto
             {
@@ -120,7 +120,7 @@ public class DashboardViewModelTests
         // Arrange
         _dashboardClientService
             .Setup(service => service.GetDashboardAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new DashboardDto());
+            .ReturnsAsync(new AccountOverviewDto());
 
         // Act
         ErrorOr<Success> result = await _viewModel.LoadDashboard(TestContext.Current.CancellationToken);
@@ -415,7 +415,7 @@ public class DashboardViewModelTests
             })
             .ToList();
 
-        var response = new DashboardDto
+        var response = new AccountOverviewDto
         {
             CurrentUser = new UserSummaryDto { FullName = "Test User" },
             Cards = cards,

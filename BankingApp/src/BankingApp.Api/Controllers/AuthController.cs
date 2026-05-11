@@ -1,262 +1,180 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.Repositories.Interfaces;
-using Domain.Entities;
+using BankingApp.Application.Common.Dtos;
+using BankingApp.Application.Features.Authentication.Commands;
+using BankingApp.Application.Features.Authentication.Dtos;
+using BankingApp.Application.Features.Authentication.Models;
+using BankingApp.Application.Features.PasswordReset.Commands;
+using BankingApp.Application.Features.PasswordReset.Dtos;
+using BankingApp.Application.Features.PasswordReset.Queries;
+using BankingApp.Application.Features.UserRegistration.Commands;
+using BankingApp.Application.Features.UserRegistration.Dtos;
+using ErrorOr;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
-/// TODO: add docs.
+///     Handles authentication, registration, password reset, and two-factor endpoints.
 /// </summary>
-/// <param name="authRepository"></param>
 [ApiController]
-[Route("api/auth")]
-public class AuthController(IAuthRepository authRepository) : ApiController
+[Route("api/[controller]")]
+public class AuthController : ApiControllerBase
 {
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="email"></param>
-    /// <returns></returns>
-    [HttpGet("users/by-email")]
-    public IActionResult FindUserByEmail([FromQuery] string email)
-        => ToActionResult(authRepository.FindUserByEmail(email), Ok);
+    private const string BearerPrefix = "Bearer ";
+    private const int DeviceInfoMaxLength = 255;
+    private const int BrowserMaxLength = 100;
+    private const int IpAddressMaxLength = 45;
 
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpGet("users/{userId:int}")]
-    public IActionResult FindUserById(int userId)
-        => ToActionResult(authRepository.FindUserById(userId), Ok);
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="user"></param>
-    /// <returns></returns>
-    [HttpPost("users")]
-    public IActionResult CreateUser([FromBody] User user)
-        => ToActionResult(authRepository.CreateUser(user));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPost("sessions")]
-    public IActionResult CreateSession([FromBody] CreateSessionRequest request)
-        => ToActionResult(
-            authRepository.CreateSession(
-                request.UserId,
-                request.Token,
-                request.DeviceInfo,
-                request.Browser,
-                request.RemoteIpAddress),
-            Ok);
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
-    [HttpGet("sessions/by-token")]
-    public IActionResult FindSessionByToken([FromQuery] string token)
-        => ToActionResult(authRepository.FindSessionByToken(token), Ok);
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="token"></param>
-    /// <returns></returns>
-    [HttpGet("sessions/active")]
-    public IActionResult IsSessionActive([FromQuery] string token)
-        => ToActionResult(authRepository.IsSessionActive(token), isActive => Ok(isActive));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpGet("users/{userId:int}/sessions")]
-    public IActionResult FindSessionsByUserId(int userId)
-        => ToActionResult(authRepository.FindSessionsByUserId(userId), Ok);
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="sessionId"></param>
-    /// <returns></returns>
-    [HttpPut("sessions/{sessionId:int}/revoke")]
-    public IActionResult RevokeSession(int sessionId)
-        => ToActionResult(authRepository.UpdateSessionToken(sessionId));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpPut("users/{userId:int}/invalidate-sessions")]
-    public IActionResult InvalidateAllSessions(int userId)
-        => ToActionResult(authRepository.InvalidateAllSessions(userId));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPost("password-reset-tokens")]
-    public IActionResult SavePasswordResetToken([FromBody] SavePasswordResetTokenRequest request)
-        => ToActionResult(
-            authRepository.SavePasswordResetToken(
-                new PasswordResetToken
-                {
-                    User = new User { Id = request.UserId },
-                    TokenHash = request.TokenHash,
-                    ExpiresAt = request.ExpiresAt,
-                    CreatedAt = request.CreatedAt,
-                }));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="tokenHash"></param>
-    /// <returns></returns>
-    [HttpGet("password-reset-tokens/by-hash")]
-    public IActionResult FindPasswordResetToken([FromQuery] string tokenHash)
-        => ToActionResult(authRepository.FindPasswordResetToken(tokenHash), Ok);
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="tokenId"></param>
-    /// <returns></returns>
-    [HttpPut("password-reset-tokens/{tokenId:int}/mark-used")]
-    public IActionResult MarkPasswordResetTokenAsUsed(int tokenId)
-        => ToActionResult(authRepository.MarkPasswordResetTokenAsUsed(tokenId));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <returns></returns>
-    [HttpDelete("password-reset-tokens/expired")]
-    public IActionResult DeleteExpiredPasswordResetTokens()
-        => ToActionResult(authRepository.DeleteExpiredPasswordResetTokens());
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpPut("users/{userId:int}/failed-attempts/increment")]
-    public IActionResult IncrementFailedAttempts(int userId)
-        => ToActionResult(authRepository.IncrementFailedAttempts(userId));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpPut("users/{userId:int}/failed-attempts/reset")]
-    public IActionResult ResetFailedAttempts(int userId)
-        => ToActionResult(authRepository.ResetFailedAttempts(userId));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPut("users/{userId:int}/lock")]
-    public IActionResult LockAccount(int userId, [FromBody] LockAccountRequest request)
-        => ToActionResult(authRepository.LockAccount(userId, request.LockoutEnd));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    [HttpPut("users/{userId:int}/password")]
-    public IActionResult UpdatePassword(int userId, [FromBody] UpdatePasswordRequest request)
-        => ToActionResult(authRepository.UpdatePassword(userId, request.NewPasswordHash));
-
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    public sealed class CreateSessionRequest
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public int UserId { get; set; }
-
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public string Token { get; set; } = string.Empty;
-
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public string? DeviceInfo { get; set; }
-
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public string? Browser { get; set; }
-
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public string? RemoteIpAddress { get; set; }
+        var command = new LoginCommand(request.Email, request.Password, GetSessionMetadata());
+        return ToActionResult(await Sender.Send(command, cancellationToken), MapLoginSuccess);
     }
 
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    public sealed class SavePasswordResetTokenRequest
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public int UserId { get; set; }
-
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public string TokenHash { get; set; } = string.Empty;
-
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public DateTime ExpiresAt { get; set; }
-
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public DateTime CreatedAt { get; set; }
+        return ToActionResult(
+            await Sender.Send(new RegisterCommand(request.Email, request.Password, request.FullName), cancellationToken));
     }
 
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    public sealed class LockAccountRequest
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request, CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public DateTime LockoutEnd { get; set; }
+        var command = new VerifyOtpCommand(request.UserId, request.OtpCode, GetSessionMetadata());
+        return ToActionResult(await Sender.Send(command, cancellationToken), MapLoginSuccess);
     }
 
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    public sealed class UpdatePasswordRequest
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword(
+        [FromBody] ForgotPasswordRequest request,
+        CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// TODO: add docs.
-        /// </summary>
-        public string NewPasswordHash { get; set; } = string.Empty;
+        await Sender.Send(new ForgotPasswordCommand(request.Email), cancellationToken);
+        return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(
+        [FromBody] ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        return ToActionResult(
+            await Sender.Send(new ResetPasswordCommand(request.Token, request.NewPassword), cancellationToken));
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(
+        [FromHeader(Name = "Authorization")] string authorization,
+        CancellationToken cancellationToken)
+    {
+        if (!TryExtractBearerToken(authorization, out string token))
+        {
+            return BadRequest(new ApplicationErrorResponse { Error = "No token provided." });
+        }
+
+        return ToActionResult(await Sender.Send(new LogoutCommand(token), cancellationToken));
+    }
+
+    [HttpPost("resend-otp")]
+    public async Task<IActionResult> ResendOtp(
+        [FromQuery] int userId,
+        [FromQuery] string method = "email",
+        CancellationToken cancellationToken = default)
+    {
+        await Sender.Send(new ResendOtpCommand(userId, method), cancellationToken);
+        return Ok(new { message = "If the user exists, a new code has been sent." });
+    }
+
+    [HttpPost("verify-reset-token")]
+    public async Task<IActionResult> VerifyResetToken(
+        [FromBody] VerifyResetTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        return ToActionResult(await Sender.Send(new VerifyResetTokenQuery(request.Token), cancellationToken));
+    }
+
+    private static string? GetClientIpAddress(HttpContext context)
+    {
+        string forwardedFor = context.Request.Headers["X-Forwarded-For"].ToString();
+        return !string.IsNullOrWhiteSpace(forwardedFor)
+            ? forwardedFor.Split(',').First().Trim()
+            : context.Connection.RemoteIpAddress?.ToString();
+    }
+
+    private static string? GetBrowserName(string? userAgent)
+    {
+        if (string.IsNullOrWhiteSpace(userAgent))
+        {
+            return null;
+        }
+
+        if (userAgent.Contains("Edg/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Microsoft Edge";
+        }
+
+        if (userAgent.Contains("Chrome/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Chrome";
+        }
+
+        if (userAgent.Contains("Firefox/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Firefox";
+        }
+
+        if (userAgent.Contains("Safari/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Safari";
+        }
+
+        return "Unknown Browser";
+    }
+
+    private static string? TrimToMaxLength(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return value.Length <= maxLength ? value : value[..maxLength];
+    }
+
+    private static bool TryExtractBearerToken(string authorization, out string token)
+    {
+        token = string.Empty;
+        if (string.IsNullOrWhiteSpace(authorization) ||
+            !authorization.StartsWith(BearerPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        token = authorization[BearerPrefix.Length..];
+        return !string.IsNullOrWhiteSpace(token);
+    }
+
+    private IActionResult MapLoginSuccess(LoginSuccess success)
+    {
+        return success switch
+        {
+            FullLogin full => Ok(new LoginSuccessResponse { UserId = full.UserId, Token = full.Token }),
+            RequiresTwoFactor tfa => Ok(new LoginSuccessResponse { UserId = tfa.UserId, Requires2Fa = true }),
+            _ => StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ApplicationErrorResponse { Error = "Unexpected login result type." })
+        };
+    }
+
+    private SessionMetadata GetSessionMetadata()
+    {
+        string? userAgent = TrimToMaxLength(Request.Headers.UserAgent.ToString(), DeviceInfoMaxLength);
+        return new SessionMetadata
+        {
+            DeviceInfo = userAgent,
+            Browser = TrimToMaxLength(GetBrowserName(userAgent), BrowserMaxLength),
+            IpAddress = TrimToMaxLength(GetClientIpAddress(HttpContext), IpAddressMaxLength),
+        };
     }
 }

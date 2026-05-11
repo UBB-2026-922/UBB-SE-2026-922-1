@@ -1,9 +1,10 @@
-﻿namespace BankingApp.Api.HostedServices;
+namespace BankingApp.Api.HostedServices;
 
-using Application.Services.RecurringPayments;
-using Application.Services.RateAlerts;
-using Logging;
+using Application.Features.ForexRateAlerts.Commands;
+using Application.Features.RecurringPayments.Commands;
 using ErrorOr;
+using Logging;
+using MediatR;
 
 /// <summary>
 ///     Periodically processes due recurring payments and pending rate alerts.
@@ -34,18 +35,15 @@ public class FinanceBackgroundService : BackgroundService
             try
             {
                 using IServiceScope scope = _serviceProvider.CreateScope();
-                IRecurringPaymentProcessingService recurringPaymentProcessingService =
-                    scope.ServiceProvider.GetRequiredService<IRecurringPaymentProcessingService>();
-                IRateAlertService rateAlertService = scope.ServiceProvider.GetRequiredService<IRateAlertService>();
+                ISender sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
-                ErrorOr<Success> recurringResult =
-                    await recurringPaymentProcessingService.ProcessDuePaymentsAsync(stoppingToken);
+                ErrorOr<int> recurringResult = await sender.Send(new ProcessDueRecurringPaymentsCommand(), stoppingToken);
                 if (recurringResult.IsError)
                 {
                     _logger.RecurringPaymentProcessingFailed(recurringResult.FirstError.Description);
                 }
 
-                ErrorOr<int> rateAlertResult = rateAlertService.ProcessAlerts();
+                ErrorOr<int> rateAlertResult = await sender.Send(new ProcessRateAlertsCommand(), stoppingToken);
                 if (rateAlertResult.IsError)
                 {
                     _logger.RateAlertProcessingFailed(rateAlertResult.FirstError.Description);

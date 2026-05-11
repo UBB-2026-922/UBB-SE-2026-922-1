@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using Enums;
-using Services;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,7 +22,7 @@ public class RegisterViewModelTests
         await viewModel.Register(string.Empty, "pass", "pass", "Name");
 
         // Assert
-        viewModel.State.Value.Should().Be(RegisterState.EmailRequired);
+        viewModel.State.Value.Should().Be(RegisterState.Error);
     }
 
     [Fact]

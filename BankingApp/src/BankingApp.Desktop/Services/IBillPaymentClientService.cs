@@ -2,9 +2,9 @@ namespace BankingApp.Desktop.Services;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.BillPayments;
-using Application.DTOs.Billers;
-using Application.DTOs.RecurringPayments;
+using BankingApp.Application.Features.BillPayments.Dtos;
+using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
 using ErrorOr;
 
 /// <summary>

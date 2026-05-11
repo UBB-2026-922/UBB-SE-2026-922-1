@@ -5,9 +5,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Enums;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using ViewModels;
-using Master;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -19,7 +18,7 @@ using Windows.UI;
 /// <summary>
 ///     Displays the authenticated user's account summary, card carousel, and recent transactions.
 /// </summary>
-public sealed partial class DashboardView : IStateObserver<DashboardState>, IDisposable
+public sealed partial class DashboardView : IDisposable
 {
     private const int ActiveCardDotSize = 18;
     private const int InactiveCardDotSize = 8;
@@ -44,7 +43,6 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         DotBlueChannel);
 
     private readonly DashboardViewModel _viewModel;
-    private readonly IAppNavigationService _navigationService;
     private bool _disposed;
     private bool _isObserverAttached;
     private CancellationTokenSource? _loadCancellationTokenSource;
@@ -53,32 +51,27 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
     ///     Initializes a new instance of the <see cref="DashboardView" /> class.
     /// </summary>
     /// <param name="viewModel">The view model that loads account data and exposes dashboard state.</param>
-    /// <param name="navigationService">The navigation service used for button actions.</param>
-    public DashboardView(DashboardViewModel viewModel, IAppNavigationService navigationService)
+    public DashboardView(DashboardViewModel viewModel)
     {
         InitializeComponent();
         _viewModel = viewModel;
-        _navigationService = navigationService;
         Loaded += OnPageLoaded;
         Unloaded += OnPageUnloaded;
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(DashboardState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        OnStateChanged(state);
+        if (e.PropertyName == nameof(DashboardViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
     }
 
     /// <inheritdoc />
-    /// <param name="navigationEventArgs">The navigation event arguments.</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Naming",
-        "CA1725:Parameter names should match base declaration",
-        Justification = "Uses a descriptive parameter name instead of a one-letter identifier.")]
-    protected override void OnNavigatedFrom(NavigationEventArgs navigationEventArgs)
+    /// <param name="e">The e value.</param>
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        base.OnNavigatedFrom(navigationEventArgs);
+        base.OnNavigatedFrom(e);
         Dispose();
     }
 
@@ -95,13 +88,13 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         _disposed = true;
     }
 
-    private void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
+    private void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         AttachObserver();
         _ = RunUiTaskAsync(LoadDashboardAsync);
     }
 
-    private void OnPageUnloaded(object sender, RoutedEventArgs routedEventArgs)
+    private void OnPageUnloaded(object sender, RoutedEventArgs e)
     {
         Dispose();
     }
@@ -158,7 +151,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
             _viewModel.HasTransactions ? Visibility.Collapsed : Visibility.Visible;
         BuildCardDots();
         ShowCard();
-        NavView.Current?.UpdateNotificationBadge(_viewModel.UnreadNotificationCount);
+        NavigationView.Current?.UpdateNotificationBadge(_viewModel.UnreadNotificationCount);
     }
 
     /// <summary>
@@ -238,7 +231,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         CardNumberText.Text = "**** **** **** ****";
     }
 
-    private void PrevCardButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void PrevCardButton_Click(object sender, RoutedEventArgs e)
     {
         if (!_viewModel.NavigatePrevious().IsError)
         {
@@ -246,7 +239,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         }
     }
 
-    private void NextCardButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void NextCardButton_Click(object sender, RoutedEventArgs e)
     {
         if (!_viewModel.NavigateNext().IsError)
         {
@@ -254,32 +247,32 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
         }
     }
 
-    private void TransferButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void TransferButton_Click(object sender, RoutedEventArgs e)
     {
-        _navigationService.NavigateToContent<TransferView>();
+        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Transfers"));
     }
 
-    private void PayBillButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void PayBillButton_Click(object sender, RoutedEventArgs e)
     {
-        _navigationService.NavigateToContent<BillPayView>();
+        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Bill Payments"));
     }
 
-    private void ExchangeButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void ExchangeButton_Click(object sender, RoutedEventArgs e)
     {
-        _navigationService.NavigateToContent<ForexPage>();
+        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Currency Exchange"));
     }
 
-    private void TransactionHistoryButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void TransactionHistoryButton_Click(object sender, RoutedEventArgs e)
     {
-        _navigationService.NavigateToContent<TransferHistoryView>();
+        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Transaction History"));
     }
 
-    private void RetryButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void RetryButton_Click(object sender, RoutedEventArgs e)
     {
         _ = RunUiTaskAsync(LoadDashboardAsync);
     }
 
-    private void CardVisual_PointerPressed(object sender, PointerRoutedEventArgs pointerEventArgs)
+    private void CardVisual_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
         _ = RunUiTaskAsync(ShowCurrentCardDetailsAsync);
     }
@@ -314,9 +307,9 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
 
     private async Task ShowComingSoonAsync(string feature)
     {
-        if (NavView.Current != null)
+        if (NavigationView.Current != null)
         {
-            await NavView.Current.ShowComingSoonAsync(feature);
+            await NavigationView.Current.ShowComingSoonAsync(feature);
             return;
         }
 
@@ -348,7 +341,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
             return;
         }
 
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         _isObserverAttached = true;
     }
 
@@ -359,7 +352,7 @@ public sealed partial class DashboardView : IStateObserver<DashboardState>, IDis
             return;
         }
 
-        _viewModel.State.RemoveObserver(this);
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         _isObserverAttached = false;
     }
 

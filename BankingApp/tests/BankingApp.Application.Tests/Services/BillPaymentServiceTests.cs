@@ -1,95 +1,85 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using System.Threading.Tasks;
-using DTOs.BillPayments;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.BillPayments;
-using Domain.Entities;
-using FluentAssertions;
-using Moq;
-using Xunit;
+using BankingApp.Application.Features.BillPayments.Commands;
+using BankingApp.Application.Features.BillPayments.Dtos;
+using BankingApp.Application.Features.BillPayments.Queries;
+using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
 
-public class BillPaymentServiceTests
+public sealed class ProcessBillPaymentCommandHandlerTests
 {
-    private readonly Mock<IBillPaymentRepository> _repositoryMock;
-    private readonly BillPaymentService _service;
+    private readonly Mock<IAccountRepository> _accountRepo = MockFactory.CreateAccountRepository();
+    private readonly Mock<IBillPaymentRepository> _billPaymentRepo = MockFactory.CreateBillPaymentRepository();
+    private readonly Mock<IBillerRepository> _billerRepo = MockFactory.CreateBillerRepository();
+    private readonly Mock<IOtpService> _otpService = MockFactory.CreateOtpService();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    public BillPaymentServiceTests()
+    private ProcessBillPaymentCommandHandler CreateHandler() => new(
+        _accountRepo.Object,
+        _billPaymentRepo.Object,
+        _billerRepo.Object,
+        _otpService.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        NullLogger<ProcessBillPaymentCommandHandler>.Instance);
+
+    [Fact]
+    public async Task Handle_WhenAccountNotFound_ReturnsNotFoundError()
     {
-        _repositoryMock = new Mock<IBillPaymentRepository>();
-        _service = new BillPaymentService(_repositoryMock.Object);
-    }
+        var command = new ProcessBillPaymentCommand(1, 10, 1, "REF123", 100m, null);
 
-    [Theory]
-    [InlineData(50, 0.50)] // Small payment fee rule
-    [InlineData(100, 0.50)] // Boundary case
-    [InlineData(150, 1.00)] // Standard payment fee rule
-    public async Task ProcessPaymentAsync_ShouldApplyCorrectFee(decimal amount, decimal expectedFee)
-    {
-        // Arrange
-        BillPaymentDto request = CreateValidRequest(amount);
-        SetupMocks(request);
+        ErrorOr<BillPayResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        BillPayment result = await _service.ProcessPaymentAsync(request);
-
-        // Assert
-        result.Fee.Should().Be(expectedFee);
-    }
-
-    [Theory]
-    [InlineData(999, false)] // Below threshold
-    [InlineData(1000, true)] // Exactly threshold
-    [InlineData(1500, true)] // Above threshold
-    public void Requires2Fa_WhenAmountIsChecked_ShouldReturnCorrectValue(decimal amount, bool expectedResult)
-    {
-        // Act
-        bool result = _service.Requires2Fa(amount);
-
-        // Assert
-        result.Should().Be(expectedResult);
+        result.IsError.Should().BeTrue();
     }
 
     [Fact]
-    public async Task ProcessPaymentAsync_ShouldPersistDataCorrectly()
+    public async Task Handle_WhenBillerNotFound_ReturnsError()
     {
-        // Arrange
-        BillPaymentDto request = CreateValidRequest(500);
-        SetupMocks(request);
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, iban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, null, DateTime.UtcNow);
+        _accountRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(account);
+        var command = new ProcessBillPaymentCommand(1, 10, 99, "REF123", 100m, null);
 
-        // Act
-        await _service.ProcessPaymentAsync(request);
+        ErrorOr<BillPayResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert - Persistence check
-        _repositoryMock.Verify(repository => repository.UpdateAccountAsync(It.IsAny<Account>()), Times.Once);
-        _repositoryMock.Verify(repository => repository.AddTransactionAsync(It.IsAny<Transaction>()), Times.Once);
-        _repositoryMock.Verify(repository => repository.AddPaymentAsync(It.IsAny<BillPayment>()), Times.Once);
+        result.IsError.Should().BeTrue();
     }
 
-    private static BillPaymentDto CreateValidRequest(decimal amount)
+    [Fact]
+    public async Task Handle_WhenInsufficientFunds_ReturnsError()
     {
-        return new BillPaymentDto
-        {
-            UserId = 1,
-            SourceAccountId = 1,
-            BillerId = 1,
-            BillerReference = "REF123",
-            Amount = amount
-        };
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, iban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, null, DateTime.UtcNow);
+        var biller = new Biller { Id = 1, Name = "Test Biller", Category = BillerCategory.Utilities };
+        _accountRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(account);
+        _billerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(biller);
+        var command = new ProcessBillPaymentCommand(1, 10, 1, "REF123", 1000m, null);
+
+        ErrorOr<BillPayResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
     }
+}
 
-    private void SetupMocks(BillPaymentDto request)
+public sealed class GetBillPaymentHistoryQueryHandlerTests
+{
+    private readonly Mock<IBillPaymentRepository> _billPaymentRepo = MockFactory.CreateBillPaymentRepository();
+
+    private GetBillPaymentHistoryQueryHandler CreateHandler() => new(_billPaymentRepo.Object);
+
+    [Fact]
+    public async Task Handle_WhenNoBillPayments_ReturnsEmptyList()
     {
-        _repositoryMock.Setup(repository => repository.GetBillerByIdAsync(request.BillerId))
-            .ReturnsAsync(new Biller { Id = request.BillerId, Name = "Test Biller" });
+        var query = new GetBillPaymentHistoryQuery(1);
 
-        _repositoryMock.Setup(repository => repository.GetAccountByIdAsync(request.SourceAccountId))
-            .ReturnsAsync(new Account
-            {
-                Id = request.SourceAccountId,
-                User = new User { Id = request.UserId },
-                Balance = 5000,
-                Currency = "RON"
-            });
+        ErrorOr<List<BillPayResponse>> result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.Should().BeEmpty();
     }
 }

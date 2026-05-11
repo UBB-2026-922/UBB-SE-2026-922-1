@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:BankingApp.Desktop.Converters"
-    xmlns:transfer="using:BankingApp.Application.DTOs.Transfer">
+    xmlns:transfer="using:BankingApp.Application.Features.Transfers.Dtos">
 
     <Page.Resources>
         <converters:StepToVisibilityConverter x:Key="StepToVisibility" />

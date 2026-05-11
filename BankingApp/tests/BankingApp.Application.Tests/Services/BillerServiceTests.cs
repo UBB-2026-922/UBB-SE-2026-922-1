@@ -1,262 +1,164 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using DTOs.Billers;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Billers;
-using Domain.Entities;
-using Domain.Errors;
+using BankingApp.Application.Features.Billers.Commands;
+using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Application.Features.Billers.Queries;
 using ErrorOr;
 
-/// <summary>
-///     Unit tests for <see cref="BillerService" />.
-/// </summary>
-public class BillerServiceTests
+public sealed class GetBillersQueryHandlerTests
 {
-    private const int DefaultUserId = 1;
-    private const int DefaultBillerId = 10;
-    private const int DefaultSavedBillerId = 100;
+    private readonly Mock<IBillerRepository> _billerRepo = MockFactory.CreateBillerRepository();
 
-    private readonly Mock<IBillerRepository> _billerRepository = new(MockBehavior.Strict);
-    private readonly BillerService _service;
+    private GetBillersQueryHandler CreateHandler() => new(_billerRepo.Object);
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="BillerServiceTests" /> class.
-    /// </summary>
-    public BillerServiceTests()
+    [Fact]
+    public async Task Handle_WhenNoBillers_ReturnsEmptyList()
     {
-        _service = new BillerService(_billerRepository.Object);
+        var query = new GetBillersQuery();
+
+        ErrorOr<List<BillerDto>> result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.Should().BeEmpty();
     }
 
-    // GetBillerDirectory tests.
-
-    /// <summary>
-    ///     Verifies that GetBillerDirectory returns a mapped DTO list when billers exist.
-    /// </summary>
     [Fact]
-    public void GetBillerDirectory_WhenBillersExist_ReturnsMappedDtos()
+    public async Task Handle_WhenBillersExist_ReturnsMappedList()
     {
-        // Arrange
-        var billers = new List<Biller>
-        {
-            new() { Id = 1, Name = "Water Co", Category = "Utilities", IsActive = true },
-            new() { Id = 2, Name = "Electric Co", Category = "Utilities", IsActive = true },
-        };
-        _billerRepository.Setup(repository => repository.GetAllBillers(true)).Returns(billers);
+        var biller = new Biller { Id = 1, Name = "Water Co", Category = BillerCategory.Utilities, IsActive = true };
+        _billerRepo.Setup(r => r.ListActiveAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<Biller>)new[] { biller });
+        var query = new GetBillersQuery();
 
-        // Act
-        ErrorOr<List<BillerDto>> result = _service.GetBillerDirectory();
+        ErrorOr<List<BillerDto>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.Should().HaveCount(2);
+        result.Value.Should().HaveCount(1);
         result.Value[0].Name.Should().Be("Water Co");
     }
+}
 
-    /// <summary>
-    ///     Verifies that GetBillerDirectory returns an empty list when there are no active billers.
-    /// </summary>
+public sealed class GetSavedBillersQueryHandlerTests
+{
+    private readonly Mock<ISavedBillerRepository> _savedBillerRepo = MockFactory.CreateSavedBillerRepository();
+    private readonly Mock<IBillerRepository> _billerRepo = MockFactory.CreateBillerRepository();
+
+    private GetSavedBillersQueryHandler CreateHandler() => new(
+        _savedBillerRepo.Object,
+        _billerRepo.Object);
+
     [Fact]
-    public void GetBillerDirectory_WhenNoBillers_ReturnsEmptyList()
+    public async Task Handle_WhenNoSavedBillers_ReturnsEmptyList()
     {
-        // Arrange
-        _billerRepository.Setup(repository => repository.GetAllBillers(true)).Returns(new List<Biller>());
+        var query = new GetSavedBillersQuery(1);
 
-        // Act
-        ErrorOr<List<BillerDto>> result = _service.GetBillerDirectory();
+        ErrorOr<List<SavedBillerDto>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().BeEmpty();
     }
+}
 
-    // SearchBillers tests.
+public sealed class SaveBillerCommandHandlerTests
+{
+    private readonly Mock<IBillerRepository> _billerRepo = MockFactory.CreateBillerRepository();
+    private readonly Mock<ISavedBillerRepository> _savedBillerRepo = MockFactory.CreateSavedBillerRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    /// <summary>
-    ///     Verifies that SearchBillers returns filtered DTOs for a matching search term.
-    /// </summary>
+    private SaveBillerCommandHandler CreateHandler() => new(
+        _billerRepo.Object,
+        _savedBillerRepo.Object,
+        _unitOfWork.Object,
+        _clock.Object);
+
     [Fact]
-    public void SearchBillers_WithMatchingTerm_ReturnsMappedDtos()
+    public async Task Handle_WhenBillerNotFound_ReturnsBillerNotFoundError()
     {
-        // Arrange
-        var billers = new List<Biller>
-        {
-            new() { Id = 1, Name = "Water Co", Category = "Utilities", IsActive = true },
-        };
-        _billerRepository.Setup(repository => repository.SearchBillers("Water", null, true)).Returns(billers);
+        var command = new SaveBillerCommand(1, 99, "My Biller", null);
 
-        // Act
-        ErrorOr<List<BillerDto>> result = _service.SearchBillers("Water");
+        ErrorOr<SavedBillerDto> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Should().ContainSingle(biller => biller.Name == "Water Co");
-    }
-
-    /// <summary>
-    ///     Verifies that SearchBillers passes the category filter to the repository.
-    /// </summary>
-    [Fact]
-    public void SearchBillers_WithCategoryFilter_PassesCategoryToRepository()
-    {
-        // Arrange
-        _billerRepository
-            .Setup(repository => repository.SearchBillers("Co", "Utilities", true))
-            .Returns(new List<Biller>());
-
-        // Act
-        ErrorOr<List<BillerDto>> result = _service.SearchBillers("Co", "Utilities");
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _billerRepository.Verify(repository => repository.SearchBillers("Co", "Utilities", true), Times.Once);
-    }
-
-    // GetSavedBillers tests.
-
-    /// <summary>
-    ///     Verifies that GetSavedBillers returns mapped DTOs for a user with saved billers.
-    /// </summary>
-    [Fact]
-    public void GetSavedBillers_WhenSavedBillersExist_ReturnsMappedDtos()
-    {
-        // Arrange
-        var biller = new Biller { Id = DefaultBillerId, Name = "Gas Co", Category = "Utilities" };
-        var saved = new List<SavedBiller>
-        {
-            new() { Id = DefaultSavedBillerId, User = new User { Id = DefaultUserId }, Biller = biller, Nickname = "Home Gas", CreatedAt = DateTime.UtcNow },
-        };
-        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(saved);
-
-        // Act
-        ErrorOr<List<SavedBillerDto>> result = _service.GetSavedBillers(DefaultUserId);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Should().ContainSingle(savedBiller => savedBiller.Nickname == "Home Gas" && savedBiller.BillerName == "Gas Co");
-    }
-
-    /// <summary>
-    ///     Verifies that GetSavedBillers returns an empty list when the user has no saved billers.
-    /// </summary>
-    [Fact]
-    public void GetSavedBillers_WhenNoneSaved_ReturnsEmptyList()
-    {
-        // Arrange
-        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
-
-        // Act
-        ErrorOr<List<SavedBillerDto>> result = _service.GetSavedBillers(DefaultUserId);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Should().BeEmpty();
-    }
-
-    // SaveBiller tests.
-
-    /// <summary>
-    ///     Verifies that SaveBiller returns the created DTO when the biller is valid and not already saved.
-    /// </summary>
-    [Fact]
-    public void SaveBiller_WhenValidAndNotAlreadySaved_ReturnsCreatedDto()
-    {
-        // Arrange
-        var biller = new Biller { Id = DefaultBillerId, Name = "Internet Co", Category = "Telecoms" };
-        var request = new SaveBillerRequest { BillerId = DefaultBillerId, Nickname = "Home Internet" };
-        _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(biller);
-        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
-        _billerRepository
-            .Setup(repository => repository.SaveBiller(It.IsAny<SavedBiller>()))
-            .Returns((SavedBiller savedBiller) => savedBiller);
-
-        // Act
-        ErrorOr<SavedBillerDto> result = _service.SaveBiller(DefaultUserId, request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.BillerName.Should().Be("Internet Co");
-        result.Value.Nickname.Should().Be("Home Internet");
-    }
-
-    /// <summary>
-    ///     Verifies that SaveBiller returns BillerNotFound when the biller does not exist.
-    /// </summary>
-    [Fact]
-    public void SaveBiller_WhenBillerNotFound_ReturnsBillerNotFoundError()
-    {
-        // Arrange
-        var request = new SaveBillerRequest { BillerId = DefaultBillerId };
-        _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(BillerErrors.BillerNotFound);
-
-        // Act
-        ErrorOr<SavedBillerDto> result = _service.SaveBiller(DefaultUserId, request);
-
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Should().Be(BillerErrors.BillerNotFound);
     }
 
-    /// <summary>
-    ///     Verifies that SaveBiller returns BillerAlreadySaved when the biller is already in the user's saved list.
-    /// </summary>
     [Fact]
-    public void SaveBiller_WhenAlreadySaved_ReturnsBillerAlreadySavedError()
+    public async Task Handle_WhenBillerAlreadySaved_ReturnsConflictError()
     {
-        // Arrange
-        var biller = new Biller { Id = DefaultBillerId, Name = "Water Co", Category = "Utilities" };
-        var existingSavedBillers = new List<SavedBiller>
-        {
-            new() { Id = DefaultSavedBillerId, User = new User { Id = DefaultUserId }, Biller = biller },
-        };
-        var request = new SaveBillerRequest { BillerId = DefaultBillerId };
-        _billerRepository.Setup(repository => repository.GetBillerById(DefaultBillerId)).Returns(biller);
-        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(existingSavedBillers);
+        var biller = new Biller { Id = 1, Name = "Water Co", Category = BillerCategory.Utilities };
+        var existingSaved = SavedBiller.Create(1, 1, null, null, DateTime.UtcNow);
+        _billerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(biller);
+        _savedBillerRepo.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<SavedBiller>)new[] { existingSaved });
+        var command = new SaveBillerCommand(1, 1, "My Biller", null);
 
-        // Act
-        ErrorOr<SavedBillerDto> result = _service.SaveBiller(DefaultUserId, request);
+        ErrorOr<SavedBillerDto> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Should().Be(BillerErrors.BillerAlreadySaved);
     }
 
-    // RemoveSavedBiller tests.
-
-    /// <summary>
-    ///     Verifies that RemoveSavedBiller returns Success when the entry exists and belongs to the user.
-    /// </summary>
     [Fact]
-    public void RemoveSavedBiller_WhenEntryExists_ReturnsSuccess()
+    public async Task Handle_WhenValid_SavesBillerAndSaves()
     {
-        // Arrange
-        var existingSavedBillers = new List<SavedBiller>
-        {
-            new() { Id = DefaultSavedBillerId, User = new User { Id = DefaultUserId }, Biller = new Biller { Id = DefaultBillerId } },
-        };
-        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(existingSavedBillers);
-        _billerRepository.Setup(repository => repository.DeleteSavedBiller(DefaultSavedBillerId)).Returns(Result.Success);
+        var biller = new Biller { Id = 1, Name = "Water Co", Category = BillerCategory.Utilities };
+        _billerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(biller);
+        var command = new SaveBillerCommand(1, 1, "My Water", null);
 
-        // Act
-        ErrorOr<Success> result = _service.RemoveSavedBiller(DefaultUserId, DefaultSavedBillerId);
+        ErrorOr<SavedBillerDto> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
+        result.Value.BillerName.Should().Be("Water Co");
+        _savedBillerRepo.Verify(r => r.AddAsync(It.IsAny<SavedBiller>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+}
+
+public sealed class DeleteSavedBillerCommandHandlerTests
+{
+    private readonly Mock<ISavedBillerRepository> _savedBillerRepo = MockFactory.CreateSavedBillerRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+
+    private DeleteSavedBillerCommandHandler CreateHandler() => new(
+        _savedBillerRepo.Object,
+        _unitOfWork.Object);
+
+    [Fact]
+    public async Task Handle_WhenSavedBillerNotFound_ReturnsNotFoundError()
+    {
+        var command = new DeleteSavedBillerCommand(1, 99);
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
     }
 
-    /// <summary>
-    ///     Verifies that RemoveSavedBiller returns SavedBillerNotFound when the entry is not in the user's list.
-    /// </summary>
     [Fact]
-    public void RemoveSavedBiller_WhenEntryNotFound_ReturnsSavedBillerNotFoundError()
+    public async Task Handle_WhenSavedBillerBelongsToDifferentUser_ReturnsNotFoundError()
     {
-        // Arrange
-        _billerRepository.Setup(repository => repository.GetSavedBillers(DefaultUserId)).Returns(new List<SavedBiller>());
+        var saved = SavedBiller.Create(2, 1, null, null, DateTime.UtcNow);
+        _savedBillerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(saved);
+        var command = new DeleteSavedBillerCommand(1, 10);
 
-        // Act
-        ErrorOr<Success> result = _service.RemoveSavedBiller(DefaultUserId, DefaultSavedBillerId);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Should().Be(BillerErrors.SavedBillerNotFound);
+    }
+
+    [Fact]
+    public async Task Handle_WhenValid_DeletesAndSaves()
+    {
+        var saved = SavedBiller.Create(1, 1, null, null, DateTime.UtcNow);
+        _savedBillerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(saved);
+        var command = new DeleteSavedBillerCommand(1, 10);
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        _savedBillerRepo.Verify(r => r.DeleteAsync(It.IsAny<SavedBiller>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

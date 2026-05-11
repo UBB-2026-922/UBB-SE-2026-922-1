@@ -1,474 +1,249 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using DTOs.RecurringPayments;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.RecurringPayments;
-using BankingApp.Application.Utilities;
-using Domain.Entities;
-using Domain.Enums;
+using BankingApp.Application.Features.RecurringPayments.Commands;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
+using BankingApp.Application.Features.RecurringPayments.Queries;
 using ErrorOr;
-using Microsoft.Extensions.Logging.Abstractions;
 
-/// <summary>
-///     Unit tests for <see cref="RecurringPaymentService" />.
-/// </summary>
-public class RecurringPaymentServiceTests
+public sealed class CreateRecurringPaymentCommandHandlerTests
 {
-    private static readonly DateTime _frozenUtcNow = new(2026, 1, 15, 12, 0, 0, DateTimeKind.Utc);
-    private static readonly DateTime _fixedStartDate = new(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc);
+    private readonly Mock<IBillerRepository> _billerRepo = MockFactory.CreateBillerRepository();
+    private readonly Mock<IAccountRepository> _accountRepo = MockFactory.CreateAccountRepository();
+    private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepo = MockFactory.CreateRecurringPaymentRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepository = new(MockBehavior.Strict);
-    private readonly Mock<ISystemClock> _clock = new(MockBehavior.Strict);
-    private readonly RecurringPaymentService _service;
-
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="RecurringPaymentServiceTests" /> class.
-    /// </summary>
-    public RecurringPaymentServiceTests()
-    {
-        _service = new RecurringPaymentService(
-            _recurringPaymentRepository.Object,
-            _clock.Object,
-            NullLogger<RecurringPaymentService>.Instance);
-    }
+    private CreateRecurringPaymentCommandHandler CreateHandler() => new(
+        _billerRepo.Object,
+        _accountRepo.Object,
+        _recurringPaymentRepo.Object,
+        _unitOfWork.Object,
+        _clock.Object);
 
     [Fact]
-    public void Create_WhenAmountIsZero_ShouldReturnValidationError()
+    public async Task Handle_WhenBillerNotFound_ReturnsError()
     {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 1,
-            SourceAccountId = 2,
-            Amount = 0m,
-            Frequency = RecurringFrequency.Monthly,
-            StartDate = _fixedStartDate,
-        };
+        var command = new CreateRecurringPaymentCommand(1, 99, 10, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow, null);
 
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 99, request);
+        ErrorOr<RecurringPaymentResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-        result.FirstError.Code.Should().Be("recurring_payment.invalid_amount");
     }
 
     [Fact]
-    public void Create_WhenAmountIsNegative_ShouldReturnValidationError()
+    public async Task Handle_WhenAccountNotFound_ReturnsError()
     {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 1,
-            SourceAccountId = 2,
-            Amount = -50m,
-            Frequency = RecurringFrequency.Weekly,
-            StartDate = _fixedStartDate,
-        };
+        var biller = new Biller { Id = 1, Name = "Test Biller", Category = BillerCategory.Utilities };
+        _billerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(biller);
+        var command = new CreateRecurringPaymentCommand(1, 1, 99, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow, null);
 
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 99, request);
+        ErrorOr<RecurringPaymentResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenAmountIsInvalid_ReturnsValidationError()
+    {
+        var biller = new Biller { Id = 1, Name = "Test Biller", Category = BillerCategory.Utilities };
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, iban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, null, DateTime.UtcNow);
+        _billerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(biller);
+        _accountRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(account);
+        var command = new CreateRecurringPaymentCommand(1, 1, 10, 0m, false, RecurringFrequency.Monthly, DateTime.UtcNow, null);
+
+        ErrorOr<RecurringPaymentResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Validation);
     }
 
     [Fact]
-    public void Create_WhenEndDateIsBeforeStartDate_ShouldReturnValidationError()
+    public async Task Handle_WhenEndDateBeforeStartDate_ReturnsValidationError()
     {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 1,
-            SourceAccountId = 2,
-            Amount = 100m,
-            Frequency = RecurringFrequency.Monthly,
-            StartDate = _fixedStartDate,
-            EndDate = _fixedStartDate.AddDays(-1),
-        };
+        var biller = new Biller { Id = 1, Name = "Test Biller", Category = BillerCategory.Utilities };
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, iban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, null, DateTime.UtcNow);
+        _billerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(biller);
+        _accountRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(account);
+        var startDate = DateTime.UtcNow;
+        var command = new CreateRecurringPaymentCommand(1, 1, 10, 100m, false, RecurringFrequency.Monthly, startDate, startDate.AddDays(-1));
 
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 99, request);
+        ErrorOr<RecurringPaymentResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("recurring_payment.invalid_end_date");
     }
 
     [Fact]
-    public void Create_WhenFrequencyIsMonthly_ShouldSetNextExecutionDateOneMonthAfterStart()
+    public async Task Handle_WhenValid_CreatesPaymentAndSaves()
     {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        var savedPayment = new RecurringPayment
-        {
-            Id = 1,
-            User = new User { Id = 42 },
-            Biller = new Biller { Id = 7 },
-            SourceAccount = new Account { Id = 3 },
-            Amount = 200m,
-            Frequency = RecurringFrequency.Monthly,
-            StartDate = _fixedStartDate,
-            NextExecutionDate = _fixedStartDate.AddMonths(1),
-            Status = RecurringPaymentStatus.Active,
-            CreatedAt = _frozenUtcNow,
-        };
-        _recurringPaymentRepository
-            .Setup(repository => repository.Create(It.IsAny<RecurringPayment>()))
-            .Returns((ErrorOr<RecurringPayment>)savedPayment);
+        var biller = new Biller { Id = 1, Name = "Test Biller", Category = BillerCategory.Utilities };
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, iban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, null, DateTime.UtcNow);
+        _billerRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(biller);
+        _accountRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(account);
+        var command = new CreateRecurringPaymentCommand(1, 1, 10, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow.AddDays(-1), null);
 
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 7,
-            SourceAccountId = 3,
-            Amount = 200m,
-            Frequency = RecurringFrequency.Monthly,
-            StartDate = _fixedStartDate,
-        };
+        ErrorOr<RecurringPaymentResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 42, request);
-
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.NextExecutionDate.Should().Be(_fixedStartDate.AddMonths(1));
+        _recurringPaymentRepo.Verify(r => r.AddAsync(It.IsAny<RecurringPayment>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+}
+
+public sealed class GetRecurringPaymentsQueryHandlerTests
+{
+    private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepo = MockFactory.CreateRecurringPaymentRepository();
+
+    private GetRecurringPaymentsQueryHandler CreateHandler() => new(_recurringPaymentRepo.Object);
 
     [Fact]
-    public void Create_WhenFrequencyIsWeekly_ShouldSetNextExecutionDateSevenDaysAfterStart()
+    public async Task Handle_WhenNoPayments_ReturnsEmptyList()
     {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        var savedPayment = new RecurringPayment
-        {
-            Id = 2,
-            User = new User { Id = 42 },
-            Biller = new Biller { Id = 7 },
-            SourceAccount = new Account { Id = 3 },
-            Amount = 50m,
-            Frequency = RecurringFrequency.Weekly,
-            StartDate = _fixedStartDate,
-            NextExecutionDate = _fixedStartDate.AddDays(7),
-            Status = RecurringPaymentStatus.Active,
-            CreatedAt = _frozenUtcNow,
-        };
-        _recurringPaymentRepository
-            .Setup(repository => repository.Create(It.IsAny<RecurringPayment>()))
-            .Returns((ErrorOr<RecurringPayment>)savedPayment);
+        var query = new GetRecurringPaymentsQuery(1);
 
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 7,
-            SourceAccountId = 3,
-            Amount = 50m,
-            Frequency = RecurringFrequency.Weekly,
-            StartDate = _fixedStartDate,
-        };
+        ErrorOr<List<RecurringPaymentResponse>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 42, request);
-
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.NextExecutionDate.Should().Be(_fixedStartDate.AddDays(7));
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
-    public void Create_WhenFrequencyIsYearly_ShouldSetNextExecutionDateOneYearAfterStart()
+    public async Task Handle_WhenPaymentsExist_ReturnsMappedList()
     {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        var savedPayment = new RecurringPayment
-        {
-            Id = 3,
-            User = new User { Id = 42 },
-            Biller = new Biller { Id = 7 },
-            SourceAccount = new Account { Id = 3 },
-            Amount = 1200m,
-            Frequency = RecurringFrequency.Yearly,
-            StartDate = _fixedStartDate,
-            NextExecutionDate = _fixedStartDate.AddYears(1),
-            Status = RecurringPaymentStatus.Active,
-            CreatedAt = _frozenUtcNow,
-        };
-        _recurringPaymentRepository
-            .Setup(repository => repository.Create(It.IsAny<RecurringPayment>()))
-            .Returns((ErrorOr<RecurringPayment>)savedPayment);
+        var payment = RecurringPayment.Create(1, 1, 1, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow.AddDays(-1), null, DateTime.UtcNow.AddDays(-1)).Value;
+        _recurringPaymentRepo.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<RecurringPayment>)new[] { payment });
+        var query = new GetRecurringPaymentsQuery(1);
 
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 7,
-            SourceAccountId = 3,
-            Amount = 1200m,
-            Frequency = RecurringFrequency.Yearly,
-            StartDate = _fixedStartDate,
-        };
+        ErrorOr<List<RecurringPaymentResponse>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 42, request);
-
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.NextExecutionDate.Should().Be(_fixedStartDate.AddYears(1));
+        result.Value.Should().HaveCount(1);
     }
+}
+
+public sealed class PauseRecurringPaymentCommandHandlerTests
+{
+    private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepo = MockFactory.CreateRecurringPaymentRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+
+    private PauseRecurringPaymentCommandHandler CreateHandler() => new(
+        _recurringPaymentRepo.Object,
+        _unitOfWork.Object);
 
     [Fact]
-    public void Create_WhenRequestIsValid_ShouldStampCreatedAtWithFrozenClock()
+    public async Task Handle_WhenPaymentNotFound_ReturnsNotFoundError()
     {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        var savedPayment = new RecurringPayment
-        {
-            Id = 10,
-            User = new User { Id = 5 },
-            Biller = new Biller { Id = 1 },
-            SourceAccount = new Account { Id = 1 },
-            Amount = 75m,
-            Frequency = RecurringFrequency.Daily,
-            StartDate = _fixedStartDate,
-            NextExecutionDate = _fixedStartDate.AddDays(1),
-            Status = RecurringPaymentStatus.Active,
-            CreatedAt = _frozenUtcNow,
-        };
-        _recurringPaymentRepository
-            .Setup(repository => repository.Create(It.IsAny<RecurringPayment>()))
-            .Returns((ErrorOr<RecurringPayment>)savedPayment);
+        var command = new PauseRecurringPaymentCommand(1, 99);
 
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 1,
-            SourceAccountId = 1,
-            Amount = 75m,
-            Frequency = RecurringFrequency.Daily,
-            StartDate = _fixedStartDate,
-        };
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 5, request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.CreatedAt.Should().Be(_frozenUtcNow);
-    }
-
-    [Fact]
-    public void Create_WhenRepositoryFails_ShouldPropagateFailureError()
-    {
-        // Arrange
-        _clock.Setup(clock => clock.UtcNow).Returns(_frozenUtcNow);
-        _recurringPaymentRepository
-            .Setup(repository => repository.Create(It.IsAny<RecurringPayment>()))
-            .Returns(Error.Failure(description: "DB connection lost."));
-
-        var request = new CreateRecurringPaymentRequest
-        {
-            BillerId = 1,
-            SourceAccountId = 1,
-            Amount = 100m,
-            Frequency = RecurringFrequency.Monthly,
-            StartDate = _fixedStartDate,
-        };
-
-        // Act
-        ErrorOr<RecurringPaymentResponse> result = _service.Create(userId: 5, request);
-
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Failure);
-        result.FirstError.Description.Should().Be("DB connection lost.");
     }
 
     [Fact]
-    public void GetByUser_WhenUserHasPayments_ShouldReturnMappedList()
+    public async Task Handle_WhenPaymentBelongsToDifferentUser_ReturnsError()
     {
-        // Arrange
-        var payments = new List<RecurringPayment>
-        {
-            new()
-            {
-                Id = 1, User = new User { Id = 10 }, Amount = 50m, Frequency = RecurringFrequency.Monthly,
-                Status = RecurringPaymentStatus.Active
-            },
-            new()
-            {
-                Id = 2, User = new User { Id = 10 }, Amount = 30m, Frequency = RecurringFrequency.Weekly,
-                Status = RecurringPaymentStatus.Paused
-            },
-        };
-        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(10))
-            .Returns((ErrorOr<List<RecurringPayment>>)payments);
+        var payment = RecurringPayment.Create(2, 1, 1, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow.AddDays(-1), null, DateTime.UtcNow.AddDays(-1)).Value;
+        _recurringPaymentRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payment);
+        var command = new PauseRecurringPaymentCommand(1, 10);
 
-        // Act
-        ErrorOr<List<RecurringPaymentResponse>> result = _service.GetByUser(userId: 10);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenValid_PausesAndSaves()
+    {
+        var payment = RecurringPayment.Create(1, 1, 1, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow.AddDays(-1), null, DateTime.UtcNow.AddDays(-1)).Value;
+        _recurringPaymentRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payment);
+        var command = new PauseRecurringPaymentCommand(1, 10);
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeFalse();
-        result.Value.Should().HaveCount(2);
-        result.Value.Select(recoveryPaymentRepository => recoveryPaymentRepository.Id).Should().BeEquivalentTo([1, 2]);
+        _recurringPaymentRepo.Verify(r => r.UpdateAsync(It.IsAny<RecurringPayment>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+}
+
+public sealed class ResumeRecurringPaymentCommandHandlerTests
+{
+    private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepo = MockFactory.CreateRecurringPaymentRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+
+    private ResumeRecurringPaymentCommandHandler CreateHandler() => new(
+        _recurringPaymentRepo.Object,
+        _unitOfWork.Object);
 
     [Fact]
-    public void GetByUser_WhenRepositoryFails_ShouldReturnFailureError()
+    public async Task Handle_WhenPaymentNotFound_ReturnsError()
     {
-        // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetByUserId(99))
-            .Returns(Error.Failure(description: "Query timed out."));
+        var command = new ResumeRecurringPaymentCommand(1, 99);
 
-        // Act
-        ErrorOr<List<RecurringPaymentResponse>> result = _service.GetByUser(userId: 99);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Failure);
     }
 
     [Fact]
-    public void Pause_WhenPaymentNotFound_ShouldReturnNotFoundError()
+    public async Task Handle_WhenValid_ResumesAndSaves()
     {
-        // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetById(999))
-            .Returns(Error.NotFound(description: "Recurring payment not found."));
+        var payment = RecurringPayment.Create(1, 1, 1, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow.AddDays(-1), null, DateTime.UtcNow.AddDays(-1)).Value;
+        payment.Pause(1);
+        _recurringPaymentRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payment);
+        var command = new ResumeRecurringPaymentCommand(1, 10);
 
-        // Act
-        ErrorOr<Success> result = _service.Pause(userId: 1, id: 999);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.NotFound);
-    }
-
-    [Fact]
-    public void Pause_WhenUserDoesNotOwnPayment_ShouldReturnForbiddenError()
-    {
-        // Arrange
-        var payment = new RecurringPayment { Id = 5, User = new User { Id = 10 }, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(5))
-            .Returns((ErrorOr<RecurringPayment>)payment);
-
-        // Act
-        ErrorOr<Success> result = _service.Pause(userId: 99, id: 5);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-    }
-
-    [Fact]
-    public void Pause_WhenPaymentIsOwnedByUser_ShouldSetStatusToPausedAndReturnSuccess()
-    {
-        // Arrange
-        var payment = new RecurringPayment { Id = 5, User = new User { Id = 42 }, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(5))
-            .Returns((ErrorOr<RecurringPayment>)payment);
-        _recurringPaymentRepository.Setup(repository =>
-                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
-                    paymentToUpdate.Status == RecurringPaymentStatus.Paused)))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _service.Pause(userId: 42, id: 5);
-
-        // Assert
         result.IsError.Should().BeFalse();
-        _recurringPaymentRepository.Verify(
-            repository =>
-                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
-                    paymentToUpdate.Status == RecurringPaymentStatus.Paused)), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+}
+
+public sealed class CancelRecurringPaymentCommandHandlerTests
+{
+    private readonly Mock<IRecurringPaymentRepository> _recurringPaymentRepo = MockFactory.CreateRecurringPaymentRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+
+    private CancelRecurringPaymentCommandHandler CreateHandler() => new(
+        _recurringPaymentRepo.Object,
+        _unitOfWork.Object);
 
     [Fact]
-    public void ResumeRecurringPayment_WhenPaymentNotFound_ShouldReturnNotFoundError()
+    public async Task Handle_WhenPaymentNotFound_ReturnsError()
     {
-        // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetById(888))
-            .Returns(Error.NotFound(description: "Recurring payment not found."));
+        var command = new CancelRecurringPaymentCommand(1, 99);
 
-        // Act
-        ErrorOr<Success> result = _service.ResumeRecurringPayment(1, 888);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.NotFound);
     }
 
     [Fact]
-    public void ResumeRecurringPayment_WhenPaymentIsPaused_ShouldSetStatusToActiveAndReturnSuccess()
+    public async Task Handle_WhenValid_CancelsAndSaves()
     {
-        // Arrange
-        var payment = new RecurringPayment { Id = 6, User = new User { Id = 42 }, Status = RecurringPaymentStatus.Paused };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(6))
-            .Returns((ErrorOr<RecurringPayment>)payment);
-        _recurringPaymentRepository.Setup(repository =>
-                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
-                    paymentToUpdate.Status == RecurringPaymentStatus.Active)))
-            .Returns(Result.Success);
+        var payment = RecurringPayment.Create(1, 1, 1, 100m, false, RecurringFrequency.Monthly, DateTime.UtcNow.AddDays(-1), null, DateTime.UtcNow.AddDays(-1)).Value;
+        _recurringPaymentRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payment);
+        var command = new CancelRecurringPaymentCommand(1, 10);
 
-        // Act
-        ErrorOr<Success> result = _service.ResumeRecurringPayment(42, 6);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
-        _recurringPaymentRepository.Verify(
-            repository =>
-                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
-                    paymentToUpdate.Status == RecurringPaymentStatus.Active)), Times.Once);
-    }
-
-    [Fact]
-    public void Cancel_WhenPaymentNotFound_ShouldReturnNotFoundError()
-    {
-        // Arrange
-        _recurringPaymentRepository.Setup(repository => repository.GetById(777))
-            .Returns(Error.NotFound(description: "Recurring payment not found."));
-
-        // Act
-        ErrorOr<Success> result = _service.Cancel(userId: 1, id: 777);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.NotFound);
-    }
-
-    [Fact]
-    public void Cancel_WhenUserDoesNotOwnPayment_ShouldReturnForbiddenError()
-    {
-        // Arrange
-        var payment = new RecurringPayment { Id = 7, User = new User { Id = 10 }, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(7))
-            .Returns((ErrorOr<RecurringPayment>)payment);
-
-        // Act
-        ErrorOr<Success> result = _service.Cancel(userId: 55, id: 7);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-    }
-
-    [Fact]
-    public void Cancel_WhenPaymentIsOwnedByUser_ShouldSetStatusToCancelledAndReturnSuccess()
-    {
-        // Arrange
-        var payment = new RecurringPayment { Id = 7, User = new User { Id = 42 }, Status = RecurringPaymentStatus.Active };
-        _recurringPaymentRepository.Setup(repository => repository.GetById(7))
-            .Returns((ErrorOr<RecurringPayment>)payment);
-        _recurringPaymentRepository.Setup(repository =>
-                repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
-                    paymentToUpdate.Status == RecurringPaymentStatus.Cancelled)))
-            .Returns(Result.Success);
-
-        // Act
-        ErrorOr<Success> result = _service.Cancel(userId: 42, id: 7);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _recurringPaymentRepository.Verify(
-            repository => repository.Update(It.Is<RecurringPayment>(paymentToUpdate =>
-                paymentToUpdate.Status == RecurringPaymentStatus.Cancelled)), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

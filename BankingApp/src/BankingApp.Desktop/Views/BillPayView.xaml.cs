@@ -1,7 +1,7 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
-using Application.DTOs.Billers;
+using BankingApp.Application.Features.Billers.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -31,7 +31,7 @@ public sealed partial class BillPayView : Page
     /// <value>The bill pay view model.</value>
     public BillPayViewModel ViewModel { get; }
 
-    private async void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
+    private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         await ViewModel.LoadAsync();
     }

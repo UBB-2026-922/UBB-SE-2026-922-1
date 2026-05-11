@@ -1,9 +1,9 @@
-﻿namespace BankingApp.Infrastructure.Tests.Services.Security;
+namespace BankingApp.Infrastructure.Tests.Services.Security;
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BankingApp.Infrastructure.Services.Security;
+using BankingApp.Infrastructure.Common.Security;
 using ErrorOr;
 using Microsoft.IdentityModel.Tokens;
 

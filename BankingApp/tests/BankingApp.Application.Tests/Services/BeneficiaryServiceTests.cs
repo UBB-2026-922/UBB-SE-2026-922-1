@@ -1,256 +1,193 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Beneficiary;
-using Domain.Entities;
+using BankingApp.Application.Features.Beneficiaries.Commands;
+using BankingApp.Application.Features.Beneficiaries.Dtos;
+using BankingApp.Application.Features.Beneficiaries.Queries;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-/// <summary>
-///     Unit tests for <see cref="BeneficiaryService" />.
-/// </summary>
-public class BeneficiaryServiceTests
+public sealed class GetBeneficiariesQueryHandlerTests
 {
-    private const int DefaultUserId = 1;
-    private const int DefaultBeneficiaryId = 10;
-    private const string ValidIban = "RO49AAAA1B31007593840000";
-    private const string InvalidIban = "INVALID123";
-    private const string DefaultName = "John Doe";
-    private const string EmptyName = "";
+    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepo = MockFactory.CreateBeneficiaryRepository();
 
-    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepository = new(MockBehavior.Strict);
-    private readonly BeneficiaryService _service;
-
-    /// <summary>
-    ///     Initializes a new instance of the BeneficiaryServiceTests class.
-    /// </summary>
-    public BeneficiaryServiceTests()
-    {
-        _service = new BeneficiaryService(
-            _beneficiaryRepository.Object,
-            NullLogger<BeneficiaryService>.Instance);
-    }
+    private GetBeneficiariesQueryHandler CreateHandler() => new(_beneficiaryRepo.Object);
 
     [Fact]
-    public void GetByUserId_WhenCalled_ReturnsBeneficiaries()
+    public async Task Handle_WhenNoBeneficiaries_ReturnsEmptyList()
     {
-        // Arrange
-        List<Beneficiary> expectedBeneficiaries =
-        [
-            new() { Id = DefaultBeneficiaryId, User = new User { Id = DefaultUserId }, Name = DefaultName, Iban = ValidIban }
-        ];
+        var query = new GetBeneficiariesQuery(1);
 
-        _beneficiaryRepository
-            .Setup(findsByUserId => findsByUserId.FindByUserId(DefaultUserId))
-            .Returns(expectedBeneficiaries);
+        ErrorOr<List<BeneficiaryDto>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        // Act
-        ErrorOr<List<Beneficiary>> result = _service.GetByUserId(DefaultUserId);
-
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.Should().BeEquivalentTo(expectedBeneficiaries);
-        _beneficiaryRepository.Verify(findsByUserId => findsByUserId.FindByUserId(DefaultUserId), Times.Once);
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
-    public void ValidateIban_WhenIbanIsValid_ReturnsTrue()
+    public async Task Handle_WhenBeneficiariesExist_ReturnsMappedList()
     {
-        // Act
-        bool result = _service.ValidateIban(ValidIban);
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var beneficiary = Beneficiary.Create(1, "John Doe", iban, "Test Bank", DateTime.UtcNow);
+        _beneficiaryRepo.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<Beneficiary>)new[] { beneficiary });
+        var query = new GetBeneficiariesQuery(1);
 
-        // Assert
-        result.Should().BeTrue();
+        ErrorOr<List<BeneficiaryDto>> result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.Should().HaveCount(1);
+        result.Value[0].Name.Should().Be("John Doe");
     }
+}
+
+public sealed class CreateBeneficiaryCommandHandlerTests
+{
+    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepo = MockFactory.CreateBeneficiaryRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
+
+    private CreateBeneficiaryCommandHandler CreateHandler() => new(
+        _beneficiaryRepo.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        NullLogger<CreateBeneficiaryCommandHandler>.Instance);
 
     [Fact]
-    public void ValidateIban_WhenIbanIsInvalid_ReturnsFalse()
+    public async Task Handle_WhenIbanInvalid_ReturnsError()
     {
-        // Act
-        bool result = _service.ValidateIban(InvalidIban);
+        var command = new CreateBeneficiaryCommand(1, "John Doe", "INVALID-IBAN", null);
 
-        // Assert
-        result.Should().BeFalse();
-    }
+        ErrorOr<BeneficiaryDto> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-    [Fact]
-    public void Create_WhenIbanIsInvalid_ReturnsValidationError()
-    {
-        // Act
-        ErrorOr<Beneficiary> result = _service.Create(DefaultUserId, DefaultName, InvalidIban, null);
-
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-        result.FirstError.Code.Should().Be("Beneficiary.InvalidIban");
-        _beneficiaryRepository.Verify(creates => creates.Create(It.IsAny<Beneficiary>()), Times.Never);
     }
 
     [Fact]
-    public void Create_WhenNameIsEmpty_ReturnsValidationError()
+    public async Task Handle_WhenIbanAlreadyExists_ReturnsDuplicateError()
     {
-        // Act
-        ErrorOr<Beneficiary> result = _service.Create(DefaultUserId, EmptyName, ValidIban, null);
+        const string ibanValue = "RO49AAAA1B31007593840000";
+        var iban = Iban.Create(ibanValue).Value;
+        var existing = Beneficiary.Create(1, "Existing", iban, null, DateTime.UtcNow);
+        _beneficiaryRepo.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<Beneficiary>)new[] { existing });
+        var command = new CreateBeneficiaryCommand(1, "John Doe", ibanValue, null);
 
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-        result.FirstError.Code.Should().Be("Beneficiary.NameRequired");
-        _beneficiaryRepository.Verify(creates => creates.Create(It.IsAny<Beneficiary>()), Times.Never);
-    }
+        ErrorOr<BeneficiaryDto> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-    [Fact]
-    public void Create_WhenIbanAlreadyExists_ReturnsConflictError()
-    {
-        // Arrange
-        _beneficiaryRepository
-            .Setup(checksExists => checksExists.ExistsByUserIdAndIban(DefaultUserId, ValidIban))
-            .Returns(true);
-
-        // Act
-        ErrorOr<Beneficiary> result = _service.Create(DefaultUserId, DefaultName, ValidIban, null);
-
-        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.Conflict);
-        result.FirstError.Code.Should().Be("Beneficiary.DuplicateIban");
-        _beneficiaryRepository.Verify(creates => creates.Create(It.IsAny<Beneficiary>()), Times.Never);
     }
 
     [Fact]
-    public void Create_WhenDataIsValid_SavesAndReturnsBeneficiary()
+    public async Task Handle_WhenValid_CreatesBeneficiaryAndSaves()
     {
-        // Arrange
-        const string bankName = " Bank Name ";
-        _beneficiaryRepository
-            .Setup(checksExists => checksExists.ExistsByUserIdAndIban(DefaultUserId, ValidIban))
-            .Returns(false);
-        _beneficiaryRepository
-            .Setup(creates => creates.Create(It.IsAny<Beneficiary>()))
-            .Returns((Beneficiary beneficiary) =>
-            {
-                beneficiary.Id = DefaultBeneficiaryId;
-                return beneficiary;
-            });
+        var command = new CreateBeneficiaryCommand(1, "John Doe", "RO49AAAA1B31007593840000", "Test Bank");
 
-        var tolerance = TimeSpan.FromSeconds(2);
+        ErrorOr<BeneficiaryDto> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<Beneficiary> result = _service.Create(DefaultUserId, $" {DefaultName} ", ValidIban, bankName);
-
-        // Assert
         result.IsError.Should().BeFalse();
-        result.Value.Id.Should().Be(DefaultBeneficiaryId);
-        result.Value.User?.Id.Should().Be(DefaultUserId);
-        result.Value.Name.Should().Be(DefaultName);
-        result.Value.Iban.Should().Be(ValidIban);
-        result.Value.BankName.Should().Be("Bank Name");
-        result.Value.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, tolerance);
-        _beneficiaryRepository.Verify(
-            creates => creates.Create(
-                It.Is<Beneficiary>(beneficiary =>
-                    beneficiary.User != null &&
-                    beneficiary.User.Id == DefaultUserId &&
-                    beneficiary.Name == DefaultName &&
-                    beneficiary.Iban == ValidIban &&
-                    beneficiary.BankName == "Bank Name")),
-            Times.Once);
+        result.Value.Name.Should().Be("John Doe");
+        _beneficiaryRepo.Verify(r => r.AddAsync(It.IsAny<Beneficiary>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
+}
+
+public sealed class UpdateBeneficiaryCommandHandlerTests
+{
+    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepo = MockFactory.CreateBeneficiaryRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+
+    private UpdateBeneficiaryCommandHandler CreateHandler() => new(
+        _beneficiaryRepo.Object,
+        _unitOfWork.Object);
 
     [Fact]
-    public void Update_WhenNameIsEmpty_ReturnsValidationError()
+    public async Task Handle_WhenBeneficiaryNotFound_ReturnsNotFoundError()
     {
-        // Arrange
-        var beneficiary = new Beneficiary
-        {
-            Id = DefaultBeneficiaryId,
-            User = new User { Id = DefaultUserId },
-            Name = EmptyName,
-            Iban = ValidIban
-        };
+        var command = new UpdateBeneficiaryCommand(1, 99, "New Name", "RO49AAAA1B31007593840000", null);
 
-        // Act
-        ErrorOr<Success> result = _service.Update(beneficiary);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-        result.FirstError.Code.Should().Be("Beneficiary.NameRequired");
-        _beneficiaryRepository.Verify(updates => updates.Update(It.IsAny<Beneficiary>()), Times.Never);
     }
 
     [Fact]
-    public void Update_WhenDataIsValid_UpdatesExistingBeneficiary()
+    public async Task Handle_WhenBeneficiaryBelongsToDifferentUser_ReturnsNotFoundError()
     {
-        // Arrange
-        DateTime createdAt = DateTime.UtcNow.AddDays(-10);
-        var existingBeneficiary = new Beneficiary
-        {
-            Id = DefaultBeneficiaryId,
-            User = new User { Id = DefaultUserId },
-            Name = "Old Name",
-            Iban = "RO49AAAA1B31007593840001",
-            BankName = "Old Bank",
-            CreatedAt = createdAt,
-            TotalAmountSent = 150,
-            TransferCount = 3,
-            LastTransferDate = DateTime.UtcNow.AddDays(-1)
-        };
-        var updatedBeneficiary = new Beneficiary
-        {
-            Id = DefaultBeneficiaryId,
-            User = new User { Id = DefaultUserId },
-            Name = $" {DefaultName} ",
-            Iban = ValidIban,
-            BankName = " New Bank "
-        };
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var beneficiary = Beneficiary.Create(2, "Someone Else", iban, null, DateTime.UtcNow);
+        _beneficiaryRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(beneficiary);
+        var command = new UpdateBeneficiaryCommand(1, 10, "New Name", "RO49AAAA1B31007593840000", null);
 
-        _beneficiaryRepository
-            .Setup(findsById => findsById.FindById(DefaultBeneficiaryId, DefaultUserId))
-            .Returns(existingBeneficiary);
-        _beneficiaryRepository
-            .Setup(findsByUserId => findsByUserId.FindByUserId(DefaultUserId))
-            .Returns((ErrorOr<List<Beneficiary>>)new List<Beneficiary> { existingBeneficiary });
-        _beneficiaryRepository
-            .Setup(updates => updates.Update(It.IsAny<Beneficiary>()))
-            .Returns(Result.Success);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<Success> result = _service.Update(updatedBeneficiary);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        _beneficiaryRepository.Verify(
-            updates => updates.Update(
-                It.Is<Beneficiary>(beneficiary =>
-                    beneficiary.Id == DefaultBeneficiaryId &&
-                    beneficiary.User != null &&
-                    beneficiary.User.Id == DefaultUserId &&
-                    beneficiary.Name == DefaultName &&
-                    beneficiary.Iban == ValidIban &&
-                    beneficiary.BankName == "New Bank" &&
-                    beneficiary.CreatedAt == createdAt &&
-                    beneficiary.TotalAmountSent == 150 &&
-                    beneficiary.TransferCount == 3 &&
-                    beneficiary.LastTransferDate == existingBeneficiary.LastTransferDate)),
-            Times.Once);
+        result.IsError.Should().BeTrue();
     }
 
     [Fact]
-    public void Delete_WhenCalled_DeletesBeneficiaryForUser()
+    public async Task Handle_WhenValid_UpdatesAndSaves()
     {
-        // Arrange
-        _beneficiaryRepository
-            .Setup(deletes => deletes.Delete(DefaultBeneficiaryId, DefaultUserId))
-            .Returns(Result.Success);
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var beneficiary = Beneficiary.Create(1, "Old Name", iban, null, DateTime.UtcNow);
+        _beneficiaryRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(beneficiary);
+        var command = new UpdateBeneficiaryCommand(1, 10, "New Name", "RO49AAAA1B31007593840000", "New Bank");
 
-        // Act
-        ErrorOr<Success> result = _service.Delete(DefaultBeneficiaryId, DefaultUserId);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeFalse();
-        _beneficiaryRepository.Verify(
-            deletes => deletes.Delete(DefaultBeneficiaryId, DefaultUserId),
-            Times.Once);
+        _beneficiaryRepo.Verify(r => r.UpdateAsync(It.IsAny<Beneficiary>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+}
+
+public sealed class DeleteBeneficiaryCommandHandlerTests
+{
+    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepo = MockFactory.CreateBeneficiaryRepository();
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+
+    private DeleteBeneficiaryCommandHandler CreateHandler() => new(
+        _beneficiaryRepo.Object,
+        _unitOfWork.Object);
+
+    [Fact]
+    public async Task Handle_WhenBeneficiaryNotFound_ReturnsNotFoundError()
+    {
+        var command = new DeleteBeneficiaryCommand(1, 99);
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenBeneficiaryBelongsToDifferentUser_ReturnsNotFoundError()
+    {
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var beneficiary = Beneficiary.Create(2, "Someone Else", iban, null, DateTime.UtcNow);
+        _beneficiaryRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(beneficiary);
+        var command = new DeleteBeneficiaryCommand(1, 10);
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_WhenValid_DeletesAndSaves()
+    {
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var beneficiary = Beneficiary.Create(1, "John Doe", iban, null, DateTime.UtcNow);
+        _beneficiaryRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(beneficiary);
+        var command = new DeleteBeneficiaryCommand(1, 10);
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        _beneficiaryRepo.Verify(r => r.DeleteAsync(It.IsAny<Beneficiary>(), It.IsAny<CancellationToken>()), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -1,15 +1,15 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using Enums;
-using Master;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
+using Navigation;
 
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.
 /// </summary>
-public sealed partial class RegisterView : IStateObserver<RegisterState>
+public sealed partial class RegisterView
 {
     private readonly IAppNavigationService _navigationService;
     private readonly IRegistrationContext _registrationContext;
@@ -31,14 +31,16 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
         _viewModel = viewModel;
         _navigationService = navigationService;
         _registrationContext = registrationContext;
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        OnStateChanged(_viewModel.State);
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(RegisterState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        OnStateChanged(state);
+        if (e.PropertyName == nameof(RegisterViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
     }
 
     private void OnStateChanged(RegisterState state)
@@ -57,22 +59,10 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
                     _navigationService.NavigateTo<LoginView>();
                     break;
                 case RegisterState.AutoLoggedIn:
-                    _navigationService.NavigateTo<NavView>();
+                    _navigationService.NavigateTo<NavigationView>();
                     break;
                 case RegisterState.EmailAlreadyExists:
                     ShowError(UserMessages.Register.EmailAlreadyExists);
-                    break;
-                case RegisterState.FullNameRequired:
-                    ShowError(UserMessages.Register.FullNameRequired);
-                    break;
-                case RegisterState.EmailRequired:
-                    ShowError(UserMessages.Register.EmailRequired);
-                    break;
-                case RegisterState.PasswordRequired:
-                    ShowError(UserMessages.Register.PasswordRequired);
-                    break;
-                case RegisterState.ConfirmPasswordRequired:
-                    ShowError(UserMessages.Register.ConfirmPasswordRequired);
                     break;
                 case RegisterState.InvalidEmail:
                     ShowError(UserMessages.Register.InvalidEmail);
@@ -110,7 +100,7 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
         RegisterButton.IsEnabled = true;
     }
 
-    private async void RegisterButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void RegisterButton_Click(object sender, RoutedEventArgs e)
     {
         await _viewModel.Register(
             EmailBox.Text,
@@ -119,7 +109,7 @@ public sealed partial class RegisterView : IStateObserver<RegisterState>
             FullNameBox.Text);
     }
 
-    private void BackToLoginButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<LoginView>();
     }

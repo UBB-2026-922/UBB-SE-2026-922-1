@@ -1,7 +1,7 @@
-namespace BankingApp.Domain.Enums;
+﻿namespace BankingApp.Domain.Enums;
 
 /// <summary>
-///     Represents the type of a bank account.
+///     Represents the type of bank account.
 /// </summary>
 public enum AccountType
 {

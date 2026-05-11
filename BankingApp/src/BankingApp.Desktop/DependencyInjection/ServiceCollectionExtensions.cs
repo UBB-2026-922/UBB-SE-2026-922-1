@@ -1,60 +1,39 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
-using Application.Repositories.Interfaces;
-using Application.Services.Login;
-using Master;
-using ProxyRepositories;
-using Services;
-using Utilities;
+using BankingApp.Desktop.Services;
+using Services.Transfers;
 using ViewModels;
 using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Navigation;
 
-/// <summary>
-/// TODO: add docs.
-/// </summary>
+/// <summary>Registers the desktop application's client services, view models, and views.</summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// TODO: add docs.
-    /// </summary>
-    /// <param name="services"></param>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
+    /// <summary>Adds the Desktop layer dependencies required by the WinUI client.</summary>
+    /// <param name="services">The service collection being configured.</param>
+    /// <param name="configuration">Application configuration used by HTTP and client services.</param>
+    /// <returns>The same service collection for chaining.</returns>
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);
-        services.AddSingleton<ApiClient>();
-        services.AddSingleton<IApiClient>(sp => sp.GetRequiredService<ApiClient>());
-        services.AddSingleton<ICurrentSession>(sp => sp.GetRequiredService<ApiClient>());
+        services.AddSingleton<IApiClient, ApiClient>();
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
-        services.AddSingleton<IOtpAttemptTracker, DesktopOtpAttemptTracker>();
 
         services.AddTransient<IAuthClientService, AuthClientService>();
-        services.AddTransient<IAuthRepository, AuthProxyRepository>();
-        services.AddTransient<SecurityProxyRepository>();
-        services.AddTransient<IUserRepository, UserProxyRepository>();
         services.AddTransient<IDashboardClientService, DashboardClientService>();
         services.AddTransient<IProfileClientService, ProfileClientService>();
-        services.AddTransient<IExchangeRepository, ExchangeProxyRepository>();
         services.AddTransient<IForexClientService, ForexClientService>();
-        services.AddTransient<IRateAlertRepository, RateAlertProxyRepository>();
         services.AddTransient<IRateAlertClientService, RateAlertClientService>();
-        services.AddTransient<IBillerRepository, BillerProxyRepository>();
-        services.AddTransient<IBillPaymentRepository, BillPaymentProxyRepository>();
-        services.AddTransient<IRecurringPaymentRepository, RecurringPaymentProxyRepository>();
         services.AddTransient<IBillPaymentClientService, BillPaymentClientService>();
-        services.AddTransient<IDashboardRepository, DashboardProxyRepository>();
-        services.AddTransient<IBeneficiaryRepository, BeneficiaryProxyRepository>();
-        services.AddTransient<ITransferRepository, TransferProxyRepository>();
-        services.AddTransient<ITransferService, TransferService>();
+        services.AddTransient<ITransferClientService, TransferClientService>();
 
         services.AddTransient<IPasswordRecoveryManager>(provider =>
         {
-            IAuthClientService authClientService = provider.GetRequiredService<IAuthClientService>();
-            return new PasswordRecoveryManager(authClientService, new SystemClock());
+            IApiClient apiClient = provider.GetRequiredService<IApiClient>();
+            return new PasswordRecoveryManager(apiClient, new SystemClock());
         });
 
         services.AddTransient<ICountdownTimer, DispatcherCountdownTimer>();
@@ -81,7 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<RegisterView>();
         services.AddTransient<TwoFactorView>();
         services.AddTransient<ForgotPasswordView>();
-        services.AddTransient<NavView>();
+        services.AddTransient<NavigationView>();
         services.AddTransient<DashboardView>();
         services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();

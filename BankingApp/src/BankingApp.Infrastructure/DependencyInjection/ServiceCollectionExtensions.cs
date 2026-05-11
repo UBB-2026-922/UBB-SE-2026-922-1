@@ -1,40 +1,24 @@
-﻿namespace BankingApp.Infrastructure.DependencyInjection;
+namespace BankingApp.Infrastructure.DependencyInjection;
 
-using BankingApp.Application.Repositories.Interfaces;
-using BankingApp.Application.Services.BillPayments;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.Security;
-using Application.Utilities;
-using DataAccess;
-using DataAccess.Implementations;
-using DataAccess.Interfaces;
-using Repositories.Implementations;
-using Services;
-using Services.Notifications;
-using Services.Security;
+using BankingApp.Application.Common.Contracts;
+using BankingApp.Application.Common.Contracts.Notifications;
+using BankingApp.Application.Common.Contracts.Security;
+using BankingApp.Application.Common.Utilities;
+using Domain.Repositories;
+using Caching;
+using Common.Clock;
+using Common.Notifications;
+using Common.Security;
+using ExchangeRates;
+using Persistence;
+using Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-/// <summary>
-///     Provides extension methods for registering infrastructure services with the dependency injection container.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
-    private static readonly Lock _typeHandlerLock = new();
-
-    /// <summary>
-    ///     Registers all infrastructure services, data access components, and repositories with the service collection.
-    /// </summary>
-    /// <param name="services">The service collection to configure.</param>
-    /// <param name="configuration">The application configuration used to resolve connection strings and secrets.</param>
-    /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
-    /// <exception cref="InvalidOperationException">
-    ///     Thrown when the <c>BankingAppDb</c> connection string,
-    ///     <c>Jwt:Secret</c> or <c>Otp:Secret</c> configuration value is missing.
-    /// </exception>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         string connectionString = configuration.GetConnectionString("BankingAppDb")
@@ -45,42 +29,43 @@ public static class ServiceCollectionExtensions
         string otpSecret = configuration["Otp:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
 
-        services.AddDbContext<AppDatabaseContext>(options =>
+        services.Configure<SmtpSettings>(settings =>
+        {
+            IConfigurationSection section = configuration.GetSection("Email");
+            settings.SmtpHost = section["SmtpHost"] ?? string.Empty;
+            settings.SmtpPort = int.TryParse(section["SmtpPort"], out int port) ? port : 587;
+            settings.SmtpUser = section["SmtpUser"] ?? string.Empty;
+            settings.SmtpPass = section["SmtpPass"] ?? string.Empty;
+            settings.FromAddress = section["FromAddress"] ?? string.Empty;
+        });
+        services.AddMemoryCache();
+        services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString)
-                   .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
-        services.AddScoped<IUserDataAccess, UserDataAccess>();
-        services.AddScoped<ISessionDataAccess, SessionDataAccess>();
-        services.AddScoped<IPasswordResetTokenDataAccess, PasswordResetTokenDataAccess>();
-        services.AddScoped<INotificationPreferenceDataAccess, NotificationPreferenceDataAccess>();
-        services.AddScoped<IAccountDataAccess, AccountDataAccess>();
-        services.AddScoped<ICardDataAccess, CardDataAccess>();
-        services.AddScoped<ITransactionDataAccess, TransactionDataAccess>();
-        services.AddScoped<INotificationDataAccess, NotificationDataAccess>();
+                .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IIdentityRepository, IdentityRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
+        services.AddScoped<IBillerRepository, BillerRepository>();
+        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
+        services.AddScoped<ITransferRepository, TransferRepository>();
+        services.AddScoped<IForexRepository, ForexTransactionRepository>();
+        services.AddScoped<IRateAlertRepository, RateAlertRepository>();
+        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
+        services.AddScoped<ISavedBillerRepository, SavedBillerRepository>();
+
+        services.AddSingleton<ISystemClock, SystemClock>();
+        services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
+        services.AddSingleton<IOtpService>(_ => new OtpService(otpSecret));
         services.AddScoped<IHashService, HashService>();
         services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
         services.AddScoped<IEmailService, EmailService>();
-        services.AddScoped<IAuthRepository, AuthRepository>();
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IDashboardRepository, DashboardRepository>();
-        services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
-        services.AddScoped<
-            IBillPaymentService,
-            BillPaymentService>();
-        services.AddScoped<IBillerDataAccess, BillerDataAccess>();
-        services.AddScoped<ISavedBillerDataAccess, SavedBillerDataAccess>();
-        services.AddScoped<IBillerRepository, BillerRepository>();
-        services.AddScoped<ITransferDataAccess, TransferDataAccess>();
-        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
-        services.AddSingleton<ISystemClock, SystemClock>();
-        services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
-        services.AddSingleton<IOtpService, OtpService>(_ => new OtpService(otpSecret));
-
-        // These registrations wire the interfaces defined in the Application layer to the
-        // repository implementations in the Infrastructure layer.
-        services.AddScoped<ITransferRepository, TransferRepository>();
-        services.AddScoped<IBeneficiaryRepository, BeneficiaryRepository>();
-        services.AddScoped<IExchangeRepository, ExchangeRepository>();
-        services.AddScoped<IRateAlertRepository, RateAlertRepository>();
+        services.AddSingleton<ILockedRateCache, MemoryLockedRateCache>();
+        services.AddSingleton<IExchangeRateService, ConfigurationExchangeRateService>();
 
         return services;
     }

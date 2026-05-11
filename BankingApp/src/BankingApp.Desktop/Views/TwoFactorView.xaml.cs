@@ -1,18 +1,18 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
 using Enums;
-using Master;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Navigation;
 
 /// <summary>
 ///     Displays the OTP verification step of the login flow.
 ///     <see cref="TwoFactorViewModel" />.
 /// </summary>
-public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
+public sealed partial class TwoFactorView
 {
     private readonly IApiClient _apiClient;
     private readonly IAppNavigationService _navigationService;
@@ -30,7 +30,8 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         ViewModel = viewModel;
         _navigationService = navigationService;
         _apiClient = apiClient;
-        ViewModel.State.AddObserver(this);
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+        OnStateChanged(ViewModel.State);
     }
 
     /// <summary>
@@ -43,11 +44,12 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
     /// </value>
     public TwoFactorViewModel ViewModel { get; }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(TwoFactorState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        DispatcherQueue.TryEnqueue(() => OnStateChanged(state));
+        if (e.PropertyName == nameof(TwoFactorViewModel.State))
+        {
+            DispatcherQueue.TryEnqueue(() => OnStateChanged(ViewModel.State));
+        }
     }
 
     // Used in XAML as: Visibility="{x:Bind BoolToVisibility(ViewModel.SomeBool), Mode=OneWay}"
@@ -68,7 +70,7 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         switch (state)
         {
             case TwoFactorState.Success:
-                _navigationService.NavigateTo<NavView>();
+                _navigationService.NavigateTo<NavigationView>();
                 break;
             case TwoFactorState.Idle:
             case TwoFactorState.Verifying:
@@ -82,13 +84,13 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
         }
     }
 
-    private async void VerifyButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void VerifyButton_Click(object sender, RoutedEventArgs e)
     {
         // Validation (6-digit length check) is enforced inside the ViewModel.
         await ViewModel.VerifyOtp();
     }
 
-    private async void ResendButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void ResendButton_Click(object sender, RoutedEventArgs e)
     {
         // Guard against premature resend is enforced inside the ViewModel.
         await ViewModel.ResendOtp();
@@ -99,13 +101,13 @@ public sealed partial class TwoFactorView : IStateObserver<TwoFactorState>
     ///     is always in sync without requiring a Two-Way binding.
     /// </summary>
     /// <param name="sender">The sender value.</param>
-    /// <param name="textChangedEventArgs">The text changed event arguments.</param>
-    private void OtpBox_TextChanged(object sender, TextChangedEventArgs textChangedEventArgs)
+    /// <param name="e">The e value.</param>
+    private void OtpBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         ViewModel.OtpCode = OtpBox.Text;
     }
 
-    private void BackToLoginButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
     {
         _apiClient.ClearToken();
         _navigationService.NavigateTo<LoginView>();

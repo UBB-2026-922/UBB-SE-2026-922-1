@@ -23,22 +23,22 @@ public sealed partial class RateAlertsPage : Page
         Loaded += RateAlertsPage_Loaded;
     }
 
-    private async void RateAlertsPage_Loaded(object sender, RoutedEventArgs routedEventArgs)
+    private async void RateAlertsPage_Loaded(object sender, RoutedEventArgs e)
     {
         await _viewModel.LoadAlertsAsync();
     }
 
-    private async void RefreshButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
         await _viewModel.LoadAlertsAsync();
     }
 
-    private async void CreateAlertButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void CreateAlertButton_Click(object sender, RoutedEventArgs e)
     {
         await _viewModel.CreateAlertAsync();
     }
 
-    private async void DeleteAlertButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void DeleteAlertButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button button && button.Tag is int alertId)
         {

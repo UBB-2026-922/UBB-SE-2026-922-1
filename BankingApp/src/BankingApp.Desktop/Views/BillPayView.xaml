@@ -4,8 +4,8 @@
     x:Class="BankingApp.Desktop.Views.BillPayView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:billers="using:BankingApp.Application.DTOs.Billers"
-    xmlns:payments="using:BankingApp.Application.DTOs.BillPayments"
+    xmlns:billers="using:BankingApp.Application.Features.Billers.Dtos"
+    xmlns:payments="using:BankingApp.Application.Features.BillPayments.Dtos"
     xmlns:converters="using:BankingApp.Desktop.Converters"
     Background="#0F0F1A">
 

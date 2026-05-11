@@ -3,68 +3,44 @@ namespace BankingApp.Desktop.Services;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.RateAlerts;
-using Application.Repositories.Interfaces;
-using Domain.Entities;
+using BankingApp.Application.Features.ForexRateAlerts.Dtos;
+using BankingApp.Application.Common.Utilities;
 using ErrorOr;
-using Utilities;
 
 /// <summary>
-///     Implements <see cref="IRateAlertClientService" /> with desktop-side business logic and proxy repositories.
+///     Implements <see cref="IRateAlertClientService" /> using the shared desktop API client.
 /// </summary>
-internal sealed class RateAlertClientService(ICurrentSession currentSession, IRateAlertRepository rateAlertRepository)
-    : IRateAlertClientService
+internal sealed class RateAlertClientService : IRateAlertClientService
 {
-    private readonly ICurrentSession _currentSession = currentSession ?? throw new ArgumentNullException(nameof(currentSession));
-    private readonly IRateAlertRepository _rateAlertRepository = rateAlertRepository ?? throw new ArgumentNullException(nameof(rateAlertRepository));
+    private readonly IApiClient _apiClient;
 
-    public int? CurrentUserId => _currentSession.CurrentUserId;
-
-    public Task<ErrorOr<List<RateAlertDto>>> GetAlertsAsync(int userId)
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="RateAlertClientService" /> class.
+    /// </summary>
+    public RateAlertClientService(IApiClient apiClient)
     {
-        ErrorOr<List<RateAlert>> result = _rateAlertRepository.GetByUserId(userId);
-        if (result.IsError)
-        {
-            return Task.FromResult<ErrorOr<List<RateAlertDto>>>(result.FirstError);
-        }
-
-        List<RateAlertDto> alerts = result.Value.ConvertAll(MapToDto);
-        return Task.FromResult<ErrorOr<List<RateAlertDto>>>(alerts);
+        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
     }
 
-    public Task<ErrorOr<RateAlertDto>> CreateAlertAsync(RateAlertDto alert)
-    {
-        ErrorOr<RateAlert> alertResult = RateAlert.Create(
-            alert.UserId,
-            alert.BaseCurrency,
-            alert.TargetCurrency,
-            alert.TargetRate,
-            alert.IsBuyAlert,
-            DateTime.UtcNow);
-        if (alertResult.IsError)
-        {
-            return Task.FromResult<ErrorOr<RateAlertDto>>(alertResult.FirstError);
-        }
+    /// <inheritdoc />
+    public int? CurrentUserId => _apiClient.CurrentUserId;
 
-        ErrorOr<RateAlert> createResult = _rateAlertRepository.Create(alertResult.Value);
-        return Task.FromResult<ErrorOr<RateAlertDto>>(createResult.IsError ? createResult.FirstError : MapToDto(createResult.Value));
+    /// <inheritdoc />
+    public Task<ErrorOr<List<ForexRateAlertDto>>> GetAlertsAsync(int userId)
+    {
+        string endpoint = $"{ApiEndpoints.RateAlerts}?userId={userId}";
+        return _apiClient.GetAsync<List<ForexRateAlertDto>>(endpoint);
     }
 
+    /// <inheritdoc />
+    public Task<ErrorOr<ForexRateAlertDto>> CreateAlertAsync(ForexRateAlertDto alert)
+    {
+        return _apiClient.PostAsync<ForexRateAlertDto, ForexRateAlertDto>(ApiEndpoints.RateAlerts, alert);
+    }
+
+    /// <inheritdoc />
     public Task<ErrorOr<Success>> DeleteAlertAsync(int alertId)
-        => Task.FromResult(_rateAlertRepository.Delete(alertId));
-
-    private static RateAlertDto MapToDto(RateAlert alert)
     {
-        return new RateAlertDto
-        {
-            Id = alert.Id,
-            UserId = alert.User?.Id ?? 0,
-            BaseCurrency = alert.BaseCurrency,
-            TargetCurrency = alert.TargetCurrency,
-            TargetRate = alert.TargetRate,
-            IsBuyAlert = alert.IsBuyAlert,
-            IsTriggered = alert.IsTriggered,
-            CreatedAt = alert.CreatedAt,
-        };
+        return _apiClient.DeleteAsync($"{ApiEndpoints.RateAlerts}/{alertId}");
     }
 }

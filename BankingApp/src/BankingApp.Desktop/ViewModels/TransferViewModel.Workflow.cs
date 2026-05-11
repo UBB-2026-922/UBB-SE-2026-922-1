@@ -1,0 +1,233 @@
+namespace BankingApp.Desktop.ViewModels;
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Threading.Tasks;
+using BankingApp.Application.Common.Utilities;
+using BankingApp.Application.Features.Transfers.Dtos;
+using ErrorOr;
+
+public partial class TransferViewModel
+{
+    /// <summary>Loads the authenticated user's accounts from the API and pre-selects the first account.</summary>
+    public async Task LoadAccountsAsync()
+    {
+        try
+        {
+            ErrorOr<List<TransferAccountSelectionResponse>> result = await _transferClientService.GetAccountsAsync();
+
+            if (result.IsError)
+            {
+                ErrorMessage = UserMessages.Transfer.AccountLoadFailed;
+                return;
+            }
+
+            Accounts.Clear();
+            foreach (TransferAccountSelectionResponse account in result.Value)
+            {
+                Accounts.Add(account);
+            }
+
+            if (Accounts.Count > MinimumAccounts)
+            {
+                SelectedAccount = Accounts[FirstAccountIndex];
+            }
+        }
+        catch (Exception loadAccountsException)
+        {
+            ErrorMessage = loadAccountsException.Message;
+        }
+    }
+
+    /// <summary>Advances the wizard to the next step, validating IBAN, amount, and 2FA before allowing progression.</summary>
+    internal void ExecuteNextStep()
+    {
+        ErrorMessage = string.Empty;
+
+        switch (CurrentStep)
+        {
+            case RecipientDetailsStep:
+                MoveFromRecipientStep();
+                break;
+            case AmountDetailsStep:
+                MoveFromAmountStep();
+                break;
+            case TwoFactorAuthenticationStep:
+                MoveFromTwoFactorStep();
+                break;
+            default:
+                CurrentStep++;
+                break;
+        }
+    }
+
+    /// <summary>Submits the transfer to the API; on success advances to the completion step, on failure sets the error step.</summary>
+    internal async Task ExecuteTransferAsync()
+    {
+        try
+        {
+            ErrorMessage = string.Empty;
+
+            if (SelectedAccount == null)
+            {
+                throw new InvalidOperationException(UserMessages.Transfer.NoAccountSelected);
+            }
+
+            ErrorOr<TransferExecutionResponse> result =
+                await _transferClientService.ExecuteTransferAsync(
+                    SelectedAccount.Id,
+                    RecipientName,
+                    RecipientIban,
+                    Amount,
+                    Currency,
+                    Requires2Fa ? TwoFaToken : null);
+
+            if (result.IsError)
+            {
+                ErrorMessage = result.FirstError.Description;
+                CurrentStep = TransferErrorStep;
+                return;
+            }
+
+            TransactionRef = result.Value.TransactionRef;
+            CurrentStep = TransferCompletedStep;
+        }
+        catch (Exception executeTransferException)
+        {
+            ErrorMessage = executeTransferException.Message;
+            CurrentStep = TransferErrorStep;
+        }
+    }
+
+    /// <summary>Resets all form fields and returns the wizard to step 1.</summary>
+    internal void ExecuteSendAgain()
+    {
+        SelectedAccount = Accounts.Count > MinimumAccounts ? Accounts[FirstAccountIndex] : null;
+        RecipientName = string.Empty;
+        RecipientIban = string.Empty;
+        IsIbanValid = false;
+        BankName = string.Empty;
+        Amount = ZeroAmount;
+        Currency = DefaultTransferCurrency;
+        FxPreviewText = string.Empty;
+        TwoFaToken = string.Empty;
+        Requires2Fa = false;
+        Is2FaConfirmed = false;
+        TransactionRef = string.Empty;
+        ErrorMessage = string.Empty;
+        AmountText = string.Empty;
+        CurrentStep = AccountSelectionStep;
+    }
+
+    private void ExecuteCancel()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void MoveFromRecipientStep()
+    {
+        if (IsIbanValid)
+        {
+            CurrentStep++;
+            return;
+        }
+
+        ErrorMessage = UserMessages.Transfer.InvalidIban;
+        CurrentStep = TransferErrorStep;
+    }
+
+    private void MoveFromAmountStep()
+    {
+        if (Amount > ZeroAmount)
+        {
+            CurrentStep = Requires2Fa ? TwoFactorAuthenticationStep : ReviewAndConfirmationStep;
+            return;
+        }
+
+        ErrorMessage = UserMessages.Transfer.AmountMustBePositive;
+        CurrentStep = TransferErrorStep;
+    }
+
+    private void MoveFromTwoFactorStep()
+    {
+        if (!Is2FaConfirmed)
+        {
+            ErrorMessage = UserMessages.Transfer.TwoFaRequired;
+            CurrentStep = TransferErrorStep;
+            return;
+        }
+
+        if (Requires2Fa && string.IsNullOrWhiteSpace(TwoFaToken))
+        {
+            TwoFaToken = GenerateTwoFaToken();
+        }
+
+        CurrentStep = ReviewAndConfirmationStep;
+    }
+
+    private async Task UpdateIbanValidationAsync(string iban)
+    {
+        try
+        {
+            ErrorOr<TransferIbanValidationResponse> result = await _transferClientService.ValidateIbanAsync(iban);
+
+            if (result.IsError)
+            {
+                IsIbanValid = false;
+                BankName = string.Empty;
+                return;
+            }
+
+            IsIbanValid = result.Value.IsValid;
+            BankName = result.Value.IsValid ? result.Value.BankName : string.Empty;
+        }
+        catch
+        {
+            IsIbanValid = false;
+            BankName = string.Empty;
+        }
+    }
+
+    private async Task UpdateFxPreviewAsync()
+    {
+        try
+        {
+            if (SelectedAccount == null || Amount <= ZeroAmount || string.IsNullOrWhiteSpace(Currency))
+            {
+                FxPreviewText = string.Empty;
+                return;
+            }
+
+            ErrorOr<TransferForexPreviewResponse> result =
+                await _transferClientService.GetFxPreviewAsync(SelectedAccount.Currency, Currency, Amount);
+
+            if (result.IsError)
+            {
+                FxPreviewText = string.Empty;
+                return;
+            }
+
+            TransferForexPreviewResponse preview = result.Value;
+            FxPreviewText = preview.ExchangeRate == IdentityExchangeRate
+                ? $"{Amount:F2} {Currency}"
+                : $"{Amount:F2} {SelectedAccount.Currency} -> {preview.ConvertedAmount:F2} {Currency} (rate: {preview.ExchangeRate:F4})";
+        }
+        catch
+        {
+            FxPreviewText = string.Empty;
+        }
+    }
+
+    private void UpdateRequires2Fa()
+    {
+        Requires2Fa = Amount >= TwoFaAmountThreshold;
+    }
+
+    private static string GenerateTwoFaToken()
+    {
+        Random random = new();
+        return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive)
+            .ToString(CultureInfo.InvariantCulture);
+    }
+}

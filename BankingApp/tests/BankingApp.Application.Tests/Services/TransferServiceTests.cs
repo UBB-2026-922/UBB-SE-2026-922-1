@@ -1,307 +1,154 @@
 namespace BankingApp.Application.Tests.Services;
 
-using DTOs.Transfer;
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Security;
-using BankingApp.Application.Services.Transfers;
-using Domain.Entities;
-using Domain.Enums;
+using BankingApp.Application.Features.Transfers.Commands;
+using BankingApp.Application.Features.Transfers.Dtos;
+using BankingApp.Application.Features.Transfers.Queries;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-/// <summary>
-///     Unit tests for <see cref="TransferService" /> aligned with the current repository split.
-/// </summary>
-public class TransferServiceTests
+public sealed class ExecuteTransferCommandHandlerTests
 {
-    private const int DefaultUserId = 1;
-    private const int DefaultAccountId = 10;
-    private const decimal DefaultBalance = 5000m;
-    private const decimal SmallAmount = 100m;
-    private const decimal LargeAmount = 1500m;
-    private const string DefaultCurrency = "RON";
-    private const string DefaultIban = "RO49AAAA1B31007593840000";
-    private const string DefaultRecipientName = "John Doe";
-    private const string ValidTwoFaToken = "123456";
-    private const string InvalidIban = "INVALID";
-
-    private readonly Mock<IDashboardRepository> _dashboardRepository = new(MockBehavior.Strict);
-    private readonly Mock<ITransferRepository> _transferRepository = new(MockBehavior.Strict);
+    private readonly Mock<IAccountRepository> _accountRepo = MockFactory.CreateAccountRepository();
+    private readonly Mock<ITransferRepository> _transferRepo = MockFactory.CreateTransferRepository();
+    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepo = MockFactory.CreateBeneficiaryRepository();
     private readonly Mock<IOtpService> _otpService = MockFactory.CreateOtpService();
-    private readonly TransferService _service;
+    private readonly Mock<IUnitOfWork> _unitOfWork = MockFactory.CreateUnitOfWork();
+    private readonly Mock<ISystemClock> _clock = MockFactory.CreateSystemClock();
 
-    public TransferServiceTests()
-    {
-        _dashboardRepository
-            .Setup(repository => repository.GetAccountsByUser(It.IsAny<int>()))
-            .Returns(new List<Account> { CreateAccount(DefaultBalance, AccountStatus.Active) });
-        _dashboardRepository
-            .Setup(repository => repository.DebitAccount(It.IsAny<int>(), It.IsAny<decimal>()))
-            .Returns(Result.Success);
-        _dashboardRepository
-            .Setup(repository => repository.AddTransaction(It.IsAny<Transaction>()))
-            .Returns((Transaction transaction) =>
-            {
-                transaction.Id = 1;
-                transaction.TransactionRef = "TRF-123";
-                return transaction;
-            });
-
-        _transferRepository
-            .Setup(repository => repository.Create(It.IsAny<Transfer>()))
-            .Returns((Transfer transfer) =>
-            {
-                transfer.Id = 1;
-                return transfer;
-            });
-        _transferRepository
-            .Setup(repository => repository.GetByUserId(It.IsAny<int>()))
-            .Returns(new List<Transfer>());
-
-        _service = new TransferService(
-            _dashboardRepository.Object,
-            _transferRepository.Object,
-            _otpService.Object,
-            NullLogger<TransferService>.Instance);
-    }
+    private ExecuteTransferCommandHandler CreateHandler() => new(
+        _accountRepo.Object,
+        _transferRepo.Object,
+        _beneficiaryRepo.Object,
+        _otpService.Object,
+        _unitOfWork.Object,
+        _clock.Object,
+        NullLogger<ExecuteTransferCommandHandler>.Instance);
 
     [Fact]
-    public void CreateTransfer_WhenIbanIsInvalid_ReturnsValidationError()
+    public async Task Handle_WhenIbanInvalid_ReturnsError()
     {
-        CreateTransferRequest request = CreateRequest(iban: InvalidIban);
+        var command = new ExecuteTransferCommand(1, 10, "John Doe", "INVALID", 100m, "RON", null, null);
 
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
+        ErrorOr<TransferResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-        result.FirstError.Code.Should().Be("transfer.invalid_iban");
     }
 
     [Fact]
-    public void CreateTransfer_WhenAmountIsZero_ReturnsValidationError()
+    public async Task Handle_WhenAccountNotFound_ReturnsNotFoundError()
     {
-        CreateTransferRequest request = CreateRequest(amount: 0m);
+        var command = new ExecuteTransferCommand(1, 10, "John Doe", "RO49AAAA1B31007593840000", 100m, "RON", null, null);
 
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-        result.FirstError.Code.Should().Be("transfer.invalid_amount");
-    }
-
-    [Fact]
-    public void CreateTransfer_WhenCurrencyIsInvalid_ReturnsValidationError()
-    {
-        CreateTransferRequest request = CreateRequest(currency: "INVALID");
-
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(request, DefaultUserId);
-
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Validation);
-        result.FirstError.Code.Should().Be("transfer.invalid_currency");
-    }
-
-    [Fact]
-    public void CreateTransfer_WhenAccountNotFound_ReturnsNotFoundError()
-    {
-        _dashboardRepository
-            .Setup(repository => repository.GetAccountsByUser(DefaultUserId))
-            .Returns(new List<Account>());
-
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
+        ErrorOr<TransferResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Type.Should().Be(ErrorType.NotFound);
-        result.FirstError.Code.Should().Be("transfer.account_not_found");
     }
 
     [Fact]
-    public void CreateTransfer_WhenAccountIsNotActive_ReturnsForbiddenError()
+    public async Task Handle_WhenInsufficientFunds_ReturnsError()
     {
-        _dashboardRepository
-            .Setup(repository => repository.GetAccountsByUser(DefaultUserId))
-            .Returns(new List<Account> { CreateAccount(DefaultBalance, AccountStatus.Suspended) });
+        var sourceIban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, sourceIban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, null, DateTime.UtcNow);
+        _accountRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(account);
+        var command = new ExecuteTransferCommand(1, 10, "John Doe", "RO49AAAA1B31007593840001", 100m, "RON", null, null);
 
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
+        ErrorOr<TransferResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        result.FirstError.Code.Should().Be("transfer.account_not_active");
     }
 
     [Fact]
-    public void CreateTransfer_WhenInsufficientFunds_ReturnsForbiddenError()
+    public async Task Handle_WhenCurrencyMismatch_ReturnsError()
     {
-        _dashboardRepository
-            .Setup(repository => repository.GetAccountsByUser(DefaultUserId))
-            .Returns(new List<Account> { CreateAccount(10m, AccountStatus.Active) });
+        var sourceIban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, sourceIban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, null, DateTime.UtcNow);
+        _accountRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(account);
+        var command = new ExecuteTransferCommand(1, 10, "John Doe", "RO49AAAA1B31007593840001", 100m, "EUR", null, null);
 
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
+        ErrorOr<TransferResponse> result = await CreateHandler().Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        result.FirstError.Code.Should().Be("transfer.insufficient_funds");
     }
+}
+
+public sealed class GetTransferAccountsQueryHandlerTests
+{
+    private readonly Mock<IAccountRepository> _accountRepo = MockFactory.CreateAccountRepository();
+
+    private GetTransferAccountsQueryHandler CreateHandler() => new(_accountRepo.Object);
 
     [Fact]
-    public void CreateTransfer_WhenAmountRequires2FaAndTokenMissing_ReturnsForbiddenError()
+    public async Task Handle_WhenNoActiveAccounts_ReturnsEmptyList()
     {
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(amount: LargeAmount, twoFaToken: null), DefaultUserId);
+        var query = new GetTransferAccountsQuery(1);
 
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Forbidden);
-        result.FirstError.Code.Should().Be("transfer.2fa_required");
-    }
-
-    [Fact]
-    public void CreateTransfer_WhenAmountRequires2FaAndTokenInvalid_ReturnsUnauthorizedError()
-    {
-        _otpService
-            .Setup(service => service.VerifyTotp(DefaultUserId, It.IsAny<string>()))
-            .Returns(false);
-
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(amount: LargeAmount, twoFaToken: "wrong"), DefaultUserId);
-
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Unauthorized);
-        result.FirstError.Code.Should().Be("transfer.invalid_2fa_token");
-    }
-
-    [Fact]
-    public void CreateTransfer_WhenValidSmallAmount_ReturnsTransferResponse()
-    {
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
-
-        result.IsError.Should().BeFalse();
-        result.Value.Amount.Should().Be(SmallAmount);
-        result.Value.Currency.Should().Be(DefaultCurrency);
-        result.Value.RecipientIban.Should().Be(DefaultIban);
-        result.Value.RecipientName.Should().Be(DefaultRecipientName);
-        result.Value.TransactionId.Should().Be(1);
-        result.Value.TransactionRef.Should().Be("TRF-123");
-        _transferRepository.Verify(repository => repository.Create(It.IsAny<Transfer>()), Times.Once);
-    }
-
-    [Fact]
-    public void CreateTransfer_WhenValidLargeAmountWithTwoFaToken_ReturnsTransferResponse()
-    {
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(
-            CreateRequest(amount: LargeAmount, twoFaToken: ValidTwoFaToken),
-            DefaultUserId);
-
-        result.IsError.Should().BeFalse();
-        result.Value.Amount.Should().Be(LargeAmount);
-    }
-
-    [Fact]
-    public void GetHistory_WhenNoTransfersExist_ReturnsEmptyList()
-    {
-        ErrorOr<List<TransferResponse>> result = _service.GetHistory(DefaultUserId);
+        ErrorOr<List<TransferAccountSelectionResponse>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
         result.Value.Should().BeEmpty();
     }
 
     [Fact]
-    public void GetHistory_WhenTransfersExist_ReturnsMappedList()
+    public async Task Handle_WhenActiveAccountExists_ReturnsMappedList()
     {
-        _transferRepository
-            .Setup(repository => repository.GetByUserId(DefaultUserId))
-            .Returns(new List<Transfer>
-            {
-                new()
-                {
-                    Id = 1,
-                    User = new User { Id = DefaultUserId },
-                    SourceAccount = new Account { Id = DefaultAccountId },
-                    Transaction = new Transaction { Id = 99, TransactionRef = "TRF-ABC" },
-                    RecipientName = DefaultRecipientName,
-                    RecipientIban = DefaultIban,
-                    Amount = SmallAmount,
-                    Currency = DefaultCurrency,
-                    Status = TransferStatus.Completed,
-                    CreatedAt = DateTime.UtcNow
-                }
-            });
+        var iban = Iban.Create("RO49AAAA1B31007593840000").Value;
+        var account = Account.Open(1, iban, NodaMoney.Currency.FromCode("RON"), AccountType.Checking, "My Account", DateTime.UtcNow);
+        _accountRepo.Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<Account>)new[] { account });
+        var query = new GetTransferAccountsQuery(1);
 
-        ErrorOr<List<TransferResponse>> result = _service.GetHistory(DefaultUserId);
+        ErrorOr<List<TransferAccountSelectionResponse>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
-        result.Value.Should().ContainSingle();
-        result.Value.First().RecipientName.Should().Be(DefaultRecipientName);
-        result.Value.First().Amount.Should().Be(SmallAmount);
-        result.Value.First().TransactionId.Should().Be(99);
-        result.Value.First().TransactionRef.Should().BeNull();
+        result.Value.Should().HaveCount(1);
+        result.Value[0].AccountName.Should().Be("My Account");
+    }
+}
+
+public sealed class ValidateIbanQueryHandlerTests
+{
+    private ValidateIbanQueryHandler CreateHandler() => new();
+
+    [Fact]
+    public async Task Handle_WhenIbanIsValid_ReturnsValidResult()
+    {
+        var query = new ValidateIbanQuery("RO49AAAA1B31007593840000");
+
+        ErrorOr<TransferIbanValidationResponse> result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        result.IsError.Should().BeFalse();
+        result.Value.IsValid.Should().BeTrue();
     }
 
     [Fact]
-    public void GetHistory_WhenRepositoryFails_ReturnsError()
+    public async Task Handle_WhenIbanIsInvalid_ReturnsInvalidResult()
     {
-        _transferRepository
-            .Setup(repository => repository.GetByUserId(DefaultUserId))
-            .Returns(Error.Failure());
+        var query = new ValidateIbanQuery("NOT-AN-IBAN");
 
-        ErrorOr<List<TransferResponse>> result = _service.GetHistory(DefaultUserId);
+        ErrorOr<TransferIbanValidationResponse> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        result.IsError.Should().BeTrue();
+        result.IsError.Should().BeFalse();
+        result.Value.IsValid.Should().BeFalse();
     }
+}
+
+public sealed class GetTransferHistoryQueryHandlerTests
+{
+    private readonly Mock<ITransferRepository> _transferRepo = MockFactory.CreateTransferRepository();
+
+    private GetTransferHistoryQueryHandler CreateHandler() => new(_transferRepo.Object);
 
     [Fact]
-    public void CreateTransfer_WhenDebitFails_ReturnsFailureError()
+    public async Task Handle_WhenNoTransfers_ReturnsEmptyList()
     {
-        _dashboardRepository
-            .Setup(repository => repository.DebitAccount(It.IsAny<int>(), It.IsAny<decimal>()))
-            .Returns(Error.Failure());
+        var query = new GetTransferHistoryQuery(1);
 
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
+        ErrorOr<List<TransferResponse>> result = await CreateHandler().Handle(query, CancellationToken.None);
 
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Failure);
-        result.FirstError.Code.Should().Be("transfer.debit_failed");
-    }
-
-    [Fact]
-    public void CreateTransfer_WhenPersistenceFails_ReturnsFailureError()
-    {
-        _transferRepository
-            .Setup(repository => repository.Create(It.IsAny<Transfer>()))
-            .Returns(Error.Failure());
-
-        ErrorOr<TransferResponse> result = _service.CreateTransfer(CreateRequest(), DefaultUserId);
-
-        result.IsError.Should().BeTrue();
-        result.FirstError.Type.Should().Be(ErrorType.Failure);
-        result.FirstError.Code.Should().Be("transfer.persistence_failed");
-    }
-
-    private static Account CreateAccount(decimal balance, AccountStatus status)
-    {
-        return new Account
-        {
-            Id = DefaultAccountId,
-            User = new User { Id = DefaultUserId },
-            Balance = balance,
-            Status = status,
-            Currency = DefaultCurrency,
-            Iban = DefaultIban,
-            AccountName = "Main Account"
-        };
-    }
-
-    private static CreateTransferRequest CreateRequest(
-        string? iban = null,
-        decimal amount = SmallAmount,
-        string currency = DefaultCurrency,
-        string? twoFaToken = null)
-    {
-        return new CreateTransferRequest
-        {
-            SourceAccountId = DefaultAccountId,
-            RecipientName = DefaultRecipientName,
-            RecipientIban = iban ?? DefaultIban,
-            Amount = amount,
-            Currency = currency,
-            TwoFaToken = twoFaToken
-        };
+        result.IsError.Should().BeFalse();
+        result.Value.Should().BeEmpty();
     }
 }

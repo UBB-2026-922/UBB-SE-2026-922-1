@@ -1,7 +1,7 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
-using Application.DTOs.RecurringPayments;
+using BankingApp.Application.Features.RecurringPayments.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

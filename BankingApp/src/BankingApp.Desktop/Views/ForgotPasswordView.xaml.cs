@@ -1,19 +1,19 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
 using Enums;
-using Master;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Navigation;
 
 /// <summary>
 ///     Displays the account recovery flow for requesting a reset code and setting a new password.
 ///     This code-behind contains only UI-specific logic (loading state, message display, navigation).
 ///     All business validation and state transitions are handled by <see cref="ForgotPasswordViewModel" />.
 /// </summary>
-public sealed partial class ForgotPasswordView : IStateObserver<ForgotPasswordState>
+public sealed partial class ForgotPasswordView
 {
     private readonly IAppNavigationService _navigationService;
     private readonly ForgotPasswordViewModel _viewModel;
@@ -29,14 +29,16 @@ public sealed partial class ForgotPasswordView : IStateObserver<ForgotPasswordSt
         InitializeComponent();
         _viewModel = viewModel;
         _navigationService = navigationService;
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        OnStateChanged(_viewModel.State);
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(ForgotPasswordState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        OnStateChanged(state);
+        if (e.PropertyName == nameof(ForgotPasswordViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
     }
 
     private void OnStateChanged(ForgotPasswordState state)
@@ -97,14 +99,14 @@ public sealed partial class ForgotPasswordView : IStateObserver<ForgotPasswordSt
         });
     }
 
-    private async void SendCodeButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void SendCodeButton_Click(object sender, RoutedEventArgs e)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
         await _viewModel.ForgotPassword(EmailBox.Text.Trim());
     }
 
-    private async void ResetPasswordButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void ResetPasswordButton_Click(object sender, RoutedEventArgs e)
     {
         StatusInfoBar.IsOpen = false;
         if (NewPasswordBox.Password != ConfirmPasswordBox.Password)
@@ -117,21 +119,21 @@ public sealed partial class ForgotPasswordView : IStateObserver<ForgotPasswordSt
         await _viewModel.ResetPassword(NewPasswordBox.Password, TokenBox.Text.Trim());
     }
 
-    private async void VerifyTokenButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void VerifyTokenButton_Click(object sender, RoutedEventArgs e)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
         await _viewModel.VerifyToken(TokenBox.Text.Trim());
     }
 
-    private async void ResendCodeButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void ResendCodeButton_Click(object sender, RoutedEventArgs e)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
         await _viewModel.ForgotPassword(EmailBox.Text.Trim());
     }
 
-    private void BackToLoginButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<LoginView>();
     }

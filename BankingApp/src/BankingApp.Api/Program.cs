@@ -2,8 +2,8 @@
 using BankingApp.Api.HostedServices;
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
-using BankingApp.Infrastructure.DataAccess;
 using BankingApp.Infrastructure.DependencyInjection;
+using BankingApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;
@@ -79,7 +79,7 @@ try
     if (applyDatabaseMigrations && !application.Environment.IsEnvironment("Testing"))
     {
         using IServiceScope scope = application.Services.CreateScope();
-        AppDatabaseContext databaseContext = scope.ServiceProvider.GetRequiredService<AppDatabaseContext>();
+        AppDbContext databaseContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         databaseContext.Database.Migrate();
     }
 

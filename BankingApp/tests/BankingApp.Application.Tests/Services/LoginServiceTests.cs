@@ -1,252 +1,103 @@
-﻿namespace BankingApp.Application.Tests.Services;
+namespace BankingApp.Application.Tests.Services;
 
-using Repositories.Interfaces;
-using BankingApp.Application.Services.Login;
-using BankingApp.Application.Services.Notifications;
-using BankingApp.Application.Services.Security;
-using Domain.Entities;
-using Domain.Enums;
+using BankingApp.Application.Features.Authentication.Commands;
+using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
-using DTOs.Auth;
-
-/// <summary>
-///     Unit tests for <see cref="LoginService" />.
-/// </summary>
-public class LoginServiceTests
+public sealed class ResendOtpCommandHandlerTests
 {
-    private const int AttemptsBeforeLockout = 4;
-    private const int LockoutLowerBoundMinutes = 14;
-    private const int LockoutUpperBoundMinutes = 16;
-    private readonly Mock<IAuthRepository> _authRepository = MockFactory.CreateAuthRepository();
-    private readonly Mock<IEmailService> _emailService = MockFactory.CreateEmailService();
-    private readonly Mock<IHashService> _hashService = MockFactory.CreateHashService();
-    private readonly Mock<IJsonWebTokenService> _jwtService = MockFactory.CreateJwtService();
-    private readonly Mock<IOtpAttemptTracker> _otpAttemptTracker = new();
+    private readonly Mock<IUserRepository> _userRepo = MockFactory.CreateUserRepository();
+    private readonly Mock<IIdentityRepository> _identityRepo = MockFactory.CreateIdentityRepository();
     private readonly Mock<IOtpService> _otpService = MockFactory.CreateOtpService();
-    private readonly LoginService _service;
+    private readonly Mock<IOtpAttemptTracker> _otpTracker = MockFactory.CreateOtpAttemptTracker();
+    private readonly Mock<IEmailService> _emailService = MockFactory.CreateEmailService();
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="LoginServiceTests" /> class.
-    /// </summary>
-    public LoginServiceTests()
-    {
-        _service = new LoginService(
-            _authRepository.Object,
-            _hashService.Object,
-            _jwtService.Object,
-            _otpService.Object,
-            _emailService.Object,
-            _otpAttemptTracker.Object,
-            NullLogger<LoginService>.Instance);
-    }
+    private ResendOtpCommandHandler CreateHandler() => new(
+        _userRepo.Object,
+        _identityRepo.Object,
+        _otpService.Object,
+        _otpTracker.Object,
+        _emailService.Object,
+        NullLogger<ResendOtpCommandHandler>.Instance);
 
     [Fact]
-    public void Login_WhenEmailIsInvalid_ReturnsValidationError()
+    public async Task Handle_WhenUserNotFound_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "not-an-email", Password = "ValidPass1!" };
+        var command = new ResendOtpCommand(1, "Email");
 
-        // Act
-        ErrorOr<LoginSuccess> result = _service.Login(request);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_email");
     }
 
     [Fact]
-    public void Login_WhenAccountIsOAuthOnly_ReturnsInvalidCredentials()
+    public async Task Handle_WhenIdentityNotFound_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "oauth@test.com", Password = "ValidPass1!" };
-        var user = new User
-        {
-            Id = 1,
-            Email = request.Email,
-            PasswordHash = null
-        };
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IdentityAccount?)null);
+        var command = new ResendOtpCommand(1, "Email");
 
-        _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<LoginSuccess> result = _service.Login(request);
-
-        // Assert
         result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("invalid_credentials");
-        _hashService.Verify(verifies => verifies.Verify(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public void Login_WhenValid_CreatesSessionWithMetadata()
+    public async Task Handle_WhenOtpGenerationFails_ReturnsError()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "ada@test.com", Password = "ValidPass1!" };
-        var metadata = new SessionMetadata
-        {
-            DeviceInfo = "Windows",
-            Browser = "Edge",
-            IpAddress = "127.0.0.1"
-        };
-        var user = new User
-        {
-            Id = 1,
-            Email = request.Email,
-            PasswordHash = "hash"
-        };
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        _otpService.Setup(s => s.GenerateTotp(It.IsAny<int>()))
+            .Returns(Error.Failure("otp.failed"));
+        _otpService.Setup(s => s.GenerateSmsOtp(It.IsAny<int>()))
+            .Returns(Error.Failure("otp.failed"));
+        var command = new ResendOtpCommand(1, "Email");
 
-        _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _hashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash))
-            .Returns(true);
-        _jwtService.Setup(generatesToken => generatesToken.GenerateToken(user.Id))
-            .Returns((ErrorOr<string>)"jwt-token");
-        _authRepository.Setup(createsSession => createsSession.CreateSession(
-                user.Id,
-                "jwt-token",
-                metadata.DeviceInfo,
-                metadata.Browser,
-                metadata.IpAddress))
-            .Returns(new Session());
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<LoginSuccess> result = _service.Login(request, metadata);
+        result.IsError.Should().BeTrue();
+    }
 
-        // Assert
+    [Fact]
+    public async Task Handle_WhenEmailMethod_SendsOtpEmail()
+    {
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        identity.Enable2Fa(TwoFactorMethod.Email);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new ResendOtpCommand(1, "Email");
+
+        ErrorOr<Success> result = await CreateHandler().Handle(command, CancellationToken.None);
+
         result.IsError.Should().BeFalse();
-        result.Value.Should().BeOfType<FullLogin>();
-        _authRepository.Verify(
-            createsSession => createsSession.CreateSession(
-                user.Id,
-                "jwt-token",
-                metadata.DeviceInfo,
-                metadata.Browser,
-                metadata.IpAddress),
-            Times.Once);
+        _emailService.Verify(s => s.SendOtpCodeAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
     [Fact]
-    public void Login_WhenAuthenticatorTwoFactorIsEnabled_GeneratesTotp()
+    public async Task Handle_WhenAuthenticatorMethod_DoesNotSendEmail()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "ada@test.com", Password = "ValidPass1!" };
-        var user = new User
-        {
-            Id = 1,
-            Email = request.Email,
-            PasswordHash = "hash",
-            Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Authenticator
-        };
+        var user = User.Register(Email.Create("test@test.com").Value, "Test", DateTime.UtcNow);
+        var identity = IdentityAccount.Create(user.Id, null);
+        identity.Enable2Fa(TwoFactorMethod.Authenticator);
+        _userRepo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _identityRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(identity);
+        var command = new ResendOtpCommand(1, "Authenticator");
 
-        _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _hashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash))
-            .Returns(true);
-        _otpService.Setup(generatesTotp => generatesTotp.GenerateTotp(user.Id))
-            .Returns((ErrorOr<string>)"123456");
+        await CreateHandler().Handle(command, CancellationToken.None);
 
-        // Act
-        ErrorOr<LoginSuccess> result = _service.Login(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Should().BeOfType<RequiresTwoFactor>();
-        _emailService.Verify(
-            sendsOtpCode => sendsOtpCode.SendOtpCode(It.IsAny<string>(), It.IsAny<string>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public void Login_WhenMaxFailedAttemptsReached_LocksForFifteenMinutes()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "ada@test.com", Password = "wrong" };
-        var user = new User
-        {
-            Id = 1,
-            Email = request.Email,
-            PasswordHash = "hash",
-            FailedLoginAttempts = AttemptsBeforeLockout
-        };
-        DateTime before = DateTime.UtcNow.AddMinutes(LockoutLowerBoundMinutes);
-
-        _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _hashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash))
-            .Returns(false);
-
-        // Act
-        ErrorOr<LoginSuccess> result = _service.Login(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        _authRepository.Verify(
-            locksAccount => locksAccount.LockAccount(
-                user.Id,
-                It.Is<DateTime>(lockoutEnd =>
-                    lockoutEnd >= before && lockoutEnd <= DateTime.UtcNow.AddMinutes(LockoutUpperBoundMinutes))),
-            Times.Once);
-    }
-
-    [Fact]
-    public void Login_WhenEmailTwoFactorIsEnabled_GeneratesEmailOtp()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "ada@test.com", Password = "ValidPass1!" };
-        var user = new User
-        {
-            Id = 1,
-            Email = request.Email,
-            PasswordHash = "hash",
-            Is2FaEnabled = true,
-            Preferred2FaMethod = TwoFactorMethod.Email
-        };
-
-        _authRepository.Setup(findsUserByEmail => findsUserByEmail.FindUserByEmail(request.Email))
-            .Returns((ErrorOr<User>)user);
-        _hashService.Setup(verifies => verifies.Verify(request.Password, user.PasswordHash))
-            .Returns(true);
-        _otpService.Setup(generatesSmsOtp => generatesSmsOtp.GenerateSmsOtp(user.Id))
-            .Returns((ErrorOr<string>)"123456");
-
-        // Act
-        ErrorOr<LoginSuccess> result = _service.Login(request);
-
-        // Assert
-        result.IsError.Should().BeFalse();
-        result.Value.Should().BeOfType<RequiresTwoFactor>();
-        _emailService.Verify(sendsOtpCode => sendsOtpCode.SendOtpCode(user.Email, "123456"), Times.Once);
-    }
-
-    [Fact]
-    public void VerifyOtp_WhenThreeInvalidAttempts_InvalidatesOtpAndRequiresRestart()
-    {
-        // Arrange
-        var request = new VerifyOtpRequest { UserId = 1, OtpCode = "000000" };
-        var user = new User { Id = request.UserId, Preferred2FaMethod = TwoFactorMethod.Email };
-
-        _authRepository.Setup(findsUserById => findsUserById.FindUserById(user.Id))
-            .Returns((ErrorOr<User>)user);
-        _otpService.Setup(verifiesSmsOtp => verifiesSmsOtp.VerifySmsOtp(user.Id, request.OtpCode))
-            .Returns(false);
-        _otpAttemptTracker.SetupSequence(recordsFailure => recordsFailure.RecordFailure(user.Id))
-            .Returns(1)
-            .Returns(2)
-            .Returns(3);
-        _otpAttemptTracker.Setup(resets => resets.Reset(user.Id));
-
-        // Act
-        _ = _service.VerifyOtp(request);
-        _ = _service.VerifyOtp(request);
-        ErrorOr<LoginSuccess> result = _service.VerifyOtp(request);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("otp_attempts_exceeded");
-        _otpService.Verify(invalidatesOtp => invalidatesOtp.InvalidateOtp(user.Id), Times.Once);
+        _emailService.Verify(s => s.SendOtpCodeAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 }

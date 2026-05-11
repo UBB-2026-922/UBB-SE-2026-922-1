@@ -1,8 +1,8 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.DTOs.Auth;
+using BankingApp.Application.Features.Authentication.Dtos;
 using Enums;
-using Services;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
@@ -32,7 +32,7 @@ public class TwoFactorViewModelTests
         viewModel.State.Value.Should().Be(TwoFactorState.Idle);
         viewModel.HasError.Should().BeTrue();
         _authClientService.Verify(
-            service => service.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()),
+            s => s.VerifyOtpAsync(It.IsAny<int>(), It.IsAny<string>()),
             Times.Never);
     }
 
@@ -123,7 +123,7 @@ public class TwoFactorViewModelTests
 
         // Assert
         _authClientService.Verify(
-            service => service.ResendOtpAsync(It.IsAny<int>()),
+            s => s.ResendOtpAsync(It.IsAny<int>()),
             Times.Once);
     }
 
@@ -144,7 +144,7 @@ public class TwoFactorViewModelTests
         await viewModel.ResendOtp();
 
         // Assert
-        _countdownTimer.Verify(timer => timer.Start(), Times.Once);
+        _countdownTimer.Verify(t => t.Start(), Times.Once);
         viewModel.SecondsRemaining.Should().Be(ExpectedResendCooldownSeconds);
     }
 }

@@ -1,27 +1,20 @@
-﻿namespace BankingApp.Desktop.ViewModels;
+namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using Application.DTOs.Profile;
+using Application.Features.UserProfile.Dtos;
 using Enums;
-using Utilities;
 using BankingApp.Domain.Enums;
 
 /// <summary>
 ///     Coordinates profile-related operations by delegating to specialized sub-ViewModels
 ///     for personal info, security, notifications, and sessions.
 /// </summary>
-public partial class ProfileViewModel : IDisposable
+public partial class ProfileViewModel : ObservableObject, IDisposable
 {
     private bool _disposed;
 
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="ProfileViewModel" /> class.
-    /// </summary>
-    /// <param name="personalInfo">The personal info sub-ViewModel.</param>
-    /// <param name="security">The security sub-ViewModel.</param>
-    /// <param name="notifications">The notifications sub-ViewModel.</param>
-    /// <param name="sessions">The sessions sub-ViewModel.</param>
+    /// <summary>Initializes a new instance of the <see cref="ProfileViewModel"/> class.</summary>
     public ProfileViewModel(
         PersonalInfoViewModel personalInfo,
         SecurityViewModel security,
@@ -32,113 +25,53 @@ public partial class ProfileViewModel : IDisposable
         Security = security ?? throw new ArgumentNullException(nameof(security));
         Notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
         Sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
-        State = new ObservableState<ProfileState>(ProfileState.Idle);
     }
 
-    /// <summary>
-    ///     Gets the current profile workflow state.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public ObservableState<ProfileState> State { get; }
+    /// <summary>Gets or sets the current profile workflow state.</summary>
+    [ObservableProperty]
+    public partial ProfileState State { get; set; } = ProfileState.Idle;
 
-    /// <summary>
-    ///     Gets or sets a value indicating whether the View is currently initializing UI controls
-    ///     programmatically and toggle-changed events should be suppressed.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets or sets a value indicating whether the View is currently initializing controls programmatically.</summary>
     public bool IsInitializingView { get; set; }
 
-    /// <summary>
-    ///     Gets the personal info sub-ViewModel.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets the personal info sub-ViewModel.</summary>
     public PersonalInfoViewModel PersonalInfo { get; }
 
-    /// <summary>
-    ///     Gets the security sub-ViewModel.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets the security sub-ViewModel.</summary>
     public SecurityViewModel Security { get; }
 
-    /// <summary>
-    ///     Gets the notifications sub-ViewModel.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets the notifications sub-ViewModel.</summary>
     public NotificationsViewModel Notifications { get; }
 
-    /// <summary>
-    ///     Gets the sessions sub-ViewModel.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets the sessions sub-ViewModel.</summary>
     public SessionsViewModel Sessions { get; }
 
-    /// <summary>
-    ///     Gets the current user's profile details (convenience accessor).
-    /// </summary>
-    /// <value>
-    ///     The current user's profile details (convenience accessor).
-    /// </value>
+    /// <summary>Gets the current user's profile details (convenience accessor).</summary>
     public ProfileDto ProfileDto => PersonalInfo.ProfileDto;
 
-    /// <summary>
-    ///     Gets a value indicating whether phone-based 2FA is active.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets a value indicating whether phone-based 2FA is active.</summary>
     public bool IsPhoneTwoFactorActive =>
         ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Phone };
 
-    /// <summary>
-    ///     Gets a value indicating whether email-based 2FA is active.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
+    /// <summary>Gets a value indicating whether email-based 2FA is active.</summary>
     public bool IsEmailTwoFactorActive =>
         ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Email };
 
-    /// <summary>
-    ///     Loads the current user's profile, OAuth links, and notification preferences.
-    ///     Each request is issued sequentially; the load stops at the first failure.
-    /// </summary>
-    /// <returns><see langword="true" /> if all data loaded successfully; otherwise, <see langword="false" />.</returns>
+    /// <summary>Loads the current user's profile, OAuth links, and notification preferences.</summary>
     public async Task<bool> LoadProfile()
     {
-        State.SetValue(ProfileState.Loading);
-        if (!await PersonalInfo.LoadProfile())
+        State = ProfileState.Loading;
+        if (!await PersonalInfo.LoadProfile() || !await Notifications.LoadNotificationPreferences())
         {
-            State.SetValue(ProfileState.Error);
+            State = ProfileState.Error;
             return false;
         }
 
-        if (!await Notifications.LoadNotificationPreferences())
-        {
-            State.SetValue(ProfileState.Error);
-            return false;
-        }
-
-        State.SetValue(ProfileState.UpdateSuccess);
+        State = ProfileState.UpdateSuccess;
         return true;
     }
 
-    /// <summary>
-    ///     Enables 2FA and updates the local profile state when successful.
-    /// </summary>
-    /// <param name="method">The two-factor delivery method to enable.</param>
-    /// <returns><see langword="true" /> if 2FA was enabled; otherwise, <see langword="false" />.</returns>
+    /// <summary>Enables 2FA and updates the local profile state when successful.</summary>
     public async Task<bool> EnableTwoFactor(TwoFactorMethod method)
     {
         bool success = await Security.EnableTwoFactor(method);
@@ -152,10 +85,7 @@ public partial class ProfileViewModel : IDisposable
         return true;
     }
 
-    /// <summary>
-    ///     Disables 2FA and updates the local profile state when successful.
-    /// </summary>
-    /// <returns><see langword="true" /> if 2FA was disabled; otherwise, <see langword="false" />.</returns>
+    /// <summary>Disables 2FA and updates the local profile state when successful.</summary>
     public async Task<bool> DisableTwoFactor()
     {
         bool success = await Security.DisableTwoFactor();
@@ -169,11 +99,7 @@ public partial class ProfileViewModel : IDisposable
         return true;
     }
 
-    /// <summary>
-    ///     Sets email 2FA from the profile toggle and updates local state.
-    /// </summary>
-    /// <param name="enabled"><see langword="true" /> to enable email 2FA; otherwise, disable it.</param>
-    /// <returns><see langword="true" /> if the setting was updated; otherwise, <see langword="false" />.</returns>
+    /// <summary>Sets email 2FA from the profile toggle and updates local state.</summary>
     public async Task<bool> SetEmailTwoFactorEnabled(bool enabled)
     {
         bool success = await Security.SetTwoFactorEnabled(enabled);
@@ -187,21 +113,11 @@ public partial class ProfileViewModel : IDisposable
         return true;
     }
 
-    /// <summary>
-    ///     Toggles a notification preference and lets the notification model roll back on failure.
-    /// </summary>
-    /// <param name="preference">The preference to toggle.</param>
-    /// <param name="enabled">The new enabled value.</param>
-    /// <returns><see langword="true" /> if the preference was saved; otherwise, <see langword="false" />.</returns>
-    public Task<bool> ToggleNotificationPreference(NotificationPreferenceDto preference, bool enabled)
-    {
-        return Notifications.ToggleNotificationPreference(preference, enabled);
-    }
+    /// <summary>Toggles a notification preference and lets the notification model roll back on failure.</summary>
+    public Task<bool> ToggleNotificationPreference(NotificationPreferenceDto preference, bool enabled) =>
+        Notifications.ToggleNotificationPreference(preference, enabled);
 
-    /// <summary>
-    ///     Loads sessions for the currently loaded user.
-    /// </summary>
-    /// <returns>A result indicating whether sessions were loaded and why loading may have failed.</returns>
+    /// <summary>Loads sessions for the currently loaded user.</summary>
     public async Task<(bool Success, string? ErrorMessage)> LoadSessionsForCurrentUser()
     {
         int? userId = ProfileDto.UserId;
@@ -214,11 +130,7 @@ public partial class ProfileViewModel : IDisposable
         return loaded ? (true, null) : (false, "Failed to load active sessions.");
     }
 
-    /// <summary>
-    ///     Revokes a session and reloads the current user's active sessions.
-    /// </summary>
-    /// <param name="sessionId">The identifier of the session to revoke.</param>
-    /// <returns>A result indicating whether the revoke and reload flow completed.</returns>
+    /// <summary>Revokes a session and reloads the current user's active sessions.</summary>
     public async Task<(bool Success, string? ErrorMessage)> RevokeSessionAndReload(int sessionId)
     {
         bool revoked = await Sessions.RevokeSessionAsync(sessionId);
@@ -231,9 +143,7 @@ public partial class ProfileViewModel : IDisposable
         return loaded ? (true, null) : (false, errorMessage);
     }
 
-    /// <summary>
-    ///     Releases resources used by the view model.
-    /// </summary>
+    /// <summary>Releases resources used by the view model.</summary>
     public void Dispose()
     {
         if (_disposed)

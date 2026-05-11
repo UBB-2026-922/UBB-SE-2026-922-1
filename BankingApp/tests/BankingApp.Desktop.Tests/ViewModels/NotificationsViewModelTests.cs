@@ -1,8 +1,8 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.DTOs.Profile;
+using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using Services;
+using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using ErrorOr;

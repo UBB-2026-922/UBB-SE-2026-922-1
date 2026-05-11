@@ -1,16 +1,16 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
 using Enums;
-using Master;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
+using Navigation;
 
 /// <summary>
 ///     Displays the login form and reacts to authentication state changes produced by <see cref="LoginViewModel" />.
 /// </summary>
-public sealed partial class LoginView : IStateObserver<LoginState>
+public sealed partial class LoginView
 {
     private readonly IAppNavigationService _navigationService;
     private readonly LoginViewModel _viewModel;
@@ -30,7 +30,7 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         _navigationService = navigationService;
         InitializeComponent();
         _viewModel = viewModel;
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         if (registrationContext.JustRegistered)
         {
             registrationContext.JustRegistered = false;
@@ -40,14 +40,15 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         // Apply the ViewModel's current state immediately. The ViewModel is constructed
         // before the view subscribes, so any state set in the constructor (e.g.
         // ServerNotConfigured when ApiBaseUrl is missing) would otherwise be missed.
-        OnStateChanged(_viewModel.State.Value);
+        OnStateChanged(_viewModel.State);
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(LoginState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        OnStateChanged(state);
+        if (e.PropertyName == nameof(LoginViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
     }
 
     private void OnStateChanged(LoginState state)
@@ -66,7 +67,7 @@ public sealed partial class LoginView : IStateObserver<LoginState>
                     break;
                 case LoginState.Success:
                     EnableForm();
-                    _navigationService.NavigateTo<NavView>();
+                    _navigationService.NavigateTo<NavigationView>();
                     break;
                 case LoginState.Require2Fa:
                     EnableForm();
@@ -118,7 +119,7 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         LoadingRing.Visibility = Visibility.Collapsed;
     }
 
-    private async void SignInButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void SignInButton_Click(object sender, RoutedEventArgs e)
     {
         string? email = EmailBox.Text;
         string? password = PasswordBox.Password;
@@ -131,12 +132,12 @@ public sealed partial class LoginView : IStateObserver<LoginState>
         await _viewModel.Login(email, password);
     }
 
-    private void ForgotPasswordButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<ForgotPasswordView>();
     }
 
-    private void CreateAccountButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void CreateAccountButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<RegisterView>();
     }

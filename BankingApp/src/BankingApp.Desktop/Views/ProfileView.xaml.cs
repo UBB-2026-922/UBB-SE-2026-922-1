@@ -3,24 +3,24 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.DTOs.Profile;
+using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using Master;
-using Utilities;
+using BankingApp.Application.Common.Utilities;
 using ViewModels;
+using BankingApp.Domain.Common.Extensions;
 using BankingApp.Domain.Enums;
-using Domain.Extensions;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
+using Navigation;
 using Serilog;
 
 /// <summary>
 ///     Displays and manages the authenticated user's profile settings.
 /// </summary>
-public sealed partial class ProfileView : IStateObserver<ProfileState>
+public sealed partial class ProfileView
 {
     private const double EnabledFormOpacity = 1.0;
     private const double DisabledFormOpacity = 0.6;
@@ -70,13 +70,19 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         InitializeComponent();
         _viewModel = viewModel;
         _navigationService = navigationService;
-        _viewModel.State.AddObserver(this);
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         Loaded += OnPageLoaded;
     }
 
-    /// <inheritdoc />
-    /// <param name="state">The state value.</param>
-    public void Update(ProfileState state)
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(ProfileViewModel.State))
+        {
+            OnStateChanged(_viewModel.State);
+        }
+    }
+
+    private void OnStateChanged(ProfileState state)
     {
         DispatcherQueue.TryEnqueue(() =>
         {
@@ -115,29 +121,21 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
     }
 
     /// <inheritdoc />
-    /// <param name="navigationEventArgs">The navigation event arguments.</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Naming",
-        "CA1725:Parameter names should match base declaration",
-        Justification = "Uses a descriptive parameter name instead of a one-letter identifier.")]
-    protected override void OnNavigatedTo(NavigationEventArgs navigationEventArgs)
+    /// <param name="e">The e value.</param>
+    protected override void OnNavigatedTo(NavigationEventArgs e)
     {
-        base.OnNavigatedTo(navigationEventArgs);
+        base.OnNavigatedTo(e);
     }
 
     /// <inheritdoc />
-    /// <param name="navigationEventArgs">The navigation event arguments.</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage(
-        "Naming",
-        "CA1725:Parameter names should match base declaration",
-        Justification = "Uses a descriptive parameter name instead of a one-letter identifier.")]
-    protected override void OnNavigatedFrom(NavigationEventArgs navigationEventArgs)
+    /// <param name="e">The e value.</param>
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        base.OnNavigatedFrom(navigationEventArgs);
-        _viewModel.State.RemoveObserver(this);
+        base.OnNavigatedFrom(e);
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
-    private async void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
+    private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         ShowLoading(true);
         try
@@ -232,7 +230,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         AddressBox.Focus(FocusState.Programmatic);
     }
 
-    private async void UpdateButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void UpdateButton_Click(object sender, RoutedEventArgs e)
     {
         _isChangingPasswordFlow = false;
         _isTwoFactorFlow = false;
@@ -309,7 +307,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private async void SaveButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         ShowLoading(true);
         bool success = await _viewModel.PersonalInfo.UpdatePersonalInfo(
@@ -333,7 +331,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private async void ChangePasswordButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
     {
         _isChangingPasswordFlow = true;
         _isTwoFactorFlow = false;
@@ -380,7 +378,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private async void Handle2FAAction_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void Handle2FAAction_Click(object sender, RoutedEventArgs e)
     {
         var button = sender as Button;
         _pendingTwoFactorAuthType = button?.Tag.ToString() ?? string.Empty;
@@ -410,7 +408,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private async void TwoFactorToggle_Toggled(object sender, RoutedEventArgs routedEventArgs)
+    private async void TwoFactorToggle_Toggled(object sender, RoutedEventArgs e)
     {
         if (_viewModel.IsInitializingView)
         {
@@ -431,7 +429,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private async void NotificationToggle_Toggled(object sender, RoutedEventArgs routedEventArgs)
+    private async void NotificationToggle_Toggled(object sender, RoutedEventArgs e)
     {
         if (_viewModel.IsInitializingView)
         {
@@ -449,12 +447,12 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         }
     }
 
-    private void DashboardNavButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void DashboardNavButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<DashboardView>();
     }
 
-    private void LogoutButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void LogoutButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<LoginView>();
     }
@@ -560,7 +558,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         ErrorInfoBar.IsOpen = false;
     }
 
-    private void TabPersonalBtn_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void TabPersonalBtn_Click(object sender, RoutedEventArgs e)
     {
         PanelPersonal.Visibility = Visibility.Visible;
         PanelSecurity.Visibility = Visibility.Collapsed;
@@ -572,7 +570,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
     }
 
-    private void TabSecurityBtn_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void TabSecurityBtn_Click(object sender, RoutedEventArgs e)
     {
         PanelPersonal.Visibility = Visibility.Collapsed;
         PanelSecurity.Visibility = Visibility.Visible;
@@ -584,7 +582,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
     }
 
-    private void TabNotificationsBtn_Click(object sender, RoutedEventArgs routedEventArgs)
+    private void TabNotificationsBtn_Click(object sender, RoutedEventArgs e)
     {
         PanelPersonal.Visibility = Visibility.Collapsed;
         PanelSecurity.Visibility = Visibility.Collapsed;
@@ -661,7 +659,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
                 PrimaryTextBlue));
     }
 
-    private async void TabSessionsBtn_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void TabSessionsBtn_Click(object sender, RoutedEventArgs e)
     {
         PanelPersonal.Visibility = Visibility.Collapsed;
         PanelSecurity.Visibility = Visibility.Collapsed;
@@ -782,7 +780,7 @@ public sealed partial class ProfileView : IStateObserver<ProfileState>
         return card;
     }
 
-    private async void RevokeSessionButton_Click(object sender, RoutedEventArgs routedEventArgs)
+    private async void RevokeSessionButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { Tag: int sessionId })
         {

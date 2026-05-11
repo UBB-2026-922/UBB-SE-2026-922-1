@@ -1,6 +1,6 @@
-﻿namespace BankingApp.Infrastructure.Tests.Services.Security;
+namespace BankingApp.Infrastructure.Tests.Services.Security;
 
-using BankingApp.Infrastructure.Services.Security;
+using BankingApp.Infrastructure.Common.Security;
 using ErrorOr;
 
 public class HashServiceTests
