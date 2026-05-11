@@ -55,7 +55,7 @@ public class SecurityViewModelTests
 
         // Assert
         Assert.True(result.Success);
-        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class SecurityViewModelTests
         // Assert
         Assert.False(result.Success);
         Assert.Equal(UserMessages.Security.IncorrectPassword, result.ErrorMessage);
-        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+        Assert.Equal(ProfileState.Error, _viewModel.State);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class SecurityViewModelTests
         // Assert
         Assert.False(result.Success);
         Assert.Equal(UserMessages.Security.UnexpectedError, result.ErrorMessage);
-        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+        Assert.Equal(ProfileState.Error, _viewModel.State);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class SecurityViewModelTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class SecurityViewModelTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public class SecurityViewModelTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public class SecurityViewModelTests
 
         // Assert
         Assert.True(result);
-        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State.Value);
+        Assert.Equal(ProfileState.UpdateSuccess, _viewModel.State);
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public class SecurityViewModelTests
 
         // Assert
         Assert.False(result);
-        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+        Assert.Equal(ProfileState.Error, _viewModel.State);
     }
 
     [Fact]
@@ -189,6 +189,6 @@ public class SecurityViewModelTests
 
         // Assert
         Assert.False(result);
-        Assert.Equal(ProfileState.Error, _viewModel.State.Value);
+        Assert.Equal(ProfileState.Error, _viewModel.State);
     }
 }

@@ -80,7 +80,7 @@ public class DashboardViewModelTests
 
         // Assert - result and state
         result.IsError.Should().BeFalse();
-        _viewModel.State.Value.Should().Be(DashboardState.Success);
+        _viewModel.State.Should().Be(DashboardState.Success);
         _viewModel.ErrorMessage.Should().BeEmpty();
 
         // Assert - current user
@@ -127,7 +127,7 @@ public class DashboardViewModelTests
 
         // Assert
         result.IsError.Should().BeTrue();
-        _viewModel.State.Value.Should().Be(DashboardState.Error);
+        _viewModel.State.Should().Be(DashboardState.Error);
         _viewModel.ErrorMessage.Should().Be(UserMessages.Dashboard.IncompleteResponse);
     }
 
@@ -144,7 +144,7 @@ public class DashboardViewModelTests
 
         // Assert
         result.IsError.Should().BeTrue();
-        _viewModel.State.Value.Should().Be(DashboardState.Error);
+        _viewModel.State.Should().Be(DashboardState.Error);
         _viewModel.ErrorMessage.Should().Be(UserMessages.Dashboard.SessionExpired);
     }
 
@@ -161,7 +161,7 @@ public class DashboardViewModelTests
 
         // Assert
         result.IsError.Should().BeTrue();
-        _viewModel.State.Value.Should().Be(DashboardState.Error);
+        _viewModel.State.Should().Be(DashboardState.Error);
         _viewModel.ErrorMessage.Should().Be(UserMessages.Dashboard.NotFound);
     }
 
@@ -178,7 +178,7 @@ public class DashboardViewModelTests
 
         // Assert
         result.IsError.Should().BeTrue();
-        _viewModel.State.Value.Should().Be(DashboardState.Error);
+        _viewModel.State.Should().Be(DashboardState.Error);
         _viewModel.ErrorMessage.Should().Be(UserMessages.Dashboard.LoadFailed);
     }
 

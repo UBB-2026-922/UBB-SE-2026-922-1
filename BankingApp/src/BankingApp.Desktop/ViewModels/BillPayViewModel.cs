@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Application.Features.BillPayments.Dtos;
 using Application.Features.Billers.Dtos;
+using Microsoft.UI.Xaml;
 using Navigation;
 using Services;
 using Views;
@@ -77,7 +78,7 @@ public partial class BillPayViewModel : ObservableObject
     /// <summary>Gets or sets the saved billers for the current user.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSavedBillers))]
-public partial ObservableCollection<SavedBillerDto> SavedBillers { get; set; } = null!;
+    public partial ObservableCollection<SavedBillerDto> SavedBillers { get; set; } = null!;
 
     /// <summary>Gets or sets the source accounts available for payment.</summary>
     [ObservableProperty]
@@ -86,7 +87,7 @@ public partial ObservableCollection<SavedBillerDto> SavedBillers { get; set; } =
     /// <summary>Gets or sets the currently selected biller.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedBillerName))]
-public partial BillerDto? SelectedBiller { get; set; } = default!;
+    public partial BillerDto? SelectedBiller { get; set; } = default!;
 
     partial void OnSelectedBillerChanged(BillerDto? value)
     {
@@ -116,7 +117,7 @@ public partial BillerDto? SelectedBiller { get; set; } = default!;
     [NotifyPropertyChangedFor(nameof(Total))]
     [NotifyPropertyChangedFor(nameof(TotalText))]
     [NotifyPropertyChangedFor(nameof(AmountAsDouble))]
-public partial decimal Amount { get; set; } = default!;
+    public partial decimal Amount { get; set; } = default!;
 
     /// <summary>Gets or sets the bill amount as a <see cref="double"/> for XAML bindings.</summary>
     public double AmountAsDouble
@@ -138,7 +139,7 @@ public partial decimal Amount { get; set; } = default!;
     [NotifyPropertyChangedFor(nameof(ReviewFeeText))]
     [NotifyPropertyChangedFor(nameof(Total))]
     [NotifyPropertyChangedFor(nameof(TotalText))]
-public partial decimal Fee { get; set; } = default!;
+    public partial decimal Fee { get; set; } = default!;
 
     /// <summary>Gets or sets the receipt number returned after a successful payment.</summary>
     [ObservableProperty]
@@ -146,7 +147,12 @@ public partial decimal Fee { get; set; } = default!;
 
     /// <summary>Gets or sets the current user-facing error message.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ErrorMessageVisibility))]
     public partial string ErrorMessage { get; set; } = string.Empty;
+
+    /// <summary>Gets the visibility of the error message panel.</summary>
+    public Visibility ErrorMessageVisibility =>
+        string.IsNullOrWhiteSpace(ErrorMessage) ? Visibility.Collapsed : Visibility.Visible;
 
     /// <summary>Gets or sets a value indicating whether two-factor confirmation is required.</summary>
     [ObservableProperty]
