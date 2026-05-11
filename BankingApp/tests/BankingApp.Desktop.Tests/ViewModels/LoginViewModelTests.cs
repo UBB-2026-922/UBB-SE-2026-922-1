@@ -9,12 +9,12 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 public class LoginViewModelTests
 {
-    private readonly Mock<IAuthClientService> _authClientService = new();
+    private readonly Mock<IAuthClientService> _authServiceMock = new();
 
     public LoginViewModelTests()
     {
-        _authClientService.Setup(authClientService => authClientService.EnsureConfigured()).Returns(Result.Success);
-        _authClientService.SetupProperty(authClientService => authClientService.CurrentUserId);
+        _authServiceMock.Setup(mock => mock.EnsureConfigured()).Returns(Result.Success);
+        _authServiceMock.SetupProperty(mock => mock.CurrentUserId);
     }
 
     [Fact]
@@ -33,86 +33,90 @@ public class LoginViewModelTests
     }
 
     [Fact]
-    public async Task Login_WhenSuccess_SetsStateToSuccessAndSetsUserId()
+    public async Task Login_WhenSuccess_ShouldSetLoginStateToSuccessAndSetUserId()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
         var response = new LoginSuccessResponse { Token = "test-token", UserId = 1, Requires2Fa = false };
 
-        _authClientService
-            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
             .ReturnsAsync(response);
-        _authClientService.Setup(authClientService => authClientService.SetToken(It.IsAny<string>()));
+        _authServiceMock.Setup(mock => mock.SetToken("test-token"));
 
         // Act
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.Success);
-        _authClientService.Object.CurrentUserId.Should().Be(1);
+        viewModel.State.Should().Be(LoginState.Success);
+        _authServiceMock.Object.CurrentUserId.Should().Be(1);
+        _authServiceMock.VerifyAll();
     }
 
     [Fact]
-    public async Task Login_WhenRequires2FA_SetsStateToRequire2Fa()
+    public async Task Login_WhenRequires2FA_ShouldSetLoginStateToRequire2Fa()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
         var response = new LoginSuccessResponse { UserId = 1, Requires2Fa = true };
 
-        _authClientService
-            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
             .ReturnsAsync(response);
 
         // Act
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.Require2Fa);
-        _authClientService.Object.CurrentUserId.Should().Be(1);
+        viewModel.State.Should().Be(LoginState.Require2Fa);
+        _authServiceMock.Object.CurrentUserId.Should().Be(1);
+        _authServiceMock.VerifyAll();
     }
 
     [Fact]
-    public async Task Login_WhenUnauthorized_SetsStateToInvalidCredentials()
+    public async Task Login_WhenAuthServiceReturnsUnauthorized_ShouldSetLoginStateToInvalidCredentials()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
 
-        _authClientService
-            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
             .ReturnsAsync(Error.Unauthorized());
 
         // Act
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.InvalidCredentials);
+        viewModel.State.Should().Be(LoginState.InvalidCredentials);
+        _authServiceMock.VerifyAll();
     }
 
     [Fact]
-    public async Task Login_WhenServerError_SetsErrorState()
+    public async Task Login_WhenAuthServiceReturnsFailure_ShouldSetLoginStateToError()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
 
-        _authClientService
-            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
             .ReturnsAsync(Error.Failure());
 
         // Act
         await viewModel.Login("test@test.com", "password");
 
         // Assert
-        viewModel.State.Value.Should().Be(LoginState.Error);
+        viewModel.State.Should().Be(LoginState.Error);
+        _authServiceMock.VerifyAll();
     }
 
     [Fact]
-    public async Task Login_WhenForbidden_SetsStateToAccountLocked()
+    public async Task Login_WhenAuthServiceReturnsForbidden_ShouldSetLoginStateToAccountLocked()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authClientService.Object, NullLogger<LoginViewModel>.Instance);
+        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
 
-        _authClientService
-            .Setup(authClientService => authClientService.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
             .ReturnsAsync(Error.Forbidden());
 
         // Act
@@ -120,5 +124,6 @@ public class LoginViewModelTests
 
         // Assert
         viewModel.State.Should().Be(LoginState.AccountLocked);
+        _authServiceMock.VerifyAll();
     }
 }
