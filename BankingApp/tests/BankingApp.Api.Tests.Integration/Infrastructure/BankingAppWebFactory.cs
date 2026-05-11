@@ -1,5 +1,3 @@
-namespace BankingApp.Api.Tests.Integration.Infrastructure;
-
 using BankingApp.Api.HostedServices;
 using BankingApp.Application.Common.Contracts.Security;
 using BankingApp.Domain.Repositories;
@@ -11,6 +9,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
+
+namespace BankingApp.Api.Tests.Integration.Infrastructure;
 
 public class BankingAppWebFactory : WebApplicationFactory<Program>
 {
@@ -57,7 +57,7 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     private static void ReplaceService<TService>(IServiceCollection services, TService implementation)
         where TService : class
     {
-        List<ServiceDescriptor> descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
+        var descriptors = services.Where(d => d.ServiceType == typeof(TService)).ToList();
         foreach (ServiceDescriptor descriptor in descriptors)
         {
             services.Remove(descriptor);
@@ -69,7 +69,7 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
     private static void RemoveHostedService<THostedService>(IServiceCollection services)
         where THostedService : class, IHostedService
     {
-        List<ServiceDescriptor> descriptors = services
+        var descriptors = services
             .Where(descriptor => descriptor.ServiceType == typeof(IHostedService) &&
                                  descriptor.ImplementationType == typeof(THostedService))
             .ToList();
