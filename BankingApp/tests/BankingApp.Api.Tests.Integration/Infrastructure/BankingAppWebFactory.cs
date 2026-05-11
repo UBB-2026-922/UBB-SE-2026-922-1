@@ -2,6 +2,7 @@ using BankingApp.Api.HostedServices;
 using BankingApp.Application.Common.Contracts.Security;
 using BankingApp.Domain.Repositories;
 using MediatR;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -51,6 +52,9 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
             ReplaceService(services, SenderMock.Object);
             ReplaceService(services, JwtServiceMock.Object);
             ReplaceService(services, IdentityRepositoryMock.Object);
+
+            services.AddAuthentication("IntegrationTest")
+                .AddScheme<AuthenticationSchemeOptions, PassThroughAuthHandler>("IntegrationTest", _ => { });
         });
     }
 
