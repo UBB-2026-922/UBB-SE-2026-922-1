@@ -71,6 +71,6 @@ public class TransferController : ApiControllerBase
     [HttpGet("fx-preview")]
     public async Task<IActionResult> GetFxPreview([FromQuery] string from, [FromQuery] string to, [FromQuery] decimal amount, CancellationToken cancellationToken)
     {
-        return ToActionResult(await Sender.Send(new GetFxPreviewQuery(from, to, amount), cancellationToken), Ok);
+        return ToActionResult(await Sender.Send(new GetForexPreviewQuery(from, to, amount), cancellationToken), Ok);
     }
 }

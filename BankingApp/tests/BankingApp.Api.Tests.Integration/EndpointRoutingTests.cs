@@ -171,7 +171,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
 
     private static IdentityAccount CreateActiveIdentity(int userId, string token)
     {
-        IdentityAccount identity = IdentityAccount.Create(userId, null);
+        var identity = IdentityAccount.Create(userId, null);
         identity.OpenSession(token, DateTime.UtcNow.AddMinutes(5), DateTime.UtcNow);
         return identity;
     }
