@@ -25,7 +25,8 @@ public class BillPaymentsController : ApiControllerBase
     [HttpGet("requires-2fa")]
     public IActionResult Requires2Fa([FromQuery] decimal amount)
     {
-        return Ok(new RequiresTwoFaResponse { Required = false });
+        bool required = amount >= 1000m;
+        return Ok(new RequiresTwoFaResponse { Required = required });
     }
 
     [HttpPost("pay")]
