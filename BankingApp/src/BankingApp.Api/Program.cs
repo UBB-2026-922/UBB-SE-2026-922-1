@@ -99,7 +99,9 @@ try
     // Placed before middleware that may short-circuit the pipeline so all
     // requests are captured, including those rejected by session validation.
     application.UseSerilogRequestLogging();
+    application.UseAuthentication();
     application.UseMiddleware<SessionValidationMiddleware>();
+    application.UseAuthorization();
     application.MapControllers();
     application.Run();
 }

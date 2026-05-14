@@ -1,6 +1,7 @@
 namespace BankingApp.Api.Middleware;
 
 using System.Globalization;
+using System.Security.Claims;
 using Application.Common.Contracts.Security;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
 using BankingApp.Domain.Aggregates.IdentityAggregate.Entities;
@@ -66,6 +67,10 @@ public class SessionValidationMiddleware
         }
 
         context.Items["UserId"] = userIdResult.Value;
+        ClaimsIdentity claimsIdentity = new(
+            [new Claim("userId", userIdResult.Value.ToString(CultureInfo.InvariantCulture))],
+            authenticationType: "Session");
+        context.User = new ClaimsPrincipal(claimsIdentity);
         await _next(context);
     }
 

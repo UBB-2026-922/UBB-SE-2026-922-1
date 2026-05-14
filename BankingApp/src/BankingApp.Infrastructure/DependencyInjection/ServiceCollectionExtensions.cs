@@ -12,10 +12,13 @@ using Common.Security;
 using ExchangeRates;
 using Persistence;
 using Persistence.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 public static class ServiceCollectionExtensions
 {
@@ -28,6 +31,21 @@ public static class ServiceCollectionExtensions
                            ?? throw new InvalidOperationException("Configuration value 'Jwt:Secret' is missing.");
         string otpSecret = configuration["Otp:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
+
+        services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                };
+            });
+        services.AddAuthorization();
 
         services.Configure<SmtpSettings>(settings =>
         {
