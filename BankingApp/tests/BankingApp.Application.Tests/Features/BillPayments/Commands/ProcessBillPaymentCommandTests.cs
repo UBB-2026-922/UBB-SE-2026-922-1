@@ -28,11 +28,11 @@ public sealed class ProcessBillPaymentCommandTests
 
     public ProcessBillPaymentCommandTests()
     {
-        _accountRepositoryMock = MockFactory.CreateAccountRepositoryMock();
-        _billPaymentRepositoryMock = MockFactory.CreateBillPaymentRepositoryMock();
-        _billerRepositoryMock = MockFactory.CreateBillerRepositoryMock();
-        _otpServiceMock = MockFactory.CreateOtpServiceMock();
-        _unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
+        _accountRepositoryMock = new Mock<IAccountRepository>();
+        _billPaymentRepositoryMock = new Mock<IBillPaymentRepository>();
+        _billerRepositoryMock = new Mock<IBillerRepository>();
+        _otpServiceMock = new Mock<IOtpService>();
+        _unitOfWorkMock = new Mock<IUnitOfWork>();
         _clockMock = MockFactory.CreateSystemClockMock();
         _loggerMock = new Mock<ILogger<ProcessBillPaymentCommandHandler>>();
 
@@ -64,6 +64,8 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AccountErrors.NotFound);
+
+        _accountRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -77,6 +79,8 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AccountErrors.NotFound);
+
+        _accountRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -90,6 +94,8 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BillPaymentErrors.AccountNotActive);
+
+        _accountRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -104,6 +110,9 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BillPaymentErrors.NotFound);
+
+        _accountRepositoryMock.VerifyAll();
+        _billerRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -120,6 +129,9 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BillPaymentErrors.TwoFaRequired);
+
+        _accountRepositoryMock.VerifyAll();
+        _billerRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -137,6 +149,10 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BillPaymentErrors.InvalidTwoFaToken);
+
+        _accountRepositoryMock.VerifyAll();
+        _billerRepositoryMock.VerifyAll();
+        _otpServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -153,6 +169,9 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AccountErrors.InsufficientFunds);
+
+        _accountRepositoryMock.VerifyAll();
+        _billerRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -170,6 +189,9 @@ public sealed class ProcessBillPaymentCommandTests
         result.IsError.Should().BeFalse();
         account.Balance.Amount.Should().Be(99.50m);
         account.Transactions.Should().ContainSingle(transaction => transaction.Type == "BILL_PAYMENT" && transaction.Amount.Amount == 100m);
+
+        _accountRepositoryMock.VerifyAll();
+        _billerRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -194,6 +216,10 @@ public sealed class ProcessBillPaymentCommandTests
         savedPayment!.Status.Should().Be(BillPaymentStatus.Completed);
         savedPayment.ReceiptNumber.Should().StartWith("RCP-");
         savedPayment.LedgerTransactionId.Should().NotBeNull();
+
+        _accountRepositoryMock.VerifyAll();
+        _billerRepositoryMock.VerifyAll();
+        _billPaymentRepositoryMock.VerifyAll();
     }
 
     [Fact]
@@ -210,5 +236,8 @@ public sealed class ProcessBillPaymentCommandTests
 
         result.IsError.Should().BeFalse();
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        _accountRepositoryMock.VerifyAll();
+        _billerRepositoryMock.VerifyAll();
     }
 }
