@@ -58,7 +58,7 @@ public sealed class ProcessBillPaymentCommandTests
     public async Task Handle_WhenAccountNotFound_ShouldReturnAccountNotFoundError()
     {
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m, null);
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync((Account?)null);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync((Account?)null);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
@@ -71,7 +71,7 @@ public sealed class ProcessBillPaymentCommandTests
     {
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m, null);
         Account account = CreateTestAccount(99, AccountStatus.Active, Currency.FromCode("USD"));
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
@@ -84,7 +84,7 @@ public sealed class ProcessBillPaymentCommandTests
     {
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m, null);
         Account account = CreateTestAccount(1, AccountStatus.Closed, Currency.FromCode("USD"));
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
@@ -97,8 +97,8 @@ public sealed class ProcessBillPaymentCommandTests
     {
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m, null);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"));
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
-        _billerRepositoryMock.Setup(repo => repo.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync((Biller?)null);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync((Biller?)null);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
@@ -113,8 +113,8 @@ public sealed class ProcessBillPaymentCommandTests
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"));
         var biller = new Biller { Id = 3, Name = "Test Biller" };
         
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
-        _billerRepositoryMock.Setup(repo => repo.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
@@ -129,8 +129,8 @@ public sealed class ProcessBillPaymentCommandTests
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"));
         var biller = new Biller { Id = 3, Name = "Test Biller" };
         
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
-        _billerRepositoryMock.Setup(repo => repo.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
         _otpServiceMock.Setup(service => service.VerifyTotp(1, "invalid")).Returns(false);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
@@ -146,8 +146,8 @@ public sealed class ProcessBillPaymentCommandTests
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 50m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
         
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
-        _billerRepositoryMock.Setup(repo => repo.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
@@ -162,8 +162,8 @@ public sealed class ProcessBillPaymentCommandTests
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
         
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
-        _billerRepositoryMock.Setup(repo => repo.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
@@ -179,11 +179,11 @@ public sealed class ProcessBillPaymentCommandTests
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
         
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
-        _billerRepositoryMock.Setup(repo => repo.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
         BillPayment? savedPayment = null;
-        _billPaymentRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<BillPayment>(), It.IsAny<CancellationToken>()))
+        _billPaymentRepositoryMock.Setup(repository => repository.AddAsync(It.IsAny<BillPayment>(), It.IsAny<CancellationToken>()))
             .Callback<BillPayment, CancellationToken>((payment, token) => savedPayment = payment)
             .Returns(Task.CompletedTask);
 
@@ -203,8 +203,8 @@ public sealed class ProcessBillPaymentCommandTests
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
         
-        _accountRepositoryMock.Setup(repo => repo.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
-        _billerRepositoryMock.Setup(repo => repo.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
+        _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
+        _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
         ErrorOr<BankingApp.Application.Features.BillPayments.Dtos.BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
 
