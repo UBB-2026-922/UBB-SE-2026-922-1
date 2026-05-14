@@ -156,7 +156,7 @@ public sealed class ProcessBillPaymentCommandTests
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldDebitAccountAndCreateBillPaymentTransaction()
+    public async Task Handle_WhenAccountHasSufficientFunds_ShouldDebitAccountAndCreateBillPaymentTransaction()
     {
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 100m, null);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
@@ -173,7 +173,7 @@ public sealed class ProcessBillPaymentCommandTests
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldMarkBillPaymentAsProcessed()
+    public async Task Handle_WhenAccountHasSufficientFunds_ShouldMarkBillPaymentAsProcessed()
     {
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 50m, null);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
@@ -197,7 +197,7 @@ public sealed class ProcessBillPaymentCommandTests
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldSaveChanges()
+    public async Task Handle_WhenAccountHasSufficientFunds_ShouldSaveChanges()
     {
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 50m, null);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
