@@ -1,76 +1,152 @@
 namespace BankingApp.Domain.Tests.Aggregates.BillPaymentAggregate;
 
+using BankingApp.Domain.Aggregates.BillPaymentAggregate;
+using BankingApp.Domain.Common.Errors;
+using BankingApp.Domain.Enums;
+using ErrorOr;
+using NodaMoney;
+
 public sealed class BillPaymentTests
 {
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Create_WhenAmountIsZero_ShouldReturnInvalidAmountError()
     {
-        throw new NotImplementedException();
+        var amount = new Money(0m, Currency.FromCode("USD"));
+        var fee = new Money(1m, Currency.FromCode("USD"));
+
+        ErrorOr<BillPayment> result = BillPayment.Create(1, 1, 1, "REF123", amount, fee, DateTime.UtcNow);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(BillPaymentErrors.InvalidAmount);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Create_WhenAmountIsNegative_ShouldReturnInvalidAmountError()
     {
-        throw new NotImplementedException();
+        var amount = new Money(-5m, Currency.FromCode("USD"));
+        var fee = new Money(1m, Currency.FromCode("USD"));
+
+        ErrorOr<BillPayment> result = BillPayment.Create(1, 1, 1, "REF123", amount, fee, DateTime.UtcNow);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(BillPaymentErrors.InvalidAmount);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Create_WhenFeeIsNegative_ShouldReturnInvalidFeeError()
     {
-        throw new NotImplementedException();
+        var amount = new Money(10m, Currency.FromCode("USD"));
+        var fee = new Money(-1m, Currency.FromCode("USD"));
+
+        ErrorOr<BillPayment> result = BillPayment.Create(1, 1, 1, "REF123", amount, fee, DateTime.UtcNow);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(BillPaymentErrors.InvalidFee);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Create_WhenCurrenciesMismatch_ShouldReturnCurrencyMismatchError()
     {
-        throw new NotImplementedException();
+        var amount = new Money(10m, Currency.FromCode("USD"));
+        var fee = new Money(1m, Currency.FromCode("EUR"));
+
+        ErrorOr<BillPayment> result = BillPayment.Create(1, 1, 1, "REF123", amount, fee, DateTime.UtcNow);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(AccountErrors.CurrencyMismatch);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Create_WhenBillerReferenceIsEmpty_ShouldReturnInvalidReferenceError()
     {
-        throw new NotImplementedException();
+        var amount = new Money(10m, Currency.FromCode("USD"));
+        var fee = new Money(1m, Currency.FromCode("USD"));
+
+        ErrorOr<BillPayment> result = BillPayment.Create(1, 1, 1, string.Empty, amount, fee, DateTime.UtcNow);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(BillPaymentErrors.InvalidReference);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Create_WhenBillerReferenceIsWhitespace_ShouldReturnInvalidReferenceError()
     {
-        throw new NotImplementedException();
+        var amount = new Money(10m, Currency.FromCode("USD"));
+        var fee = new Money(1m, Currency.FromCode("USD"));
+
+        ErrorOr<BillPayment> result = BillPayment.Create(1, 1, 1, "   ", amount, fee, DateTime.UtcNow);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(BillPaymentErrors.InvalidReference);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Create_WhenValidParams_ShouldCreateWithPendingStatus()
     {
-        throw new NotImplementedException();
+        var amount = new Money(10m, Currency.FromCode("USD"));
+        var fee = new Money(1m, Currency.FromCode("USD"));
+        DateTime createdAt = DateTime.UtcNow;
+
+        ErrorOr<BillPayment> result = BillPayment.Create(1, 2, 3, " REF123 ", amount, fee, createdAt);
+
+        result.IsError.Should().BeFalse();
+        result.Value.UserId.Should().Be(1);
+        result.Value.SourceAccountId.Should().Be(2);
+        result.Value.BillerId.Should().Be(3);
+        result.Value.BillerReference.Should().Be("REF123");
+        result.Value.Amount.Should().Be(amount);
+        result.Value.Fee.Should().Be(fee);
+        result.Value.Status.Should().Be(BillPaymentStatus.Pending);
+        result.Value.CreatedAt.Should().Be(createdAt);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void RequiresTwoFactorAuthentication_WhenAmountMeetsThreshold_ShouldReturnTrue()
     {
-        throw new NotImplementedException();
+        var amount = new Money(1000m, Currency.FromCode("USD"));
+
+        bool requires2Fa = BillPayment.RequiresTwoFactorAuthentication(amount);
+
+        requires2Fa.Should().BeTrue();
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void RequiresTwoFactorAuthentication_WhenAmountIsBelowThreshold_ShouldReturnFalse()
     {
-        throw new NotImplementedException();
+        var amount = new Money(999.99m, Currency.FromCode("USD"));
+
+        bool requires2Fa = BillPayment.RequiresTwoFactorAuthentication(amount);
+
+        requires2Fa.Should().BeFalse();
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void MarkProcessed_WhenCalled_ShouldSetStatusToCompleted()
     {
-        throw new NotImplementedException();
+        BillPayment payment = BillPayment.Create(1, 1, 1, "REF", new Money(10m, "USD"), new Money(1m, "USD"), DateTime.UtcNow).Value;
+
+        payment.MarkProcessed("RCP-123", 456);
+
+        payment.Status.Should().Be(BillPaymentStatus.Completed);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void MarkProcessed_WhenCalled_ShouldSetReceiptNumber()
     {
-        throw new NotImplementedException();
+        BillPayment payment = BillPayment.Create(1, 1, 1, "REF", new Money(10m, "USD"), new Money(1m, "USD"), DateTime.UtcNow).Value;
+
+        payment.MarkProcessed("RCP-123", 456);
+
+        payment.ReceiptNumber.Should().Be("RCP-123");
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void MarkProcessed_WhenCalled_ShouldSetLedgerTransactionId()
     {
-        throw new NotImplementedException();
+        BillPayment payment = BillPayment.Create(1, 1, 1, "REF", new Money(10m, "USD"), new Money(1m, "USD"), DateTime.UtcNow).Value;
+
+        payment.MarkProcessed("RCP-123", 456);
+
+        payment.LedgerTransactionId.Should().Be(456);
     }
 }

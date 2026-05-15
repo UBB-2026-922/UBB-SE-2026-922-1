@@ -1,22 +1,37 @@
 namespace BankingApp.Application.Tests.Features.BillPayments;
 
+using BankingApp.Application.Features.BillPayments;
+using NodaMoney;
+
 public sealed class BillPaymentFeePolicyTests
 {
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Calculate_WhenAmountIsAtOrBelowThreshold_ShouldReturnLowTierFee()
     {
-        throw new NotImplementedException();
+        var currency = Currency.FromCode("USD");
+        
+        Money fee = BillPaymentFeePolicy.Calculate(50m, currency);
+        
+        fee.Should().Be(new Money(0.50m, currency));
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Calculate_WhenAmountIsAboveThreshold_ShouldReturnHighTierFee()
     {
-        throw new NotImplementedException();
+        var currency = Currency.FromCode("USD");
+        
+        Money fee = BillPaymentFeePolicy.Calculate(100.01m, currency);
+        
+        fee.Should().Be(new Money(1.00m, currency));
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Calculate_WhenAmountEqualsThreshold_ShouldReturnLowTierFee()
     {
-        throw new NotImplementedException();
+        var currency = Currency.FromCode("USD");
+        
+        Money fee = BillPaymentFeePolicy.Calculate(100m, currency);
+        
+        fee.Should().Be(new Money(0.50m, currency));
     }
 }
