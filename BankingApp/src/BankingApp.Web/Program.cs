@@ -4,6 +4,9 @@ using BankingApp.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
+using BankingApp.Application.DependencyInjection;
+using BankingApp.Infrastructure.DependencyInjection;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 string apiBaseUrl = builder.Configuration["ApiBaseUrl"]
@@ -22,6 +25,29 @@ builder.Services.AddHttpClient("BankingAppApi", client =>
 builder.Services.AddHttpClient<IBeneficiaryService, BeneficiaryService>(client =>
     client.BaseAddress = new Uri(apiBaseUrl));
 
+// ── Cookie authentication for the MVC front-end ──────────────────────────────
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    });
+builder.Services.AddAuthorization();
+
+// ── Application + Infrastructure ─────────────────────────────────────────────
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// ── HTTP session (used by TempData serializer) ────────────────────────────────
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 WebApplication app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -31,8 +57,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
-
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -137,7 +164,6 @@ app.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();
 return;

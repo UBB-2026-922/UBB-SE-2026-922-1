@@ -26,7 +26,8 @@ public sealed class GetBillPaymentHistoryQueryHandler(IBillPaymentRepository bil
                 ReceiptNumber = p.ReceiptNumber,
                 Fee = p.Fee.Amount,
                 Amount = p.Amount.Amount,
-                Status = p.Status.ToString()
+                Status = p.Status.ToString(),
+                CreatedAt = p.CreatedAt
             })
             .ToList();
     }
