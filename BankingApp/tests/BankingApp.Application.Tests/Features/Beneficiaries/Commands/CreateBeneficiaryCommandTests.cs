@@ -3,7 +3,7 @@ namespace BankingApp.Application.Tests.Features.Beneficiaries.Commands;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.Common.Contracts; // Adăugat pentru IUnitOfWork
+using BankingApp.Application.Common.Contracts;
 using BankingApp.Application.Features.Beneficiaries.Commands;
 using BankingApp.Application.Features.Beneficiaries.Dtos;
 using BankingApp.Domain.Aggregates.BeneficiaryAggregate;
@@ -16,8 +16,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
-using MockFactory = BankingApp.Application.Tests.MockFactory;
-
 public sealed class CreateBeneficiaryCommandTests
 {
     private const int TestUserId = 1;
@@ -27,13 +25,17 @@ public sealed class CreateBeneficiaryCommandTests
     public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidIbanError()
     {
         // Arrange
-        var handler = new CreateBeneficiaryCommandHandler(
-            MockFactory.CreateBeneficiaryRepositoryMock().Object,
-            MockFactory.CreateUnitOfWorkMock().Object,
-            MockFactory.CreateSystemClockMock().Object,
+        Mock<IBeneficiaryRepository> beneficiaryRepositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+        Mock<ISystemClock> clockMock = new();
+
+        CreateBeneficiaryCommandHandler handler = new(
+            beneficiaryRepositoryMock.Object,
+            unitOfWorkMock.Object,
+            clockMock.Object,
             NullLogger<CreateBeneficiaryCommandHandler>.Instance);
 
-        var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", "invalid-iban", "Bank");
+        CreateBeneficiaryCommand command = new(TestUserId, "John Doe", "invalid-iban", "Bank");
 
         // Act
         ErrorOr<BeneficiaryDto> result = await handler.Handle(command, CancellationToken.None);
@@ -41,14 +43,23 @@ public sealed class CreateBeneficiaryCommandTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(TransferErrors.InvalidIban);
+
+        beneficiaryRepositoryMock.VerifyAll();
+        beneficiaryRepositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
+        clockMock.VerifyAll();
+        clockMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Handle_WhenBeneficiaryWithSameIbanAlreadyExists_ShouldReturnDuplicateError()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> beneficiaryRepositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
+        Mock<IBeneficiaryRepository> beneficiaryRepositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+        Mock<ISystemClock> clockMock = new();
+
         var existingBeneficiary = Beneficiary.Create(
             TestUserId, 
             "Jane Doe", 
@@ -60,13 +71,13 @@ public sealed class CreateBeneficiaryCommandTests
             .Setup(repository => repository.ListByUserIdAsync(TestUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[] { existingBeneficiary });
 
-        var handler = new CreateBeneficiaryCommandHandler(
+        CreateBeneficiaryCommandHandler handler = new(
             beneficiaryRepositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object,
-            MockFactory.CreateSystemClockMock().Object,
+            unitOfWorkMock.Object,
+            clockMock.Object,
             NullLogger<CreateBeneficiaryCommandHandler>.Instance);
 
-        var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", ValidIban, "Bank");
+        CreateBeneficiaryCommand command = new(TestUserId, "John Doe", ValidIban, "Bank");
 
         // Act
         ErrorOr<BeneficiaryDto> result = await handler.Handle(command, CancellationToken.None);
@@ -74,21 +85,51 @@ public sealed class CreateBeneficiaryCommandTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.Duplicate);
+
+        beneficiaryRepositoryMock.VerifyAll();
+        beneficiaryRepositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
+        clockMock.VerifyAll();
+        clockMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldCreateAndPersistBeneficiary()
+    public async Task Handle_WhenIbanIsValidAndNotDuplicate_ShouldCreateAndPersistBeneficiary()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> beneficiaryRepositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
-        var handler = new CreateBeneficiaryCommandHandler(
+        Mock<IBeneficiaryRepository> beneficiaryRepositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+        Mock<ISystemClock> clockMock = new();
+
+        DateTime now = DateTime.UtcNow;
+        clockMock.Setup(clock => clock.UtcNow).Returns(now);
+
+        beneficiaryRepositoryMock
+            .Setup(repository => repository.ListByUserIdAsync(TestUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Beneficiary>());
+
+        beneficiaryRepositoryMock
+            .Setup(repository => repository.AddAsync(
+                It.Is<Beneficiary>(b => 
+                    b.UserId == TestUserId && 
+                    b.Name == "John Doe" && 
+                    b.Iban.Value == ValidIban &&
+                    b.BankName == "Bank"), 
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        CreateBeneficiaryCommandHandler handler = new(
             beneficiaryRepositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object,
-            MockFactory.CreateSystemClockMock().Object,
+            unitOfWorkMock.Object,
+            clockMock.Object,
             NullLogger<CreateBeneficiaryCommandHandler>.Instance);
 
-        var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", ValidIban, "Bank");
+        CreateBeneficiaryCommand command = new(TestUserId, "John Doe", ValidIban, "Bank");
 
         // Act
         ErrorOr<BeneficiaryDto> result = await handler.Handle(command, CancellationToken.None);
@@ -101,34 +142,56 @@ public sealed class CreateBeneficiaryCommandTests
         result.Value.BankName.Should().Be(command.BankName);
         result.Value.UserId.Should().Be(TestUserId);
 
-        beneficiaryRepositoryMock.Verify(repository => repository.AddAsync(
-            It.Is<Beneficiary>(b => 
-                b.UserId == command.UserId && 
-                b.Name == command.Name && 
-                b.Iban.Value == command.Iban &&
-                b.BankName == command.BankName), 
-            It.IsAny<CancellationToken>()), Times.Once);
+        beneficiaryRepositoryMock.VerifyAll();
+        beneficiaryRepositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
+        clockMock.VerifyAll();
+        clockMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldSaveChanges()
+    public async Task Handle_WhenIbanIsValidAndNotDuplicate_ShouldSaveChanges()
     {
         // Arrange
-        Mock<IUnitOfWork> unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
-        
-        var handler = new CreateBeneficiaryCommandHandler(
-            MockFactory.CreateBeneficiaryRepositoryMock().Object,
+        Mock<IBeneficiaryRepository> beneficiaryRepositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+        Mock<ISystemClock> clockMock = new();
+
+        DateTime now = DateTime.UtcNow;
+        clockMock.Setup(clock => clock.UtcNow).Returns(now);
+
+        beneficiaryRepositoryMock
+            .Setup(repository => repository.ListByUserIdAsync(TestUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Array.Empty<Beneficiary>());
+
+        beneficiaryRepositoryMock
+            .Setup(repository => repository.AddAsync(It.IsAny<Beneficiary>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        CreateBeneficiaryCommandHandler handler = new(
+            beneficiaryRepositoryMock.Object,
             unitOfWorkMock.Object,
-            MockFactory.CreateSystemClockMock().Object,
+            clockMock.Object,
             NullLogger<CreateBeneficiaryCommandHandler>.Instance);
 
-        var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", ValidIban, "Bank");
+        CreateBeneficiaryCommand command = new(TestUserId, "John Doe", ValidIban, "Bank");
 
         // Act
         ErrorOr<BeneficiaryDto> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
-        unitOfWorkMock.Verify(unitOfWork => unitOfWork.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        beneficiaryRepositoryMock.VerifyAll();
+        beneficiaryRepositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
+        clockMock.VerifyAll();
+        clockMock.VerifyNoOtherCalls();
     }
 }

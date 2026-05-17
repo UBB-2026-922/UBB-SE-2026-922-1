@@ -14,8 +14,6 @@ using FluentAssertions;
 using Moq;
 using Xunit;
 
-using MockFactory = BankingApp.Application.Tests.MockFactory;
-
 public sealed class UpdateBeneficiaryCommandTests
 {
     private const int TestUserId = 1;
@@ -28,17 +26,18 @@ public sealed class UpdateBeneficiaryCommandTests
     public async Task Handle_WhenBeneficiaryNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         repositoryMock
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Beneficiary?)null);
 
-        var handler = new UpdateBeneficiaryCommandHandler(
+        UpdateBeneficiaryCommandHandler handler = new(
             repositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object);
+            unitOfWorkMock.Object);
 
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
+        UpdateBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
@@ -46,14 +45,20 @@ public sealed class UpdateBeneficiaryCommandTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
+
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Handle_WhenBeneficiaryBelongsToDifferentUser_ShouldReturnNotFoundError()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         var otherUserBeneficiary = Beneficiary.Create(
             OtherUserId, 
             "Jane Doe", 
@@ -65,11 +70,11 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(otherUserBeneficiary);
 
-        var handler = new UpdateBeneficiaryCommandHandler(
+        UpdateBeneficiaryCommandHandler handler = new(
             repositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object);
+            unitOfWorkMock.Object);
 
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
+        UpdateBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
@@ -77,14 +82,20 @@ public sealed class UpdateBeneficiaryCommandTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
+
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidIbanError()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         var beneficiary = Beneficiary.Create(
             TestUserId, 
             "John Doe", 
@@ -96,11 +107,11 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(beneficiary);
 
-        var handler = new UpdateBeneficiaryCommandHandler(
+        UpdateBeneficiaryCommandHandler handler = new(
             repositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object);
+            unitOfWorkMock.Object);
 
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", "invalid-iban", "New Bank");
+        UpdateBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId, "New Name", "invalid-iban", "New Bank");
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
@@ -108,14 +119,20 @@ public sealed class UpdateBeneficiaryCommandTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(TransferErrors.InvalidIban);
+
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldUpdateBeneficiary()
+    public async Task Handle_WhenCommandIsValid_ShouldUpdateBeneficiary()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         var beneficiary = Beneficiary.Create(
             TestUserId, 
             "John Doe", 
@@ -127,11 +144,19 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(beneficiary);
 
-        var handler = new UpdateBeneficiaryCommandHandler(
-            repositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object);
+        repositoryMock
+            .Setup(repo => repo.UpdateAsync(beneficiary, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", NewValidIban, "New Bank");
+        unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        UpdateBeneficiaryCommandHandler handler = new(
+            repositoryMock.Object,
+            unitOfWorkMock.Object);
+
+        UpdateBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId, "New Name", NewValidIban, "New Bank");
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
@@ -144,16 +169,19 @@ public sealed class UpdateBeneficiaryCommandTests
         beneficiary.Iban.Value.Should().Be(command.Iban);
         beneficiary.BankName.Should().Be(command.BankName);
 
-        repositoryMock.Verify(repo => repo.UpdateAsync(beneficiary, It.IsAny<CancellationToken>()), Times.Once);
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldSaveChanges()
+    public async Task Handle_WhenCommandIsValid_ShouldSaveChanges()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        Mock<IUnitOfWork> unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         var beneficiary = Beneficiary.Create(
             TestUserId, 
             "John Doe", 
@@ -165,17 +193,29 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(beneficiary);
 
-        var handler = new UpdateBeneficiaryCommandHandler(
+        repositoryMock
+            .Setup(repo => repo.UpdateAsync(beneficiary, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        UpdateBeneficiaryCommandHandler handler = new(
             repositoryMock.Object,
             unitOfWorkMock.Object);
 
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", NewValidIban, "New Bank");
+        UpdateBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId, "New Name", NewValidIban, "New Bank");
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
-        unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 }

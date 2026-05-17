@@ -14,8 +14,6 @@ using FluentAssertions;
 using Moq;
 using Xunit;
 
-using MockFactory = BankingApp.Application.Tests.MockFactory;
-
 public sealed class DeleteBeneficiaryCommandTests
 {
     private const int TestUserId = 1;
@@ -27,17 +25,18 @@ public sealed class DeleteBeneficiaryCommandTests
     public async Task Handle_WhenBeneficiaryNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         repositoryMock
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Beneficiary?)null);
 
-        var handler = new DeleteBeneficiaryCommandHandler(
+        DeleteBeneficiaryCommandHandler handler = new(
             repositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object);
+            unitOfWorkMock.Object);
 
-        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+        DeleteBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId);
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
@@ -45,14 +44,20 @@ public sealed class DeleteBeneficiaryCommandTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
+
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task Handle_WhenBeneficiaryBelongsToDifferentUser_ShouldReturnNotFoundError()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         var otherUserBeneficiary = Beneficiary.Create(
             OtherUserId, 
             "Jane Doe", 
@@ -64,11 +69,11 @@ public sealed class DeleteBeneficiaryCommandTests
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(otherUserBeneficiary);
 
-        var handler = new DeleteBeneficiaryCommandHandler(
+        DeleteBeneficiaryCommandHandler handler = new(
             repositoryMock.Object,
-            MockFactory.CreateUnitOfWorkMock().Object);
+            unitOfWorkMock.Object);
 
-        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+        DeleteBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId);
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
@@ -76,15 +81,20 @@ public sealed class DeleteBeneficiaryCommandTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
+
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldDeleteBeneficiaryAndSaveChanges()
+    public async Task Handle_WhenBeneficiaryIsValid_ShouldDeleteBeneficiaryAndSaveChanges()
     {
         // Arrange
-        Mock<IBeneficiaryRepository> repositoryMock = MockFactory.CreateBeneficiaryRepositoryMock();
-        Mock<IUnitOfWork> unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
-        
+        Mock<IBeneficiaryRepository> repositoryMock = new();
+        Mock<IUnitOfWork> unitOfWorkMock = new();
+
         var validBeneficiary = Beneficiary.Create(
             TestUserId, 
             "John Doe", 
@@ -96,11 +106,19 @@ public sealed class DeleteBeneficiaryCommandTests
             .Setup(repo => repo.GetByIdAsync(TestBeneficiaryId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(validBeneficiary);
 
-        var handler = new DeleteBeneficiaryCommandHandler(
+        repositoryMock
+            .Setup(repo => repo.DeleteAsync(validBeneficiary, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        DeleteBeneficiaryCommandHandler handler = new(
             repositoryMock.Object,
             unitOfWorkMock.Object);
 
-        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+        DeleteBeneficiaryCommand command = new(TestUserId, TestBeneficiaryId);
 
         // Act
         ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
@@ -109,8 +127,9 @@ public sealed class DeleteBeneficiaryCommandTests
         result.IsError.Should().BeFalse();
         result.Value.Should().Be(Result.Success);
 
-        repositoryMock.Verify(repo => repo.DeleteAsync(validBeneficiary, It.IsAny<CancellationToken>()), Times.Once);
-        
-        unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        repositoryMock.VerifyAll();
+        repositoryMock.VerifyNoOtherCalls();
+        unitOfWorkMock.VerifyAll();
+        unitOfWorkMock.VerifyNoOtherCalls();
     }
 }
