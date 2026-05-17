@@ -1,22 +1,119 @@
 namespace BankingApp.Application.Tests.Features.Beneficiaries.Commands;
 
+using Common.Contracts;
+using BankingApp.Application.Features.Beneficiaries.Commands;
+using Domain.Aggregates.BeneficiaryAggregate;
+using BankingApp.Domain.Common.Errors;
+using Domain.Repositories;
+using Domain.ValueObjects;
+using ErrorOr;
+
 public sealed class DeleteBeneficiaryCommandTests
 {
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenBeneficiaryNotFound_ShouldReturnNotFoundError()
+    private const int TestUserId = 1;
+    private const int OtherUserId = 2;
+    private const int TestBeneficiaryId = 100;
+    private const string ValidIban = "RO12BANK1234567890123456";
+
+    private static readonly DateTime _testNow = new(2026, 5, 17, 12, 0, 0, DateTimeKind.Utc);
+
+    private readonly Mock<IBeneficiaryRepository> _beneficiaryRepositoryMock = new(MockBehavior.Strict);
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
+
+    [Fact]
+    public async Task Handle_WhenBeneficiaryNotFound_ShouldReturnNotFoundErrorAndNotPersist()
     {
-        throw new NotImplementedException();
+        // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+
+        _beneficiaryRepositoryMock
+            .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
+            .ReturnsAsync((Beneficiary?)null);
+
+        DeleteBeneficiaryCommandHandler handler = CreateHandler();
+        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+
+        // Act
+        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
+
+        _beneficiaryRepositoryMock.Verify(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken), Times.Once);
+        _beneficiaryRepositoryMock.VerifyNoOtherCalls();
+        _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenBeneficiaryBelongsToDifferentUser_ShouldReturnForbiddenError()
+    [Fact]
+    public async Task Handle_WhenBeneficiaryBelongsToDifferentUser_ShouldReturnNotFoundErrorAndNotPersist()
     {
-        throw new NotImplementedException();
+        // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        Beneficiary otherUserBeneficiary = CreateBeneficiary(OtherUserId);
+
+        _beneficiaryRepositoryMock
+            .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
+            .ReturnsAsync(otherUserBeneficiary);
+
+        DeleteBeneficiaryCommandHandler handler = CreateHandler();
+        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+
+        // Act
+        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
+
+        _beneficiaryRepositoryMock.Verify(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken), Times.Once);
+        _beneficiaryRepositoryMock.VerifyNoOtherCalls();
+        _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenValid_ShouldDeleteBeneficiaryAndSaveChanges()
+    [Fact]
+    public async Task Handle_WhenBeneficiaryIsValid_ShouldDeleteBeneficiaryAndSaveChanges()
     {
-        throw new NotImplementedException();
+        // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        Beneficiary validBeneficiary = CreateBeneficiary(TestUserId);
+
+        _beneficiaryRepositoryMock
+            .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
+            .ReturnsAsync(validBeneficiary);
+
+        _beneficiaryRepositoryMock
+            .Setup(repository => repository.DeleteAsync(validBeneficiary, cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        DeleteBeneficiaryCommandHandler handler = CreateHandler();
+        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+
+        // Act
+        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Should().Be(Result.Success);
+
+        _beneficiaryRepositoryMock.Verify(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken), Times.Once);
+        _beneficiaryRepositoryMock.Verify(repository => repository.DeleteAsync(validBeneficiary, cancellationToken), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(cancellationToken), Times.Once);
+        _beneficiaryRepositoryMock.VerifyNoOtherCalls();
+        _unitOfWorkMock.VerifyNoOtherCalls();
+    }
+
+    private DeleteBeneficiaryCommandHandler CreateHandler()
+    {
+        return new DeleteBeneficiaryCommandHandler(_beneficiaryRepositoryMock.Object, _unitOfWorkMock.Object);
+    }
+
+    private static Beneficiary CreateBeneficiary(int userId)
+    {
+        return Beneficiary.Create(userId, "John Doe", Iban.Create(ValidIban).Value, null, _testNow);
     }
 }
