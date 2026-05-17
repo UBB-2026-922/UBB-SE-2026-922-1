@@ -14,6 +14,11 @@ public partial class CardViewModel : ObservableObject
     private readonly ICardClientService _cardClientService;
     private readonly ILogger<CardViewModel> _logger;
 
+    private const int CardBrandVisaIndex = 0;
+    private const int CardBrandMastercardIndex = 1;
+    private const int CardTypeDebitIndex = 0;
+    private const int CardTypeCreditIndex = 1;
+
     /// <summary>Initializes a new instance of the <see cref="CardViewModel"/> class.</summary>
     public CardViewModel(ICardClientService cardClientService, ILogger<CardViewModel> logger)
     {
@@ -68,8 +73,8 @@ public partial class CardViewModel : ObservableObject
     /// <summary>Shows the issue-card form and resets its fields.</summary>
     public void ShowIssueForm()
     {
-        NewCardBrandIndex = 0;
-        NewCardTypeIndex = 0;
+        NewCardBrandIndex = CardBrandVisaIndex;
+        NewCardTypeIndex = CardTypeDebitIndex;
         ErrorMessage = string.Empty;
         IsIssueFormVisible = true;
     }
@@ -85,12 +90,12 @@ public partial class CardViewModel : ObservableObject
     {
         string? cardBrand = NewCardBrandIndex switch
         {
-            0 => "Visa",
-            1 => "Mastercard",
+            CardBrandVisaIndex => "Visa",
+            CardBrandMastercardIndex => "Mastercard",
             _ => null
         };
 
-        CardType cardType = NewCardTypeIndex == 1 ? CardType.Credit : CardType.Debit;
+        CardType cardType = NewCardTypeIndex == CardTypeCreditIndex ? CardType.Credit : CardType.Debit;
 
         IssueCardRequest request = new()
         {

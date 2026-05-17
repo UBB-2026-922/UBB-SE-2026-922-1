@@ -131,7 +131,8 @@ public sealed partial class CardsView : Page
 
         var row = button.Parent as StackPanel;
         var numberPanel = row?.Parent as StackPanel;
-        var display = numberPanel?.Children[0] as TextBlock;
+        const int cardNumberDisplayIndex = 0;
+        var display = numberPanel?.Children[cardNumberDisplayIndex] as TextBlock;
         if (display is null)
         {
             return;

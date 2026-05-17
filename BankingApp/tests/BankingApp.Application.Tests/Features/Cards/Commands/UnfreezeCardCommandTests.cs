@@ -8,6 +8,13 @@ using NodaMoney;
 
 public sealed class UnfreezeCardCommandTests
 {
+    private const string TestCardNumber = "1234567890123456";
+    private const string TestCvv = "123";
+    private const string TestCardholderName = "John Doe";
+    private const string TestCurrency = "USD";
+    private const string TestCardBrand = "Visa";
+    private const int CardExpiryYears = 2;
+
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<ILogger<UnfreezeCardCommandHandler>> _loggerMock;
@@ -39,8 +46,8 @@ public sealed class UnfreezeCardCommandTests
     [Fact]
     public async Task Handle_WhenCardIsNotFrozen_ShouldReturnNotFrozenError()
     {
-        Account account = Account.Open(1, null!, Currency.FromCode("USD"), AccountType.Checking, null, DateTime.UtcNow);
-        Card card = account.IssueCard("1234567890123456", "John Doe", DateTime.UtcNow.AddYears(2), "123", CardType.Debit, "Visa", DateTime.UtcNow);
+        var account = Account.Open(1, null!, Currency.FromCode(TestCurrency), AccountType.Checking, null, DateTime.UtcNow);
+        var card = account.IssueCard(TestCardNumber, TestCardholderName, DateTime.UtcNow.AddYears(CardExpiryYears), TestCvv, CardType.Debit, TestCardBrand, DateTime.UtcNow);
 
         _accountRepositoryMock
             .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
@@ -57,8 +64,8 @@ public sealed class UnfreezeCardCommandTests
     [Fact]
     public async Task Handle_WhenValid_ShouldUnfreezeCardAndSaveChanges()
     {
-        Account account = Account.Open(1, null!, Currency.FromCode("USD"), AccountType.Checking, null, DateTime.UtcNow);
-        Card card = account.IssueCard("1234567890123456", "John Doe", DateTime.UtcNow.AddYears(2), "123", CardType.Debit, "Visa", DateTime.UtcNow);
+        var account = Account.Open(1, null!, Currency.FromCode(TestCurrency), AccountType.Checking, null, DateTime.UtcNow);
+        var card = account.IssueCard(TestCardNumber, TestCardholderName, DateTime.UtcNow.AddYears(CardExpiryYears), TestCvv, CardType.Debit, TestCardBrand, DateTime.UtcNow);
         card.Freeze();
 
         _accountRepositoryMock

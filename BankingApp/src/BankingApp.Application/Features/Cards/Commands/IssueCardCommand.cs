@@ -41,6 +41,8 @@ public sealed class IssueCardCommandHandler(
     private const int IbanBankCode = 12345678;
     private const int IbanAccountNumberDigits = 10;
     private const string IbanBban = "BANK";
+    private const int DecimalBase = 10;
+    private const int IbanAccountNumberUpperBound = 1_000_000_000;
 
     public async Task<ErrorOr<CardDetailsDto>> Handle(IssueCardCommand command, CancellationToken cancellationToken)
     {
@@ -116,9 +118,9 @@ public sealed class IssueCardCommandHandler(
         Span<byte> bytes = stackalloc byte[CardNumberLength];
         RandomNumberGenerator.Fill(bytes);
         var sb = new System.Text.StringBuilder(CardNumberLength);
-        foreach (byte b in bytes)
+        foreach (byte randomByte in bytes)
         {
-            sb.Append(b % 10);
+            sb.Append(randomByte % DecimalBase);
         }
 
         return sb.ToString();
@@ -129,9 +131,9 @@ public sealed class IssueCardCommandHandler(
         Span<byte> bytes = stackalloc byte[CvvLength];
         RandomNumberGenerator.Fill(bytes);
         var sb = new System.Text.StringBuilder(CvvLength);
-        foreach (byte b in bytes)
+        foreach (byte randomByte in bytes)
         {
-            sb.Append(b % 10);
+            sb.Append(randomByte % DecimalBase);
         }
 
         return sb.ToString();
@@ -139,7 +141,7 @@ public sealed class IssueCardCommandHandler(
 
     private static string GenerateIban()
     {
-        int accountSuffix = RandomNumberGenerator.GetInt32(1_000_000_000);
+        int accountSuffix = RandomNumberGenerator.GetInt32(IbanAccountNumberUpperBound);
         string bban = $"{IbanBban}{IbanBankCode:D8}{accountSuffix.ToString(CultureInfo.InvariantCulture).PadLeft(IbanAccountNumberDigits, '0')}";
         return $"{IbanCountryCode}{IbanCheckDigits:D2}{bban}";
     }

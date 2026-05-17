@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 
 public sealed class IssueCardCommandTests
 {
+    private const int SaveChangesCallsPerIssuance = 2;
+
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
@@ -69,7 +71,7 @@ public sealed class IssueCardCommandTests
         result.Value.CardBrand.Should().Be("Visa");
         result.Value.Status.Should().Be(CardStatus.Active);
         _accountRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Account>(), It.IsAny<CancellationToken>()), Times.Once);
-        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(SaveChangesCallsPerIssuance));
     }
 
     [Fact]
