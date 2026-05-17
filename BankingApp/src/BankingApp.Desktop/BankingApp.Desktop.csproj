@@ -21,14 +21,15 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <PublishProfile>win-x64.pubxml</PublishProfile>
     </PropertyGroup>
+
     <ItemGroup>
-        <Content Include="Assets\SplashScreen.scale-200.png"/>
-        <Content Include="Assets\LockScreenLogo.scale-200.png"/>
-        <Content Include="Assets\Square150x150Logo.scale-200.png"/>
-        <Content Include="Assets\Square44x44Logo.scale-200.png"/>
-        <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png"/>
-        <Content Include="Assets\StoreLogo.png"/>
-        <Content Include="Assets\Wide310x150Logo.scale-200.png"/>
+        <Content Include="Assets\SplashScreen.scale-200.png" />
+        <Content Include="Assets\LockScreenLogo.scale-200.png" />
+        <Content Include="Assets\Square150x150Logo.scale-200.png" />
+        <Content Include="Assets\Square44x44Logo.scale-200.png" />
+        <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+        <Content Include="Assets\StoreLogo.png" />
+        <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     </ItemGroup>
     
     <ItemGroup>
@@ -39,10 +40,11 @@
         <None Update="appsettings.Local.json" Condition="Exists('appsettings.Local.json')">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-    </ItemGroup>
+
+        </ItemGroup>
 
     <ItemGroup>
-        <Manifest Include="$(ApplicationManifest)"/>
+        <Manifest Include="$(ApplicationManifest)" />
     </ItemGroup>
 
     <!--
@@ -51,25 +53,25 @@
       package has not yet been restored.
     -->
     <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
-        <ProjectCapability Include="Msix"/>
+        <ProjectCapability Include="Msix" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2"/>
-        <PackageReference Include="ErrorOr" Version="2.1.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0"/>
-        <PackageReference Include="Serilog" Version="4.1.0"/>
-        <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0"/>
-        <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0"/>
-        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5"/>
-        <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705"/>
-        <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005"/>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+        <PackageReference Include="ErrorOr" Version="2.1.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+        <PackageReference Include="Serilog" Version="4.1.0" />
+        <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+        <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
+        <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" />
+        <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260209005" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj"/>
+        <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj" />
     </ItemGroup>
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
@@ -111,6 +113,9 @@
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\RecurringPaymentView.xaml">
+            <Generator>MSBuild:Compile</Generator>
+        </Page>
+        <Page Update="Views\CardsView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\TransferHistoryView.xaml">

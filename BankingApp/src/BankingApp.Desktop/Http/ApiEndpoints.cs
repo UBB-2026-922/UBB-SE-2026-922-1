@@ -69,4 +69,6 @@ public static class ApiEndpoints
     public const string TransferFxPreview = "api/transfers/fx-preview";
     /// <summary>POST api/transfers/execute</summary>
     public const string TransferExecute = "api/transfers/execute";
+    /// <summary>GET/PUT/DELETE api/cards</summary>
+    public const string Cards = "api/cards";
 }

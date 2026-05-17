@@ -137,9 +137,10 @@ public sealed partial class NavigationView
         _navigationService.NavigateToContent<RecurringPaymentView>();
     }
 
-    private async void NavCards_Click(object sender, RoutedEventArgs e)
+    private void NavCards_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Cards");
+        SetActiveNav(NavCards);
+        _navigationService.NavigateToContent<CardsView>();
     }
 
     private void NavTransferHistory_Click(object sender, RoutedEventArgs e)

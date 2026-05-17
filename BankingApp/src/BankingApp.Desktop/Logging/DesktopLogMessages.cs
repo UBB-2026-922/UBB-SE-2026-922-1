@@ -106,4 +106,19 @@ internal static partial class DesktopLogMessages
 
     [LoggerMessage(EventId = 1030, Level = LogLevel.Error, Message = "Register failed: {Errors}")]
     internal static partial void RegisterFailed(this ILogger logger, object? errors);
+
+    [LoggerMessage(EventId = 1031, Level = LogLevel.Error, Message = "Failed to load cards")]
+    internal static partial void FailedToLoadCards(this ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 1032, Level = LogLevel.Error, Message = "Failed to freeze card {CardId}")]
+    internal static partial void FailedToFreezeCard(this ILogger logger, Exception exception, int cardId);
+
+    [LoggerMessage(EventId = 1033, Level = LogLevel.Error, Message = "Failed to unfreeze card {CardId}")]
+    internal static partial void FailedToUnfreezeCard(this ILogger logger, Exception exception, int cardId);
+
+    [LoggerMessage(EventId = 1034, Level = LogLevel.Error, Message = "Failed to cancel card {CardId}")]
+    internal static partial void FailedToCancelCard(this ILogger logger, Exception exception, int cardId);
+
+    [LoggerMessage(EventId = 1035, Level = LogLevel.Error, Message = "Failed to issue card")]
+    internal static partial void FailedToIssueCard(this ILogger logger, Exception exception);
 }
