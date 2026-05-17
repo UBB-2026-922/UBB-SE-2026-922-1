@@ -269,4 +269,25 @@ internal static partial class ApplicationLogMessages
 
     [LoggerMessage(EventId = 2087, Level = LogLevel.Warning, Message = "Bill payment rejected: invalid 2FA token for user {UserId}.")]
     internal static partial void BillPaymentTwoFactorInvalid(this ILogger logger, int userId);
+
+    [LoggerMessage(EventId = 2088, Level = LogLevel.Warning, Message = "Card {CardId} not found for user {UserId}.")]
+    internal static partial void CardNotFound(this ILogger logger, int cardId, int userId);
+
+    [LoggerMessage(EventId = 2089, Level = LogLevel.Information, Message = "Card {CardId} frozen for user {UserId}.")]
+    internal static partial void CardFrozen(this ILogger logger, int cardId, int userId);
+
+    [LoggerMessage(EventId = 2090, Level = LogLevel.Information, Message = "Card {CardId} unfrozen for user {UserId}.")]
+    internal static partial void CardUnfrozen(this ILogger logger, int cardId, int userId);
+
+    [LoggerMessage(EventId = 2091, Level = LogLevel.Information, Message = "Card {CardId} cancelled for user {UserId}.")]
+    internal static partial void CardCancelled(this ILogger logger, int cardId, int userId);
+
+    [LoggerMessage(EventId = 2092, Level = LogLevel.Error, Message = "Failed to retrieve cards for user {UserId}: {Error}")]
+    internal static partial void GetCardsQueryFailed(this ILogger logger, int userId, string error);
+
+    [LoggerMessage(EventId = 2093, Level = LogLevel.Warning, Message = "Issue card failed: account {AccountId} not found for user {UserId}.")]
+    internal static partial void IssueCardAccountNotFound(this ILogger logger, int accountId, int userId);
+
+    [LoggerMessage(EventId = 2094, Level = LogLevel.Information, Message = "Card {CardId} issued on account {AccountId} for user {UserId}.")]
+    internal static partial void CardIssued(this ILogger logger, int cardId, int accountId, int userId);
 }

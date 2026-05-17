@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IRateAlertClientService, RateAlertClientService>();
         services.AddTransient<IBillPaymentClientService, BillPaymentClientService>();
         services.AddTransient<ITransferClientService, TransferClientService>();
+        services.AddTransient<ICardClientService, CardClientService>();
 
         services.AddTransient<IPasswordRecoveryManager>(provider =>
         {
@@ -56,6 +57,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<BillPayViewModel>();
         services.AddTransient<RecurringPaymentViewModel>();
 
+        services.AddTransient<CardViewModel>();
+
         services.AddTransient<LoginView>();
         services.AddTransient<RegisterView>();
         services.AddTransient<TwoFactorView>();
@@ -70,6 +73,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<RecurringPaymentView>();
         services.AddTransient<TransferView>();
         services.AddTransient<TransferHistoryView>();
+        services.AddTransient<CardsView>();
         return services;
     }
 }
