@@ -244,6 +244,11 @@ internal static class MockFactory
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
+        mock.Setup(repository => repository.AddAsync(
+                It.IsAny<Account>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
         return mock;
     }
 

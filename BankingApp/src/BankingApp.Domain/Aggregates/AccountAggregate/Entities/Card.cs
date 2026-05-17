@@ -93,4 +93,14 @@ public sealed class Card : Entity<int>
         Status = CardStatus.Cancelled;
         CancelledAt = cancelledAt;
     }
+
+    public void Freeze()
+    {
+        Status = CardStatus.Frozen;
+    }
+
+    public void Unfreeze()
+    {
+        Status = CardStatus.Active;
+    }
 }

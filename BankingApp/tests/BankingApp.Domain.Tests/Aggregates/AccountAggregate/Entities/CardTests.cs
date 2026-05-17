@@ -1,40 +1,101 @@
 namespace BankingApp.Domain.Tests.Aggregates.AccountAggregate.Entities;
 
+using BankingApp.Domain.Aggregates.AccountAggregate.Entities;
+using BankingApp.Domain.Enums;
+
 public sealed class CardTests
 {
-    [Fact(Skip = "Not implemented yet.")]
+    private static Card CreateCard(string cardNumber = "1234567890123456", DateTime? expiryDate = null)
+    {
+        return Card.Create(
+            accountId: 1,
+            userId: 1,
+            cardNumber: cardNumber,
+            cardholderName: "John Doe",
+            expiryDate: expiryDate ?? DateTime.UtcNow.AddYears(2),
+            cvv: "123",
+            cardType: CardType.Debit,
+            cardBrand: "Visa",
+            createdAt: DateTime.UtcNow);
+    }
+
+    [Fact]
     public void GetMaskedNumber_WhenCardNumberIsLongEnough_ShouldShowLastFourDigits()
     {
-        throw new NotImplementedException();
+        Card card = CreateCard("1234567890123456");
+
+        string masked = card.GetMaskedNumber();
+
+        Assert.Equal("**** **** **** 3456", masked);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void GetMaskedNumber_WhenCardNumberIsTooShort_ShouldReturnFullyMasked()
     {
-        throw new NotImplementedException();
+        Card card = CreateCard("123");
+
+        string masked = card.GetMaskedNumber();
+
+        Assert.Equal("**** **** **** ****", masked);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void IsExpired_WhenExpiryDateIsInThePast_ShouldReturnTrue()
     {
-        throw new NotImplementedException();
+        Card card = CreateCard(expiryDate: DateTime.UtcNow.AddDays(-1));
+
+        Assert.True(card.IsExpired());
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void IsExpired_WhenExpiryDateIsInTheFuture_ShouldReturnFalse()
     {
-        throw new NotImplementedException();
+        Card card = CreateCard(expiryDate: DateTime.UtcNow.AddYears(1));
+
+        Assert.False(card.IsExpired());
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Cancel_WhenCalled_ShouldSetStatusToCancelled()
     {
-        throw new NotImplementedException();
+        Card card = CreateCard();
+        DateTime cancelledAt = DateTime.UtcNow;
+
+        card.Cancel(cancelledAt);
+
+        Assert.Equal(CardStatus.Cancelled, card.Status);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
+    [Fact]
     public void Cancel_WhenCalled_ShouldSetCancelledAt()
     {
-        throw new NotImplementedException();
+        Card card = CreateCard();
+        var cancelledAt = new DateTime(2025, 1, 15, 12, 0, 0, DateTimeKind.Utc);
+
+        card.Cancel(cancelledAt);
+
+        Assert.Equal(cancelledAt, card.CancelledAt);
+    }
+
+    [Fact]
+    public void Freeze_WhenCalled_ShouldSetStatusToFrozen()
+    {
+        Card card = CreateCard();
+
+        card.Freeze();
+
+        Assert.Equal(CardStatus.Frozen, card.Status);
+    }
+
+    [Fact]
+    public void Unfreeze_WhenCalledOnFrozenCard_ShouldSetStatusToActive()
+    {
+        Card card = CreateCard();
+        card.Freeze();
+
+        card.Unfreeze();
+
+        Assert.Equal(CardStatus.Active, card.Status);
     }
 }
+
