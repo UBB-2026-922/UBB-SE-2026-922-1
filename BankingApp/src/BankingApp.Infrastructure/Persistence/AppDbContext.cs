@@ -1,7 +1,6 @@
 namespace BankingApp.Infrastructure.Persistence;
 
 using BankingApp.Domain.Aggregates.AccountAggregate;
-using BankingApp.Domain.Aggregates.AccountAggregate.Entities;
 using BankingApp.Domain.Aggregates.BeneficiaryAggregate;
 using BankingApp.Domain.Aggregates.BillPaymentAggregate;
 using BankingApp.Domain.Aggregates.ForexAggregate;
@@ -21,8 +20,6 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Account> Accounts => Set<Account>();
-
-    public DbSet<Transaction> Transactions => Set<Transaction>();
 
     public DbSet<User> Users => Set<User>();
 
