@@ -199,7 +199,7 @@ public sealed class ProcessBillPaymentCommandTests
         var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 50m, null);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
-        
+
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
         _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
