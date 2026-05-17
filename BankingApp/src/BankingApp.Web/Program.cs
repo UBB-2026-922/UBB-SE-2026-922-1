@@ -1,29 +1,13 @@
-using System.Globalization;
-using System.Net.Http.Json;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
+using BankingApp.Web.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/dev/login";
-        options.AccessDeniedPath = "/dev/login";
-        options.SlidingExpiration = true;
-    });
-builder.Services.AddAuthorization();
-builder.Services.AddHttpClient(
-    "BankingAppApi",
-    client =>
-    {
-        client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5024");
-    });
+builder.Services.AddHttpClient<IBeneficiaryService, BeneficiaryService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5024");
+});
 
 WebApplication app = builder.Build();
 
@@ -145,6 +129,7 @@ app.MapControllerRoute(
 
 
 app.Run();
+return;
 
 static bool IsLocalReturnUrl(string? returnUrl)
 {
