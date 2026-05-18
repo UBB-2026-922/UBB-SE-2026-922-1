@@ -1,7 +1,8 @@
 namespace BankingApp.Domain.ValueObjects;
 
-using Common.Primitives;
 using Common.Errors;
+using Common.Primitives;
+using EmailValidation;
 using ErrorOr;
 
 public sealed record Email : ValueObject
@@ -14,19 +15,19 @@ public sealed record Email : ValueObject
 
     public static ErrorOr<Email> Create(string value)
     {
-        // TODO: add proper validation using a lbrary
         if (string.IsNullOrWhiteSpace(value))
         {
             return UserErrors.InvalidEmail;
         }
 
-        int atIndex = value.IndexOf('@');
-        if (atIndex <= 0 || atIndex == value.Length - 1 || value.IndexOf('.', atIndex) < 0)
+        string normalized = value.Trim();
+
+        if (normalized.Length > 254 || !EmailValidator.Validate(normalized))
         {
             return UserErrors.InvalidEmail;
         }
 
-        return new Email { Value = value };
+        return new Email { Value = normalized };
     }
 
     public override string ToString() => Value;
