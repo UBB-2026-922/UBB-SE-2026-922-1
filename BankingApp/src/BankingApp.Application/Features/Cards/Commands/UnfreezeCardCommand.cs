@@ -33,6 +33,11 @@ public sealed class UnfreezeCardCommandHandler(
             return CardErrors.NotFound;
         }
 
+        if (card.Status == CardStatus.Cancelled)
+        {
+            return CardErrors.AlreadyCancelled;
+        }
+
         if (card.Status != CardStatus.Frozen)
         {
             return CardErrors.NotFrozen;
