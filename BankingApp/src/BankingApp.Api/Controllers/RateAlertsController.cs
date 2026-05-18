@@ -1,8 +1,8 @@
 namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.Features.ForexRateAlerts.Commands;
-using BankingApp.Application.Features.ForexRateAlerts.Dtos;
-using BankingApp.Application.Features.ForexRateAlerts.Queries;
+using Application.Features.ForexRateAlerts.Commands;
+using Application.Features.ForexRateAlerts.Dtos;
+using Application.Features.ForexRateAlerts.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -94,5 +94,14 @@
 
             </StackPanel>
         </Grid>
+
+        <TextBlock x:Name="ServerConnectionText"
+                   Grid.ColumnSpan="2"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Bottom"
+                   Margin="16"
+                   FontSize="11"
+                   Foreground="#8A8FA3"
+                   IsHitTestVisible="False" />
     </Grid>
 </Page>

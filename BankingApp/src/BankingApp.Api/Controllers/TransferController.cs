@@ -1,8 +1,8 @@
 namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.Features.Transfers.Commands;
-using BankingApp.Application.Features.Transfers.Dtos;
-using BankingApp.Application.Features.Transfers.Queries;
+using Application.Features.Transfers.Commands;
+using Application.Features.Transfers.Dtos;
+using Application.Features.Transfers.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
