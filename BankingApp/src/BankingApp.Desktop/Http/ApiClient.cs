@@ -39,6 +39,15 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         {
             _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
         }
+
+        if (string.Equals(
+                Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
+                "Development",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            // To allow detailed debugging in development.
+            _httpClient.Timeout = Timeout.InfiniteTimeSpan;
+        }
     }
 
     /// <inheritdoc />
@@ -223,7 +232,6 @@ public sealed partial class ApiClient : IApiClient, IDisposable
 
         _httpClient.Dispose();
         _disposed = true;
-        GC.SuppressFinalize(obj: this);
     }
 
     private static async Task<Error> MapErrorAsync(
