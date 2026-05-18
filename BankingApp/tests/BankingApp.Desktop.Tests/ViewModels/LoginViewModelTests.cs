@@ -1,9 +1,9 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.Authentication.Dtos;
+using Application.Features.Authentication.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.ViewModels;
+using Services;
+using Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -190,6 +190,56 @@ public class LoginViewModelTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("DevLogin.Requires2Fa");
+        viewModel.State.Should().Be(LoginState.Idle);
+        _authServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DevLogin_WhenApiReturnsError_ShouldReturnErrorAndResetState()
+    {
+        // Arrange
+        LoginViewModel viewModel = CreateViewModel(new Dictionary<string, string?>
+        {
+            ["DevLogin:Email"] = "dev@test.com",
+            ["DevLogin:Password"] = "password"
+        });
+        var apiError = Error.Unauthorized();
+
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+            .ReturnsAsync(apiError);
+
+        // Act
+        ErrorOr<Success> result = await viewModel.DevLogin();
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(apiError);
+        viewModel.State.Should().Be(LoginState.Idle);
+        _authServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DevLogin_WhenTokenMissing_ShouldReturnErrorAndResetState()
+    {
+        // Arrange
+        LoginViewModel viewModel = CreateViewModel(new Dictionary<string, string?>
+        {
+            ["DevLogin:Email"] = "dev@test.com",
+            ["DevLogin:Password"] = "password"
+        });
+        LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = false, Token = null };
+
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+            .ReturnsAsync(response);
+
+        // Act
+        ErrorOr<Success> result = await viewModel.DevLogin();
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("DevLogin.MissingToken");
         viewModel.State.Should().Be(LoginState.Idle);
         _authServiceMock.VerifyAll();
     }
