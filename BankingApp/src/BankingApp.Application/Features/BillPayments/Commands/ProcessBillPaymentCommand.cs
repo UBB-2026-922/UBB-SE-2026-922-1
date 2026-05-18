@@ -104,7 +104,8 @@ public sealed class ProcessBillPaymentCommandHandler(
             ReceiptNumber = payment.ReceiptNumber,
             Fee = payment.Fee.Amount,
             Amount = payment.Amount.Amount,
-            Status = payment.Status.ToString()
+            Status = payment.Status.ToString(),
+            CreatedAt = payment.CreatedAt
         };
     }
 

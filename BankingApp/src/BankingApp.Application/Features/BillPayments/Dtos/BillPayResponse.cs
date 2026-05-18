@@ -34,4 +34,11 @@ public class BillPayResponse
     /// </summary>
     /// <value>The payment status.</value>
     public string Status { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Gets or sets the UTC date and time at which the payment was created.
+    /// </summary>
+    /// <value>The creation timestamp.</value>
+    public DateTime CreatedAt { get; set; }
 }
+
