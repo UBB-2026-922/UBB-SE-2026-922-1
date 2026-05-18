@@ -14,6 +14,7 @@ public sealed record Email : ValueObject
 
     public static ErrorOr<Email> Create(string value)
     {
+        // TODO: add proper validation using a lbrary
         if (string.IsNullOrWhiteSpace(value))
         {
             return UserErrors.InvalidEmail;

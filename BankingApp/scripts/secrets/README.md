@@ -44,6 +44,9 @@ Email:SmtpUser
 Email:SmtpPass
 Email:FromAddress
 Database:ApplyMigrations
+DevLogin:Email
+DevLogin:Password
+DevLogin:FullName
 ```
 
 In env files, use ASP.NET Core environment variable names with double underscores:
@@ -58,6 +61,9 @@ Email__SmtpUser
 Email__SmtpPass
 Email__FromAddress
 Database__ApplyMigrations
+DevLogin__Email
+DevLogin__Password
+DevLogin__FullName
 ```
 
 Do not use the old names:
@@ -127,6 +133,9 @@ Email__SmtpUser=dev@example.com
 Email__SmtpPass=placeholder
 Email__FromAddress=dev@example.com
 Database__ApplyMigrations=true
+DevLogin__Email=
+DevLogin__Password=
+DevLogin__FullName=Development User
 ```
 
 The generated JWT and OTP secrets are random. The SQL Server password is random unless provided with `--db-password`.
@@ -144,6 +153,22 @@ Use Docker SQL Server from an IDE-hosted API:
 ```bash
 python scripts/secrets/setup_dev.py --db-mode docker-host --user-secrets
 ```
+
+Show the currently configured API database connection strings:
+
+```bash
+python scripts/secrets/setup_dev.py --show-connection-string
+```
+
+Seed a development login user when the API starts in `Development`:
+
+```bash
+python scripts/secrets/setup_dev.py --force --user-secrets \
+  --dev-login-email dev@example.com \
+  --dev-login-password StrongDevPassword1!
+```
+
+The API creates this user through the normal registration command after migrations run. If the user already exists, startup continues.
 
 Local SQL Server with Windows authentication:
 

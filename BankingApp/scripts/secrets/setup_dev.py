@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import base64
+import json
+import os
 import secrets
 import shutil
 import string
@@ -17,6 +19,9 @@ APP_ROOT = SCRIPT_DIR.parents[1]
 API_PROJECT = APP_ROOT / "src" / "BankingApp.Api"
 COMPOSE_ENV_FILE = APP_ROOT / ".env"
 API_ENV_FILE = API_PROJECT / ".env"
+API_APPSETTINGS_FILE = API_PROJECT / "appsettings.json"
+CONNECTION_STRING_KEY = "ConnectionStrings:BankingAppDb"
+CONNECTION_STRING_ENV_KEY = "ConnectionStrings__BankingAppDb"
 
 SQL_PASSWORD_LENGTH = 24
 JWT_SECRET_BYTES = 48
@@ -40,6 +45,7 @@ LOCAL_CONNECTION_STRING = (
 PLACEHOLDER_SMTP_HOST = "smtp.example.com"
 PLACEHOLDER_SMTP_USER = "dev@example.com"
 PLACEHOLDER_SMTP_PASS = "placeholder"
+DEFAULT_DEV_LOGIN_FULL_NAME = "Development User"
 
 
 def generate_sql_password(length: int = SQL_PASSWORD_LENGTH) -> str:
@@ -77,6 +83,96 @@ def read_env_file(path: Path) -> dict[str, str]:
         values[key.strip()] = value.strip()
 
     return values
+
+
+def read_json_connection_string(path: Path) -> str | None:
+    """Read ConnectionStrings:BankingAppDb from an appsettings file."""
+    if not path.exists():
+        return None
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError as exception:
+        raise SystemExit(f"Failed to parse {path}: {exception}") from exception
+
+    connection_strings = data.get("ConnectionStrings")
+    if not isinstance(connection_strings, dict):
+        return None
+
+    value = connection_strings.get("BankingAppDb")
+    return value if isinstance(value, str) and value else None
+
+
+def read_user_secrets() -> dict[str, str]:
+    """Read .NET user secrets for the API project."""
+    if shutil.which("dotnet") is None:
+        return {}
+
+    result = subprocess.run(
+        ["dotnet", "user-secrets", "list", "--project", str(API_PROJECT)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return {}
+
+    values: dict[str, str] = {}
+    for line in result.stdout.splitlines():
+        key, separator, value = line.partition(" = ")
+        if separator:
+            values[key.strip()] = value.strip()
+
+    return values
+
+
+def get_environment_name() -> str:
+    """Return the API environment name used for appsettings.{Environment}.json."""
+    return (
+        os.environ.get("ASPNETCORE_ENVIRONMENT")
+        or os.environ.get("DOTNET_ENVIRONMENT")
+        or "Production"
+    )
+
+
+def print_active_connection_strings() -> None:
+    """Print the currently configured API database connection strings."""
+    environment_name = get_environment_name()
+    appsettings_environment_file = API_PROJECT / f"appsettings.{environment_name}.json"
+
+    local_sources: list[tuple[str, str | None]] = [
+        (str(API_APPSETTINGS_FILE.relative_to(APP_ROOT)), read_json_connection_string(API_APPSETTINGS_FILE)),
+        (
+            str(appsettings_environment_file.relative_to(APP_ROOT)),
+            read_json_connection_string(appsettings_environment_file),
+        ),
+    ]
+
+    user_secrets = read_user_secrets()
+    local_sources.append(("API user secrets", user_secrets.get(CONNECTION_STRING_KEY)))
+    local_sources.append((CONNECTION_STRING_ENV_KEY, os.environ.get(CONNECTION_STRING_ENV_KEY)))
+
+    local_active = next(
+        ((source, value) for source, value in reversed(local_sources) if value),
+        None,
+    )
+
+    docker_env_values = read_env_file(API_ENV_FILE)
+    docker_value = docker_env_values.get(CONNECTION_STRING_ENV_KEY)
+
+    print(f"API environment: {environment_name}")
+    if local_active is None:
+        print("Local/Rider API connection string: not configured")
+    else:
+        source, value = local_active
+        print(f"Local/Rider API connection string source: {source}")
+        print(f"Local/Rider API connection string: {value}")
+
+    if docker_value:
+        print(f"Docker API connection string source: {API_ENV_FILE.relative_to(APP_ROOT)}")
+        print(f"Docker API connection string: {docker_value}")
+    else:
+        print("Docker API connection string: not configured")
 
 
 def write_env_file(path: Path, values: dict[str, str], header: str) -> None:
@@ -132,9 +228,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--smtp-pass", default=None, help="SMTP password.")
     parser.add_argument("--smtp-from", default=None, help="SMTP sender address.")
     parser.add_argument(
+        "--dev-login-email",
+        default=None,
+        help="Development login email to seed when the API starts in Development.",
+    )
+    parser.add_argument(
+        "--dev-login-password",
+        default=None,
+        help="Development login password to seed when the API starts in Development.",
+    )
+    parser.add_argument(
+        "--dev-login-full-name",
+        default=DEFAULT_DEV_LOGIN_FULL_NAME,
+        help="Development login user's full name.",
+    )
+    parser.add_argument(
         "--user-secrets",
         action="store_true",
         help="Also write the same API values to .NET User Secrets for dotnet run.",
+    )
+    parser.add_argument(
+        "--show-connection-string",
+        action="store_true",
+        help="Print the active API database connection strings and exit without writing files.",
     )
     return parser.parse_args()
 
@@ -142,6 +258,13 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Generate development configuration."""
     args = parse_args()
+
+    if args.show_connection_string:
+        print_active_connection_strings()
+        return
+
+    if bool(args.dev_login_email) != bool(args.dev_login_password):
+        raise SystemExit("--dev-login-email and --dev-login-password must be provided together.")
 
     ensure_can_write(COMPOSE_ENV_FILE, args.force)
     ensure_can_write(API_ENV_FILE, args.force)
@@ -179,6 +302,9 @@ def main() -> None:
         "Email__SmtpPass": smtp_pass,
         "Email__FromAddress": smtp_from,
         "Database__ApplyMigrations": "true",
+        "DevLogin__Email": args.dev_login_email or "",
+        "DevLogin__Password": args.dev_login_password or "",
+        "DevLogin__FullName": args.dev_login_full_name,
     }
 
     write_env_file(
@@ -206,7 +332,12 @@ def main() -> None:
             "Email:SmtpPass": api_values["Email__SmtpPass"],
             "Email:FromAddress": api_values["Email__FromAddress"],
             "Database:ApplyMigrations": api_values["Database__ApplyMigrations"],
+            "DevLogin:FullName": api_values["DevLogin__FullName"],
         }
+        if api_values["DevLogin__Email"] and api_values["DevLogin__Password"]:
+            user_secret_keys["DevLogin:Email"] = api_values["DevLogin__Email"]
+            user_secret_keys["DevLogin:Password"] = api_values["DevLogin__Password"]
+
         for key, value in user_secret_keys.items():
             set_user_secret(key, value)
 

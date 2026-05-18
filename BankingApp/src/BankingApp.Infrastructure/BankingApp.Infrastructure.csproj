@@ -32,11 +32,6 @@
         <ProjectReference Include="..\BankingApp.Domain\BankingApp.Domain.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="_DataAccess\**\*.cs" />
-        <Compile Remove="_Features\**\*.cs" />
-        <Compile Remove="Persistence\Migrations\**\*.cs" />
-    </ItemGroup>
-    <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
             <_Parameter1>BankingApp.Infrastructure.Tests</_Parameter1>
         </AssemblyAttribute>

@@ -1,8 +1,8 @@
 namespace BankingApp.Infrastructure.Persistence.Repositories;
 
-using BankingApp.Domain.Aggregates.UserAggregate;
+using Domain.Aggregates.UserAggregate;
 using BankingApp.Domain.Repositories;
-using BankingApp.Domain.ValueObjects;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class UserRepository(AppDbContext dbContext) : IUserRepository
