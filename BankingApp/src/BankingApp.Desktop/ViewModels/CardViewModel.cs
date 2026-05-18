@@ -3,7 +3,7 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.Cards.Dtos;
+using Application.Features.Cards.Dtos;
 using BankingApp.Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -42,11 +42,11 @@ public partial class CardViewModel : ObservableObject
 
     /// <summary>Gets or sets the currently loaded cards.</summary>
     [ObservableProperty]
-    public partial ObservableCollection<CardDetailsDto> Cards { get; set; } = default!;
+    public partial ObservableCollection<CardDetailsDto> Cards { get; set; }
 
     /// <summary>Gets or sets the currently selected card.</summary>
     [ObservableProperty]
-    public partial CardDetailsDto? SelectedCard { get; set; } = default!;
+    public partial CardDetailsDto? SelectedCard { get; set; } = null!;
 
     /// <summary>Gets or sets a human-readable error message to display when an operation fails.</summary>
     [ObservableProperty]
@@ -55,8 +55,6 @@ public partial class CardViewModel : ObservableObject
 
     /// <summary>Gets a value indicating whether an error message is currently available.</summary>
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
-
-    // ── Issue card form ────────────────────────────────────────────────────
 
     /// <summary>Gets or sets whether the issue-card form is visible.</summary>
     [ObservableProperty]
@@ -123,8 +121,6 @@ public partial class CardViewModel : ObservableObject
             return false;
         }
     }
-
-    // ── Loads ──────────────────────────────────────────────────────────────
 
     /// <summary>Loads the cards from the backend API.</summary>
     public async Task LoadAsync()

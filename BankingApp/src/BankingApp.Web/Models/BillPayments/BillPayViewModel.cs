@@ -1,7 +1,7 @@
 namespace BankingApp.Web.Models.BillPayments;
 
 using System.ComponentModel.DataAnnotations;
-using BankingApp.Application.Features.Billers.Dtos;
+using Application.Features.Billers.Dtos;
 using BankingApp.Application.Features.BillPayments.Dtos;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -10,8 +10,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 /// </summary>
 public class BillPayViewModel
 {
-    // ── Dropdowns ────────────────────────────────────────────────────────────
-
     /// <summary>Gets or sets the list of the user's saved billers.</summary>
     public List<SavedBillerDto> SavedBillers { get; set; } = [];
 
@@ -33,8 +31,6 @@ public class BillPayViewModel
                 Display = $"{a.AccountName} — {a.Iban} ({a.Currency}) | Balance: {a.Balance:N2}"
             }),
             "Id", "Display", SelectedAccountId);
-
-    // ── Form fields ──────────────────────────────────────────────────────────
 
     /// <summary>Gets or sets the selected biller id.</summary>
     [Required(ErrorMessage = "Please select a biller.")]

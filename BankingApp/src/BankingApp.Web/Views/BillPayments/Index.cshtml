@@ -15,7 +15,6 @@
 
 <div class="row g-4">
 
-    <!-- ── Left column: saved billers ──────────────────────────────────────── -->
     <div class="col-lg-5 col-xl-4">
         <div class="card h-100">
             <div class="card-header d-flex align-items-center gap-2">
@@ -69,7 +68,6 @@
         </div>
     </div>
 
-    <!-- ── Right column: pay form ───────────────────────────────────────────── -->
     <div class="col-lg-7 col-xl-8">
         <div class="card">
             <div class="card-header d-flex align-items-center gap-2">
@@ -164,7 +162,6 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // ── Pre-fill form from saved-biller click ────────────────────────────
         document.querySelectorAll('.saved-biller-item').forEach(btn => {
             btn.addEventListener('click', () => {
                 const billerId = btn.dataset.billerId;
@@ -178,7 +175,6 @@
             });
         });
 
-        // ── Live fee hint ────────────────────────────────────────────────────
         const amountInput = document.getElementById('amountInput');
         const feeHint     = document.getElementById('feeHint');
         const feeVal      = document.getElementById('feeHintValue');

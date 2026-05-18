@@ -8,8 +8,6 @@ using System.ComponentModel.DataAnnotations;
 /// </summary>
 public class BillPayPreviewViewModel
 {
-    // ── Echoed form values (posted as hidden inputs) ──────────────────────────
-
     /// <summary>Gets or sets the source account id.</summary>
     public int SourceAccountId { get; set; }
 
@@ -22,15 +20,11 @@ public class BillPayPreviewViewModel
     /// <summary>Gets or sets the payment amount.</summary>
     public decimal Amount { get; set; }
 
-    // ── Computed preview values ──────────────────────────────────────────────
-
     /// <summary>Gets or sets the fee that will be charged.</summary>
     public decimal Fee { get; set; }
 
     /// <summary>Gets or sets the total debited from the account (Amount + Fee).</summary>
     public decimal Total => Amount + Fee;
-
-    // ── Display helpers ──────────────────────────────────────────────────────
 
     /// <summary>Gets or sets the human-readable biller name for display.</summary>
     public string BillerName { get; set; } = string.Empty;
@@ -40,8 +34,6 @@ public class BillPayPreviewViewModel
 
     /// <summary>Gets or sets the account currency code for display.</summary>
     public string Currency { get; set; } = string.Empty;
-
-    // ── 2FA ──────────────────────────────────────────────────────────────────
 
     /// <summary>
     ///     Gets or sets a value indicating whether 2FA is required for this payment
@@ -56,8 +48,6 @@ public class BillPayPreviewViewModel
     [Display(Name = "One-Time Password (OTP)")]
     [MaxLength(10)]
     public string? TwoFaToken { get; set; }
-
-    // ── Validation error ─────────────────────────────────────────────────────
 
     /// <summary>Gets or sets a server-side validation message to show on the preview page.</summary>
     public string? ErrorMessage { get; set; }
