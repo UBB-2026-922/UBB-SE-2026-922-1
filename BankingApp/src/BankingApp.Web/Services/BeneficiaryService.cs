@@ -113,7 +113,6 @@ public sealed class BeneficiaryService : IBeneficiaryService
         return response.IsSuccessStatusCode;
     }
 
-    // Local DTO matching the API response shape.
     private sealed class BeneficiaryDto
     {
         public int Id { get; set; }

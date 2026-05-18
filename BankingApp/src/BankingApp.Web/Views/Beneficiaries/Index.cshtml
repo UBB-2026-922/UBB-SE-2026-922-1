@@ -1,4 +1,5 @@
 ﻿@model BankingApp.Web.ViewModels.BeneficiaryListViewModel
+@using System.Text.Encodings.Web
 @{
     ViewData["Title"] = "Beneficiaries";
 }
@@ -63,7 +64,7 @@ else
                                     </a>
                                     <form asp-action="Delete" asp-route-id="@row.Id"
                                           method="post" class="d-inline"
-                                          onsubmit="return confirm('Remove @Html.Raw(row.Name.Replace("'", "\\'")) from your beneficiaries?')">
+                                          onsubmit="return confirm('Remove @JavaScriptEncoder.Default.Encode(row.Name) from your beneficiaries?')">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-sm btn-outline-danger">
                                             <i class="bi bi-trash"></i>

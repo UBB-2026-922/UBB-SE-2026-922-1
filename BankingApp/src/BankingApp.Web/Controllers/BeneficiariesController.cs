@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Web.Controllers;
+namespace BankingApp.Web.Controllers;
 
 using BankingApp.Web.Services;
 using BankingApp.Web.ViewModels;
@@ -15,28 +15,18 @@ public class BeneficiariesController : Controller
         _beneficiaryService = beneficiaryService;
     }
 
-    // ── Index ────────────────────────────────────────────────────
-    // GET /Beneficiaries
+    private string Token => User.FindFirst("token")!.Value;
+
     public async Task<IActionResult> Index()
     {
-        string? token = User.FindFirst("token")?.Value;
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return RedirectToAction("Login", "Auth");
-        }
-
         IReadOnlyList<BeneficiaryListViewModel.BeneficiaryRow> rows =
-            await _beneficiaryService.GetAllAsync(token);
+            await _beneficiaryService.GetAllAsync(Token);
 
         return View(new BeneficiaryListViewModel { Beneficiaries = rows });
     }
 
-    // ── Create GET ───────────────────────────────────────────────
-    // GET /Beneficiaries/Create
     public IActionResult Create() => View(new CreateBeneficiaryViewModel());
 
-    // ── Create POST ──────────────────────────────────────────────
-    // POST /Beneficiaries/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateBeneficiaryViewModel model)
@@ -46,13 +36,7 @@ public class BeneficiariesController : Controller
             return View(model);
         }
 
-        string? token = User.FindFirst("token")?.Value;
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return RedirectToAction("Login", "Auth");
-        }
-
-        bool success = await _beneficiaryService.CreateAsync(model, token);
+        bool success = await _beneficiaryService.CreateAsync(model, Token);
         if (!success)
         {
             ModelState.AddModelError(string.Empty, "Could not save beneficiary. Check that the IBAN is valid and not already saved.");
@@ -63,17 +47,9 @@ public class BeneficiariesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // ── Edit GET ─────────────────────────────────────────────────
-    // GET /Beneficiaries/Edit/{id}
     public async Task<IActionResult> Edit(int id)
     {
-        string? token = User.FindFirst("token")?.Value;
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return RedirectToAction("Login", "Auth");
-        }
-
-        EditBeneficiaryViewModel? model = await _beneficiaryService.GetByIdAsync(id, token);
+        EditBeneficiaryViewModel? model = await _beneficiaryService.GetByIdAsync(id, Token);
         if (model is null)
         {
             return NotFound();
@@ -82,8 +58,6 @@ public class BeneficiariesController : Controller
         return View(model);
     }
 
-    // ── Edit POST ────────────────────────────────────────────────
-    // POST /Beneficiaries/Edit/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, EditBeneficiaryViewModel model)
@@ -98,13 +72,7 @@ public class BeneficiariesController : Controller
             return View(model);
         }
 
-        string? token = User.FindFirst("token")?.Value;
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return RedirectToAction("Login", "Auth");
-        }
-
-        bool success = await _beneficiaryService.UpdateAsync(model, token);
+        bool success = await _beneficiaryService.UpdateAsync(model, Token);
         if (!success)
         {
             ModelState.AddModelError(string.Empty, "Could not update beneficiary. The IBAN may be invalid.");
@@ -115,19 +83,11 @@ public class BeneficiariesController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // ── Delete POST ──────────────────────────────────────────────
-    // POST /Beneficiaries/Delete/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        string? token = User.FindFirst("token")?.Value;
-        if (string.IsNullOrWhiteSpace(token))
-        {
-            return RedirectToAction("Login", "Auth");
-        }
-
-        bool success = await _beneficiaryService.DeleteAsync(id, token);
+        bool success = await _beneficiaryService.DeleteAsync(id, Token);
 
         TempData[success ? "Success" : "Error"] = success
             ? "Beneficiary removed."
