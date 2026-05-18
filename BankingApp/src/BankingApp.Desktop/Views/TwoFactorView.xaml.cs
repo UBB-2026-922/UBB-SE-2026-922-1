@@ -39,8 +39,6 @@ public sealed partial class TwoFactorView
         }
     }
 
-    private Visibility BoolToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
-
     private void OnStateChanged(TwoFactorState state)
     {
         switch (state)

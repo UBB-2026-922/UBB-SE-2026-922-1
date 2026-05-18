@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Application.Common.Http;
+using BankingApp.Infrastructure.Http.Common.Logging;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,17 +16,19 @@ public sealed partial class ApiClient : IApiClient, IDisposable
 {
     private readonly Error? _configurationError;
     private readonly HttpClient _httpClient;
+    private readonly ILogger<ApiClient> _logger;
     private bool _disposed;
 
     public ApiClient(IConfiguration configuration, ILogger<ApiClient> logger)
     {
-        _ = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         string? baseUrl = configuration["ApiBaseUrl"];
         if (string.IsNullOrWhiteSpace(baseUrl))
         {
             _configurationError = Error.Failure("ApiClient.MissingBaseUrl", "ApiBaseUrl is missing from configuration.");
             _httpClient = new HttpClient();
+            _logger.ApiBaseUrlMissing();
             return;
         }
 
@@ -48,31 +51,33 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         Token = token;
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        _logger.ApiTokenSet();
     }
 
     public void ClearToken()
     {
         Token = null;
         _httpClient.DefaultRequestHeaders.Authorization = null;
+        _logger.ApiTokenCleared();
     }
 
     public Task<ErrorOr<TResponse>> GetAsync<TResponse>(string endpoint, CancellationToken cancellationToken = default)
-        => SendAsync<TResponse>(async ct => await _httpClient.GetAsync(endpoint, ct), cancellationToken);
+        => SendAsync<TResponse>("GET", endpoint, async ct => await _httpClient.GetAsync(endpoint, ct), cancellationToken);
 
     public Task<ErrorOr<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendAsync<TResponse>(async ct => await _httpClient.PostAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendAsync<TResponse>("POST", endpoint, async ct => await _httpClient.PostAsJsonAsync(endpoint, data, ct), cancellationToken);
 
     public Task<ErrorOr<Success>> PostAsync<TRequest>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendSuccessAsync(async ct => await _httpClient.PostAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendSuccessAsync("POST", endpoint, async ct => await _httpClient.PostAsJsonAsync(endpoint, data, ct), cancellationToken);
 
     public Task<ErrorOr<TResponse>> PutAsync<TRequest, TResponse>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendAsync<TResponse>(async ct => await _httpClient.PutAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendAsync<TResponse>("PUT", endpoint, async ct => await _httpClient.PutAsJsonAsync(endpoint, data, ct), cancellationToken);
 
     public Task<ErrorOr<Success>> PutAsync<TRequest>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendSuccessAsync(async ct => await _httpClient.PutAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendSuccessAsync("PUT", endpoint, async ct => await _httpClient.PutAsJsonAsync(endpoint, data, ct), cancellationToken);
 
     public Task<ErrorOr<Success>> DeleteAsync(string endpoint, CancellationToken cancellationToken = default)
-        => SendSuccessAsync(async ct => await _httpClient.DeleteAsync(endpoint, ct), cancellationToken);
+        => SendSuccessAsync("DELETE", endpoint, async ct => await _httpClient.DeleteAsync(endpoint, ct), cancellationToken);
 
     public void Dispose()
     {
@@ -85,7 +90,9 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         _disposed = true;
     }
 
-    private static async Task<ErrorOr<TResponse>> SendAsync<TResponse>(
+    private async Task<ErrorOr<TResponse>> SendAsync<TResponse>(
+        string operation,
+        string endpoint,
         Func<CancellationToken, Task<HttpResponseMessage>> send,
         CancellationToken cancellationToken)
     {
@@ -94,44 +101,54 @@ public sealed partial class ApiClient : IApiClient, IDisposable
             using HttpResponseMessage response = await send(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return await MapErrorAsync(response, cancellationToken);
+                return await MapErrorAsync(operation, endpoint, response, cancellationToken);
             }
 
             TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
-            return result is null
-                ? Error.Failure("Api.EmptyResponse", "The API returned an empty response.")
-                : result;
+            if (result is null)
+            {
+                _logger.HttpEmptyResponse(operation, endpoint);
+                return Error.Failure("Api.EmptyResponse", "The API returned an empty response.");
+            }
+
+            return result;
         }
         catch (HttpRequestException exception)
         {
+            _logger.HttpRequestTransportFailed(exception, operation, endpoint);
             return Error.Failure(description: exception.Message);
         }
         catch (OperationCanceledException)
         {
+            _logger.HttpRequestCancelled(operation, endpoint);
             return Error.Unexpected("Api.RequestCancelled", "The API request was cancelled.");
         }
     }
 
-    private static async Task<ErrorOr<Success>> SendSuccessAsync(
+    private async Task<ErrorOr<Success>> SendSuccessAsync(
+        string operation,
+        string endpoint,
         Func<CancellationToken, Task<HttpResponseMessage>> send,
         CancellationToken cancellationToken)
     {
         try
         {
             using HttpResponseMessage response = await send(cancellationToken);
-            return response.IsSuccessStatusCode ? Result.Success : await MapErrorAsync(response, cancellationToken);
+            return response.IsSuccessStatusCode ? Result.Success : await MapErrorAsync(operation, endpoint, response, cancellationToken);
         }
         catch (HttpRequestException exception)
         {
+            _logger.HttpRequestTransportFailed(exception, operation, endpoint);
             return Error.Failure(description: exception.Message);
         }
         catch (OperationCanceledException)
         {
+            _logger.HttpRequestCancelled(operation, endpoint);
             return Error.Unexpected("Api.RequestCancelled", "The API request was cancelled.");
         }
     }
 
-    private static async Task<Error> MapErrorAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    private async Task<Error> MapErrorAsync(string operation, string endpoint, HttpResponseMessage response, CancellationToken cancellationToken)
     {
         string details;
         try
@@ -146,6 +163,8 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         string description = string.IsNullOrWhiteSpace(details)
             ? response.ReasonPhrase ?? "Request failed."
             : details;
+
+        _logger.HttpRequestFailed(operation, endpoint, (int)response.StatusCode, description);
 
         return response.StatusCode switch
         {

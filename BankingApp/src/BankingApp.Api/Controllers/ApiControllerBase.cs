@@ -52,11 +52,11 @@ public abstract class ApiControllerBase : ControllerBase
 
     /// <summary>
     ///     Maps an <see cref="Error" /> to the appropriate HTTP status code and
-    ///     a standardised <see cref="ApplicationErrorResponse" /> body.
+    ///     a standardised <see cref="ObjectResult" /> body.
     /// </summary>
     /// <param name="error">The error to map.</param>
-    /// <returns>An <see cref="IActionResult" /> with the matching HTTP status code.</returns>
-    protected IActionResult MapError(Error error)
+    /// <returns>An <see cref="ObjectResult" /> with the matching HTTP status code.</returns>
+    private ObjectResult MapError(Error error)
     {
         int status = error.Type switch
         {
@@ -68,6 +68,6 @@ public abstract class ApiControllerBase : ControllerBase
             _                      => StatusCodes.Status500InternalServerError
         };
 
-        return Problem(detail: error.Description, title: error.Code, statusCode: status);
+        return Problem(detail: error.Description, statusCode: status, title: error.Code);
     }
 }
