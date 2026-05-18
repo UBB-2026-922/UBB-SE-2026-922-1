@@ -28,9 +28,6 @@
       - "9999:8080"
     env_file:
       - ./src/BankingApp.Api/.env
-    environment:
-      Jwt__Secret: ${JWT_SECRET}
-      Otp__Secret: ${OTP_SECRET}
     depends_on:
       db:
         condition: service_healthy
