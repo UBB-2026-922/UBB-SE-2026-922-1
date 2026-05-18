@@ -25,11 +25,14 @@ public sealed class CreateBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidIbanErrorAndNotPersist()
     {
+        // Arrange
         CreateBeneficiaryCommandHandler handler = CreateHandler();
         var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", "invalid-iban", "Bank");
 
+        // Act
         ErrorOr<BeneficiaryDto> result = await handler.Handle(command, CancellationToken.None);
 
+        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(TransferErrors.InvalidIban);
 
@@ -41,6 +44,7 @@ public sealed class CreateBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenBeneficiaryWithSameIbanAlreadyExistsIgnoringCase_ShouldReturnDuplicateErrorAndNotPersist()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         Beneficiary existingBeneficiary = CreateBeneficiary(ValidIban.ToLowerInvariant());
 
@@ -51,8 +55,10 @@ public sealed class CreateBeneficiaryCommandTests
         CreateBeneficiaryCommandHandler handler = CreateHandler();
         var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", ValidIban, "Bank");
 
+        // Act
         ErrorOr<BeneficiaryDto> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.Duplicate);
 
@@ -65,6 +71,7 @@ public sealed class CreateBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenCommandIsValid_ShouldCreateTrimmedBeneficiaryAndSaveChanges()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         Beneficiary? persistedBeneficiary = null;
 
@@ -86,8 +93,10 @@ public sealed class CreateBeneficiaryCommandTests
         CreateBeneficiaryCommandHandler handler = CreateHandler();
         var command = new CreateBeneficiaryCommand(TestUserId, "  John Doe  ", ValidIban, "Bank");
 
+        // Act
         ErrorOr<BeneficiaryDto> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeFalse();
         persistedBeneficiary.Should().NotBeNull();
         persistedBeneficiary!.UserId.Should().Be(TestUserId);

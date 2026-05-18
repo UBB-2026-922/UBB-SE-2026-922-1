@@ -23,6 +23,7 @@ public sealed class DeleteBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenBeneficiaryNotFound_ShouldReturnNotFoundErrorAndNotPersist()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
 
         _beneficiaryRepositoryMock
@@ -32,8 +33,10 @@ public sealed class DeleteBeneficiaryCommandTests
         DeleteBeneficiaryCommandHandler handler = CreateHandler();
         var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
 
+        // Act
         ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
 
@@ -45,6 +48,7 @@ public sealed class DeleteBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenBeneficiaryBelongsToDifferentUser_ShouldReturnNotFoundErrorAndNotPersist()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         Beneficiary otherUserBeneficiary = CreateBeneficiary(OtherUserId);
 
@@ -55,8 +59,10 @@ public sealed class DeleteBeneficiaryCommandTests
         DeleteBeneficiaryCommandHandler handler = CreateHandler();
         var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
 
+        // Act
         ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
 
@@ -68,6 +74,7 @@ public sealed class DeleteBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenBeneficiaryIsValid_ShouldDeleteBeneficiaryAndSaveChanges()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         Beneficiary validBeneficiary = CreateBeneficiary(TestUserId);
 
@@ -86,8 +93,10 @@ public sealed class DeleteBeneficiaryCommandTests
         DeleteBeneficiaryCommandHandler handler = CreateHandler();
         var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
 
+        // Act
         ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().Be(Result.Success);
 

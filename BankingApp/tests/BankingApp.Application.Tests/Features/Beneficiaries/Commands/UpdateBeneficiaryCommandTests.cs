@@ -24,6 +24,7 @@ public sealed class UpdateBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenBeneficiaryNotFound_ShouldReturnNotFoundErrorAndNotPersist()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
 
         _beneficiaryRepositoryMock
@@ -33,8 +34,10 @@ public sealed class UpdateBeneficiaryCommandTests
         UpdateBeneficiaryCommandHandler handler = CreateHandler();
         var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
 
+        // Act
         ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
 
@@ -46,6 +49,7 @@ public sealed class UpdateBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenBeneficiaryBelongsToDifferentUser_ShouldReturnNotFoundErrorAndNotPersist()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         Beneficiary otherUserBeneficiary = CreateBeneficiary(OtherUserId);
 
@@ -56,8 +60,10 @@ public sealed class UpdateBeneficiaryCommandTests
         UpdateBeneficiaryCommandHandler handler = CreateHandler();
         var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
 
+        // Act
         ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BeneficiaryErrors.NotFound);
 
@@ -69,6 +75,7 @@ public sealed class UpdateBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidIbanErrorAndNotPersist()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         Beneficiary beneficiary = CreateBeneficiary(TestUserId);
 
@@ -79,8 +86,10 @@ public sealed class UpdateBeneficiaryCommandTests
         UpdateBeneficiaryCommandHandler handler = CreateHandler();
         var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", "invalid-iban", "New Bank");
 
+        // Act
         ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(TransferErrors.InvalidIban);
 
@@ -92,6 +101,7 @@ public sealed class UpdateBeneficiaryCommandTests
     [Fact]
     public async Task Handle_WhenCommandIsValid_ShouldUpdateTrimmedBeneficiaryAndSaveChanges()
     {
+        // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         Beneficiary beneficiary = CreateBeneficiary(TestUserId);
 
@@ -110,8 +120,10 @@ public sealed class UpdateBeneficiaryCommandTests
         UpdateBeneficiaryCommandHandler handler = CreateHandler();
         var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "  New Name  ", NewValidIban, "New Bank");
 
+        // Act
         ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
 
+        // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().Be(Result.Success);
         beneficiary.Name.Should().Be("New Name");
