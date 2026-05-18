@@ -1,8 +1,10 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
+using System.Linq;
 using Enums;
 using BankingApp.Application.Common.Utilities;
+using ErrorOr;
 using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
@@ -34,6 +36,9 @@ public sealed partial class LoginView
         InitializeComponent();
         _viewModel = viewModel;
         ServerConnectionText.Text = BuildServerConnectionText(configuration["ApiBaseUrl"]);
+        DevLoginButton.Visibility = _viewModel.IsDevLoginAvailable
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         if (registrationContext.JustRegistered)
         {
@@ -115,12 +120,14 @@ public sealed partial class LoginView
         LoadingRing.IsActive = true;
         LoadingRing.Visibility = Visibility.Visible;
         SignInButton.IsEnabled = false;
+        DevLoginButton.IsEnabled = false;
     }
 
     private void HideLoading()
     {
         LoadingRing.IsActive = false;
         LoadingRing.Visibility = Visibility.Collapsed;
+        DevLoginButton.IsEnabled = true;
     }
 
     private async void SignInButton_Click(object sender, RoutedEventArgs e)
@@ -144,6 +151,14 @@ public sealed partial class LoginView
     private void CreateAccountButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<RegisterView>();
+    }
+
+    private async void DevLoginButton_Click(object sender, RoutedEventArgs e)
+    {
+        ErrorOr<Success> result = await _viewModel.DevLogin();
+        result.Switch(
+            _ => { },
+            errors => ShowError(errors.First().Description));
     }
 
     private static string BuildServerConnectionText(string? apiBaseUrl)

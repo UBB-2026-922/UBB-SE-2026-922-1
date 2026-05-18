@@ -27,6 +27,11 @@ DOCKER_CONNECTION_STRING = (
     "Password={password};TrustServerCertificate=True;"
 )
 
+DOCKER_HOST_CONNECTION_STRING = (
+    "Server=localhost,1433;Database=BankingAppDb;User Id=sa;"
+    "Password={password};TrustServerCertificate=True;"
+)
+
 LOCAL_CONNECTION_STRING = (
     "Server=localhost;Database=BankingAppDb;"
     "Trusted_Connection=True;TrustServerCertificate=True;"
@@ -108,9 +113,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--force", action="store_true", help="Overwrite existing generated env files.")
     parser.add_argument(
         "--db-mode",
-        choices=["docker", "local"],
+        choices=["docker", "docker-host", "local"],
         default="docker",
-        help="Database connection target for API config. Defaults to docker.",
+        help=(
+            "Database connection target for API config. "
+            "'docker' is for API in Compose, 'docker-host' is for API in an IDE with DB in Compose, "
+            "and 'local' is for a trusted local SQL Server. Defaults to docker."
+        ),
     )
     parser.add_argument(
         "--db-password",
@@ -149,11 +158,12 @@ def main() -> None:
     smtp_pass = args.smtp_pass or PLACEHOLDER_SMTP_PASS
     smtp_from = args.smtp_from or smtp_user
 
-    connection_string = (
-        DOCKER_CONNECTION_STRING.format(password=db_password)
-        if args.db_mode == "docker"
-        else LOCAL_CONNECTION_STRING
-    )
+    if args.db_mode == "docker":
+        connection_string = DOCKER_CONNECTION_STRING.format(password=db_password)
+    elif args.db_mode == "docker-host":
+        connection_string = DOCKER_HOST_CONNECTION_STRING.format(password=db_password)
+    else:
+        connection_string = LOCAL_CONNECTION_STRING
 
     compose_values = {
         "DB_SA_PASSWORD": db_password,

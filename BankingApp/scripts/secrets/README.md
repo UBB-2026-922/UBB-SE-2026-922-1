@@ -139,6 +139,12 @@ Docker database mode is the default:
 python scripts/secrets/setup_dev.py --db-mode docker
 ```
 
+Use Docker SQL Server from an IDE-hosted API:
+
+```bash
+python scripts/secrets/setup_dev.py --db-mode docker-host --user-secrets
+```
+
 Local SQL Server with Windows authentication:
 
 ```bash

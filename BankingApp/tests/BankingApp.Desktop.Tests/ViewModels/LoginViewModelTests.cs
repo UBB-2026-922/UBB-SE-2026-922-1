@@ -5,6 +5,7 @@ using Enums;
 using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class LoginViewModelTests
@@ -36,8 +37,8 @@ public class LoginViewModelTests
     public async Task Login_WhenSuccess_ShouldSetLoginStateToSuccessAndSetUserId()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
-        var response = new LoginSuccessResponse { Token = "test-token", UserId = 1, Requires2Fa = false };
+        LoginViewModel viewModel = CreateViewModel();
+        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1, Requires2Fa = false };
 
         _authServiceMock
             .Setup(mock => mock.LoginAsync("test@test.com", "password"))
@@ -57,8 +58,8 @@ public class LoginViewModelTests
     public async Task Login_WhenRequires2FA_ShouldSetLoginStateToRequire2Fa()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
-        var response = new LoginSuccessResponse { UserId = 1, Requires2Fa = true };
+        LoginViewModel viewModel = CreateViewModel();
+        LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = true };
 
         _authServiceMock
             .Setup(mock => mock.LoginAsync("test@test.com", "password"))
@@ -77,7 +78,7 @@ public class LoginViewModelTests
     public async Task Login_WhenAuthServiceReturnsUnauthorized_ShouldSetLoginStateToInvalidCredentials()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
+        LoginViewModel viewModel = CreateViewModel();
 
         _authServiceMock
             .Setup(mock => mock.LoginAsync("test@test.com", "password"))
@@ -95,7 +96,7 @@ public class LoginViewModelTests
     public async Task Login_WhenAuthServiceReturnsFailure_ShouldSetLoginStateToError()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
+        LoginViewModel viewModel = CreateViewModel();
 
         _authServiceMock
             .Setup(mock => mock.LoginAsync("test@test.com", "password"))
@@ -113,7 +114,7 @@ public class LoginViewModelTests
     public async Task Login_WhenAuthServiceReturnsForbidden_ShouldSetLoginStateToAccountLocked()
     {
         // Arrange
-        var viewModel = new LoginViewModel(_authServiceMock.Object, NullLogger<LoginViewModel>.Instance);
+        LoginViewModel viewModel = CreateViewModel();
 
         _authServiceMock
             .Setup(mock => mock.LoginAsync("test@test.com", "password"))
@@ -125,5 +126,83 @@ public class LoginViewModelTests
         // Assert
         viewModel.State.Should().Be(LoginState.AccountLocked);
         _authServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DevLogin_WhenConfiguredAndSuccessful_ShouldSetLoginStateToSuccessAndSetUserId()
+    {
+        // Arrange
+        LoginViewModel viewModel = CreateViewModel(new Dictionary<string, string?>
+        {
+            ["DevLogin:Email"] = "dev@test.com",
+            ["DevLogin:Password"] = "password"
+        });
+        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1, Requires2Fa = false };
+
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+            .ReturnsAsync(response);
+        _authServiceMock.Setup(mock => mock.SetToken("test-token"));
+
+        // Act
+        ErrorOr<Success> result = await viewModel.DevLogin();
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        viewModel.State.Should().Be(LoginState.Success);
+        _authServiceMock.Object.CurrentUserId.Should().Be(1);
+        _authServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task DevLogin_WhenMissingConfiguration_ShouldReturnErrorAndNotCallApi()
+    {
+        // Arrange
+        LoginViewModel viewModel = CreateViewModel();
+
+        // Act
+        ErrorOr<Success> result = await viewModel.DevLogin();
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("DevLogin.NotConfigured");
+        _authServiceMock.Verify(mock => mock.LoginAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DevLogin_WhenRequires2Fa_ShouldReturnErrorAndResetState()
+    {
+        // Arrange
+        LoginViewModel viewModel = CreateViewModel(new Dictionary<string, string?>
+        {
+            ["DevLogin:Email"] = "dev@test.com",
+            ["DevLogin:Password"] = "password"
+        });
+        LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = true };
+
+        _authServiceMock
+            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+            .ReturnsAsync(response);
+
+        // Act
+        ErrorOr<Success> result = await viewModel.DevLogin();
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("DevLogin.Requires2Fa");
+        viewModel.State.Should().Be(LoginState.Idle);
+        _authServiceMock.VerifyAll();
+    }
+
+    private LoginViewModel CreateViewModel(Dictionary<string, string?>? values = null)
+    {
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(values ?? new Dictionary<string, string?>())
+            .Build();
+
+        return new LoginViewModel(
+            _authServiceMock.Object,
+            configuration,
+            NullLogger<LoginViewModel>.Instance);
     }
 }

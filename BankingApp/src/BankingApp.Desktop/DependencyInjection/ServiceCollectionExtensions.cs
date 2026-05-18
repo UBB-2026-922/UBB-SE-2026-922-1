@@ -1,6 +1,7 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
 using BankingApp.Desktop.Services;
+using Http;
 using Services.Transfers;
 using ViewModels;
 using Views;
