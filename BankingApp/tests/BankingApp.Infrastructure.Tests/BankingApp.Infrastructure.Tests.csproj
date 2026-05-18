@@ -20,7 +20,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\BankingApp.Infrastructure\BankingApp.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\src\BankingApp.Infrastructure.Persistence\BankingApp.Infrastructure.Persistence.csproj" />
         <ProjectReference Include="..\..\src\BankingApp.Application\BankingApp.Application.csproj"/>
     </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 namespace BankingApp.Domain.Tests.Aggregates.AccountAggregate.Entities;
 
 using BankingApp.Domain.Aggregates.AccountAggregate.Entities;
-using BankingApp.Domain.Enums;
+using Enums;
 
 public sealed class CardTests
 {

@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.Billers.Commands;
 
-using Common.Contracts;
 using Domain.Aggregates.SavedBillerAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;

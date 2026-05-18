@@ -1,14 +1,12 @@
 namespace BankingApp.Application.Features.Forex.Commands;
 
-using Common.Contracts;
-using Common.Utilities;
+using Contracts.Features.Forex.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Aggregates.ForexAggregate;
 using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using FluentValidation;
 using MediatR;

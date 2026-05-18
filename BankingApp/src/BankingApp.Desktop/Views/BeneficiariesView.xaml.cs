@@ -1,6 +1,6 @@
 namespace BankingApp.Desktop.Views;
 
-using BankingApp.Application.Features.Beneficiaries.Dtos;
+using Contracts.Features.Beneficiaries.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

@@ -1,8 +1,4 @@
-global using BankingApp.Application.Common.Contracts;
-global using BankingApp.Domain.Repositories;
 global using BankingApp.Infrastructure.DependencyInjection;
-global using BankingApp.Infrastructure.Persistence;
-global using FluentAssertions;
 global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Configuration;

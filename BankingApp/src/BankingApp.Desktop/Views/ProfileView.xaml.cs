@@ -1,13 +1,10 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.UserProfile.Dtos;
+using BankingApp.Contracts.Features.UserProfile.Dtos;
 using Enums;
-using BankingApp.Application.Common.Utilities;
 using ViewModels;
-using BankingApp.Domain.Common.Extensions;
 using BankingApp.Domain.Enums;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -24,34 +21,11 @@ public sealed partial class ProfileView
 {
     private const double EnabledFormOpacity = 1.0;
     private const double DisabledFormOpacity = 0.6;
-    private const int FirstGridColumnIndex = 0;
-    private const int SecondGridColumnIndex = 1;
-    private const int NotificationPreferenceVerticalMargin = 6;
-    private const int NotificationPreferenceFontSize = 13;
-    private const int SessionCardCornerRadius = 10;
-    private const int SessionCardBorderThickness = 1;
-    private const int SessionCardHorizontalPadding = 16;
-    private const int SessionCardVerticalPadding = 12;
-    private const int SessionInfoStackSpacing = 2;
-    private const int SessionPrimaryTextFontSize = 13;
-    private const int SessionSecondaryTextFontSize = 12;
-    private const int SessionMutedTextFontSize = 11;
     private const byte OpaqueColorAlpha = 255;
-    private const byte SessionCardBorderRed = 226;
-    private const byte SessionCardBorderGreen = 232;
-    private const byte SessionCardBorderBlue = 240;
-    private const byte SessionPrimaryTextRed = 30;
-    private const byte SessionPrimaryTextGreen = 41;
-    private const byte SessionPrimaryTextBlue = 59;
-    private const byte SessionSecondaryTextRed = 100;
-    private const byte SessionSecondaryTextGreen = 116;
-    private const byte SessionSecondaryTextBlue = 139;
-    private const byte SessionMutedTextRed = 148;
-    private const byte SessionMutedTextGreen = 163;
-    private const byte SessionMutedTextBlue = 184;
     private const byte PrimaryTextRed = 30;
     private const byte PrimaryTextGreen = 41;
     private const byte PrimaryTextBlue = 59;
+
     private readonly IAppNavigationService _navigationService;
     private readonly ProfileViewModel _viewModel;
     private bool _isChangingPasswordFlow;
@@ -121,14 +95,9 @@ public sealed partial class ProfileView
     }
 
     /// <inheritdoc />
-    /// <param name="e">The e value.</param>
-    protected override void OnNavigatedTo(NavigationEventArgs e)
-    {
-        base.OnNavigatedTo(e);
-    }
+    protected override void OnNavigatedTo(NavigationEventArgs e) => base.OnNavigatedTo(e);
 
     /// <inheritdoc />
-    /// <param name="e">The e value.</param>
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
         base.OnNavigatedFrom(e);
@@ -221,13 +190,11 @@ public sealed partial class ProfileView
         FullNameBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         PhoneBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         AddressBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
-        if (!enabled)
+        if (enabled)
         {
-            return;
+            PhoneBox.Focus(FocusState.Programmatic);
+            AddressBox.Focus(FocusState.Programmatic);
         }
-
-        PhoneBox.Focus(FocusState.Programmatic);
-        AddressBox.Focus(FocusState.Programmatic);
     }
 
     private async void UpdateButton_Click(object sender, RoutedEventArgs e)
@@ -429,33 +396,11 @@ public sealed partial class ProfileView
         }
     }
 
-    private async void NotificationToggle_Toggled(object sender, RoutedEventArgs e)
-    {
-        if (_viewModel.IsInitializingView)
-        {
-            return;
-        }
-
-        if (sender is ToggleSwitch { Tag: NotificationPreferenceDto preference } toggle)
-        {
-            _isUpdatingToggle = true;
-            await _viewModel.ToggleNotificationPreference(preference, toggle.IsOn);
-            _isUpdatingToggle = false;
-            _viewModel.IsInitializingView = true;
-            toggle.IsOn = preference.EmailEnabled;
-            _viewModel.IsInitializingView = false;
-        }
-    }
-
-    private void DashboardNavButton_Click(object sender, RoutedEventArgs e)
-    {
+    private void DashboardNavButton_Click(object sender, RoutedEventArgs e) =>
         _navigationService.NavigateTo<DashboardView>();
-    }
 
-    private void LogoutButton_Click(object sender, RoutedEventArgs e)
-    {
+    private void LogoutButton_Click(object sender, RoutedEventArgs e) =>
         _navigationService.NavigateTo<LoginView>();
-    }
 
     private void Update2FaVisuals()
     {
@@ -465,62 +410,26 @@ public sealed partial class ProfileView
             _viewModel.IsEmailTwoFactorActive,
             _viewModel.PersonalInfo.TwoFactorPhoneDisplay);
         TwoFactorPhoneDisplay.Text = _viewModel.PersonalInfo.TwoFactorPhoneDisplay;
+
         if (!_viewModel.PersonalInfo.HasPhoneNumber)
         {
-            ConfigureActionButton(
-                ActionPhoneBtn,
-                PhoneStatusBadge,
-                PhoneStatusText,
-                "Add",
-                "#F1F5F9",
-                "#64748B",
-                "Not configured");
+            ConfigureActionButton(ActionPhoneBtn, PhoneStatusBadge, PhoneStatusText, "Add", "#F1F5F9", "#64748B", "Not configured");
         }
         else if (_viewModel.IsPhoneTwoFactorActive)
         {
-            ConfigureActionButton(
-                ActionPhoneBtn,
-                PhoneStatusBadge,
-                PhoneStatusText,
-                "Remove",
-                "#DCFCE7",
-                "#16A34A",
-                "Active");
+            ConfigureActionButton(ActionPhoneBtn, PhoneStatusBadge, PhoneStatusText, "Remove", "#DCFCE7", "#16A34A", "Active");
         }
         else
         {
-            ConfigureActionButton(
-                ActionPhoneBtn,
-                PhoneStatusBadge,
-                PhoneStatusText,
-                "Verify",
-                "#FFF7ED",
-                "#C2410C",
-                "Unverified");
+            ConfigureActionButton(ActionPhoneBtn, PhoneStatusBadge, PhoneStatusText, "Verify", "#FFF7ED", "#C2410C", "Unverified");
         }
 
-        if (_viewModel.IsEmailTwoFactorActive)
-        {
-            ConfigureActionButton(
-                ActionEmailBtn,
-                EmailStatusBadge,
-                EmailStatusText,
-                "Remove",
-                "#DCFCE7",
-                "#16A34A",
-                "Active");
-        }
-        else
-        {
-            ConfigureActionButton(
-                ActionEmailBtn,
-                EmailStatusBadge,
-                EmailStatusText,
-                "Verify",
-                "#FFF7ED",
-                "#C2410C",
-                "Unverified");
-        }
+        ConfigureActionButton(
+            ActionEmailBtn, EmailStatusBadge, EmailStatusText,
+            _viewModel.IsEmailTwoFactorActive ? "Remove" : "Verify",
+            _viewModel.IsEmailTwoFactorActive ? "#DCFCE7" : "#FFF7ED",
+            _viewModel.IsEmailTwoFactorActive ? "#16A34A" : "#C2410C",
+            _viewModel.IsEmailTwoFactorActive ? "Active" : "Unverified");
     }
 
     private static void ConfigureActionButton(
@@ -558,90 +467,33 @@ public sealed partial class ProfileView
         ErrorInfoBar.IsOpen = false;
     }
 
-    private void TabPersonalBtn_Click(object sender, RoutedEventArgs e)
-    {
-        PanelPersonal.Visibility = Visibility.Visible;
-        PanelSecurity.Visibility = Visibility.Collapsed;
-        PanelNotifications.Visibility = Visibility.Collapsed;
-        PanelSessions.Visibility = Visibility.Collapsed;
-        TabPersonalBtn.Style = (Style)Resources["TabButtonActiveStyle"];
-        TabSecurityBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabNotificationsBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
-    }
-
-    private void TabSecurityBtn_Click(object sender, RoutedEventArgs e)
-    {
-        PanelPersonal.Visibility = Visibility.Collapsed;
-        PanelSecurity.Visibility = Visibility.Visible;
-        PanelNotifications.Visibility = Visibility.Collapsed;
-        PanelSessions.Visibility = Visibility.Collapsed;
-        TabPersonalBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabSecurityBtn.Style = (Style)Resources["TabButtonActiveStyle"];
-        TabNotificationsBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
-    }
-
-    private void TabNotificationsBtn_Click(object sender, RoutedEventArgs e)
+    private void SwitchToTab(FrameworkElement activePanel, Button activeButton)
     {
         PanelPersonal.Visibility = Visibility.Collapsed;
         PanelSecurity.Visibility = Visibility.Collapsed;
-        PanelNotifications.Visibility = Visibility.Visible;
+        PanelNotifications.Visibility = Visibility.Collapsed;
         PanelSessions.Visibility = Visibility.Collapsed;
         TabPersonalBtn.Style = (Style)Resources["TabButtonStyle"];
         TabSecurityBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabNotificationsBtn.Style = (Style)Resources["TabButtonActiveStyle"];
+        TabNotificationsBtn.Style = (Style)Resources["TabButtonStyle"];
         TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
+        activePanel.Visibility = Visibility.Visible;
+        activeButton.Style = (Style)Resources["TabButtonActiveStyle"];
     }
 
-    private void PopulateNotificationPreferences(List<NotificationPreferenceDto>? preferences)
+    private void TabPersonalBtn_Click(object sender, RoutedEventArgs e) =>
+        SwitchToTab(PanelPersonal, TabPersonalBtn);
+
+    private void TabSecurityBtn_Click(object sender, RoutedEventArgs e) =>
+        SwitchToTab(PanelSecurity, TabSecurityBtn);
+
+    private void TabNotificationsBtn_Click(object sender, RoutedEventArgs e) =>
+        SwitchToTab(PanelNotifications, TabNotificationsBtn);
+
+    private async void TabSessionsBtn_Click(object sender, RoutedEventArgs e)
     {
-        Log.Information(
-            "ProfileView populating notification preferences. Count={Count}.",
-            preferences?.Count ?? 0);
-        _viewModel.IsInitializingView = true;
-        NotificationPreferencesPanel.Children.Clear();
-        if (preferences == null)
-        {
-            _viewModel.IsInitializingView = false;
-            return;
-        }
-
-        foreach (NotificationPreferenceDto preference in preferences)
-        {
-            var row = new Grid
-            {
-                Margin = new Thickness(
-                    0,
-                    NotificationPreferenceVerticalMargin,
-                    0,
-                    NotificationPreferenceVerticalMargin)
-            };
-            row.ColumnDefinitions.Add(
-                new ColumnDefinition { Width = new GridLength(SecondGridColumnIndex, GridUnitType.Star) });
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var text = new TextBlock
-            {
-                Text = preference.Category.ToDisplayName(),
-                VerticalAlignment = VerticalAlignment.Center,
-                FontSize = NotificationPreferenceFontSize,
-                Foreground = GetPrimaryTextBrush()
-            };
-            var toggle = new ToggleSwitch
-            {
-                IsOn = preference.EmailEnabled,
-                Tag = preference,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            toggle.Toggled += NotificationToggle_Toggled;
-            Grid.SetColumn(text, FirstGridColumnIndex);
-            Grid.SetColumn(toggle, SecondGridColumnIndex);
-            row.Children.Add(text);
-            row.Children.Add(toggle);
-            NotificationPreferencesPanel.Children.Add(row);
-        }
-
-        _viewModel.IsInitializingView = false;
+        SwitchToTab(PanelSessions, TabSessionsBtn);
+        await LoadSessionsAsync();
     }
 
     private Brush GetPrimaryTextBrush()
@@ -652,168 +504,6 @@ public sealed partial class ProfileView
         }
 
         return new SolidColorBrush(
-            ColorHelper.FromArgb(
-                OpaqueColorAlpha,
-                PrimaryTextRed,
-                PrimaryTextGreen,
-                PrimaryTextBlue));
-    }
-
-    private async void TabSessionsBtn_Click(object sender, RoutedEventArgs e)
-    {
-        PanelPersonal.Visibility = Visibility.Collapsed;
-        PanelSecurity.Visibility = Visibility.Collapsed;
-        PanelNotifications.Visibility = Visibility.Collapsed;
-        PanelSessions.Visibility = Visibility.Visible;
-        TabPersonalBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabSecurityBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabNotificationsBtn.Style = (Style)Resources["TabButtonStyle"];
-        TabSessionsBtn.Style = (Style)Resources["TabButtonActiveStyle"];
-        await LoadSessionsAsync();
-    }
-
-    private async Task<bool> LoadSessionsAsync()
-    {
-        SessionsErrorBar.IsOpen = false;
-        SessionsSuccessBar.IsOpen = false;
-        SessionsListPanel.Children.Clear();
-        NoSessionsText.Visibility = Visibility.Collapsed;
-        (bool loaded, string? errorMessage) = await _viewModel.LoadSessionsForCurrentUser();
-        if (!loaded)
-        {
-            SessionsErrorBar.Message = errorMessage ?? "Failed to load active sessions.";
-            SessionsErrorBar.IsOpen = true;
-            return false;
-        }
-
-        RenderSessions();
-        return true;
-    }
-
-    private Border BuildSessionCard(SessionDto session)
-    {
-        var card = new Border
-        {
-            Background = new SolidColorBrush(Colors.White),
-            CornerRadius = new CornerRadius(SessionCardCornerRadius),
-            BorderBrush = new SolidColorBrush(
-                ColorHelper.FromArgb(
-                    OpaqueColorAlpha,
-                    SessionCardBorderRed,
-                    SessionCardBorderGreen,
-                    SessionCardBorderBlue)),
-            BorderThickness = new Thickness(SessionCardBorderThickness),
-            Padding = new Thickness(
-                SessionCardHorizontalPadding,
-                SessionCardVerticalPadding,
-                SessionCardHorizontalPadding,
-                SessionCardVerticalPadding)
-        };
-        var grid = new Grid();
-        grid.ColumnDefinitions.Add(
-            new ColumnDefinition { Width = new GridLength(SecondGridColumnIndex, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var infoStack = new StackPanel { Spacing = SessionInfoStackSpacing };
-        var deviceText = new TextBlock
-        {
-            Text = session.DeviceInfo ?? "Unknown Device",
-            FontSize = SessionPrimaryTextFontSize,
-            Foreground = new SolidColorBrush(
-                ColorHelper.FromArgb(
-                    OpaqueColorAlpha,
-                    SessionPrimaryTextRed,
-                    SessionPrimaryTextGreen,
-                    SessionPrimaryTextBlue))
-        };
-        var browserText = new TextBlock
-        {
-            Text = session.Browser ?? "Unknown Browser",
-            FontSize = SessionSecondaryTextFontSize,
-            Foreground = new SolidColorBrush(
-                ColorHelper.FromArgb(
-                    OpaqueColorAlpha,
-                    SessionSecondaryTextRed,
-                    SessionSecondaryTextGreen,
-                    SessionSecondaryTextBlue))
-        };
-        var networkAddressText = new TextBlock
-        {
-            Text = $"IP: {session.IpAddress ?? "Unknown"}",
-            FontSize = SessionSecondaryTextFontSize,
-            Foreground = new SolidColorBrush(
-                ColorHelper.FromArgb(
-                    OpaqueColorAlpha,
-                    SessionSecondaryTextRed,
-                    SessionSecondaryTextGreen,
-                    SessionSecondaryTextBlue))
-        };
-        var lastActiveText = new TextBlock
-        {
-            Text = session.LastActiveAt.HasValue
-                ? $"Last active: {session.LastActiveAt.Value:g}"
-                : "Last active: Unknown",
-            FontSize = SessionMutedTextFontSize,
-            Foreground = new SolidColorBrush(
-                ColorHelper.FromArgb(
-                    OpaqueColorAlpha,
-                    SessionMutedTextRed,
-                    SessionMutedTextGreen,
-                    SessionMutedTextBlue))
-        };
-        infoStack.Children.Add(deviceText);
-        infoStack.Children.Add(browserText);
-        infoStack.Children.Add(networkAddressText);
-        infoStack.Children.Add(lastActiveText);
-        var revokeButton = new Button
-        {
-            Content = "Revoke",
-            Tag = session.Id,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = (Style)Resources["DangerButtonStyle"]
-        };
-        revokeButton.Click += RevokeSessionButton_Click;
-        Grid.SetColumn(infoStack, FirstGridColumnIndex);
-        Grid.SetColumn(revokeButton, SecondGridColumnIndex);
-        grid.Children.Add(infoStack);
-        grid.Children.Add(revokeButton);
-        card.Child = grid;
-        return card;
-    }
-
-    private async void RevokeSessionButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { Tag: int sessionId })
-        {
-            return;
-        }
-
-        (bool success, string? errorMessage) = await _viewModel.RevokeSessionAndReload(sessionId);
-        if (success)
-        {
-            RenderSessions();
-            SessionsSuccessBar.Message = "Session revoked successfully.";
-            SessionsSuccessBar.IsOpen = true;
-        }
-        else
-        {
-            SessionsErrorBar.Message = errorMessage ?? "Failed to revoke session.";
-            SessionsErrorBar.IsOpen = true;
-        }
-    }
-
-    private void RenderSessions()
-    {
-        SessionsListPanel.Children.Clear();
-        NoSessionsText.Visibility = Visibility.Collapsed;
-        if (_viewModel.Sessions.ActiveSessions.Count == default)
-        {
-            NoSessionsText.Visibility = Visibility.Visible;
-            return;
-        }
-
-        foreach (SessionDto session in _viewModel.Sessions.ActiveSessions)
-        {
-            SessionsListPanel.Children.Add(BuildSessionCard(session));
-        }
+            ColorHelper.FromArgb(OpaqueColorAlpha, PrimaryTextRed, PrimaryTextGreen, PrimaryTextBlue));
     }
 }

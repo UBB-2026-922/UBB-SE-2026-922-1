@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>preview</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\Cards\Services\" />
+      <Folder Include="Features\PasswordReset\Services\" />
+      <Folder Include="Features\UserRegistration\Services\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ErrorOr" Version="2.1.0" />
+      <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\BankingApp.Contracts\BankingApp.Contracts.csproj" />
+      <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj" />
+    </ItemGroup>
+
+</Project>

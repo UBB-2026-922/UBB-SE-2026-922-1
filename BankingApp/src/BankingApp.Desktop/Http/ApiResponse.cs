@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Http;
 
 /// <summary>Represents a simple API response containing either a success message or an error.</summary>
 public class ApiResponse

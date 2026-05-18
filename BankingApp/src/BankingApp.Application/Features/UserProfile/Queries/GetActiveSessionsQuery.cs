@@ -1,10 +1,10 @@
 namespace BankingApp.Application.Features.UserProfile.Queries;
 
 using Common.Logging;
+using Contracts.Features.UserProfile.Dtos;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -27,14 +27,14 @@ public sealed class GetActiveSessionsQueryHandler(
         }
 
         return identity.Sessions
-            .Where(s => !s.IsRevoked)
-            .Select(s => new SessionDto
+            .Where(session => !session.IsRevoked)
+            .Select(session => new SessionDto
             {
-                Id = s.Id,
-                DeviceInfo = s.DeviceInfo,
-                Browser = s.Browser,
-                IpAddress = s.IpAddress,
-                LastActiveAt = s.LastActiveAt
+                Id = session.Id,
+                DeviceInfo = session.DeviceInfo,
+                Browser = session.Browser,
+                IpAddress = session.IpAddress,
+                LastActiveAt = session.LastActiveAt
             })
             .ToList();
     }

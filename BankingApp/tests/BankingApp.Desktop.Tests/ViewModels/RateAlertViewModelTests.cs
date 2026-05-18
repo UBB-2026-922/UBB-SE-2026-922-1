@@ -1,28 +1,30 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.ForexRateAlerts.Dtos;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
+using Contracts.Features.ForexRateAlerts.Dtos;
+using Contracts.Features.ForexRateAlerts.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class RateAlertViewModelTests
 {
-    private readonly Mock<IRateAlertClientService> _rateAlertClientService;
+    private readonly Mock<IAuthService> _authService;
+    private readonly Mock<IRateAlertService> _rateAlertClientService;
     private readonly RateAlertViewModel _viewModel;
 
     public RateAlertViewModelTests()
     {
-        _rateAlertClientService = new Mock<IRateAlertClientService>(MockBehavior.Loose);
-        _viewModel = new RateAlertViewModel(_rateAlertClientService.Object, NullLogger<RateAlertViewModel>.Instance);
+        _authService = new Mock<IAuthService>(MockBehavior.Loose);
+        _rateAlertClientService = new Mock<IRateAlertService>(MockBehavior.Loose);
+        _viewModel = new RateAlertViewModel(_authService.Object, _rateAlertClientService.Object, NullLogger<RateAlertViewModel>.Instance);
     }
 
     [Fact]
     public async Task LoadAlertsAsync_WhenApiSucceeds_PopulatesAlerts()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
+        _authService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
         var alerts = new List<ForexRateAlertDto>
         {
             new ForexRateAlertDto { Id = 1, BaseCurrency = "EUR", TargetCurrency = "USD", TargetRate = 1.10m },
@@ -30,7 +32,7 @@ public class RateAlertViewModelTests
         };
 
         _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.GetAlertsAsync(It.IsAny<int>()))
+            .Setup(rateAlertClientService => rateAlertClientService.GetAllAsync())
             .ReturnsAsync(alerts);
 
         // Act
@@ -45,9 +47,9 @@ public class RateAlertViewModelTests
     public async Task LoadAlertsAsync_WhenApiFails_SetsError()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
+        _authService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
         _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.GetAlertsAsync(It.IsAny<int>()))
+            .Setup(rateAlertClientService => rateAlertClientService.GetAllAsync())
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -119,7 +121,7 @@ public class RateAlertViewModelTests
     public async Task CreateAlertAsync_WhenApiSucceeds_AddsAlertAndClearsInputs()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
+        _authService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
         _viewModel.BaseCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.TargetRateText = "1.10";
@@ -133,7 +135,7 @@ public class RateAlertViewModelTests
         };
 
         _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.CreateAlertAsync(It.IsAny<ForexRateAlertDto>()))
+            .Setup(rateAlertClientService => rateAlertClientService.CreateAsync(It.IsAny<ForexRateAlertDto>()))
             .ReturnsAsync(created);
 
         // Act
@@ -151,13 +153,13 @@ public class RateAlertViewModelTests
     public async Task CreateAlertAsync_WhenApiFails_SetsError()
     {
         // Arrange
-        _rateAlertClientService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
+        _authService.Setup(rateAlertClientService => rateAlertClientService.CurrentUserId).Returns(1);
         _viewModel.BaseCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.TargetRateText = "1.10";
 
         _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.CreateAlertAsync(It.IsAny<ForexRateAlertDto>()))
+            .Setup(rateAlertClientService => rateAlertClientService.CreateAsync(It.IsAny<ForexRateAlertDto>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -175,7 +177,7 @@ public class RateAlertViewModelTests
         _viewModel.Alerts.Add(new ForexRateAlertDto { Id = alertId, BaseCurrency = "EUR", TargetCurrency = "USD" });
 
         _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.DeleteAlertAsync(alertId))
+            .Setup(rateAlertClientService => rateAlertClientService.DeleteAsync(alertId))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -194,7 +196,7 @@ public class RateAlertViewModelTests
         _viewModel.Alerts.Add(new ForexRateAlertDto { Id = alertId, BaseCurrency = "EUR", TargetCurrency = "USD" });
 
         _rateAlertClientService
-            .Setup(rateAlertClientService => rateAlertClientService.DeleteAlertAsync(alertId))
+            .Setup(rateAlertClientService => rateAlertClientService.DeleteAsync(alertId))
             .ReturnsAsync(Error.Failure());
 
         // Act

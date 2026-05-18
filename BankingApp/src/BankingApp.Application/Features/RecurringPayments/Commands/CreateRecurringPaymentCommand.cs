@@ -1,14 +1,12 @@
 namespace BankingApp.Application.Features.RecurringPayments.Commands;
 
-using Common.Contracts;
-using Common.Utilities;
+using Contracts.Features.RecurringPayments.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.ReferenceData.Billers;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 

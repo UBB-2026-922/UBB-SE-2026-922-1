@@ -1,14 +1,14 @@
 namespace BankingApp.Desktop.Views;
 
 using System.Collections.Generic;
-using BankingApp.Application.Features.Cards.Dtos;
+using System.Threading.Tasks;
+using BankingApp.Contracts.Features.Cards.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 
 /// <summary>Displays the card management screen.</summary>
-public sealed partial class CardsView : Page
+public sealed partial class CardsView
 {
     private readonly CardViewModel _viewModel;
 
@@ -47,29 +47,35 @@ public sealed partial class CardsView : Page
 
     private async void FreezeButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: CardDetailsDto card })
+        if (sender is not Button { Tag: CardDetailsDto card })
         {
-            await _viewModel.FreezeAsync(card);
-            await RefreshAsync();
+            return;
         }
+
+        await _viewModel.FreezeAsync(card);
+        await RefreshAsync();
     }
 
     private async void UnfreezeButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: CardDetailsDto card })
+        if (sender is not Button { Tag: CardDetailsDto card })
         {
-            await _viewModel.UnfreezeAsync(card);
-            await RefreshAsync();
+            return;
         }
+
+        await _viewModel.UnfreezeAsync(card);
+        await RefreshAsync();
     }
 
     private async void CancelButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: CardDetailsDto card })
+        if (sender is not Button { Tag: CardDetailsDto card })
         {
-            await _viewModel.CancelAsync(card);
-            await RefreshAsync();
+            return;
         }
+
+        await _viewModel.CancelAsync(card);
+        await RefreshAsync();
     }
 
     private void ShowIssueForm_Click(object sender, RoutedEventArgs args)
@@ -105,7 +111,7 @@ public sealed partial class CardsView : Page
         }
     }
 
-    private async System.Threading.Tasks.Task RefreshAsync()
+    private async Task RefreshAsync()
     {
         ErrorInfoBar.IsOpen = false;
 

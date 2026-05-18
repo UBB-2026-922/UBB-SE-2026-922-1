@@ -3,7 +3,7 @@
     x:Class="BankingApp.Desktop.Views.CardsView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:BankingApp.Application.Features.Cards.Dtos"
+    xmlns:local="using:BankingApp.Contracts.Features.Cards.Dtos"
     Background="#F4F6FA">
 
     <Grid>

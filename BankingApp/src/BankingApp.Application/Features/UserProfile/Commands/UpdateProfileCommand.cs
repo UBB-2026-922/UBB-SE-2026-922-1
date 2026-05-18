@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.UserProfile.Commands;
 
-using Common.Contracts;
 using Common.Logging;
 using Common.Utilities;
 using Domain.Aggregates.UserAggregate;

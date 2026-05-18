@@ -1,9 +1,9 @@
 namespace BankingApp.Application.Features.Billers.Queries;
 
+using Contracts.Features.Billers.Dtos;
 using Domain.Aggregates.SavedBillerAggregate;
 using Domain.ReferenceData.Billers;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -19,20 +19,20 @@ public sealed class GetSavedBillersQueryHandler(
         IReadOnlyCollection<SavedBiller> savedBillers = await savedBillerRepository.ListByUserIdAsync(query.UserId, cancellationToken);
 
         List<SavedBillerDto> result = [];
-        foreach (SavedBiller sb in savedBillers)
+        foreach (SavedBiller savedBiller in savedBillers)
         {
-            Biller? biller = await billerRepository.GetByIdAsync(sb.BillerId, cancellationToken);
+            Biller? biller = await billerRepository.GetByIdAsync(savedBiller.BillerId, cancellationToken);
             result.Add(new SavedBillerDto
             {
-                Id = sb.Id,
-                UserId = sb.UserId,
-                BillerId = sb.BillerId,
+                Id = savedBiller.Id,
+                UserId = savedBiller.UserId,
+                BillerId = savedBiller.BillerId,
                 BillerName = biller?.Name ?? string.Empty,
                 BillerCategory = biller?.Category.ToString() ?? string.Empty,
                 LogoUrl = biller?.LogoUrl,
-                Nickname = sb.Nickname,
-                DefaultReference = sb.DefaultReference,
-                CreatedAt = sb.CreatedAt,
+                Nickname = savedBiller.Nickname,
+                DefaultReference = savedBiller.DefaultReference,
+                CreatedAt = savedBiller.CreatedAt,
                 Biller = biller is null ? null : new BillerDto
                 {
                     Id = biller.Id,

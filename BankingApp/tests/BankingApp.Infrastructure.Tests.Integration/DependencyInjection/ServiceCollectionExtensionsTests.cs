@@ -1,6 +1,6 @@
 namespace BankingApp.Infrastructure.Tests.Integration.DependencyInjection;
 
-using BankingApp.Infrastructure.Tests.Integration.TestSupport;
+using TestSupport;
 
 [Collection(IntegrationTestCollectionNames.Name)]
 public sealed class ServiceCollectionExtensionsTests(SqlServerDatabaseFixture databaseFixture)

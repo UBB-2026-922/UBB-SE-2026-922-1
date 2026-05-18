@@ -18,10 +18,8 @@
         <PackageReference Include="NodaMoney" Version="2.7.0"/>
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\BankingApp.Contracts\BankingApp.Contracts.csproj" />
         <ProjectReference Include="..\BankingApp.Domain\BankingApp.Domain.csproj"/>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Common\Mappings\" />
     </ItemGroup>
     <ItemGroup>
         <InternalsVisibleTo Include="BankingApp.Application.Tests" />

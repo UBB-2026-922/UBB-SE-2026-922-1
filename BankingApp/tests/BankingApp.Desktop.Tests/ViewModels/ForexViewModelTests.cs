@@ -1,21 +1,23 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.Forex.Dtos;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Contracts.Features.Forex.Dtos;
+using Contracts.Features.Forex.Services;
+using Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class ForexViewModelTests
 {
-    private readonly Mock<IForexClientService> _forexClientService;
+    private readonly Mock<IAuthService> _authService;
+    private readonly Mock<IForexService> _forexClientService;
     private readonly ForexViewModel _viewModel;
 
     public ForexViewModelTests()
     {
-        _forexClientService = new Mock<IForexClientService>(MockBehavior.Loose);
-        _viewModel = new ForexViewModel(_forexClientService.Object, NullLogger<ForexViewModel>.Instance);
+        _authService = new Mock<IAuthService>(MockBehavior.Loose);
+        _forexClientService = new Mock<IForexService>(MockBehavior.Loose);
+        _viewModel = new ForexViewModel(_authService.Object, _forexClientService.Object, NullLogger<ForexViewModel>.Instance);
     }
 
     [Fact]
@@ -73,7 +75,7 @@ public class ForexViewModelTests
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
 
-        var response = new ForexTransactionResponse
+        var response = new ForexRatePreviewResponse
         {
             ExchangeRate = expectedRate,
             Commission = expectedCommission,
@@ -138,11 +140,11 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _forexClientService.Setup(service => service.CurrentUserId).Returns(1);
+        _authService.Setup(service => service.CurrentUserId).Returns(1);
 
         var response = new ForexTransactionResponse { Id = transactionId };
         _forexClientService
-            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ForexTransactionRequest>()))
+            .Setup(forexClientService => forexClientService.ExecuteAsync(It.IsAny<ForexTransactionRequest>()))
             .ReturnsAsync(response);
 
         // Act
@@ -160,10 +162,10 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _forexClientService.Setup(forexClientService => forexClientService.CurrentUserId).Returns(1);
+        _authService.Setup(forexClientService => forexClientService.CurrentUserId).Returns(1);
 
         _forexClientService
-            .Setup(forexClientService => forexClientService.ExecuteExchangeAsync(It.IsAny<ForexTransactionRequest>()))
+            .Setup(forexClientService => forexClientService.ExecuteAsync(It.IsAny<ForexTransactionRequest>()))
             .ReturnsAsync(Error.Failure());
 
         // Act

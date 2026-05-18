@@ -3,25 +3,27 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Application.Common.Utilities;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles notification-preference loading and updates for the profile area.</summary>
 public partial class NotificationsViewModel : ObservableObject
 {
-    private readonly IProfileClientService _profileClientService;
+    private readonly IProfileService _profileService;
     private readonly ILogger<NotificationsViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="NotificationsViewModel"/> class.</summary>
-    public NotificationsViewModel(IProfileClientService profileClientService, ILogger<NotificationsViewModel> logger)
+    public NotificationsViewModel(IProfileService profileService, ILogger<NotificationsViewModel> logger)
     {
-        _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        NotificationPreferences = new List<NotificationPreferenceDto>();
+        NotificationPreferences = [];
     }
 
     /// <summary>Gets or sets the current notifications workflow state.</summary>
@@ -49,10 +51,10 @@ public partial class NotificationsViewModel : ObservableObject
     public async Task<bool> LoadNotificationPreferences()
     {
         ErrorOr<List<NotificationPreferenceDto>> preferencesResult =
-            await _profileClientService.GetNotificationPreferencesAsync();
+            await _profileService.GetNotificationPreferencesAsync();
         if (preferencesResult.IsError)
         {
-            _logger.LoadNotificationPreferencesFailed(preferencesResult.Errors);
+            DesktopLogMessages.LoadNotificationPreferencesFailed(_logger, preferencesResult.Errors);
             return false;
         }
 
@@ -69,7 +71,7 @@ public partial class NotificationsViewModel : ObservableObject
         }
 
         State = ProfileState.Loading;
-        ErrorOr<Success> result = await _profileClientService.UpdateNotificationPreferencesAsync(preferences);
+        ErrorOr<Success> result = await _profileService.UpdateNotificationPreferencesAsync(preferences);
         return result.Match(
             _ =>
             {
@@ -79,7 +81,7 @@ public partial class NotificationsViewModel : ObservableObject
             },
             errors =>
             {
-                _logger.UpdateNotificationPreferencesFailed(errors);
+                DesktopLogMessages.UpdateNotificationPreferencesFailed(_logger, errors);
                 State = ProfileState.Error;
                 return false;
             });

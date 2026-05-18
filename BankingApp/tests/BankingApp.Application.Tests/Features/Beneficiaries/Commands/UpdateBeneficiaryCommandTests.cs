@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Tests.Features.Beneficiaries.Commands;
 
-using Common.Contracts;
 using BankingApp.Application.Features.Beneficiaries.Commands;
 using Domain.Aggregates.BeneficiaryAggregate;
 using BankingApp.Domain.Common.Errors;

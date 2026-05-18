@@ -2,18 +2,15 @@ namespace BankingApp.Application.Features.PasswordReset.Commands;
 
 using System.Security.Cryptography;
 using System.Text;
-using Common.Contracts;
-using Common.Contracts.Notifications;
 using Common.Logging;
-using Common.Utilities;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
-using Domain.Common.Errors;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Notifications;
 
 public sealed record ForgotPasswordCommand(string Email)
     : IRequest<ErrorOr<Success>>;

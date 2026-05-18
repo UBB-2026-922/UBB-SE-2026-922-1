@@ -5,6 +5,7 @@ using BankingApp.Application.Common.Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Navigation;
+using Utilities;
 
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.

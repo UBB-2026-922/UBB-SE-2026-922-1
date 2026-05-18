@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.Billers.Queries;
 
+using Contracts.Features.Billers.Dtos;
 using Domain.ReferenceData.Billers;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -16,13 +16,13 @@ public sealed class GetBillersQueryHandler(IBillerRepository billerRepository)
         IReadOnlyCollection<Biller> billers = await billerRepository.ListActiveAsync(cancellationToken);
 
         return billers
-            .Select(b => new BillerDto
+            .Select(biller => new BillerDto
             {
-                Id = b.Id,
-                Name = b.Name,
-                Category = b.Category.ToString(),
-                LogoUrl = b.LogoUrl,
-                IsActive = b.IsActive
+                Id = biller.Id,
+                Name = biller.Name,
+                Category = biller.Category.ToString(),
+                LogoUrl = biller.LogoUrl,
+                IsActive = biller.IsActive
             })
             .ToList();
     }

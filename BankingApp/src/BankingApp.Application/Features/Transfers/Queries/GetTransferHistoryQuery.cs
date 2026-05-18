@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.Transfers.Queries;
 
+using Contracts.Features.Transfers.Dtos;
 using Domain.Aggregates.TransferAggregate;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -16,24 +16,25 @@ public sealed class GetTransferHistoryQueryHandler(ITransferRepository transferR
         GetTransferHistoryQuery query,
         CancellationToken cancellationToken)
     {
-        IReadOnlyCollection<Transfer> transfers = await transferRepository.ListByUserIdAsync(query.UserId, cancellationToken);
+        IReadOnlyCollection<Transfer> transfers =
+            await transferRepository.ListByUserIdAsync(query.UserId, cancellationToken);
 
         return transfers
-            .OrderByDescending(t => t.CreatedAt)
-            .Select(t => new TransferResponse
+            .OrderByDescending(transfer => transfer.CreatedAt)
+            .Select(transfer => new TransferResponse
             {
-                Id = t.Id,
-                SourceAccountId = t.SourceAccountId,
-                TransactionId = t.LedgerTransactionId,
-                RecipientName = t.RecipientName,
-                RecipientIban = t.RecipientIban.Value,
-                RecipientBankName = t.RecipientBankName,
-                Amount = t.Amount.Amount,
-                Currency = t.Amount.Currency.Code,
-                Fee = t.Fee.Amount,
-                Reference = t.Reference,
-                Status = t.Status,
-                CreatedAt = t.CreatedAt
+                Id = transfer.Id,
+                SourceAccountId = transfer.SourceAccountId,
+                TransactionId = transfer.LedgerTransactionId,
+                RecipientName = transfer.RecipientName,
+                RecipientIban = transfer.RecipientIban.Value,
+                RecipientBankName = transfer.RecipientBankName,
+                Amount = transfer.Amount.Amount,
+                Currency = transfer.Amount.Currency.Code,
+                Fee = transfer.Fee.Amount,
+                Reference = transfer.Reference,
+                Status = transfer.Status,
+                CreatedAt = transfer.CreatedAt
             })
             .ToList();
     }

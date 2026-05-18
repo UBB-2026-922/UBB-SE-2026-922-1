@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.BillPayments.Queries;
 
+using Contracts.Features.BillPayments.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -24,14 +24,14 @@ public sealed class GetBillPayAccountsQueryHandler(IAccountRepository accountRep
             await accountRepository.ListByUserIdAsync(query.UserId, cancellationToken);
 
         return accounts
-            .Where(a => a.IsActive())
-            .Select(a => new AccountDto
+            .Where(account => account.IsActive())
+            .Select(account => new AccountDto
             {
-                Id = a.Id,
-                Iban = a.Iban.Value,
-                Currency = a.Balance.Currency.Code,
-                Balance = a.Balance.Amount,
-                AccountName = a.AccountName ?? string.Empty
+                Id = account.Id,
+                Iban = account.Iban.Value,
+                Currency = account.Balance.Currency.Code,
+                Balance = account.Balance.Amount,
+                AccountName = account.AccountName ?? string.Empty
             })
             .ToList();
     }

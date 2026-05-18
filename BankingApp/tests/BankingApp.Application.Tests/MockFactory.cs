@@ -2,6 +2,8 @@ namespace BankingApp.Application.Tests;
 
 using Domain.Enums;
 using ErrorOr;
+using Notifications;
+using Security;
 using Currency = NodaMoney.Currency;
 
 /// <summary>

@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Contracts.Features.Billers.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

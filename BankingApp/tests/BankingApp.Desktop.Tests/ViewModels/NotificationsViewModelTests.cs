@@ -1,16 +1,16 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class NotificationsViewModelTests
 {
-    private readonly Mock<IProfileClientService> _profileClientService = new(MockBehavior.Strict);
+    private readonly Mock<IProfileService> _profileClientService = new(MockBehavior.Strict);
 
     [Fact]
     public async Task ToggleNotificationPreference_WhenApiSucceeds_UpdatesPreferenceAndSetsSuccessState()

@@ -3,15 +3,19 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using Application.Features.Cards.Dtos;
+using Contracts.Features.Cards.Dtos;
+using Contracts.Features.Cards.Services;
 using BankingApp.Domain.Enums;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Manages card listing and lifecycle actions for the desktop client.</summary>
 public partial class CardViewModel : ObservableObject
 {
-    private readonly ICardClientService _cardClientService;
+    private readonly ICardService _cardService;
     private readonly ILogger<CardViewModel> _logger;
 
     private const int CardBrandVisaIndex = 0;
@@ -20,9 +24,9 @@ public partial class CardViewModel : ObservableObject
     private const int CardTypeCreditIndex = 1;
 
     /// <summary>Initializes a new instance of the <see cref="CardViewModel"/> class.</summary>
-    public CardViewModel(ICardClientService cardClientService, ILogger<CardViewModel> logger)
+    public CardViewModel(ICardService cardService, ILogger<CardViewModel> logger)
     {
-        _cardClientService = cardClientService ?? throw new ArgumentNullException(nameof(cardClientService));
+        _cardService = cardService ?? throw new ArgumentNullException(nameof(cardService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Cards = [];
 
@@ -103,7 +107,7 @@ public partial class CardViewModel : ObservableObject
 
         try
         {
-            ErrorOr<CardDetailsDto> result = await _cardClientService.IssueCardAsync(request);
+            ErrorOr<CardDetailsDto> result = await _cardService.IssueCardAsync(request);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to issue card.";
@@ -116,7 +120,7 @@ public partial class CardViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.FailedToIssueCard(ex);
+            DesktopLogMessages.FailedToIssueCard(_logger, ex);
             ErrorMessage = "An unexpected error occurred while issuing the card.";
             return false;
         }
@@ -127,7 +131,7 @@ public partial class CardViewModel : ObservableObject
     {
         try
         {
-            ErrorOr<System.Collections.Generic.List<CardDetailsDto>> result = await _cardClientService.GetCardsAsync();
+            ErrorOr<System.Collections.Generic.List<CardDetailsDto>> result = await _cardService.GetCardsAsync();
             if (result.IsError)
             {
                 ErrorMessage = "Failed to load cards.";
@@ -139,7 +143,7 @@ public partial class CardViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.FailedToLoadCards(ex);
+            DesktopLogMessages.FailedToLoadCards(_logger, ex);
             ErrorMessage = "An unexpected error occurred while loading cards.";
         }
     }
@@ -162,7 +166,7 @@ public partial class CardViewModel : ObservableObject
 
         try
         {
-            ErrorOr<Success> result = await _cardClientService.FreezeCardAsync(card.Id);
+            ErrorOr<Success> result = await _cardService.FreezeCardAsync(card.Id);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to freeze card.";
@@ -173,7 +177,7 @@ public partial class CardViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.FailedToFreezeCard(ex, card.Id);
+            DesktopLogMessages.FailedToFreezeCard(_logger, ex, card.Id);
             ErrorMessage = "An unexpected error occurred while freezing the card.";
         }
     }
@@ -187,7 +191,7 @@ public partial class CardViewModel : ObservableObject
 
         try
         {
-            ErrorOr<Success> result = await _cardClientService.UnfreezeCardAsync(card.Id);
+            ErrorOr<Success> result = await _cardService.UnfreezeCardAsync(card.Id);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to unfreeze card.";
@@ -198,7 +202,7 @@ public partial class CardViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.FailedToUnfreezeCard(ex, card.Id);
+            DesktopLogMessages.FailedToUnfreezeCard(_logger, ex, card.Id);
             ErrorMessage = "An unexpected error occurred while unfreezing the card.";
         }
     }
@@ -212,7 +216,7 @@ public partial class CardViewModel : ObservableObject
 
         try
         {
-            ErrorOr<Success> result = await _cardClientService.CancelCardAsync(card.Id);
+            ErrorOr<Success> result = await _cardService.CancelCardAsync(card.Id);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to cancel card.";
@@ -223,7 +227,7 @@ public partial class CardViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.FailedToCancelCard(ex, card.Id);
+            DesktopLogMessages.FailedToCancelCard(_logger, ex, card.Id);
             ErrorMessage = "An unexpected error occurred while cancelling the card.";
         }
     }

@@ -3,12 +3,12 @@ namespace BankingApp.Desktop.Views;
 using System;
 using System.Linq;
 using Enums;
-using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Navigation;
+using Utilities;
 
 /// <summary>
 ///     Displays the login form and reacts to authentication state changes produced by <see cref="LoginViewModel" />.

@@ -1,14 +1,13 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.Common.Dtos;
 using Application.Features.Authentication.Commands;
-using Application.Features.Authentication.Dtos;
 using Application.Features.Authentication.Models;
 using Application.Features.PasswordReset.Commands;
-using Application.Features.PasswordReset.Dtos;
 using Application.Features.PasswordReset.Queries;
 using Application.Features.UserRegistration.Commands;
-using Application.Features.UserRegistration.Dtos;
+using Contracts.Features.Authentication.Dtos;
+using Contracts.Features.PasswordReset.Dtos;
+using Contracts.Features.UserRegistration.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
@@ -69,7 +68,7 @@ public class AuthController : ApiControllerBase
     {
         if (!TryExtractBearerToken(authorization, out string token))
         {
-            return BadRequest(new ApplicationErrorResponse { Error = "No token provided." });
+            return Problem(detail: "No token provided.", statusCode: StatusCodes.Status400BadRequest);
         }
 
         return ToActionResult(await Sender.Send(new LogoutCommand(token), cancellationToken));
@@ -162,7 +161,7 @@ public class AuthController : ApiControllerBase
             RequiresTwoFactor tfa => Ok(new LoginSuccessResponse { UserId = tfa.UserId, Requires2Fa = true }),
             _ => StatusCode(
                 StatusCodes.Status500InternalServerError,
-                new ApplicationErrorResponse { Error = "Unexpected login result type." })
+                Problem(detail: "Unexpected login result type.", statusCode: StatusCodes.Status500InternalServerError))
         };
     }
 

@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Enums;
 using BankingApp.Application.Common.Utilities;
+using Utilities;
 
 /// <summary>Coordinates the desktop forgot-password flow through <see cref="IPasswordRecoveryManager"/>.</summary>
 public partial class ForgotPasswordViewModel : ObservableObject

@@ -4,11 +4,13 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.ForexRateAlerts.Dtos;
-using BankingApp.Desktop.Services;
-using BankingApp.Application.Common.Utilities;
+using Contracts.Features.ForexRateAlerts.Dtos;
+using Contracts.Features.ForexRateAlerts.Services;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles rate-alert listing, creation, and deletion for the desktop client.</summary>
 public partial class RateAlertViewModel : ObservableObject
@@ -16,13 +18,15 @@ public partial class RateAlertViewModel : ObservableObject
     private const decimal MinimumRate = 0m;
     private static readonly string[] _availableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
-    private readonly IRateAlertClientService _rateAlertClientService;
+    private readonly IAuthService _authService;
+    private readonly IRateAlertService _rateAlertService;
     private readonly ILogger<RateAlertViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="RateAlertViewModel"/> class.</summary>
-    public RateAlertViewModel(IRateAlertClientService rateAlertClientService, ILogger<RateAlertViewModel> logger)
+    public RateAlertViewModel(IAuthService authService, IRateAlertService rateAlertService, ILogger<RateAlertViewModel> logger)
     {
-        _rateAlertClientService = rateAlertClientService ?? throw new ArgumentNullException(nameof(rateAlertClientService));
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _rateAlertService = rateAlertService ?? throw new ArgumentNullException(nameof(rateAlertService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         AvailableCurrencies = new ObservableCollection<string>(_availableCurrencyCodes);
         Alerts = [];
@@ -33,7 +37,7 @@ public partial class RateAlertViewModel : ObservableObject
 
     /// <summary>Gets or sets the currently loaded alerts.</summary>
     [ObservableProperty]
-    public partial ObservableCollection<ForexRateAlertDto> Alerts { get; set; } = default!;
+    public partial ObservableCollection<ForexRateAlertDto> Alerts { get; set; }
 
     /// <summary>Gets or sets the selected base currency for a new alert.</summary>
     [ObservableProperty]
@@ -66,14 +70,13 @@ public partial class RateAlertViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            int userId = _rateAlertClientService.CurrentUserId ?? 0;
             ErrorOr<System.Collections.Generic.List<ForexRateAlertDto>> result =
-                await _rateAlertClientService.GetAlertsAsync(userId);
+                await _rateAlertService.GetAllAsync();
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.LoadFailed;
-                _logger.LoadAlertsFailed(result.Errors);
+                DesktopLogMessages.LoadAlertsFailed(_logger, result.Errors);
                 return;
             }
 
@@ -82,7 +85,7 @@ public partial class RateAlertViewModel : ObservableObject
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.LoadAlertsFailedUnexpected(exception);
+            DesktopLogMessages.LoadAlertsFailedUnexpected(_logger, exception);
         }
         finally
         {
@@ -130,19 +133,19 @@ public partial class RateAlertViewModel : ObservableObject
         {
             var newAlert = new ForexRateAlertDto
             {
-                UserId = _rateAlertClientService.CurrentUserId ?? 0,
+                UserId = _authService.CurrentUserId ?? 0,
                 BaseCurrency = BaseCurrency,
                 TargetCurrency = TargetCurrency,
                 TargetRate = parsedRate,
                 IsBuyAlert = IsBuyAlert,
             };
 
-            ErrorOr<ForexRateAlertDto> result = await _rateAlertClientService.CreateAlertAsync(newAlert);
+            ErrorOr<ForexRateAlertDto> result = await _rateAlertService.CreateAsync(newAlert);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.CreateFailed;
-                _logger.CreateAlertFailed(result.Errors);
+                DesktopLogMessages.CreateAlertFailed(_logger, result.Errors);
                 return;
             }
 
@@ -155,7 +158,7 @@ public partial class RateAlertViewModel : ObservableObject
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.CreateAlertFailedUnexpected(exception);
+            DesktopLogMessages.CreateAlertFailedUnexpected(_logger, exception);
         }
         finally
         {
@@ -169,12 +172,12 @@ public partial class RateAlertViewModel : ObservableObject
         ErrorMessage = string.Empty;
         try
         {
-            ErrorOr<Success> result = await _rateAlertClientService.DeleteAlertAsync(alertId);
+            ErrorOr<Success> result = await _rateAlertService.DeleteAsync(alertId);
 
             if (result.IsError)
             {
                 ErrorMessage = UserMessages.RateAlerts.DeleteFailed;
-                _logger.DeleteAlertFailed(result.Errors);
+                DesktopLogMessages.DeleteAlertFailed(_logger, result.Errors);
                 return;
             }
 
@@ -187,7 +190,7 @@ public partial class RateAlertViewModel : ObservableObject
         catch (Exception exception)
         {
             ErrorMessage = exception.Message;
-            _logger.DeleteAlertFailedUnexpected(exception);
+            DesktopLogMessages.DeleteAlertFailedUnexpected(_logger, exception);
         }
     }
 }

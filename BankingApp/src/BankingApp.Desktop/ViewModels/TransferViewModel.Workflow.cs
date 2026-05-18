@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using BankingApp.Application.Common.Utilities;
-using BankingApp.Application.Features.Transfers.Dtos;
+using Contracts.Features.Transfers.Dtos;
 using ErrorOr;
+using Utilities;
 
 public partial class TransferViewModel
 {
@@ -15,7 +15,7 @@ public partial class TransferViewModel
     {
         try
         {
-            ErrorOr<List<TransferAccountSelectionResponse>> result = await _transferClientService.GetAccountsAsync();
+            ErrorOr<List<TransferAccountSelectionResponse>> result = await _transferService.GetAccountsAsync();
 
             if (result.IsError)
             {
@@ -74,14 +74,18 @@ public partial class TransferViewModel
                 throw new InvalidOperationException(UserMessages.Transfer.NoAccountSelected);
             }
 
+            CreateTransferRequest request = new()
+            {
+                SourceAccountId = SelectedAccount.Id,
+                RecipientName = RecipientName,
+                RecipientIban = RecipientIban,
+                Amount = Amount,
+                Currency = Currency,
+                TwoFaToken = Requires2Fa ? TwoFaToken : null,
+            };
+
             ErrorOr<TransferExecutionResponse> result =
-                await _transferClientService.ExecuteTransferAsync(
-                    SelectedAccount.Id,
-                    RecipientName,
-                    RecipientIban,
-                    Amount,
-                    Currency,
-                    Requires2Fa ? TwoFaToken : null);
+                await _transferService.ExecuteAsync(request);
 
             if (result.IsError)
             {
@@ -170,7 +174,8 @@ public partial class TransferViewModel
     {
         try
         {
-            ErrorOr<TransferIbanValidationResponse> result = await _transferClientService.ValidateIbanAsync(iban);
+            ErrorOr<TransferIbanValidationResponse> result =
+                await _transferService.ValidateIbanAsync(new TransferIbanValidationRequest { Iban = iban });
 
             if (result.IsError)
             {
@@ -200,7 +205,7 @@ public partial class TransferViewModel
             }
 
             ErrorOr<TransferForexPreviewResponse> result =
-                await _transferClientService.GetFxPreviewAsync(SelectedAccount.Currency, Currency, Amount);
+                await _transferService.GetFxPreviewAsync(SelectedAccount.Currency, Currency, Amount);
 
             if (result.IsError)
             {

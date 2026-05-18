@@ -2,11 +2,12 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using Application.Features.BillPayments.Dtos;
-using Application.Features.Billers.Dtos;
+using BankingApp.Contracts.Features.BillPayments.Dtos;
+using BankingApp.Contracts.Features.Billers.Dtos;
+using Contracts.Features.BillPayments.Services;
+using Contracts.Features.Billers.Services;
 using Microsoft.UI.Xaml;
 using Navigation;
-using Services;
 using Views;
 
 /// <summary>Coordinates the multistep bill payment workflow in the desktop client.</summary>
@@ -23,13 +24,18 @@ public partial class BillPayViewModel : ObservableObject
     private const int MinimumAmount = 0;
     private const int NoFee = 0;
 
-    private readonly IBillPaymentClientService _billPaymentClientService;
+    private readonly IBillPaymentService _billPaymentService;
+    private readonly IBillerService _billerService;
     private readonly IAppNavigationService _navigationService;
 
     /// <summary>Initializes a new instance of the <see cref="BillPayViewModel"/> class.</summary>
-    public BillPayViewModel(IBillPaymentClientService billPaymentClientService, IAppNavigationService navigationService)
+    public BillPayViewModel(
+        IBillPaymentService billPaymentService,
+        IBillerService billerService,
+        IAppNavigationService navigationService)
     {
-        _billPaymentClientService = billPaymentClientService;
+        _billPaymentService = billPaymentService;
+        _billerService = billerService;
         _navigationService = navigationService;
 
         Billers = new ObservableCollection<BillerDto>();
@@ -73,21 +79,21 @@ public partial class BillPayViewModel : ObservableObject
 
     /// <summary>Gets or sets the available billers.</summary>
     [ObservableProperty]
-    public partial ObservableCollection<BillerDto> Billers { get; set; } = null!;
+    public partial ObservableCollection<BillerDto> Billers { get; set; }
 
     /// <summary>Gets or sets the saved billers for the current user.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSavedBillers))]
-    public partial ObservableCollection<SavedBillerDto> SavedBillers { get; set; } = null!;
+    public partial ObservableCollection<SavedBillerDto> SavedBillers { get; set; }
 
     /// <summary>Gets or sets the source accounts available for payment.</summary>
     [ObservableProperty]
-    public partial ObservableCollection<AccountDto> Accounts { get; set; } = default!;
+    public partial ObservableCollection<AccountDto> Accounts { get; set; }
 
     /// <summary>Gets or sets the currently selected biller.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedBillerName))]
-    public partial BillerDto? SelectedBiller { get; set; } = default!;
+    public partial BillerDto? SelectedBiller { get; set; } = null!;
 
     partial void OnSelectedBillerChanged(BillerDto? value)
     {

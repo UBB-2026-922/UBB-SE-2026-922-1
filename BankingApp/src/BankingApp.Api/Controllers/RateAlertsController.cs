@@ -1,14 +1,14 @@
 namespace BankingApp.Api.Controllers;
 
 using Application.Features.ForexRateAlerts.Commands;
-using Application.Features.ForexRateAlerts.Dtos;
 using Application.Features.ForexRateAlerts.Queries;
+using Contracts.Features.ForexRateAlerts.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Authorize]
-[Route("api/exchange/rate-alerts")]
+[Route("api/forex/rate-alerts")]
 public class RateAlertsController : ApiControllerBase
 {
     [HttpGet]

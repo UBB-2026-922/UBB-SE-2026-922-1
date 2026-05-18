@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Repositories;
 
-using BankingApp.Domain.Aggregates.ForexAggregate;
+using Aggregates.ForexAggregate;
 
 public interface IForexRepository
 {

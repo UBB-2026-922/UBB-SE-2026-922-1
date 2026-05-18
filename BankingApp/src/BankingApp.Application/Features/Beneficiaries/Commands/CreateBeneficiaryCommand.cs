@@ -1,13 +1,11 @@
 namespace BankingApp.Application.Features.Beneficiaries.Commands;
 
-using Common.Contracts;
 using Common.Logging;
-using Common.Utilities;
+using Contracts.Features.Beneficiaries.Dtos;
 using Domain.Aggregates.BeneficiaryAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
 using Domain.ValueObjects;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;

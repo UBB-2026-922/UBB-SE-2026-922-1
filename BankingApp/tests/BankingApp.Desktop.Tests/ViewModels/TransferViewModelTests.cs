@@ -1,11 +1,14 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Collections.Generic;
-using BankingApp.Application.Features.Transfers.Dtos;
-using Services.Transfers;
 using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Desktop.ViewModels;
+using Contracts.Features.Transfers.Dtos;
+using Contracts.Features.Transfers.Services;
 using ErrorOr;
+using FluentAssertions;
+using Moq;
+using Xunit;
 
 /// <summary>
 ///     Tests for the <see cref="TransferViewModel" />.
@@ -20,7 +23,7 @@ public class TransferViewModelTests
     private const int TransferCompletedStep = 6;
     private const int TransferErrorStep = 7;
 
-    private readonly Mock<ITransferClientService> _transferClientService;
+    private readonly Mock<ITransferService> _transferClientService;
     private readonly TransferViewModel _viewModel;
 
     /// <summary>
@@ -29,7 +32,7 @@ public class TransferViewModelTests
     /// </summary>
     public TransferViewModelTests()
     {
-        _transferClientService = new Mock<ITransferClientService>(MockBehavior.Loose);
+        _transferClientService = new Mock<ITransferService>(MockBehavior.Loose);
         _viewModel = new TransferViewModel(_transferClientService.Object);
     }
 
@@ -49,7 +52,7 @@ public class TransferViewModelTests
         };
 
         _transferClientService
-            .Setup(service => service.GetAccountsAsync(default))
+            .Setup(service => service.GetAccountsAsync(CancellationToken.None))
             .ReturnsAsync(accounts);
 
         // Act
@@ -191,13 +194,7 @@ public class TransferViewModelTests
         _viewModel.Currency = "EUR";
 
         _transferClientService
-            .Setup(service => service.ExecuteTransferAsync(
-                It.IsAny<int>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<decimal>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>()))
+            .Setup(service => service.ExecuteAsync(It.IsAny<CreateTransferRequest>()))
             .ReturnsAsync(new TransferExecutionResponse { TransactionRef = expectedRef });
 
         // Act
@@ -222,13 +219,7 @@ public class TransferViewModelTests
         _viewModel.SelectedAccount = new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR" };
 
         _transferClientService
-            .Setup(service => service.ExecuteTransferAsync(
-                It.IsAny<int>(),
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<decimal>(),
-                It.IsAny<string>(),
-                It.IsAny<string?>()))
+            .Setup(service => service.ExecuteAsync(It.IsAny<CreateTransferRequest>()))
             .ReturnsAsync(Error.Failure(description: errorDescription));
 
         // Act

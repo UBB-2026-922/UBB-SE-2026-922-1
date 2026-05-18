@@ -3,38 +3,40 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Features.Authentication.Dtos;
+using BankingApp.Contracts.Features.Authentication.Dtos;
 using Enums;
-using Services;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates interactive sign-in for the desktop client.</summary>
 public partial class LoginViewModel : ObservableObject
 {
-    private readonly IAuthClientService _authClientService;
+    private readonly IAuthService _authService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<LoginViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="LoginViewModel"/> class.</summary>
     public LoginViewModel(
-        IAuthClientService authClientService,
+        IAuthService authService,
         IConfiguration configuration,
         ILogger<LoginViewModel> logger)
     {
-        _authClientService = authClientService ?? throw new ArgumentNullException(nameof(authClientService));
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         IsDevLoginAvailable = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
             "Development",
             StringComparison.OrdinalIgnoreCase);
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        State = _authClientService.EnsureConfigured().Match(
+        State = _authService.EnsureConfigured().Match(
             _ => LoginState.Idle,
             errors =>
             {
-                _logger.LoginUnavailableApiClientNotConfigured(errors.Count);
+                DesktopLogMessages.LoginUnavailableApiClientNotConfigured(_logger, errors.Count);
                 return LoginState.ServerNotConfigured;
             });
     }
@@ -64,10 +66,10 @@ public partial class LoginViewModel : ObservableObject
         }
 
         State = LoginState.Loading;
-        ErrorOr<LoginSuccessResponse> result = await _authClientService.LoginAsync(email.Trim(), password);
+        ErrorOr<LoginSuccessResponse> result = await _authService.LoginAsync(email.Trim(), password);
         if (result.IsError)
         {
-            _logger.LoginFailed(result.Errors);
+            DesktopLogMessages.LoginFailed(_logger, result.Errors);
             State = LoginState.Idle;
             return result.Errors;
         }
@@ -89,8 +91,8 @@ public partial class LoginViewModel : ObservableObject
                 "Dev login failed because the API did not return an authentication token.");
         }
 
-        _authClientService.SetToken(response.Token);
-        _authClientService.CurrentUserId = response.UserId;
+        _authService.SetToken(response.Token);
+        _authService.CurrentUserId = response.UserId;
         State = LoginState.Success;
         return Result.Success;
     }
@@ -99,19 +101,19 @@ public partial class LoginViewModel : ObservableObject
     public async Task Login(string email, string password)
     {
         State = LoginState.Loading;
-        ErrorOr<LoginSuccessResponse> result = await _authClientService.LoginAsync(email.Trim(), password);
+        ErrorOr<LoginSuccessResponse> result = await _authService.LoginAsync(email.Trim(), password);
         result.Switch(
             response =>
             {
                 if (response.Requires2Fa)
                 {
-                    _authClientService.CurrentUserId = response.UserId;
+                    _authService.CurrentUserId = response.UserId;
                     State = LoginState.Require2Fa;
                     return;
                 }
 
-                _authClientService.SetToken(response.Token!);
-                _authClientService.CurrentUserId = response.UserId;
+                _authService.SetToken(response.Token!);
+                _authService.CurrentUserId = response.UserId;
                 State = LoginState.Success;
             },
             errors =>
@@ -126,7 +128,7 @@ public partial class LoginViewModel : ObservableObject
                 }
                 else
                 {
-                    _logger.LoginFailed(errors);
+                    DesktopLogMessages.LoginFailed(_logger, errors);
                     State = LoginState.Error;
                 }
             });

@@ -1,12 +1,11 @@
 namespace BankingApp.Application.Features.UserProfile.Queries;
 
-using Common.Contracts;
 using Common.Logging;
+using Contracts.Features.UserProfile.Dtos;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;

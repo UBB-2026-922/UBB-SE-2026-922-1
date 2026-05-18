@@ -1,12 +1,12 @@
 namespace BankingApp.Application.Tests.Features.Cards.Commands;
 
 using BankingApp.Application.Features.Cards.Commands;
-using BankingApp.Application.Features.Cards.Dtos;
-using BankingApp.Domain.Aggregates.UserAggregate;
-using BankingApp.Domain.Common.Errors;
-using BankingApp.Domain.Enums;
-using BankingApp.Domain.ValueObjects;
-using global::ErrorOr;
+using Contracts.Features.Cards.Dtos;
+using Domain.Aggregates.UserAggregate;
+using Domain.Common.Errors;
+using Domain.Enums;
+using Domain.ValueObjects;
+using ErrorOr;
 using Microsoft.Extensions.Logging;
 
 public sealed class IssueCardCommandTests

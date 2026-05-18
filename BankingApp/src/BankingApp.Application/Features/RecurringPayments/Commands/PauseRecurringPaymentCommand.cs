@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.RecurringPayments.Commands;
 
-using Common.Contracts;
 using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;

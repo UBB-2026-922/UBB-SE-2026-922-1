@@ -1,38 +1,24 @@
 namespace BankingApp.Web.Controllers;
 
-using System.Security.Claims;
-using Application.Features.BillPayments.Commands;
-using Application.Features.BillPayments.Queries;
-using Application.Features.Billers.Dtos;
-using Application.Features.Billers.Queries;
-using Application.Features.BillPayments.Dtos;
+using Contracts.Features.BillPayments.Dtos;
+using Contracts.Features.BillPayments.Services;
+using Contracts.Features.Billers.Dtos;
+using Contracts.Features.Billers.Services;
 using ErrorOr;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Models.BillPayments;
 
 [Authorize]
-public class BillPaymentsController(ISender sender) : Controller
+public class BillPaymentsController(
+    IBillPaymentService billPaymentService,
+    IBillerService billerService) : Controller
 {
-    private const decimal LowTierFee = 0.50m;
-    private const decimal HighTierFee = 1.00m;
-    private const decimal FeeThreshold = 100m;
-    private const decimal TwoFaThreshold = 1_000m;
-
-    /// <summary>
-    ///     Renders the bill-payment entry form pre-populated with the user's
-    ///     saved billers, all active billers (for search), and their accounts.
-    /// </summary>
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
-        int userId = GetUserId();
-
-        Task<ErrorOr<List<SavedBillerDto>>> savedBillersTask =
-            sender.Send(new GetSavedBillersQuery(userId), cancellationToken);
-        Task<ErrorOr<List<BillerDto>>> allBillersTask = sender.Send(new GetBillersQuery(), cancellationToken);
-        Task<ErrorOr<List<AccountDto>>> accountsTask =
-            sender.Send(new GetBillPayAccountsQuery(userId), cancellationToken);
+        Task<ErrorOr<List<SavedBillerDto>>> savedBillersTask = billerService.GetSavedBillersAsync(ct);
+        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(ct: ct);
+        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(ct);
 
         await Task.WhenAll(savedBillersTask, allBillersTask, accountsTask);
 
@@ -62,30 +48,34 @@ public class BillPaymentsController(ISender sender) : Controller
         return View(viewModel);
     }
 
-    /// <summary>
-    ///     Validates the form input, calculates the fee, checks whether 2FA is
-    ///     required, and renders the confirmation/preview page.
-    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Preview(BillPayViewModel viewModel, CancellationToken cancellationToken)
+    public async Task<IActionResult> Preview(BillPayViewModel viewModel, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
-            await RepopulateDropdownsAsync(viewModel, cancellationToken);
+            await RepopulateDropdownsAsync(viewModel, ct);
             return View("Index", viewModel);
         }
 
-        ErrorOr<List<BillerDto>> allBillers = await sender.Send(new GetBillersQuery(), cancellationToken);
+        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(ct: ct);
+        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(ct);
+        Task<ErrorOr<FeeResponse>> feeTask = billPaymentService.GetFeeAsync(viewModel.Amount, ct);
+        Task<ErrorOr<RequiresTwoFaResponse>> twoFaTask = billPaymentService.GetRequires2FaAsync(viewModel.Amount, ct);
+
+        await Task.WhenAll(allBillersTask, accountsTask, feeTask, twoFaTask);
+
+        ErrorOr<List<BillerDto>> allBillers = await allBillersTask;
         string billerName = allBillers.IsError
             ? $"Biller #{viewModel.SelectedBillerId}"
-            : allBillers.Value.FirstOrDefault(billerDto => billerDto.Id == viewModel.SelectedBillerId)?.Name
+            : allBillers.Value.FirstOrDefault(b => b.Id == viewModel.SelectedBillerId)?.Name
               ?? $"Biller #{viewModel.SelectedBillerId}";
 
-        ErrorOr<List<AccountDto>> accounts =
-            await sender.Send(new GetBillPayAccountsQuery(GetUserId()), cancellationToken);
-        AccountDto? account =
-            accounts.IsError ? null : accounts.Value.FirstOrDefault(a => a.Id == viewModel.SelectedAccountId);
+        ErrorOr<List<AccountDto>> accounts = await accountsTask;
+        AccountDto? account = accounts.IsError ? null : accounts.Value.FirstOrDefault(a => a.Id == viewModel.SelectedAccountId);
+
+        ErrorOr<FeeResponse> feeResult = await feeTask;
+        ErrorOr<RequiresTwoFaResponse> twoFaResult = await twoFaTask;
 
         BillPayPreviewViewModel preview = new()
         {
@@ -93,24 +83,19 @@ public class BillPaymentsController(ISender sender) : Controller
             BillerId = viewModel.SelectedBillerId,
             BillerReference = viewModel.BillerReference,
             Amount = viewModel.Amount,
-            Fee = CalculateFee(viewModel.Amount),
+            Fee = feeResult.IsError ? FallbackFee(viewModel.Amount) : feeResult.Value.Fee,
             BillerName = billerName,
             AccountIban = account?.Iban ?? string.Empty,
             Currency = account?.Currency ?? string.Empty,
-            RequiresTwoFa = viewModel.Amount >= TwoFaThreshold,
+            RequiresTwoFa = twoFaResult.IsError ? viewModel.Amount >= 1_000m : twoFaResult.Value.Required,
         };
 
         return View("Preview", preview);
     }
 
-    /// <summary>
-    ///     Executes the bill payment.  When 2FA is required the OTP must be
-    ///     present; if it is missing the preview page is re-displayed with an
-    ///     inline validation error.
-    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(BillPayPreviewViewModel viewModel, CancellationToken cancellationToken)
+    public async Task<IActionResult> Confirm(BillPayPreviewViewModel viewModel, CancellationToken ct)
     {
         if (viewModel.RequiresTwoFa && string.IsNullOrWhiteSpace(viewModel.TwoFaToken))
         {
@@ -118,29 +103,20 @@ public class BillPaymentsController(ISender sender) : Controller
             return View("Preview", viewModel);
         }
 
-        ProcessBillPaymentCommand command = new(
-            UserId: GetUserId(),
-            SourceAccountId: viewModel.SourceAccountId,
-            BillerId: viewModel.BillerId,
-            BillerReference: viewModel.BillerReference,
-            Amount: viewModel.Amount,
-            TwoFaToken: viewModel.TwoFaToken);
+        BillPayRequest request = new()
+        {
+            SourceAccountId = viewModel.SourceAccountId,
+            BillerId = viewModel.BillerId,
+            BillerReference = viewModel.BillerReference,
+            Amount = viewModel.Amount,
+            TwoFaToken = viewModel.TwoFaToken
+        };
 
-        ErrorOr<BillPayResponse> result =
-            await sender.Send(command, cancellationToken);
+        ErrorOr<BillPayResponse> result = await billPaymentService.PayBillAsync(request, ct);
 
         if (result.IsError)
         {
-            Error error = result.FirstError;
-
-            if (error.Code == "BillPayment.TwoFactorRequired")
-            {
-                viewModel.RequiresTwoFa = true;
-                viewModel.ErrorMessage = "This payment requires two-factor authentication. Enter your OTP below.";
-                return View("Preview", viewModel);
-            }
-
-            TempData["Error"] = error.Description;
+            TempData["Error"] = result.FirstError.Description;
             return RedirectToAction(nameof(Index));
         }
 
@@ -152,15 +128,9 @@ public class BillPaymentsController(ISender sender) : Controller
         return RedirectToAction(nameof(History));
     }
 
-    /// <summary>
-    ///     Displays the authenticated user's bill-payment history, newest first.
-    /// </summary>
-    public async Task<IActionResult> History(CancellationToken cancellationToken)
+    public async Task<IActionResult> History(CancellationToken ct)
     {
-        int userId = GetUserId();
-
-        ErrorOr<List<BillPayResponse>> result =
-            await sender.Send(new GetBillPaymentHistoryQuery(userId), cancellationToken);
+        ErrorOr<List<BillPayResponse>> result = await billPaymentService.GetHistoryAsync(ct);
 
         if (result.IsError)
         {
@@ -170,45 +140,27 @@ public class BillPaymentsController(ISender sender) : Controller
 
         BillPaymentHistoryViewModel viewModel = new()
         {
-            Payments = result.Value
-                .ConvertAll(p => new BillPaymentRowViewModel
-                {
-                    Id = p.Id,
-                    ReceiptNumber = p.ReceiptNumber,
-                    Amount = p.Amount,
-                    Fee = p.Fee,
-                    Status = p.Status,
-                    CreatedAt = p.CreatedAt
-                })
+            Payments = result.Value.ConvertAll(p => new BillPaymentRowViewModel
+            {
+                Id = p.Id,
+                ReceiptNumber = p.ReceiptNumber,
+                Amount = p.Amount,
+                Fee = p.Fee,
+                Status = p.Status,
+                CreatedAt = p.CreatedAt
+            })
         };
 
         return View(viewModel);
     }
 
-    /// <summary>
-    ///     Extracts the authenticated user's ID from the cookie claims principal.
-    ///     The claim is written as "userId" (matching the API's SessionValidationMiddleware)
-    ///     or falls back to <see cref="ClaimTypes.NameIdentifier"/>.
-    /// </summary>
-    private int GetUserId()
-    {
-        string? raw = User.FindFirstValue("userId")
-                      ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+    private static decimal FallbackFee(decimal amount) => amount <= 100m ? 0.50m : 1.00m;
 
-        return int.TryParse(raw, out int id) ? id : 0;
-    }
-
-    private static decimal CalculateFee(decimal amount) =>
-        amount <= FeeThreshold ? LowTierFee : HighTierFee;
-
-    /// <summary>Re-populates dropdowns on a <see cref="BillPayViewModel"/> after a failed validation.</summary>
     private async Task RepopulateDropdownsAsync(BillPayViewModel vm, CancellationToken ct)
     {
-        int userId = GetUserId();
-
-        Task<ErrorOr<List<SavedBillerDto>>> savedTask = sender.Send(new GetSavedBillersQuery(userId), ct);
-        Task<ErrorOr<List<BillerDto>>> allTask = sender.Send(new GetBillersQuery(), ct);
-        Task<ErrorOr<List<AccountDto>>> accountsTask = sender.Send(new GetBillPayAccountsQuery(userId), ct);
+        Task<ErrorOr<List<SavedBillerDto>>> savedTask = billerService.GetSavedBillersAsync(ct);
+        Task<ErrorOr<List<BillerDto>>> allTask = billerService.GetBillersAsync(ct: ct);
+        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(ct);
         await Task.WhenAll(savedTask, allTask, accountsTask);
 
         ErrorOr<List<SavedBillerDto>> savedResult = await savedTask;

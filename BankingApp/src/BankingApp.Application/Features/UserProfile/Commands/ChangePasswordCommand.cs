@@ -1,7 +1,5 @@
 namespace BankingApp.Application.Features.UserProfile.Commands;
 
-using Common.Contracts;
-using Common.Contracts.Security;
 using Common.Logging;
 using Common.Utilities;
 using Domain.Aggregates.IdentityAggregate;
@@ -13,6 +11,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Security;
 
 public sealed record ChangePasswordCommand(int UserId, string CurrentPassword, string NewPassword)
     : IRequest<ErrorOr<Success>>;

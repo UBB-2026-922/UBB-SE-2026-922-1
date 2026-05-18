@@ -1,18 +1,20 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.Authentication.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
+using Contracts.Features.Authentication.Dtos;
 using ErrorOr;
+using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using Xunit;
 
 public class TwoFactorViewModelTests
 {
     private const int ExpectedResendCooldownSeconds = 30;
 
-    private readonly Mock<IAuthClientService> _authClientService = new();
+    private readonly Mock<IAuthService> _authClientService = new();
     private readonly Mock<ICountdownTimer> _countdownTimer = new();
 
     [Fact]
@@ -22,10 +24,12 @@ public class TwoFactorViewModelTests
         var viewModel = new TwoFactorViewModel(
             _authClientService.Object,
             _countdownTimer.Object,
-            NullLogger<TwoFactorViewModel>.Instance);
+            NullLogger<TwoFactorViewModel>.Instance)
+        {
+            OtpCode = "123"
+        };
 
         // Act
-        viewModel.OtpCode = "123";
         await viewModel.VerifyOtp();
 
         // Assert

@@ -1,12 +1,12 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Globalization;
-using BankingApp.Application.Features.AccountOverview.Dtos;
+using Contracts.Features.AccountOverview.Dtos;
+using Contracts.Features.AccountOverview.Services;
 using Enums;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
-using BankingApp.Domain.Enums;
+using Desktop.ViewModels;
+using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -14,12 +14,12 @@ public class DashboardViewModelTests
 {
     private const int CardNumberVisibleSuffixLength = 4;
 
-    private readonly Mock<IDashboardClientService> _dashboardClientService;
+    private readonly Mock<IDashboardService> _dashboardClientService;
     private readonly DashboardViewModel _viewModel;
 
     public DashboardViewModelTests()
     {
-        _dashboardClientService = new Mock<IDashboardClientService>(MockBehavior.Strict);
+        _dashboardClientService = new Mock<IDashboardService>(MockBehavior.Strict);
         _viewModel = new DashboardViewModel(_dashboardClientService.Object, NullLogger<DashboardViewModel>.Instance);
     }
 

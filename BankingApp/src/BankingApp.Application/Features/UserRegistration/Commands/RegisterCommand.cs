@@ -1,8 +1,6 @@
 namespace BankingApp.Application.Features.UserRegistration.Commands;
 
 using System.Transactions;
-using Common.Contracts;
-using Common.Contracts.Security;
 using Common.Logging;
 using Common.Utilities;
 using Domain.Aggregates.IdentityAggregate;
@@ -14,6 +12,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Security;
 
 public sealed record RegisterCommand(string Email, string Password, string FullName)
     : IRequest<ErrorOr<Success>>;

@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Application.Features.RecurringPayments.Dtos;
+using Contracts.Features.RecurringPayments.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml.Controls;
 /// <summary>
 ///     Displays the recurring payment management screen.
 /// </summary>
-public sealed partial class RecurringPaymentView : Page
+public sealed partial class RecurringPaymentView
 {
     private const decimal ZeroAmount = 0m;
     private readonly RecurringPaymentViewModel _viewModel;

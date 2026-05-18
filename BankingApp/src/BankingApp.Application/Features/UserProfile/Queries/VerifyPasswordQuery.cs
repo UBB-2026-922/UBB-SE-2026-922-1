@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.UserProfile.Queries;
 
-using Common.Contracts.Security;
 using Common.Logging;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Common.Errors;
@@ -8,6 +7,7 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Security;
 
 public sealed record VerifyPasswordQuery(int UserId, string Password)
     : IRequest<ErrorOr<bool>>;

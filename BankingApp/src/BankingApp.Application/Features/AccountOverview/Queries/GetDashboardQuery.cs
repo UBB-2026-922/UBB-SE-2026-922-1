@@ -1,13 +1,13 @@
 namespace BankingApp.Application.Features.AccountOverview.Queries;
 
 using Common.Logging;
+using Contracts.Features.AccountOverview.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -70,8 +70,8 @@ public sealed class GetDashboardQueryHandler(
                     });
                 }
 
-                IReadOnlyCollection<Transaction> txns = await transactionRepository.ListByAccountIdAsync(account.Id, cancellationToken);
-                foreach (Transaction txn in txns.OrderByDescending(t => t.CreatedAt).Take(RecentTransactionLimit))
+                IReadOnlyCollection<Transaction> transactions = await transactionRepository.ListByAccountIdAsync(account.Id, cancellationToken);
+                foreach (Transaction txn in transactions.OrderByDescending(t => t.CreatedAt).Take(RecentTransactionLimit))
                 {
                     result.RecentTransactions.Add(new TransactionDto
                     {

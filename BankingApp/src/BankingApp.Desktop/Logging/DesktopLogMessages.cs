@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Logging;
 
 using System;
 using Microsoft.Extensions.Logging;

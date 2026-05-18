@@ -1,9 +1,7 @@
 namespace BankingApp.Application.Features.Forex.Queries;
 
-using Common.Contracts;
-using Common.Utilities;
+using Contracts.Features.Forex.Dtos;
 using Domain.Common.Errors;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Currency = NodaMoney.Currency;
@@ -21,7 +19,8 @@ public sealed class GetRatePreviewQueryHandler(
     ISystemClock clock)
     : IRequestHandler<GetRatePreviewQuery, ErrorOr<ForexRatePreviewResponse>>
 {
-    public Task<ErrorOr<ForexRatePreviewResponse>> Handle(GetRatePreviewQuery query, CancellationToken cancellationToken)
+    public Task<ErrorOr<ForexRatePreviewResponse>> Handle(GetRatePreviewQuery query,
+        CancellationToken cancellationToken)
     {
         Currency sourceCurrency;
         Currency targetCurrency;

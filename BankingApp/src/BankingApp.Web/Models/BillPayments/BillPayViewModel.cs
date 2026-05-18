@@ -1,8 +1,8 @@
 namespace BankingApp.Web.Models.BillPayments;
 
 using System.ComponentModel.DataAnnotations;
-using Application.Features.Billers.Dtos;
-using BankingApp.Application.Features.BillPayments.Dtos;
+using BankingApp.Contracts.Features.BillPayments.Dtos;
+using Contracts.Features.Billers.Dtos;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 /// <summary>

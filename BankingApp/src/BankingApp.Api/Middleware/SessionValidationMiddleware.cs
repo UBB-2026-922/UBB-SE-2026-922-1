@@ -2,10 +2,10 @@ namespace BankingApp.Api.Middleware;
 
 using System.Globalization;
 using System.Security.Claims;
-using Application.Common.Contracts.Security;
-using BankingApp.Domain.Aggregates.IdentityAggregate;
-using BankingApp.Domain.Aggregates.IdentityAggregate.Entities;
-using BankingApp.Domain.Repositories;
+using Application.Security;
+using Domain.Aggregates.IdentityAggregate;
+using Domain.Aggregates.IdentityAggregate.Entities;
+using Domain.Repositories;
 using ErrorOr;
 using Logging;
 

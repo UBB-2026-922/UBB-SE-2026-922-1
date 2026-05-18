@@ -1,8 +1,7 @@
 namespace BankingApp.Application.Features.Transfers.Queries;
 
-using Common.Contracts;
+using Contracts.Features.Transfers.Dtos;
 using Domain.Common.Errors;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Currency = NodaMoney.Currency;
@@ -13,7 +12,8 @@ public sealed record GetForexPreviewQuery(string SourceCurrency, string TargetCu
 public sealed class GetForexPreviewQueryHandler(IExchangeRateService exchangeRateService)
     : IRequestHandler<GetForexPreviewQuery, ErrorOr<TransferForexPreviewResponse>>
 {
-    public Task<ErrorOr<TransferForexPreviewResponse>> Handle(GetForexPreviewQuery query, CancellationToken cancellationToken)
+    public Task<ErrorOr<TransferForexPreviewResponse>> Handle(GetForexPreviewQuery query,
+        CancellationToken cancellationToken)
     {
         Currency source;
         Currency target;

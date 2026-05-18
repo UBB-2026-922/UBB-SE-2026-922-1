@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.ForexRateAlerts.Queries;
 
+using Contracts.Features.ForexRateAlerts.Dtos;
 using Domain.Aggregates.RateAlertAggregate;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -15,17 +15,17 @@ public sealed class GetRateAlertsQueryHandler(IRateAlertRepository rateAlertRepo
     {
         IReadOnlyCollection<RateAlert> alerts = await rateAlertRepository.ListByUserIdAsync(query.UserId, cancellationToken);
         return alerts
-            .OrderByDescending(a => a.CreatedAt)
-            .Select(a => new ForexRateAlertDto
+            .OrderByDescending(rateAlert => rateAlert.CreatedAt)
+            .Select(rateAlert => new ForexRateAlertDto
             {
-                Id = a.Id,
-                UserId = a.UserId,
-                BaseCurrency = a.BaseCurrency.Code,
-                TargetCurrency = a.QuoteCurrency.Code,
-                TargetRate = a.TargetRate,
-                IsBuyAlert = a.IsBuyAlert,
-                IsTriggered = a.IsTriggered,
-                CreatedAt = a.CreatedAt
+                Id = rateAlert.Id,
+                UserId = rateAlert.UserId,
+                BaseCurrency = rateAlert.BaseCurrency.Code,
+                TargetCurrency = rateAlert.QuoteCurrency.Code,
+                TargetRate = rateAlert.TargetRate,
+                IsBuyAlert = rateAlert.IsBuyAlert,
+                IsTriggered = rateAlert.IsTriggered,
+                CreatedAt = rateAlert.CreatedAt
             })
             .ToList();
     }

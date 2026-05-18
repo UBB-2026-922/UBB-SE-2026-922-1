@@ -6,13 +6,15 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.AccountOverview.Dtos;
+using BankingApp.Contracts.Features.AccountOverview.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
 using BankingApp.Application.Common.Utilities;
 using BankingApp.Domain.Enums;
+using Contracts.Features.AccountOverview.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Loads and exposes the data needed by the dashboard view.</summary>
 public partial class DashboardViewModel : ObservableObject
@@ -26,14 +28,14 @@ public partial class DashboardViewModel : ObservableObject
     private const int CardNumberVisibleSuffixLength = 4;
     private const string FullyMaskedCardNumber = "**** **** **** ****";
     private const string CardNumberMaskPrefix = "**** **** ****";
-    private readonly IDashboardClientService _dashboardClientService;
+    private readonly IDashboardService _dashboardService;
     private readonly ILogger<DashboardViewModel> _logger;
     private int _currentCardIndex;
 
     /// <summary>Initializes a new instance of the <see cref="DashboardViewModel"/> class.</summary>
-    public DashboardViewModel(IDashboardClientService dashboardClientService, ILogger<DashboardViewModel> logger)
+    public DashboardViewModel(IDashboardService dashboardService, ILogger<DashboardViewModel> logger)
     {
-        _dashboardClientService = dashboardClientService ?? throw new ArgumentNullException(nameof(dashboardClientService));
+        _dashboardService = dashboardService ?? throw new ArgumentNullException(nameof(dashboardService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Cards = new List<CardDto>();
         RecentTransactions = new List<TransactionDto>();
@@ -160,7 +162,7 @@ public partial class DashboardViewModel : ObservableObject
     {
         State = DashboardState.Loading;
         ErrorMessage = string.Empty;
-        ErrorOr<AccountOverviewDto> result = await _dashboardClientService.GetDashboardAsync(cancellationToken);
+        ErrorOr<AccountOverviewDto> result = await _dashboardService.GetDashboardAsync(cancellationToken);
         return result.Match<ErrorOr<Success>>(
             dashboard =>
             {
@@ -188,7 +190,7 @@ public partial class DashboardViewModel : ObservableObject
                     ErrorType.NotFound => UserMessages.Dashboard.NotFound,
                     _ => UserMessages.Dashboard.LoadFailed,
                 };
-                _logger.LoadDashboardFailed(errors);
+                DesktopLogMessages.LoadDashboardFailed(_logger, errors);
                 State = DashboardState.Error;
                 return errors.First();
             });

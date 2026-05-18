@@ -1,8 +1,5 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Contracts;
-using Common.Contracts.Notifications;
-using Common.Contracts.Security;
 using Common.Logging;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
@@ -13,6 +10,8 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Notifications;
+using Security;
 
 public sealed record ResendOtpCommand(int UserId, string Method)
     : IRequest<ErrorOr<Success>>;

@@ -1,22 +1,22 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class SecurityViewModelTests
 {
-    private readonly Mock<IProfileClientService> _profileClientService;
+    private readonly Mock<IProfileService> _profileClientService;
     private readonly SecurityViewModel _viewModel;
 
     public SecurityViewModelTests()
     {
-        _profileClientService = new Mock<IProfileClientService>();
+        _profileClientService = new Mock<IProfileService>();
         _viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
     }
 

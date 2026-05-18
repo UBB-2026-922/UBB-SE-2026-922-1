@@ -3,12 +3,15 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Application.Features.Beneficiaries.Dtos;
-using Services.Transfers;
+using Contracts.Features.Beneficiaries.Dtos;
+using Contracts.Features.Beneficiaries.Services;
 using Views;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
 using Navigation;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>
 ///     View model for the beneficiaries page in the desktop application.
@@ -18,15 +21,15 @@ public partial class BeneficiariesViewModel : ObservableObject
 {
     private readonly ILogger<BeneficiariesViewModel> _logger;
     private readonly IAppNavigationService _navigationService;
-    private readonly ITransferClientService _transferClientService;
+    private readonly IBeneficiaryService _beneficiaryService;
 
     /// <summary>Initializes a new instance of the <see cref="BeneficiariesViewModel"/> class.</summary>
     public BeneficiariesViewModel(
-        ITransferClientService transferClientService,
+        IBeneficiaryService beneficiaryService,
         IAppNavigationService navigationService,
         ILogger<BeneficiariesViewModel> logger)
     {
-        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
+        _beneficiaryService = beneficiaryService ?? throw new ArgumentNullException(nameof(beneficiaryService));
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Beneficiaries = [];
@@ -60,11 +63,11 @@ public partial class BeneficiariesViewModel : ObservableObject
     {
         try
         {
-            ErrorOr<List<BeneficiaryDto>> result = await _transferClientService.GetBeneficiariesAsync();
+            ErrorOr<List<BeneficiaryDto>> result = await _beneficiaryService.GetAllAsync();
             if (result.IsError)
             {
                 ErrorMessage = "Failed to load beneficiaries.";
-                return Error.Unauthorized();
+                return result.FirstError;
             }
 
             Beneficiaries = result.Value;
@@ -73,7 +76,7 @@ public partial class BeneficiariesViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.FailedToLoadBeneficiaries(ex);
+            DesktopLogMessages.FailedToLoadBeneficiaries(_logger, ex);
             ErrorMessage = "An unexpected error occurred while loading beneficiaries.";
             return Error.Failure();
         }
@@ -84,7 +87,7 @@ public partial class BeneficiariesViewModel : ObservableObject
     {
         try
         {
-            ErrorOr<Success> result = await _transferClientService.DeleteBeneficiaryAsync(id);
+            ErrorOr<Success> result = await _beneficiaryService.DeleteAsync(id);
             if (result.IsError)
             {
                 ErrorMessage = "Failed to delete beneficiary.";
@@ -96,7 +99,7 @@ public partial class BeneficiariesViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.FailedToDeleteBeneficiary(ex, id);
+            DesktopLogMessages.FailedToDeleteBeneficiary(_logger, ex, id);
             ErrorMessage = "An unexpected error occurred while deleting the beneficiary.";
             return false;
         }
@@ -107,7 +110,12 @@ public partial class BeneficiariesViewModel : ObservableObject
     {
         try
         {
-            ErrorOr<Success> result = await _transferClientService.AddBeneficiaryAsync(NewName, NewIban, NewBankName);
+            ErrorOr<Success> result = await _beneficiaryService.CreateAsync(new CreateBeneficiaryRequest
+            {
+                Name = NewName,
+                Iban = NewIban,
+                BankName = NewBankName,
+            });
             if (result.IsError)
             {
                 ErrorMessage = "Failed to save beneficiary.";
@@ -123,7 +131,7 @@ public partial class BeneficiariesViewModel : ObservableObject
         }
         catch (Exception exception)
         {
-            _logger.FailedToAddBeneficiary(exception);
+            DesktopLogMessages.FailedToAddBeneficiary(_logger, exception);
             ErrorMessage = "An unexpected error occurred while saving the beneficiary.";
             return false;
         }

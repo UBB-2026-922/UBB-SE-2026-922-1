@@ -2,23 +2,25 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Application.Common.Utilities;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles personal-profile loading, editing, and password verification for the profile area.</summary>
 public partial class PersonalInfoViewModel : ObservableObject
 {
-    private readonly IProfileClientService _profileClientService;
+    private readonly IProfileService _profileService;
     private readonly ILogger<PersonalInfoViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="PersonalInfoViewModel"/> class.</summary>
-    public PersonalInfoViewModel(IProfileClientService profileClientService, ILogger<PersonalInfoViewModel> logger)
+    public PersonalInfoViewModel(IProfileService profileService, ILogger<PersonalInfoViewModel> logger)
     {
-        _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ProfileInfo = new ProfileDto();
     }
@@ -44,10 +46,10 @@ public partial class PersonalInfoViewModel : ObservableObject
     public async Task<bool> LoadProfile()
     {
         State = ProfileState.Loading;
-        ErrorOr<ProfileDto> profileResult = await _profileClientService.GetProfileAsync();
+        ErrorOr<ProfileDto> profileResult = await _profileService.GetProfileAsync();
         if (profileResult.IsError)
         {
-            _logger.LoadProfileFailed(profileResult.Errors);
+            DesktopLogMessages.LoadProfileFailed(_logger, profileResult.Errors);
             State = ProfileState.Error;
             return false;
         }
@@ -80,7 +82,7 @@ public partial class PersonalInfoViewModel : ObservableObject
             Nationality = ProfileInfo.Nationality,
             PreferredLanguage = ProfileInfo.PreferredLanguage,
         };
-        ErrorOr<Success> result = await _profileClientService.UpdateProfileAsync(request);
+        ErrorOr<Success> result = await _profileService.UpdateProfileAsync(request);
         return result.Match(
             _ =>
             {
@@ -92,7 +94,7 @@ public partial class PersonalInfoViewModel : ObservableObject
             },
             errors =>
             {
-                _logger.UpdatePersonalInfoFailed(errors);
+                DesktopLogMessages.UpdatePersonalInfoFailed(_logger, errors);
                 State = ProfileState.Error;
                 return false;
             });
@@ -108,7 +110,7 @@ public partial class PersonalInfoViewModel : ObservableObject
             return false;
         }
 
-        ErrorOr<bool> result = await _profileClientService.VerifyPasswordAsync(password);
+        ErrorOr<bool> result = await _profileService.VerifyPasswordAsync(password);
         return result.Match(
             valid =>
             {
@@ -123,7 +125,7 @@ public partial class PersonalInfoViewModel : ObservableObject
             },
             errors =>
             {
-                _logger.VerifyPasswordFailed(errors);
+                DesktopLogMessages.VerifyPasswordFailed(_logger, errors);
                 State = ProfileState.Error;
                 return false;
             });
