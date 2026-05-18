@@ -1,7 +1,7 @@
 namespace BankingApp.Infrastructure.Persistence.Repositories;
 
 using Domain.Aggregates.UserAggregate;
-using BankingApp.Domain.Repositories;
+using Domain.Repositories;
 using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 

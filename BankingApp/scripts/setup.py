@@ -21,6 +21,10 @@ COMPOSE_ENV_FILE = APP_ROOT / ".env"
 API_ENV_FILE = API_PROJECT / ".env"
 API_APPSETTINGS_FILE = API_PROJECT / "appsettings.json"
 PROD_ENV_FILE = API_PROJECT / ".env.production.generated"
+DESKTOP_DEV_APPSETTINGS = APP_ROOT / "src" / "BankingApp.Desktop" / "appsettings.Development.json"
+WEB_DEV_APPSETTINGS = APP_ROOT / "src" / "BankingApp.Web" / "appsettings.Development.json"
+
+CLIENT_DEV_LOGIN_KEYS = frozenset({"DevLogin:Email", "DevLogin:Password"})
 
 SQL_PASSWORD_LENGTH = 24
 JWT_SECRET_BYTES = 48
@@ -182,6 +186,21 @@ def read_json_config_key(path: Path, key: str) -> str | None:
     return current if isinstance(current, str) and current else None
 
 
+def write_json_config_key(path: Path, key: str, value: str) -> None:
+    """Set a colon-delimited key in an appsettings JSON file without disturbing other keys."""
+    data: dict[str, object] = dict(read_json_config(path)) if path.exists() else {}
+    parts = key.split(":")
+    node: dict[str, object] = data
+    for part in parts[:-1]:
+        child = node.get(part)
+        if not isinstance(child, dict):
+            child = {}
+            node[part] = child
+        node = child
+    node[parts[-1]] = value
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
 def dotnet_required() -> None:
     """Fail if dotnet is unavailable."""
     if shutil.which("dotnet") is None:
@@ -267,6 +286,13 @@ def get_environment_name() -> str:
     )
 
 
+def write_dev_login_to_client_appsettings(email: str, password: str) -> None:
+    """Write DevLogin credentials to Desktop and Web appsettings.Development.json."""
+    for path in (DESKTOP_DEV_APPSETTINGS, WEB_DEV_APPSETTINGS):
+        write_json_config_key(path, "DevLogin:Email", email)
+        write_json_config_key(path, "DevLogin:Password", password)
+
+
 def build_dev_api_values(args: argparse.Namespace, connection_string: str) -> dict[str, str]:
     """Build API runtime values for development."""
     smtp_user = args.smtp_user or PLACEHOLDER_DEV_SMTP_USER
@@ -284,8 +310,8 @@ def build_dev_api_values(args: argparse.Namespace, connection_string: str) -> di
         "Email__SmtpPass": smtp_pass,
         "Email__FromAddress": smtp_from,
         "Database__ApplyMigrations": "true",
-        "DevLogin__Email": args.dev_login_email or "",
-        "DevLogin__Password": args.dev_login_password or "",
+        "DevLogin__Email": args.dev_login_email,
+        "DevLogin__Password": args.dev_login_password,
         "DevLogin__FullName": args.dev_login_full_name,
     }
 
@@ -293,15 +319,11 @@ def build_dev_api_values(args: argparse.Namespace, connection_string: str) -> di
 def write_user_secrets_from_env_values(values: dict[str, str]) -> None:
     """Write API env-style values into .NET user secrets."""
     for key, value in values.items():
-        if not value and key in {"DevLogin__Email", "DevLogin__Password"}:
-            continue
         set_user_secret(to_config_key(key), value)
 
 
 def generate_dev(args: argparse.Namespace) -> None:
     """Generate development configuration."""
-    if bool(args.dev_login_email) != bool(args.dev_login_password):
-        raise SystemExit("--dev-login-email and --dev-login-password must be provided together.")
 
     existing_compose_env = read_env_file(COMPOSE_ENV_FILE)
     db_password = (
@@ -333,6 +355,7 @@ def generate_dev(args: argparse.Namespace) -> None:
         next_step = "Run docker compose up --build."
 
     api_values = build_dev_api_values(args, connection_string)
+    write_dev_login_to_client_appsettings(args.dev_login_email, args.dev_login_password)
 
     if write_compose_env:
         write_env_file(
@@ -360,6 +383,8 @@ def generate_dev(args: argparse.Namespace) -> None:
         print(f"  {API_ENV_FILE.relative_to(APP_ROOT)}")
     if write_user_secrets:
         print("  .NET User Secrets for src/BankingApp.Api")
+    print(f"  {DESKTOP_DEV_APPSETTINGS.relative_to(APP_ROOT)}")
+    print(f"  {WEB_DEV_APPSETTINGS.relative_to(APP_ROOT)}")
     if not args.smtp_user or not args.smtp_pass:
         print("Warning: placeholder SMTP values were written. Email sending will fail until configured.")
     print("\nNext step:")
@@ -431,6 +456,12 @@ def get_sources_for_key(key: str, environment: str) -> list[tuple[str, str | Non
         (str(appsettings_environment_file.relative_to(APP_ROOT)), read_json_config_key(appsettings_environment_file, config_key)),
     ]
 
+    if environment == "Development" and config_key in CLIENT_DEV_LOGIN_KEYS:
+        sources.extend([
+            (str(DESKTOP_DEV_APPSETTINGS.relative_to(APP_ROOT)), read_json_config_key(DESKTOP_DEV_APPSETTINGS, config_key)),
+            (str(WEB_DEV_APPSETTINGS.relative_to(APP_ROOT)), read_json_config_key(WEB_DEV_APPSETTINGS, config_key)),
+        ])
+
     if environment == "Development":
         user_secrets = read_user_secrets()
         api_env = read_env_file(API_ENV_FILE)
@@ -491,15 +522,17 @@ def handle_set(args: argparse.Namespace) -> None:
     if args.user_secrets:
         set_user_secret(key, value)
         print(f"Set {key} in API user secrets.")
-        return
-
-    if args.api_env:
+    elif args.api_env:
         update_env_file(API_ENV_FILE, to_env_key(key), value)
         print(f"Set {key} in {API_ENV_FILE.relative_to(APP_ROOT)}.")
-        return
+    else:
+        update_env_file(COMPOSE_ENV_FILE, to_env_key(key), value)
+        print(f"Set {key} in {COMPOSE_ENV_FILE.relative_to(APP_ROOT)}.")
 
-    update_env_file(COMPOSE_ENV_FILE, to_env_key(key), value)
-    print(f"Set {key} in {COMPOSE_ENV_FILE.relative_to(APP_ROOT)}.")
+    if key in CLIENT_DEV_LOGIN_KEYS:
+        for path in (DESKTOP_DEV_APPSETTINGS, WEB_DEV_APPSETTINGS):
+            write_json_config_key(path, key, value)
+            print(f"Set {key} in {path.relative_to(APP_ROOT)}.")
 
 
 def clean_dev() -> None:
@@ -554,8 +587,8 @@ def parse_args() -> argparse.Namespace:
     dev_mode_group.add_argument("--docker-api", action="store_true", help="API and DB in Docker.")
     add_common_generation_options(generate_dev_parser)
     generate_dev_parser.add_argument("--db-password", default=None, help="SQL Server SA password for Docker dev modes.")
-    generate_dev_parser.add_argument("--dev-login-email", default=None, help="Development login email to seed.")
-    generate_dev_parser.add_argument("--dev-login-password", default=None, help="Development login password to seed.")
+    generate_dev_parser.add_argument("--dev-login-email", required=True, help="Development login email to seed.")
+    generate_dev_parser.add_argument("--dev-login-password", required=True, help="Development login password to seed.")
     generate_dev_parser.add_argument(
         "--dev-login-full-name",
         default=DEFAULT_DEV_LOGIN_FULL_NAME,
