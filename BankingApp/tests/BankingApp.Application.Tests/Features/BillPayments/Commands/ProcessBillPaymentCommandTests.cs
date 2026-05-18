@@ -4,13 +4,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using BankingApp.Application.Features.BillPayments.Commands;
-using BankingApp.Domain.Aggregates.AccountAggregate;
-using BankingApp.Domain.Aggregates.BillPaymentAggregate;
+using Domain.Aggregates.AccountAggregate;
+using Domain.Aggregates.BillPaymentAggregate;
 using BankingApp.Domain.Common.Errors;
-using BankingApp.Domain.Enums;
+using Domain.Enums;
 using BankingApp.Domain.ReferenceData.Billers;
-using BankingApp.Application.Common.Contracts.Security;
-using BankingApp.Application.Common.Contracts;
+using Common.Contracts.Security;
+using Common.Contracts;
 using Microsoft.Extensions.Logging;
 using NodaMoney;
 using ErrorOr;
@@ -23,8 +23,6 @@ public sealed class ProcessBillPaymentCommandTests
     private readonly Mock<IBillerRepository> _billerRepositoryMock;
     private readonly Mock<IOtpService> _otpServiceMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly Mock<ISystemClock> _clockMock;
-    private readonly Mock<ILogger<ProcessBillPaymentCommandHandler>> _loggerMock;
     private readonly ProcessBillPaymentCommandHandler _handler;
 
     public ProcessBillPaymentCommandTests()
@@ -34,8 +32,8 @@ public sealed class ProcessBillPaymentCommandTests
         _billerRepositoryMock = new Mock<IBillerRepository>();
         _otpServiceMock = new Mock<IOtpService>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
-        _clockMock = MockFactory.CreateSystemClockMock();
-        _loggerMock = new Mock<ILogger<ProcessBillPaymentCommandHandler>>();
+        Mock<ISystemClock> clockMock = MockFactory.CreateSystemClockMock();
+        var loggerMock = new Mock<ILogger<ProcessBillPaymentCommandHandler>>();
 
         _handler = new ProcessBillPaymentCommandHandler(
             _accountRepositoryMock.Object,
@@ -43,13 +41,13 @@ public sealed class ProcessBillPaymentCommandTests
             _billerRepositoryMock.Object,
             _otpServiceMock.Object,
             _unitOfWorkMock.Object,
-            _clockMock.Object,
-            _loggerMock.Object);
+            clockMock.Object,
+            loggerMock.Object);
     }
 
     private static Account CreateTestAccount(int userId, AccountStatus status, Currency currency, decimal balanceAmount = 0m)
     {
-        Account account = Account.Open(userId, null!, currency, AccountType.Checking, null, DateTime.UtcNow);
+        var account = Account.Open(userId, null!, currency, AccountType.Checking, null, DateTime.UtcNow);
         typeof(Account).GetProperty("Status")!.SetValue(account, status);
         typeof(Account).GetProperty("Balance")!.SetValue(account, new Money(balanceAmount, currency));
         return account;
@@ -207,7 +205,7 @@ public sealed class ProcessBillPaymentCommandTests
 
         BillPayment? savedPayment = null;
         _billPaymentRepositoryMock.Setup(repository => repository.AddAsync(It.IsAny<BillPayment>(), It.IsAny<CancellationToken>()))
-            .Callback<BillPayment, CancellationToken>((payment, token) => savedPayment = payment)
+            .Callback<BillPayment, CancellationToken>((payment, _) => savedPayment = payment)
             .Returns(Task.CompletedTask);
 
         ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
