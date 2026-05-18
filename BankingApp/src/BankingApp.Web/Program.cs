@@ -1,37 +1,33 @@
 using System.Globalization;
 using System.Net.Http.Json;
 using System.Security.Claims;
+using BankingApp.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+string apiBaseUrl = builder.Configuration["ApiBaseUrl"]
+    ?? throw new InvalidOperationException("ApiBaseUrl is not configured.");
+
 builder.Services.AddControllersWithViews();
-builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/dev/login";
-        options.AccessDeniedPath = "/dev/login";
-        options.SlidingExpiration = true;
+        options.LoginPath = "/Auth/Login";
+        options.AccessDeniedPath = "/Auth/Login";
     });
 builder.Services.AddAuthorization();
-builder.Services.AddHttpClient(
-    "BankingAppApi",
-    client =>
-    {
-        client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5024");
-    });
+builder.Services.AddHttpClient("BankingAppApi", client =>
+    client.BaseAddress = new Uri(apiBaseUrl));
+builder.Services.AddHttpClient<IBeneficiaryService, BeneficiaryService>(client =>
+    client.BaseAddress = new Uri(apiBaseUrl));
 
 WebApplication app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -145,12 +141,13 @@ app.MapControllerRoute(
 
 
 app.Run();
+return;
 
 static bool IsLocalReturnUrl(string? returnUrl)
 {
     return !string.IsNullOrEmpty(returnUrl)
-        && returnUrl[0] == '/'
-        && (returnUrl.Length == 1 || (returnUrl[1] != '/' && returnUrl[1] != '\\'));
+           && returnUrl[0] == '/'
+           && (returnUrl.Length == 1 || (returnUrl[1] != '/' && returnUrl[1] != '\\'));
 }
 
 internal sealed record DevLoginResponse(int UserId, string? Token, bool Requires2Fa);
