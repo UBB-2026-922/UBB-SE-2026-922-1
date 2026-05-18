@@ -49,7 +49,7 @@ public sealed class ProcessBillPaymentCommandTests
 
     private static Account CreateTestAccount(int userId, AccountStatus status, Currency currency, decimal balanceAmount = 0m)
     {
-        Account account = Account.Open(userId, null!, currency, AccountType.Checking, null, DateTime.UtcNow);
+        var account = Account.Open(userId, null!, currency, AccountType.Checking, null, DateTime.UtcNow);
         typeof(Account).GetProperty("Status")!.SetValue(account, status);
         typeof(Account).GetProperty("Balance")!.SetValue(account, new Money(balanceAmount, currency));
         return account;
