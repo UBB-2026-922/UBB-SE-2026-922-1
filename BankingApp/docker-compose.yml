@@ -25,7 +25,7 @@
       context: .
       dockerfile: src/BankingApp.Api/Dockerfile.dev
     ports:
-      - "5024:8080"
+      - "9999:8080"
     env_file:
       - ./src/BankingApp.Api/.env
     environment:

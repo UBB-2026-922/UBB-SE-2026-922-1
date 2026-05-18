@@ -1,6 +1,6 @@
 namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.Common.Dtos;
+using Application.Common.Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

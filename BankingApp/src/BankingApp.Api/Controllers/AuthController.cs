@@ -1,15 +1,14 @@
 namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.Common.Dtos;
-using BankingApp.Application.Features.Authentication.Commands;
-using BankingApp.Application.Features.Authentication.Dtos;
-using BankingApp.Application.Features.Authentication.Models;
-using BankingApp.Application.Features.PasswordReset.Commands;
-using BankingApp.Application.Features.PasswordReset.Dtos;
-using BankingApp.Application.Features.PasswordReset.Queries;
-using BankingApp.Application.Features.UserRegistration.Commands;
-using BankingApp.Application.Features.UserRegistration.Dtos;
-using ErrorOr;
+using Application.Common.Dtos;
+using Application.Features.Authentication.Commands;
+using Application.Features.Authentication.Dtos;
+using Application.Features.Authentication.Models;
+using Application.Features.PasswordReset.Commands;
+using Application.Features.PasswordReset.Dtos;
+using Application.Features.PasswordReset.Queries;
+using Application.Features.UserRegistration.Commands;
+using Application.Features.UserRegistration.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>

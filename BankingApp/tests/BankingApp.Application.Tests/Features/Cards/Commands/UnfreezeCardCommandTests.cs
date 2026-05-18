@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Tests.Features.Cards.Commands;
 
-using BankingApp.Application.Common.Utilities;
 using BankingApp.Application.Features.Cards.Commands;
 using BankingApp.Domain.Common.Errors;
+using ErrorOr;
 using Microsoft.Extensions.Logging;
 using NodaMoney;
 
@@ -17,15 +17,14 @@ public sealed class UnfreezeCardCommandTests
 
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly Mock<ILogger<UnfreezeCardCommandHandler>> _loggerMock;
     private readonly UnfreezeCardCommandHandler _handler;
 
     public UnfreezeCardCommandTests()
     {
         _accountRepositoryMock = MockFactory.CreateAccountRepositoryMock();
         _unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
-        _loggerMock = new Mock<ILogger<UnfreezeCardCommandHandler>>();
-        _handler = new UnfreezeCardCommandHandler(_accountRepositoryMock.Object, _unitOfWorkMock.Object, _loggerMock.Object);
+        var loggerMock = new Mock<ILogger<UnfreezeCardCommandHandler>>();
+        _handler = new UnfreezeCardCommandHandler(_accountRepositoryMock.Object, _unitOfWorkMock.Object, loggerMock.Object);
     }
 
     [Fact]
@@ -37,7 +36,7 @@ public sealed class UnfreezeCardCommandTests
 
         var command = new UnfreezeCardCommand(UserId: 1, CardId: 99);
 
-        var result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(CardErrors.NotFound);
@@ -47,15 +46,15 @@ public sealed class UnfreezeCardCommandTests
     public async Task Handle_WhenCardIsNotFrozen_ShouldReturnNotFrozenError()
     {
         var account = Account.Open(1, null!, Currency.FromCode(TestCurrency), AccountType.Checking, null, DateTime.UtcNow);
-        var card = account.IssueCard(TestCardNumber, TestCardholderName, DateTime.UtcNow.AddYears(CardExpiryYears), TestCvv, CardType.Debit, TestCardBrand, DateTime.UtcNow);
+        Card card = account.IssueCard(TestCardNumber, TestCardholderName, DateTime.UtcNow.AddYears(CardExpiryYears), TestCvv, CardType.Debit, TestCardBrand, DateTime.UtcNow);
 
         _accountRepositoryMock
             .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { account });
+            .ReturnsAsync([account]);
 
         var command = new UnfreezeCardCommand(UserId: 1, CardId: card.Id);
 
-        var result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(CardErrors.NotFrozen);
@@ -65,16 +64,16 @@ public sealed class UnfreezeCardCommandTests
     public async Task Handle_WhenValid_ShouldUnfreezeCardAndSaveChanges()
     {
         var account = Account.Open(1, null!, Currency.FromCode(TestCurrency), AccountType.Checking, null, DateTime.UtcNow);
-        var card = account.IssueCard(TestCardNumber, TestCardholderName, DateTime.UtcNow.AddYears(CardExpiryYears), TestCvv, CardType.Debit, TestCardBrand, DateTime.UtcNow);
+        Card card = account.IssueCard(TestCardNumber, TestCardholderName, DateTime.UtcNow.AddYears(CardExpiryYears), TestCvv, CardType.Debit, TestCardBrand, DateTime.UtcNow);
         card.Freeze();
 
         _accountRepositoryMock
             .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { account });
+            .ReturnsAsync([account]);
 
         var command = new UnfreezeCardCommand(UserId: 1, CardId: card.Id);
 
-        var result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
 
         result.IsError.Should().BeFalse();
         card.Status.Should().Be(CardStatus.Active);

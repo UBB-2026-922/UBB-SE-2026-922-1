@@ -1,8 +1,8 @@
 namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.Features.Cards.Commands;
-using BankingApp.Application.Features.Cards.Dtos;
-using BankingApp.Application.Features.Cards.Queries;
+using Application.Features.Cards.Commands;
+using Application.Features.Cards.Dtos;
+using Application.Features.Cards.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +17,7 @@ public class CardsController : ApiControllerBase
         int userId = GetAuthenticatedUserId();
         return ToActionResult(
             await Sender.Send(new GetCardsQuery(userId), cancellationToken),
-            cards => Ok(cards));
+            Ok);
     }
 
     [HttpPut("{id}/freeze")]
@@ -46,6 +46,6 @@ public class CardsController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         var command = new IssueCardCommand(userId, request.CardType, request.CardBrand);
-        return ToActionResult(await Sender.Send(command, cancellationToken), card => Ok(card));
+        return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
     }
 }

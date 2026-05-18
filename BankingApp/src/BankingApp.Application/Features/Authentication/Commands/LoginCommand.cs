@@ -136,7 +136,7 @@ public sealed class LoginCommandHandler(
         return AuthErrors.AccountLockedTooManyAttempts;
     }
 
-    private async Task<ErrorOr<LoginSuccess>> Handle2FaAsync(User user, IdentityAccount identity, CancellationToken ct)
+    private async Task<ErrorOr<LoginSuccess>> Handle2FaAsync(User user, IdentityAccount identity, CancellationToken _)
     {
         ErrorOr<string> otpResult = identity.Preferred2FaMethod == TwoFactorMethod.Authenticator
             ? otpService.GenerateTotp(user.Id)

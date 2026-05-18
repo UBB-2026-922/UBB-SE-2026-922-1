@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Http;
 
 using System;
 using System.Net;
@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.Common.Dtos;
+using Application.Common.Dtos;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -19,7 +19,6 @@ public sealed partial class ApiClient : IApiClient, IDisposable
 {
     private readonly Error? _configurationError;
     private readonly HttpClient _httpClient;
-    private readonly ILogger<ApiClient> _logger;
     private bool _disposed;
 
     /// <summary>
@@ -27,19 +26,27 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     /// </summary>
     public ApiClient(IConfiguration configuration, ILogger<ApiClient> logger)
     {
-        _logger = logger;
         string? baseUrl = configuration["ApiBaseUrl"];
         if (baseUrl is null)
         {
             _configurationError = Error.Failure(
                 "ApiClient.MissingBaseUrl",
                 "ApiBaseUrl is missing from configuration.");
-            _logger.ApiBaseUrlMissing();
+            logger.ApiBaseUrlMissing();
             _httpClient = new HttpClient();
         }
         else
         {
             _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
+        }
+
+        if (string.Equals(
+                Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
+                "Development",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            // To allow detailed debugging in development.
+            _httpClient.Timeout = Timeout.InfiniteTimeSpan;
         }
     }
 
@@ -225,7 +232,6 @@ public sealed partial class ApiClient : IApiClient, IDisposable
 
         _httpClient.Dispose();
         _disposed = true;
-        GC.SuppressFinalize(obj: this);
     }
 
     private static async Task<Error> MapErrorAsync(

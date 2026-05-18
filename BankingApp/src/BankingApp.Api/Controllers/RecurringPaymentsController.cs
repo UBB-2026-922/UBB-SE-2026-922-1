@@ -1,8 +1,8 @@
 namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.Features.RecurringPayments.Commands;
-using BankingApp.Application.Features.RecurringPayments.Dtos;
-using BankingApp.Application.Features.RecurringPayments.Queries;
+using Application.Features.RecurringPayments.Commands;
+using Application.Features.RecurringPayments.Dtos;
+using Application.Features.RecurringPayments.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

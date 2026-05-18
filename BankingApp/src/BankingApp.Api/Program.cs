@@ -2,8 +2,12 @@
 using BankingApp.Api.HostedServices;
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
+using BankingApp.Application.Features.UserRegistration.Commands;
+using BankingApp.Domain.Common.Errors;
 using BankingApp.Infrastructure.DependencyInjection;
 using BankingApp.Infrastructure.Persistence;
+using ErrorOr;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;
@@ -83,6 +87,11 @@ try
         databaseContext.Database.Migrate();
     }
 
+    if (application.Environment.IsDevelopment())
+    {
+        await SeedDevelopmentLoginAsync(application);
+    }
+
     application.UseExceptionHandler(exceptionApplicationBuilder => exceptionApplicationBuilder.Run(async context =>
     {
         context.Response.StatusCode = internalServerErrorStatusCode;
@@ -105,6 +114,10 @@ try
     application.MapControllers();
     application.Run();
 }
+catch (HostAbortedException)
+{
+    throw;
+}
 catch (Exception exception)
 {
     Log.Fatal(exception, "BankingApp.Api terminated unexpectedly");
@@ -114,4 +127,40 @@ finally
 {
     // Flush and close all Serilog sinks before the process exits.
     Log.CloseAndFlush();
+}
+
+return;
+
+static async Task SeedDevelopmentLoginAsync(WebApplication application)
+{
+    string? email = application.Configuration["DevLogin:Email"];
+    string? password = application.Configuration["DevLogin:Password"];
+    string fullName = application.Configuration["DevLogin:FullName"] ?? "Development User";
+
+    if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+    {
+        Log.Information("Development login seed skipped because DevLogin:Email or DevLogin:Password is not configured.");
+        return;
+    }
+
+    using IServiceScope scope = application.Services.CreateScope();
+    ISender sender = scope.ServiceProvider.GetRequiredService<ISender>();
+    ErrorOr<Success> result = await sender.Send(new RegisterCommand(email, password, fullName));
+
+    if (!result.IsError)
+    {
+        Log.Information("Development login user seeded: {Email}", email);
+        return;
+    }
+
+    if (result.Errors.Any(error => error.Code == AuthErrors.EmailAlreadyRegistered.Code))
+    {
+        Log.Information("Development login user already exists: {Email}", email);
+        return;
+    }
+
+    string errors = string.Join(
+        "; ",
+        result.Errors.Select(error => $"{error.Code}: {error.Description}"));
+    throw new InvalidOperationException($"Development login seed failed for {email}: {errors}");
 }

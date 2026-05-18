@@ -1,6 +1,6 @@
 namespace BankingApp.Api.Controllers;
 
-using BankingApp.Application.Features.AccountOverview.Queries;
+using Application.Features.AccountOverview.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

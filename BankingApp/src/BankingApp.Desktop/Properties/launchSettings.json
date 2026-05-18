@@ -4,7 +4,10 @@
       "commandName": "MsixPackage"
     },
     "BankingApp.Desktop (Unpackaged)": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
     }
   }
 }

@@ -1,9 +1,12 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
+using System.Linq;
 using Enums;
 using BankingApp.Application.Common.Utilities;
+using ErrorOr;
 using ViewModels;
+using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Navigation;
 
@@ -21,15 +24,21 @@ public sealed partial class LoginView
     /// <param name="viewModel">The view model that drives authentication logic and exposes login state.</param>
     /// <param name="navigationService">Used to navigate to other pages in response to state changes.</param>
     /// <param name="registrationContext">Carries the just-registered flag set by the register page.</param>
+    /// <param name="configuration">Application configuration used to display the active API endpoint.</param>
     /// <returns>The result of the operation.</returns>
     public LoginView(
         LoginViewModel viewModel,
         IAppNavigationService navigationService,
-        IRegistrationContext registrationContext)
+        IRegistrationContext registrationContext,
+        IConfiguration configuration)
     {
         _navigationService = navigationService;
         InitializeComponent();
         _viewModel = viewModel;
+        ServerConnectionText.Text = BuildServerConnectionText(configuration["ApiBaseUrl"]);
+        DevLoginButton.Visibility = _viewModel.IsDevLoginAvailable
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         if (registrationContext.JustRegistered)
         {
@@ -111,12 +120,14 @@ public sealed partial class LoginView
         LoadingRing.IsActive = true;
         LoadingRing.Visibility = Visibility.Visible;
         SignInButton.IsEnabled = false;
+        DevLoginButton.IsEnabled = false;
     }
 
     private void HideLoading()
     {
         LoadingRing.IsActive = false;
         LoadingRing.Visibility = Visibility.Collapsed;
+        DevLoginButton.IsEnabled = true;
     }
 
     private async void SignInButton_Click(object sender, RoutedEventArgs e)
@@ -140,5 +151,25 @@ public sealed partial class LoginView
     private void CreateAccountButton_Click(object sender, RoutedEventArgs e)
     {
         _navigationService.NavigateTo<RegisterView>();
+    }
+
+    private async void DevLoginButton_Click(object sender, RoutedEventArgs e)
+    {
+        ErrorOr<Success> result = await _viewModel.DevLogin();
+        result.Switch(
+            _ => { },
+            errors => ShowError(errors.First().Description));
+    }
+
+    private static string BuildServerConnectionText(string? apiBaseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(apiBaseUrl))
+        {
+            return "Connected: not configured";
+        }
+
+        return Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out Uri? uri)
+            ? $"Connected: {uri.Authority}"
+            : $"Connected: {apiBaseUrl}";
     }
 }
