@@ -23,8 +23,4 @@
         <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj"/>
         <ProjectReference Include="..\BankingApp.Infrastructure\BankingApp.Infrastructure.csproj"/>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Common\Mappers\" />
-      <Folder Include="DependencyInjection\" />
-    </ItemGroup>
 </Project>
