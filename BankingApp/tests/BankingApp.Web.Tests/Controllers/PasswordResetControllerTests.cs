@@ -1,22 +1,21 @@
 namespace BankingApp.Web.Tests.Controllers;
 
-using BankingApp.Application.Features.PasswordReset.Commands;
-using BankingApp.Application.Features.PasswordReset.Queries;
-using BankingApp.Web.Controllers;
-using BankingApp.Web.ViewModels;
-using MediatR;
+using Application.Features.Authentication.Services;
+using Contracts.Features.PasswordReset.Dtos;
+using Web.Controllers;
+using ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 public sealed class PasswordResetControllerTests : IDisposable
 {
-    private readonly Mock<ISender> _senderMock = new(MockBehavior.Strict);
+    private readonly Mock<IAuthenticationService> _authenticationServiceMock = new(MockBehavior.Strict);
     private readonly PasswordResetController _controller;
 
     public PasswordResetControllerTests()
     {
-        _controller = new PasswordResetController(_senderMock.Object)
+        _controller = new PasswordResetController(_authenticationServiceMock.Object)
         {
             TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>())
         };
@@ -34,7 +33,7 @@ public sealed class PasswordResetControllerTests : IDisposable
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
         ForgotPasswordViewModel model = viewResult.Model.Should().BeOfType<ForgotPasswordViewModel>().Subject;
         model.Email.Should().BeEmpty();
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -50,7 +49,7 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
         viewResult.Model.Should().Be(model);
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -60,9 +59,9 @@ public sealed class PasswordResetControllerTests : IDisposable
         const string submittedEmail = "user@example.com";
         ForgotPasswordViewModel model = new() { Email = submittedEmail };
 
-        _senderMock
-            .Setup(sender => sender.Send(
-                It.Is<ForgotPasswordCommand>(command => command.Email == submittedEmail),
+        _authenticationServiceMock
+            .Setup(authenticationService => authenticationService.ForgotPasswordAsync(
+                It.Is<ForgotPasswordRequest>(request => request.Email == submittedEmail),
                 CancellationToken.None))
             .ReturnsAsync(Result.Success);
 
@@ -74,8 +73,12 @@ public sealed class PasswordResetControllerTests : IDisposable
         redirect.ActionName.Should().Be(nameof(PasswordResetController.ForgotPassword));
         _controller.TempData["Info"].Should().Be("If that email exists you will receive a password reset link.");
 
-        _senderMock.Verify(sender => sender.Send(It.IsAny<ForgotPasswordCommand>(), CancellationToken.None), Times.Once);
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.Verify(
+            authenticationService => authenticationService.ForgotPasswordAsync(
+                It.IsAny<ForgotPasswordRequest>(),
+                CancellationToken.None),
+            Times.Once);
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     // Ensures the controller never reveals whether an email is registered (anti-enumeration).
@@ -85,8 +88,10 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Arrange
         ForgotPasswordViewModel model = new() { Email = "unknown@example.com" };
 
-        _senderMock
-            .Setup(sender => sender.Send(It.IsAny<ForgotPasswordCommand>(), CancellationToken.None))
+        _authenticationServiceMock
+            .Setup(authenticationService => authenticationService.ForgotPasswordAsync(
+                It.IsAny<ForgotPasswordRequest>(),
+                CancellationToken.None))
             .ReturnsAsync(Error.NotFound());
 
         // Act
@@ -95,6 +100,12 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Assert
         result.Should().BeOfType<RedirectToActionResult>();
         ((string?)_controller.TempData["Info"]).Should().NotBeNullOrEmpty();
+        _authenticationServiceMock.Verify(
+            authenticationService => authenticationService.ForgotPasswordAsync(
+                It.IsAny<ForgotPasswordRequest>(),
+                CancellationToken.None),
+            Times.Once);
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -106,7 +117,7 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
         viewResult.ViewName.Should().Be("InvalidToken");
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -118,7 +129,7 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
         viewResult.ViewName.Should().Be("InvalidToken");
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -127,9 +138,9 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Arrange
         const string expiredToken = "expired-reset-token";
 
-        _senderMock
-            .Setup(sender => sender.Send(
-                It.Is<VerifyResetTokenQuery>(query => query.Token == expiredToken),
+        _authenticationServiceMock
+            .Setup(authenticationService => authenticationService.VerifyResetTokenAsync(
+                It.Is<VerifyResetTokenRequest>(request => request.Token == expiredToken),
                 CancellationToken.None))
             .ReturnsAsync(Error.Validation("invalid_token", "Token is invalid or expired."));
 
@@ -140,8 +151,12 @@ public sealed class PasswordResetControllerTests : IDisposable
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
         viewResult.ViewName.Should().Be("InvalidToken");
 
-        _senderMock.Verify(sender => sender.Send(It.IsAny<VerifyResetTokenQuery>(), CancellationToken.None), Times.Once);
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.Verify(
+            authenticationService => authenticationService.VerifyResetTokenAsync(
+                It.IsAny<VerifyResetTokenRequest>(),
+                CancellationToken.None),
+            Times.Once);
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -150,9 +165,9 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Arrange
         const string validToken = "valid-reset-token";
 
-        _senderMock
-            .Setup(sender => sender.Send(
-                It.Is<VerifyResetTokenQuery>(query => query.Token == validToken),
+        _authenticationServiceMock
+            .Setup(authenticationService => authenticationService.VerifyResetTokenAsync(
+                It.Is<VerifyResetTokenRequest>(request => request.Token == validToken),
                 CancellationToken.None))
             .ReturnsAsync(Result.Success);
 
@@ -165,8 +180,12 @@ public sealed class PasswordResetControllerTests : IDisposable
         ResetPasswordViewModel model = viewResult.Model.Should().BeOfType<ResetPasswordViewModel>().Subject;
         model.Token.Should().Be(validToken);
 
-        _senderMock.Verify(sender => sender.Send(It.IsAny<VerifyResetTokenQuery>(), CancellationToken.None), Times.Once);
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.Verify(
+            authenticationService => authenticationService.VerifyResetTokenAsync(
+                It.IsAny<VerifyResetTokenRequest>(),
+                CancellationToken.None),
+            Times.Once);
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -182,7 +201,7 @@ public sealed class PasswordResetControllerTests : IDisposable
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
         viewResult.Model.Should().Be(model);
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -197,8 +216,10 @@ public sealed class PasswordResetControllerTests : IDisposable
             ConfirmPassword = "ValidPassword1!"
         };
 
-        _senderMock
-            .Setup(sender => sender.Send(It.IsAny<ResetPasswordCommand>(), CancellationToken.None))
+        _authenticationServiceMock
+            .Setup(authenticationService => authenticationService.ResetPasswordAsync(
+                It.IsAny<ResetPasswordRequest>(),
+                CancellationToken.None))
             .ReturnsAsync(Error.Validation("token_invalid", errorDescription));
 
         // Act
@@ -211,8 +232,12 @@ public sealed class PasswordResetControllerTests : IDisposable
         _controller.ModelState[string.Empty]!.Errors
             .Should().ContainSingle(error => error.ErrorMessage == errorDescription);
 
-        _senderMock.Verify(sender => sender.Send(It.IsAny<ResetPasswordCommand>(), CancellationToken.None), Times.Once);
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.Verify(
+            authenticationService => authenticationService.ResetPasswordAsync(
+                It.IsAny<ResetPasswordRequest>(),
+                CancellationToken.None),
+            Times.Once);
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -226,10 +251,10 @@ public sealed class PasswordResetControllerTests : IDisposable
             ConfirmPassword = "ValidPassword1!"
         };
 
-        _senderMock
-            .Setup(sender => sender.Send(
-                It.Is<ResetPasswordCommand>(command =>
-                    command.Token == model.Token && command.NewPassword == model.NewPassword),
+        _authenticationServiceMock
+            .Setup(authenticationService => authenticationService.ResetPasswordAsync(
+                It.Is<ResetPasswordRequest>(request =>
+                    request.Token == model.Token && request.NewPassword == model.NewPassword),
                 CancellationToken.None))
             .ReturnsAsync(Result.Success);
 
@@ -242,7 +267,11 @@ public sealed class PasswordResetControllerTests : IDisposable
         redirect.ControllerName.Should().Be("Auth");
         _controller.TempData["Success"].Should().Be("Password reset successfully. Please sign in.");
 
-        _senderMock.Verify(sender => sender.Send(It.IsAny<ResetPasswordCommand>(), CancellationToken.None), Times.Once);
-        _senderMock.VerifyNoOtherCalls();
+        _authenticationServiceMock.Verify(
+            authenticationService => authenticationService.ResetPasswordAsync(
+                It.IsAny<ResetPasswordRequest>(),
+                CancellationToken.None),
+            Times.Once);
+        _authenticationServiceMock.VerifyNoOtherCalls();
     }
 }
