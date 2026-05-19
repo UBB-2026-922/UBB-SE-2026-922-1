@@ -1,12 +1,12 @@
 namespace BankingApp.Desktop.Utilities;
 
 using System;
-using BankingApp.Application.Common.Http;
 using Contracts.Features.Authentication.Dtos;
 using Contracts.Http;
 using Contracts.Features.UserRegistration.Dtos;
 using ErrorOr;
 using System.Threading.Tasks;
+using Application.Common.Http;
 
 /// <inheritdoc />
 public sealed class AuthService : IAuthService

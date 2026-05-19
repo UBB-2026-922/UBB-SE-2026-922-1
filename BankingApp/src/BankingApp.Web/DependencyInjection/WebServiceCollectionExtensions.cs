@@ -37,7 +37,7 @@ public static class WebServiceCollectionExtensions
                 .AddHttpMessageHandler<TokenForwardingHandler>();
 
             services.AddScoped<IAuthenticationService, AuthenticationService>();
-            services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<IAccountOverviewService, AccountOverview>();
             services.AddScoped<IBeneficiaryService, BeneficiaryService>();
             services.AddScoped<IBillPaymentService, BillPaymentService>();
             services.AddScoped<IBillerService, BillerService>();

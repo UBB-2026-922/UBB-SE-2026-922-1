@@ -1,6 +1,6 @@
 namespace BankingApp.Application.Features.Transfers.Commands;
 
-using Common.Logging;
+using Common.Security;
 using Contracts.Features.Transfers.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -14,7 +14,9 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 using Money = NodaMoney.Money;
 using Currency = NodaMoney.Currency;
 
@@ -89,7 +91,7 @@ public sealed class ExecuteTransferCommandHandler(
         ErrorOr<Money> newBalanceResult = account.Debit(transfer.TotalDebit, now);
         if (newBalanceResult.IsError)
         {
-            logger.TransferInsufficientFunds(command.SourceAccountId);
+            ApplicationLogMessages.TransferInsufficientFunds(logger, command.SourceAccountId);
             return newBalanceResult.FirstError;
         }
 
@@ -133,13 +135,13 @@ public sealed class ExecuteTransferCommandHandler(
 
         if (account is null || account.UserId != command.UserId)
         {
-            logger.TransferAccountNotFound(command.SourceAccountId, command.UserId);
+            ApplicationLogMessages.TransferAccountNotFound(logger, command.SourceAccountId, command.UserId);
             return TransferErrors.AccountNotFound;
         }
 
         if (!account.IsActive())
         {
-            logger.TransferAccountNotActive(command.SourceAccountId);
+            ApplicationLogMessages.TransferAccountNotActive(logger, command.SourceAccountId);
             return TransferErrors.AccountNotActive;
         }
 
@@ -175,14 +177,14 @@ public sealed class ExecuteTransferCommandHandler(
 
         if (string.IsNullOrWhiteSpace(command.TwoFaToken))
         {
-            logger.TransferTwoFactorMissing(command.Amount, command.UserId);
+            ApplicationLogMessages.TransferTwoFactorMissing(logger, command.Amount, command.UserId);
             return TransferErrors.TwoFaRequired;
         }
 
         ErrorOr<bool> otpValid = otpService.VerifyTotp(command.UserId, command.TwoFaToken);
         if (otpValid.IsError || !otpValid.Value)
         {
-            logger.TransferTwoFactorInvalid(command.UserId);
+            ApplicationLogMessages.TransferTwoFactorInvalid(logger, command.UserId);
             return TransferErrors.InvalidTwoFaToken;
         }
 

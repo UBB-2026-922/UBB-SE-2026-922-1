@@ -2,7 +2,7 @@ namespace BankingApp.Api.Middleware;
 
 using System.Globalization;
 using System.Security.Claims;
-using Application.Security;
+using Application.Common.Security;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Repositories;

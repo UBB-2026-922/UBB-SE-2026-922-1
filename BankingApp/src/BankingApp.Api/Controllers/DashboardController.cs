@@ -16,6 +16,6 @@ public class DashboardController : ApiControllerBase
     public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new GetDashboardQuery(userId), cancellationToken), Ok);
+        return ToActionResult(await Sender.Send(new GetAccountOverviewQuery(userId), cancellationToken), Ok);
     }
 }

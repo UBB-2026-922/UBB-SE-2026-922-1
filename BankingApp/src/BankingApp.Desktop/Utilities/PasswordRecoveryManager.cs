@@ -2,7 +2,7 @@ namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.Common.Http;
+using Application.Common.Http;
 using BankingApp.Desktop.Enums;
 using Contracts.Features.PasswordReset.Dtos;
 using Contracts.Http;

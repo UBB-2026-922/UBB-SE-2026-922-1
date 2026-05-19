@@ -2,6 +2,7 @@ namespace BankingApp.Infrastructure.Persistence.Repositories;
 
 using Domain.ReferenceData.Billers;
 using BankingApp.Domain.Repositories;
+using Data;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class BillerRepository(AppDbContext dbContext) : IBillerRepository

@@ -2,8 +2,8 @@ namespace BankingApp.Application.Features.PasswordReset.Commands;
 
 using System.Security.Cryptography;
 using System.Text;
-using Common.Logging;
-using Common.Utilities;
+using Common.Security;
+using Common.Validation;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Common.Errors;
@@ -13,7 +13,9 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record ResetPasswordCommand(string Token, string NewPassword)
     : IRequest<ErrorOr<Success>>;
@@ -32,7 +34,7 @@ public sealed class ResetPasswordCommandHandler(
         IdentityAccount? identity = await identityRepository.GetByResetTokenHashAsync(tokenHash, cancellationToken);
         if (identity is null)
         {
-            logger.PasswordResetTokenNotFound();
+            ApplicationLogMessages.PasswordResetTokenNotFound(logger);
             return PasswordResetErrors.TokenInvalid;
         }
 
@@ -44,21 +46,21 @@ public sealed class ResetPasswordCommandHandler(
 
         if (resetToken.UsedAt is not null)
         {
-            logger.PasswordResetValidationFailed(identity.UserId, PasswordResetErrors.TokenAlreadyUsed.Code);
+            ApplicationLogMessages.PasswordResetValidationFailed(logger, identity.UserId, PasswordResetErrors.TokenAlreadyUsed.Code);
             return PasswordResetErrors.TokenAlreadyUsed;
         }
 
         DateTime now = clock.UtcNow;
         if (resetToken.ExpiresAt < now)
         {
-            logger.PasswordResetValidationFailed(identity.UserId, PasswordResetErrors.TokenExpired.Code);
+            ApplicationLogMessages.PasswordResetValidationFailed(logger, identity.UserId, PasswordResetErrors.TokenExpired.Code);
             return PasswordResetErrors.TokenExpired;
         }
 
         ErrorOr<string> hashResult = hashService.GetHash(command.NewPassword);
         if (hashResult.IsError)
         {
-            logger.PasswordResetHashGenerationFailed(identity.UserId);
+            ApplicationLogMessages.PasswordResetHashGenerationFailed(logger, identity.UserId);
             return hashResult.FirstError;
         }
 
@@ -69,7 +71,7 @@ public sealed class ResetPasswordCommandHandler(
         await identityRepository.UpdateAsync(identity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.PasswordResetSucceeded(identity.UserId);
+        ApplicationLogMessages.PasswordResetSucceeded(logger, identity.UserId);
         return Result.Success;
     }
 

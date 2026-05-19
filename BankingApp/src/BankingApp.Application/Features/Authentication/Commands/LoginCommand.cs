@@ -1,6 +1,7 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Logging;
+using Common.Notifications;
+using Common.Security;
 using Contracts.Features.Authentication.Dtos;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
@@ -13,8 +14,9 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Models;
-using Notifications;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record LoginCommand(string Email, string Password, SessionMetadata? Metadata = null)
     : IRequest<ErrorOr<LoginSuccess>>;
@@ -58,7 +60,7 @@ public sealed class LoginCommandHandler(
         {
             if (identity.IsCurrentlyLocked())
             {
-                logger.LoginBlockedLockedAccount(user.Id, identity.LockoutEnd);
+                ApplicationLogMessages.LoginBlockedLockedAccount(logger, user.Id, identity.LockoutEnd);
                 return AuthErrors.AccountLocked;
             }
 
@@ -69,14 +71,14 @@ public sealed class LoginCommandHandler(
 
         if (identity.PasswordHash is null)
         {
-            logger.LoginOAuthOnlyPasswordRejected(user.Id);
+            ApplicationLogMessages.LoginOAuthOnlyPasswordRejected(logger, user.Id);
             return AuthErrors.InvalidCredentials;
         }
 
         ErrorOr<bool> verifyResult = hashService.Verify(command.Password, identity.PasswordHash.Value);
         if (verifyResult.IsError)
         {
-            logger.PasswordHashVerificationFailed(user.Id, verifyResult.FirstError.Description);
+            ApplicationLogMessages.PasswordHashVerificationFailed(logger, user.Id, verifyResult.FirstError.Description);
             return verifyResult.FirstError;
         }
 
@@ -100,7 +102,7 @@ public sealed class LoginCommandHandler(
         User? user = await userRepository.GetByEmailAsync(email, cancellationToken);
         if (user is null)
         {
-            logger.LoginUserNotFoundForEmail();
+            ApplicationLogMessages.LoginUserNotFoundForEmail(logger);
             return AuthErrors.InvalidCredentials;
         }
 
@@ -117,7 +119,7 @@ public sealed class LoginCommandHandler(
     {
         identity.IncrementFailedAttempts();
         int attempts = identity.FailedLoginAttempts;
-        logger.FailedLoginAttempt(userId, attempts, MaxFailedAttempts);
+        ApplicationLogMessages.FailedLoginAttempt(logger, userId, attempts, MaxFailedAttempts);
 
         if (attempts < MaxFailedAttempts)
         {
@@ -130,7 +132,7 @@ public sealed class LoginCommandHandler(
         await identityRepository.UpdateAsync(identity, ct);
         await unitOfWork.SaveChangesAsync(ct);
 
-        logger.AccountLockedTooManyAttempts(userId, LockoutMinutes, MaxFailedAttempts);
+        ApplicationLogMessages.AccountLockedTooManyAttempts(logger, userId, LockoutMinutes, MaxFailedAttempts);
         return AuthErrors.AccountLockedTooManyAttempts;
     }
 
@@ -142,7 +144,7 @@ public sealed class LoginCommandHandler(
 
         if (otpResult.IsError)
         {
-            logger.OtpGenerationFailed(user.Id, otpResult.FirstError.Description);
+            ApplicationLogMessages.OtpGenerationFailed(logger, user.Id, otpResult.FirstError.Description);
             return otpResult.FirstError;
         }
 
@@ -152,7 +154,7 @@ public sealed class LoginCommandHandler(
         }
 
         otpAttemptTracker.Reset(user.Id);
-        logger.TwoFactorRequired(user.Id, identity.Preferred2FaMethod);
+        ApplicationLogMessages.TwoFactorRequired(logger, user.Id, identity.Preferred2FaMethod);
         return new RequiresTwoFactor(user.Id);
     }
 
@@ -167,7 +169,7 @@ public sealed class LoginCommandHandler(
         ErrorOr<string> tokenResult = jwtService.GenerateToken(user.Id);
         if (tokenResult.IsError)
         {
-            logger.TokenGenerationFailed(user.Id, tokenResult.FirstError.Description);
+            ApplicationLogMessages.TokenGenerationFailed(logger, user.Id, tokenResult.FirstError.Description);
             return tokenResult.FirstError;
         }
 
@@ -178,7 +180,7 @@ public sealed class LoginCommandHandler(
         await identityRepository.UpdateAsync(identity, ct);
         await unitOfWork.SaveChangesAsync(ct);
 
-        logger.UserLoggedIn(user.Id);
+        ApplicationLogMessages.UserLoggedIn(logger, user.Id);
         await emailService.SendLoginAlertAsync(user.Email.Value);
         return new FullLogin(user.Id, token);
     }

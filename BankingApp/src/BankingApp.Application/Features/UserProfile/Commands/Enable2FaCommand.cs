@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.UserProfile.Commands;
 
-using Common.Logging;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Common.Errors;
 using Domain.Enums;
@@ -8,6 +7,8 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record Enable2FaCommand(int UserId, TwoFactorMethod Method)
     : IRequest<ErrorOr<Success>>;
@@ -23,7 +24,7 @@ public sealed class Enable2FaCommandHandler(
         IdentityAccount? identity = await identityRepository.GetByUserIdAsync(command.UserId, cancellationToken);
         if (identity is null)
         {
-            logger.EnableTwoFactorUserNotFound(command.UserId);
+            ApplicationLogMessages.EnableTwoFactorUserNotFound(logger, command.UserId);
             return UserErrors.NotFound;
         }
 
@@ -31,7 +32,7 @@ public sealed class Enable2FaCommandHandler(
         await identityRepository.UpdateAsync(identity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.EnableTwoFactorSucceeded(command.UserId, command.Method);
+        ApplicationLogMessages.EnableTwoFactorSucceeded(logger, command.UserId, command.Method);
         return Result.Success;
     }
 }

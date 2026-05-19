@@ -6,6 +6,8 @@ using Domain.Common.Errors;
 using Domain.Repositories;
 using ErrorOr;
 using MediatR;
+using Shared.Clock;
+using Shared.Persistence;
 using Currency = NodaMoney.Currency;
 
 public sealed record CreateRateAlertCommand(

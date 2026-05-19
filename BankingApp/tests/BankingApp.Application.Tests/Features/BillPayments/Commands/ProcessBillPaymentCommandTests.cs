@@ -9,11 +9,13 @@ using Domain.Aggregates.BillPaymentAggregate;
 using BankingApp.Domain.Common.Errors;
 using Domain.Enums;
 using BankingApp.Domain.ReferenceData.Billers;
+using Common.Security;
 using Contracts.Features.BillPayments.Dtos;
 using Microsoft.Extensions.Logging;
 using NodaMoney;
 using ErrorOr;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
 
 public sealed class ProcessBillPaymentCommandTests
 {

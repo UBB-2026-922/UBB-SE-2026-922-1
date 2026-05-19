@@ -1,6 +1,5 @@
 namespace BankingApp.Desktop.Utilities;
 
-using BankingApp.Application.Common.Http;
 using Contracts.Features.Authentication.Dtos;
 using Contracts.Features.UserRegistration.Dtos;
 using ErrorOr;

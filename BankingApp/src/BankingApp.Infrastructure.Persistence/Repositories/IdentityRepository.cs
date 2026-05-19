@@ -2,6 +2,7 @@ namespace BankingApp.Infrastructure.Persistence.Repositories;
 
 using Domain.Aggregates.IdentityAggregate;
 using BankingApp.Domain.Repositories;
+using Data;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class IdentityRepository(AppDbContext dbContext) : IIdentityRepository

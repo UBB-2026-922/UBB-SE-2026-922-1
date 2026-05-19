@@ -2,6 +2,7 @@ namespace BankingApp.Infrastructure.Persistence.Repositories;
 
 using Domain.Aggregates.ForexAggregate;
 using BankingApp.Domain.Repositories;
+using Data;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class ForexTransactionRepository(AppDbContext dbContext) : IForexRepository

@@ -2,7 +2,6 @@ namespace BankingApp.Application.Features.Cards.Commands;
 
 using System.Globalization;
 using System.Security.Cryptography;
-using Common.Logging;
 using Contracts.Features.Cards.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -14,6 +13,9 @@ using Domain.ValueObjects;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 using Currency = NodaMoney.Currency;
 
 public sealed record IssueCardCommand(
@@ -47,7 +49,7 @@ public sealed class IssueCardCommandHandler(
         User? user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)
         {
-            logger.IssueCardAccountNotFound(0, command.UserId);
+            ApplicationLogMessages.IssueCardAccountNotFound(logger, 0, command.UserId);
             return UserErrors.NotFound;
         }
 
@@ -91,7 +93,7 @@ public sealed class IssueCardCommandHandler(
         await accountRepository.UpdateAsync(account, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.CardIssued(card.Id, account.Id, command.UserId);
+        ApplicationLogMessages.CardIssued(logger, card.Id, account.Id, command.UserId);
 
         return new CardDetailsDto
         {

@@ -27,14 +27,14 @@ public partial class DashboardViewModel : ObservableObject
     private const int CardNumberVisibleSuffixLength = 4;
     private const string FullyMaskedCardNumber = "**** **** **** ****";
     private const string CardNumberMaskPrefix = "**** **** ****";
-    private readonly IDashboardService _dashboardService;
+    private readonly IAccountOverviewService _accountOverviewService;
     private readonly ILogger<DashboardViewModel> _logger;
     private int _currentCardIndex;
 
     /// <summary>Initializes a new instance of the <see cref="DashboardViewModel"/> class.</summary>
-    public DashboardViewModel(IDashboardService dashboardService, ILogger<DashboardViewModel> logger)
+    public DashboardViewModel(IAccountOverviewService accountOverviewService, ILogger<DashboardViewModel> logger)
     {
-        _dashboardService = dashboardService ?? throw new ArgumentNullException(nameof(dashboardService));
+        _accountOverviewService = accountOverviewService ?? throw new ArgumentNullException(nameof(accountOverviewService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Cards = new List<CardDto>();
         RecentTransactions = new List<TransactionDto>();
@@ -161,7 +161,7 @@ public partial class DashboardViewModel : ObservableObject
     {
         State = DashboardState.Loading;
         ErrorMessage = string.Empty;
-        ErrorOr<AccountOverviewDto> result = await _dashboardService.GetDashboardAsync(cancellationToken);
+        ErrorOr<AccountOverviewDto> result = await _accountOverviewService.GetDashboardAsync(cancellationToken);
         return result.Match<ErrorOr<Success>>(
             dashboard =>
             {

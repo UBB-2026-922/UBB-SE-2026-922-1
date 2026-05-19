@@ -8,6 +8,8 @@ using Domain.Enums;
 using Domain.ValueObjects;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Shared.Clock;
+using Shared.Persistence;
 
 public sealed class IssueCardCommandTests
 {

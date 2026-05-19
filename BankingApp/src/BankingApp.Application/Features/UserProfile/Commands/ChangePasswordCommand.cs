@@ -1,7 +1,7 @@
 namespace BankingApp.Application.Features.UserProfile.Commands;
 
-using Common.Logging;
-using Common.Utilities;
+using Common.Security;
+using Common.Validation;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
@@ -11,7 +11,8 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Security;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record ChangePasswordCommand(int UserId, string CurrentPassword, string NewPassword)
     : IRequest<ErrorOr<Success>>;
@@ -29,7 +30,7 @@ public sealed class ChangePasswordCommandHandler(
         User? user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)
         {
-            logger.PasswordChangeUserNotFound(command.UserId);
+            ApplicationLogMessages.PasswordChangeUserNotFound(logger, command.UserId);
             return UserErrors.NotFound;
         }
 
@@ -41,27 +42,27 @@ public sealed class ChangePasswordCommandHandler(
 
         if (identity.PasswordHash is null)
         {
-            logger.PasswordChangeOAuthOnlyRejected(user.Id);
+            ApplicationLogMessages.PasswordChangeOAuthOnlyRejected(logger, user.Id);
             return ProfileErrors.IncorrectPassword;
         }
 
         ErrorOr<bool> verifyResult = hashService.Verify(command.CurrentPassword, identity.PasswordHash.Value);
         if (verifyResult.IsError)
         {
-            logger.PasswordChangeHashVerificationFailed(user.Id);
+            ApplicationLogMessages.PasswordChangeHashVerificationFailed(logger, user.Id);
             return verifyResult.FirstError;
         }
 
         if (!verifyResult.Value)
         {
-            logger.PasswordChangeIncorrectCurrentPassword(user.Id);
+            ApplicationLogMessages.PasswordChangeIncorrectCurrentPassword(logger, user.Id);
             return ProfileErrors.IncorrectPassword;
         }
 
         ErrorOr<string> newHashResult = hashService.GetHash(command.NewPassword);
         if (newHashResult.IsError)
         {
-            logger.PasswordChangeHashGenerationFailed(user.Id);
+            ApplicationLogMessages.PasswordChangeHashGenerationFailed(logger, user.Id);
             return newHashResult.FirstError;
         }
 
@@ -69,7 +70,7 @@ public sealed class ChangePasswordCommandHandler(
         await identityRepository.UpdateAsync(identity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.PasswordChangedSuccessfully(user.Id);
+        ApplicationLogMessages.PasswordChangedSuccessfully(logger, user.Id);
         return Result.Success;
     }
 }

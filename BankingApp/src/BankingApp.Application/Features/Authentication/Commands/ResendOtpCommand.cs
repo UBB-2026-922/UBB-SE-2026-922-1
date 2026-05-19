@@ -1,6 +1,7 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Logging;
+using Common.Notifications;
+using Common.Security;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
@@ -10,8 +11,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Notifications;
-using Security;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record ResendOtpCommand(int UserId, string Method)
     : IRequest<ErrorOr<Success>>;
@@ -30,7 +30,7 @@ public sealed class ResendOtpCommandHandler(
         User? user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)
         {
-            logger.OtpResendUserNotFound(command.UserId);
+            ApplicationLogMessages.OtpResendUserNotFound(logger, command.UserId);
             return AuthErrors.UserNotFound;
         }
 
@@ -57,7 +57,7 @@ public sealed class ResendOtpCommandHandler(
 
         if (otpResult.IsError)
         {
-            logger.OtpGenerationDuringResendFailed(user.Id, otpResult.FirstError.Description);
+            ApplicationLogMessages.OtpGenerationDuringResendFailed(logger, user.Id, otpResult.FirstError.Description);
             return otpResult.FirstError;
         }
 

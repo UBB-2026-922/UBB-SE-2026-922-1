@@ -5,6 +5,7 @@ using Domain.Common.Errors;
 using Domain.Repositories;
 using ErrorOr;
 using MediatR;
+using Shared.Persistence;
 
 public sealed record DeleteBeneficiaryCommand(int UserId, int BeneficiaryId)
     : IRequest<ErrorOr<Success>>;

@@ -8,6 +8,7 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record GetActiveSessionsQuery(int UserId)
     : IRequest<ErrorOr<List<SessionDto>>>;
@@ -22,7 +23,7 @@ public sealed class GetActiveSessionsQueryHandler(
         IdentityAccount? identity = await identityRepository.GetByUserIdAsync(query.UserId, cancellationToken);
         if (identity is null)
         {
-            logger.GetSessionsUserNotFound(query.UserId);
+            ApplicationLogMessages.GetSessionsUserNotFound(logger, query.UserId);
             return UserErrors.NotFound;
         }
 

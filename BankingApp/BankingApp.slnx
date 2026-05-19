@@ -16,6 +16,7 @@
         <Project Path="src/BankingApp.Api/BankingApp.Api.csproj" />
         <Project Path="src/BankingApp.Application/BankingApp.Application.csproj" />
         <Project Path="src/BankingApp.Domain/BankingApp.Domain.csproj" />
+        <Project Path="src/BankingApp.Infrastructure.Core/BankingApp.Infrastructure.Core.csproj" />
         <Project Path="src/BankingApp.Infrastructure.Http/BankingApp.Infrastructure.Http.csproj" />
         <Project Path="src/BankingApp.Infrastructure.Persistence/BankingApp.Infrastructure.Persistence.csproj" />
         <Project Path="src/BankingApp.Web/BankingApp.Web.csproj" />
@@ -25,6 +26,7 @@
         <Project Path="tests/BankingApp.Web.Tests/BankingApp.Web.Tests.csproj" />
         <Project Path="tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj" />
         <Project Path="tests/BankingApp.Domain.Tests/BankingApp.Domain.Tests.csproj" />
+        <Project Path="tests/BankingApp.Infrastructure.Core.Tests/BankingApp.Infrastructure.Core.Tests.csproj" />
         <Project Path="tests/BankingApp.Infrastructure.Http.Tests/BankingApp.Infrastructure.Http.Tests.csproj" />
         <Project Path="tests/BankingApp.Infrastructure.Persistence.Tests.Integration/BankingApp.Infrastructure.Persistence.Tests.Integration.csproj" />
         <Project Path="tests/BankingApp.Infrastructure.Persistence.Tests/BankingApp.Infrastructure.Persistence.Tests.csproj" />

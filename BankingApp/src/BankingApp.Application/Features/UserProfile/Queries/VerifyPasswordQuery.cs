@@ -1,13 +1,13 @@
 namespace BankingApp.Application.Features.UserProfile.Queries;
 
-using Common.Logging;
+using Common.Security;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Security;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record VerifyPasswordQuery(int UserId, string Password)
     : IRequest<ErrorOr<bool>>;
@@ -23,7 +23,7 @@ public sealed class VerifyPasswordQueryHandler(
         IdentityAccount? identity = await identityRepository.GetByUserIdAsync(query.UserId, cancellationToken);
         if (identity is null)
         {
-            logger.PasswordChangeUserNotFound(query.UserId);
+            ApplicationLogMessages.PasswordChangeUserNotFound(logger, query.UserId);
             return UserErrors.NotFound;
         }
 
@@ -35,7 +35,7 @@ public sealed class VerifyPasswordQueryHandler(
         ErrorOr<bool> verifyResult = hashService.Verify(query.Password, identity.PasswordHash.Value);
         if (verifyResult.IsError)
         {
-            logger.PasswordChangeHashVerificationFailed(query.UserId);
+            ApplicationLogMessages.PasswordChangeHashVerificationFailed(logger, query.UserId);
             return verifyResult.FirstError;
         }
 

@@ -1,10 +1,10 @@
 namespace BankingApp.Application.DependencyInjection;
 
 using System.Reflection;
-using Common.Behaviors;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Pipelines;
 
 /// <summary>
 ///     Provides extension methods for registering application-layer services with the dependency injection container.

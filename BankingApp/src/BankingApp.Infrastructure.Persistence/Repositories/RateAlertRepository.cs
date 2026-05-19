@@ -2,6 +2,7 @@ namespace BankingApp.Infrastructure.Persistence.Repositories;
 
 using Domain.Aggregates.RateAlertAggregate;
 using BankingApp.Domain.Repositories;
+using Data;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class RateAlertRepository(AppDbContext dbContext) : IRateAlertRepository

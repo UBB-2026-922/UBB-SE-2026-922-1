@@ -8,6 +8,7 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record GetCardsQuery(int UserId) : IRequest<ErrorOr<List<CardDetailsDto>>>;
 
@@ -43,7 +44,7 @@ public sealed class GetCardsQueryHandler(
         }
         catch (Exception excpetion)
         {
-            logger.GetCardsQueryFailed(query.UserId, excpetion.Message);
+            ApplicationLogMessages.GetCardsQueryFailed(logger, query.UserId, excpetion.Message);
             return UserErrors.NotFound;
         }
     }

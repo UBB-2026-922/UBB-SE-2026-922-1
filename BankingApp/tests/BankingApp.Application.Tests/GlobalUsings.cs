@@ -15,5 +15,4 @@ global using BankingApp.Domain.Aggregates.BillPaymentAggregate;
 global using BankingApp.Domain.ReferenceData.Billers;
 global using BankingApp.Domain.Enums;
 global using BankingApp.Domain.ValueObjects;
-global using BankingApp.Application.Common.Utilities;
 global using Xunit;

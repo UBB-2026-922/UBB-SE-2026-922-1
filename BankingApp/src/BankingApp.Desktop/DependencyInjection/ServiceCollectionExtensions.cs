@@ -63,7 +63,7 @@ public static class ServiceCollectionExtensions
                 new SystemClock()));
 
         services.AddTransient<IAuthenticationService, AuthenticationService>();
-        services.AddTransient<IDashboardService, DashboardService>();
+        services.AddTransient<IAccountOverviewService, AccountOverview>();
         services.AddTransient<IBeneficiaryService, BeneficiaryService>();
         services.AddTransient<IBillPaymentService, BillPaymentService>();
         services.AddTransient<IBillerService, BillerService>();

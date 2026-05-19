@@ -1,5 +1,7 @@
 namespace BankingApp.Infrastructure.Persistence.Tests.Integration.TestSupport;
 
+using Infrastructure.Persistence.DependencyInjection;
+
 public sealed class TestServiceProviderFactory(string connectionString)
 {
     public IServiceProvider Create()

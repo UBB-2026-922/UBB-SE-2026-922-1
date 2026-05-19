@@ -2,6 +2,7 @@ namespace BankingApp.Infrastructure.Persistence.Repositories;
 
 using Domain.Aggregates.BeneficiaryAggregate;
 using BankingApp.Domain.Repositories;
+using Data;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class BeneficiaryRepository(AppDbContext dbContext) : IBeneficiaryRepository

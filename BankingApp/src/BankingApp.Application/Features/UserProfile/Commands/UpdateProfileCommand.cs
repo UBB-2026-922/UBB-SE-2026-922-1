@@ -1,13 +1,16 @@
 namespace BankingApp.Application.Features.UserProfile.Commands;
 
 using Common.Logging;
-using Common.Utilities;
+using Common.Validation;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record UpdateProfileCommand(
     int UserId,
@@ -31,7 +34,7 @@ public sealed class UpdateProfileCommandHandler(
         User? user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)
         {
-            logger.ProfileUpdateUserNotFound(command.UserId);
+            ApplicationLogMessages.ProfileUpdateUserNotFound(logger, command.UserId);
             return UserErrors.NotFound;
         }
 

@@ -8,6 +8,7 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record GetNotificationPreferencesQuery(int UserId)
     : IRequest<ErrorOr<List<NotificationPreferenceDto>>>;
@@ -24,7 +25,7 @@ public sealed class GetNotificationPreferencesQueryHandler(
         User? user = await userRepository.GetByIdAsync(query.UserId, cancellationToken);
         if (user is null)
         {
-            logger.NotificationPreferencesFetchUserNotFound(query.UserId);
+            ApplicationLogMessages.NotificationPreferencesFetchUserNotFound(logger, query.UserId);
             return UserErrors.NotFound;
         }
 
