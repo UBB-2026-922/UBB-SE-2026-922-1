@@ -20,7 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         string connectionString = configuration.GetConnectionString("BankingAppDb")
                                   ?? throw new InvalidOperationException(

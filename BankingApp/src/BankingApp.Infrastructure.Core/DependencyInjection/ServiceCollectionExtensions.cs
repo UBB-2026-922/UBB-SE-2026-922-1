@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddCoreInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<ILockedRateCache, MemoryLockedRateCache>();
         services.AddSingleton<IExchangeRateService, ConfigurationExchangeRateService>();

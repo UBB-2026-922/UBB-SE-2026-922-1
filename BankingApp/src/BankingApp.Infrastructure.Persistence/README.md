@@ -79,7 +79,7 @@ EF Core code-first migrations. Run `dotnet ef migrations add` from this project 
 ## Registration
 
 ```csharp
-services.AddInfrastructure(configuration);
+services.AddPersistenceInfrastructure(configuration);
 ```
 
 Registers `AppDbContext`, `UnitOfWork`, all repositories, all `Common` services, `ILockedRateCache`, and `IExchangeRateService`.

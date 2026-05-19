@@ -3,33 +3,12 @@ namespace BankingApp.Desktop.DependencyInjection;
 using System;
 using Application.Common.Http;
 using Infrastructure.Http.Common.Http;
-using Contracts.Features.AccountOverview.Services;
-using Contracts.Features.Authentication.Services;
-using Contracts.Features.Billers.Services;
-using Contracts.Features.Beneficiaries.Services;
-using Contracts.Features.BillPayments.Services;
-using Contracts.Features.Cards.Services;
-using Contracts.Features.Forex.Services;
-using Contracts.Features.ForexRateAlerts.Services;
-using Contracts.Features.RecurringPayments.Services;
-using Contracts.Features.Transfers.Services;
-using Contracts.Features.UserProfile.Services;
 using ViewModels;
 using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Contracts.Http;
-using Infrastructure.Http.Features.AccountOverview.Services;
-using Infrastructure.Http.Features.Authentication.Services;
-using Infrastructure.Http.Features.Beneficiaries.Services;
-using Infrastructure.Http.Features.Billers.Services;
-using Infrastructure.Http.Features.BillPayments.Services;
-using Infrastructure.Http.Features.Cards.Services;
-using Infrastructure.Http.Features.Forex.Services;
-using Infrastructure.Http.Features.ForexRateAlerts.Services;
-using Infrastructure.Http.Features.RecurringPayments.Services;
-using Infrastructure.Http.Features.Transfers.Services;
-using Infrastructure.Http.Features.UserProfile.Services;
+using Infrastructure.Http.DependencyInjection;
 using Navigation;
 using Utilities;
 
@@ -62,17 +41,7 @@ public static class ServiceCollectionExtensions
                 provider.GetRequiredService<IApiClient>(),
                 new SystemClock()));
 
-        services.AddTransient<IAuthenticationService, AuthenticationService>();
-        services.AddTransient<IAccountOverviewService, AccountOverview>();
-        services.AddTransient<IBeneficiaryService, BeneficiaryService>();
-        services.AddTransient<IBillPaymentService, BillPaymentService>();
-        services.AddTransient<IBillerService, BillerService>();
-        services.AddTransient<ICardService, CardService>();
-        services.AddTransient<IForexService, ForexService>();
-        services.AddTransient<IRateAlertService, RateAlertService>();
-        services.AddTransient<IRecurringPaymentService, RecurringPaymentService>();
-        services.AddTransient<ITransferService, TransferService>();
-        services.AddTransient<IProfileService, ProfileService>();
+        services.AddHttpInfrastructure();
 
         services.AddTransient<ICountdownTimer, DispatcherCountdownTimer>();
 

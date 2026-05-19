@@ -4,6 +4,7 @@ using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Application.Features.UserRegistration.Commands;
 using BankingApp.Domain.Common.Errors;
+using BankingApp.Infrastructure.Core.DependencyInjection;
 using BankingApp.Infrastructure.Persistence.Data;
 using BankingApp.Infrastructure.Persistence.DependencyInjection;
 using ErrorOr;
@@ -74,7 +75,8 @@ try
             });
     });
     builder.Services.AddApplication();
-    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddPersistenceInfrastructure(builder.Configuration);
+    builder.Services.AddCoreInfrastructure(builder.Configuration);
     builder.Services.AddHostedService<FinanceBackgroundService>();
     WebApplication application = builder.Build();
     bool applyDatabaseMigrations = !bool.TryParse(

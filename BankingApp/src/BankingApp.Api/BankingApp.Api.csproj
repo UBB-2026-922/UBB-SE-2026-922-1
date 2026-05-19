@@ -21,6 +21,7 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj"/>
+        <ProjectReference Include="..\BankingApp.Infrastructure.Core\BankingApp.Infrastructure.Core.csproj" />
         <ProjectReference Include="..\BankingApp.Infrastructure.Persistence\BankingApp.Infrastructure.Persistence.csproj" />
     </ItemGroup>
 </Project>
