@@ -1,7 +1,8 @@
 namespace BankingApp.Infrastructure.Http.DependencyInjection;
 
-using Contracts.Features.AccountOverview.Services;
 using Application.Features.Authentication.Services;
+using Application.Shared.Http;
+using Contracts.Features.AccountOverview.Services;
 using Contracts.Features.Beneficiaries.Services;
 using Contracts.Features.Billers.Services;
 using Contracts.Features.BillPayments.Services;
@@ -23,6 +24,8 @@ using Features.RecurringPayments.Services;
 using Features.Transfers.Services;
 using Features.UserProfile.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Shared.Http;
 
 public static class HttpInfrastructureServiceCollectionExtensions
 {
@@ -30,6 +33,8 @@ public static class HttpInfrastructureServiceCollectionExtensions
         this IServiceCollection services,
         ServiceLifetime lifetime = ServiceLifetime.Transient)
     {
+        services.TryAdd(ServiceDescriptor.Describe(typeof(IApiClient), typeof(ApiClient), lifetime));
+
         services.Add(ServiceDescriptor.Describe(typeof(IAuthenticationService), typeof(AuthenticationService), lifetime));
         services.Add(ServiceDescriptor.Describe(typeof(IAccountOverviewService), typeof(AccountOverview), lifetime));
         services.Add(ServiceDescriptor.Describe(typeof(IBeneficiaryService), typeof(BeneficiaryService), lifetime));

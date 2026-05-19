@@ -3,12 +3,12 @@ namespace BankingApp.Desktop.Views;
 using System;
 using System.Linq;
 using ErrorOr;
-using Features.Registration;
 using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Navigation;
 using Shared.Enums;
+using State;
 
 /// <summary>
 ///     Displays the login form and reacts to authentication state changes produced by <see cref="LoginViewModel" />.
@@ -23,13 +23,13 @@ public sealed partial class LoginView
     /// </summary>
     /// <param name="viewModel">The view model that drives authentication logic and exposes login state.</param>
     /// <param name="navigationService">Used to navigate to other pages in response to state changes.</param>
-    /// <param name="registrationContext">Carries the just-registered flag set by the register page.</param>
+    /// <param name="loginNotificationState">Carries one-shot notifications to display on the login page.</param>
     /// <param name="configuration">Application configuration used to display the active API endpoint.</param>
     /// <returns>The result of the operation.</returns>
     public LoginView(
         LoginViewModel viewModel,
         IAppNavigationService navigationService,
-        IRegistrationContext registrationContext,
+        ILoginNotificationState loginNotificationState,
         IConfiguration configuration)
     {
         _navigationService = navigationService;
@@ -40,9 +40,9 @@ public sealed partial class LoginView
             ? Visibility.Visible
             : Visibility.Collapsed;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-        if (registrationContext.JustRegistered)
+        if (loginNotificationState.ShowRegistrationSuccess)
         {
-            registrationContext.JustRegistered = false;
+            loginNotificationState.ShowRegistrationSuccess = false;
             RegistrationSuccessBar.IsOpen = true;
         }
 

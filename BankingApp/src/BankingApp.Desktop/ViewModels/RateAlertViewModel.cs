@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using Contracts.Features.ForexRateAlerts.Dtos;
 using Contracts.Features.ForexRateAlerts.Services;
 using ErrorOr;
-using Features.Authentication;
 using Logging;
 using Microsoft.Extensions.Logging;
+using Session;
 using Shared;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 

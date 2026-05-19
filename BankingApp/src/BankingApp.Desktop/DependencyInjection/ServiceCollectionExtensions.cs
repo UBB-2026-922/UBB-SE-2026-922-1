@@ -2,19 +2,18 @@ namespace BankingApp.Desktop.DependencyInjection;
 
 using System;
 using Application.Shared.Http;
-using ViewModels;
-using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Contracts.Http;
-using Features.Authentication;
-using Features.PasswordRecovery;
-using Features.Registration;
 using Infrastructure.Core.DependencyInjection;
 using Infrastructure.Http.DependencyInjection;
 using Infrastructure.Http.Shared.Http;
 using Navigation;
+using Session;
+using State;
 using Shared.Timers;
+using ViewModels;
+using Views;
 
 /// <summary>Registers the desktop application's client services, view models, and views.</summary>
 public static class ServiceCollectionExtensions
@@ -26,29 +25,52 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);
-        services.AddTransient<AuthenticationSessionTokenHandler>();
         services.AddHttpClient(HttpClientNames.Api, client =>
+        {
+            string? baseUrl = configuration["ApiBaseUrl"];
+            if (!string.IsNullOrWhiteSpace(baseUrl))
             {
-                string? baseUrl = configuration["ApiBaseUrl"];
-                if (!string.IsNullOrWhiteSpace(baseUrl))
-                {
-                    client.BaseAddress = new Uri(baseUrl);
-                }
-            })
-            .AddHttpMessageHandler<AuthenticationSessionTokenHandler>();
+                client.BaseAddress = new Uri(baseUrl);
+            }
+        });
 
         services.AddSingleton<IApiClient, ApiClient>();
-        services.AddSingleton<IAppNavigationService, AppNavigationService>();
-        services.AddSingleton<IRegistrationContext, RegistrationContext>();
-        services.AddSingleton<IAuthenticationSession, AuthenticationSession>();
         services.AddCoreInfrastructure(configuration);
-
-        services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
-
         services.AddHttpInfrastructure();
 
+        services.AddDesktopSession();
+        services.AddDesktopState();
+        services.AddDesktopServices();
+        services.AddDesktopViewModels();
+        services.AddDesktopViews();
+
+        return services;
+    }
+
+    private static IServiceCollection AddDesktopSession(this IServiceCollection services)
+    {
+        services.AddSingleton<IAuthenticationSession, AuthenticationSession>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddDesktopState(this IServiceCollection services)
+    {
+        services.AddSingleton<ILoginNotificationState, LoginNotificationState>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddDesktopServices(this IServiceCollection services)
+    {
+        services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddTransient<ICountdownTimer, DispatcherCountdownTimer>();
 
+        return services;
+    }
+
+    private static IServiceCollection AddDesktopViewModels(this IServiceCollection services)
+    {
         services.AddTransient<LoginViewModel>();
         services.AddTransient<RegisterViewModel>();
         services.AddTransient<TwoFactorViewModel>();
@@ -69,6 +91,11 @@ public static class ServiceCollectionExtensions
 
         services.AddTransient<CardViewModel>();
 
+        return services;
+    }
+
+    private static IServiceCollection AddDesktopViews(this IServiceCollection services)
+    {
         services.AddTransient<LoginView>();
         services.AddTransient<RegisterView>();
         services.AddTransient<TwoFactorView>();
@@ -84,6 +111,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<TransferView>();
         services.AddTransient<TransferHistoryView>();
         services.AddTransient<CardsView>();
+
         return services;
     }
 }

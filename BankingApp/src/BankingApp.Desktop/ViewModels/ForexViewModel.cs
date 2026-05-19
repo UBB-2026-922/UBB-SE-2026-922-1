@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using BankingApp.Contracts.Features.Forex.Dtos;
 using Contracts.Features.Forex.Services;
 using ErrorOr;
-using Features.Authentication;
 using Logging;
 using Microsoft.Extensions.Logging;
+using Session;
 using Shared;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 

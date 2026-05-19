@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Features.Authentication;
+namespace BankingApp.Desktop.Session;
 
 using Application.Shared.Http;
 using ErrorOr;

@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using Features.Authentication;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Navigation;
+using Session;
 
 /// <summary>
 ///     Hosts the application shell after login: renders the sidebar and manages the inner content frame

@@ -20,20 +20,28 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     private readonly ILogger<ApiClient> _logger;
     private bool _disposed;
 
+    public ApiClient(IHttpClientFactory httpClientFactory, IConfiguration configuration, ILogger<ApiClient> logger)
+        : this(httpClientFactory.CreateClient(HttpClientNames.Api), configuration, logger)
+    {
+    }
+
     public ApiClient(IConfiguration configuration, ILogger<ApiClient> logger)
+        : this(CreateStandaloneClient(configuration), configuration, logger)
+    {
+    }
+
+    private ApiClient(HttpClient httpClient, IConfiguration configuration, ILogger<ApiClient> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
         string? baseUrl = configuration["ApiBaseUrl"];
         if (string.IsNullOrWhiteSpace(baseUrl))
         {
             _configurationError = Error.Failure("ApiClient.MissingBaseUrl", "ApiBaseUrl is missing from configuration.");
-            _httpClient = new HttpClient();
             _logger.ApiBaseUrlMissing();
             return;
         }
-
-        _httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
     }
 
     public string? Token { get; private set; }
@@ -178,5 +186,13 @@ public sealed partial class ApiClient : IApiClient, IDisposable
             >= HttpStatusCode.InternalServerError => Error.Unexpected(description: description),
             _ => Error.Failure(description: description),
         };
+    }
+
+    private static HttpClient CreateStandaloneClient(IConfiguration configuration)
+    {
+        string? baseUrl = configuration["ApiBaseUrl"];
+        return string.IsNullOrWhiteSpace(baseUrl)
+            ? new HttpClient()
+            : new HttpClient { BaseAddress = new Uri(baseUrl) };
     }
 }

@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using Application.Features.Authentication.Services;
 using BankingApp.Contracts.Features.Authentication.Dtos;
 using ErrorOr;
-using Features.Authentication;
 using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Session;
 using Shared.Enums;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
