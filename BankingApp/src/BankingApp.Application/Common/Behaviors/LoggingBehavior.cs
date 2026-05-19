@@ -37,7 +37,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior
 
         try
         {
-            TResponse response = await next();
+            TResponse response = await next(cancellationToken);
             if (logger.IsEnabled(LogLevel.Information))
             {
                 HandledRequest(logger, typeof(TRequest).Name);

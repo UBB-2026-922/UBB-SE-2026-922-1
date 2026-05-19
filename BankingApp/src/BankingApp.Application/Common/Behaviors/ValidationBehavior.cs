@@ -17,7 +17,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
     {
         if (!validators.Any())
         {
-            return await next();
+            return await next(cancellationToken);
         }
 
         ValidationContext<TRequest> context = new(request);
@@ -31,7 +31,7 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
 
         if (failures.Count == 0)
         {
-            return await next();
+            return await next(cancellationToken);
         }
 
         var errors = failures
