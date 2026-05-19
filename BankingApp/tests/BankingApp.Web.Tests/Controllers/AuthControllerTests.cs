@@ -1,7 +1,7 @@
 namespace BankingApp.Web.Tests.Controllers;
 
 using System.Security.Claims;
-using BankingApp.Application.Features.Authentication.Services;
+using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 using BankingApp.Contracts.Features.Authentication.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.Controllers;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public sealed class AuthControllerTests : IDisposable
 {
-    private readonly Mock<IAuthenticationService> _authenticationServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<ClientAuthenticationService> _authenticationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<Microsoft.AspNetCore.Authentication.IAuthenticationService> _aspNetAuthenticationMock = new(MockBehavior.Strict);
     private readonly AuthController _controller;
 
