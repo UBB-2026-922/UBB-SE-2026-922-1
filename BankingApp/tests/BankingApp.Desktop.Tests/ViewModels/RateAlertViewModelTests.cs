@@ -6,6 +6,7 @@ using Contracts.Features.ForexRateAlerts.Dtos;
 using Contracts.Features.ForexRateAlerts.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared;
 
 public class RateAlertViewModelTests
 {

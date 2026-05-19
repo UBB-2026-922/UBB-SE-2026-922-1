@@ -4,11 +4,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using BankingApp.Contracts.Features.Authentication.Dtos;
-using Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Shared.Enums;
 using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 

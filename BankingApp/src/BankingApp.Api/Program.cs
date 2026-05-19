@@ -3,6 +3,7 @@ using BankingApp.Api.HostedServices;
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Application.Features.UserRegistration.Commands;
+using BankingApp.Contracts.Http;
 using BankingApp.Domain.Common.Errors;
 using BankingApp.Infrastructure.Core.DependencyInjection;
 using BankingApp.Infrastructure.Persistence.Data;
@@ -55,12 +56,12 @@ try
     builder.Services.AddSwaggerGen(options =>
     {
         options.AddSecurityDefinition(
-            "Bearer",
+            AuthHeaderNames.BearerScheme,
             new OpenApiSecurityScheme
             {
-                Name = "Authorization",
+                Name = AuthHeaderNames.Authorization,
                 Type = SecuritySchemeType.Http,
-                Scheme = "Bearer",
+                Scheme = AuthHeaderNames.BearerScheme,
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
                 Description = "Paste your JWT token here",
@@ -69,7 +70,7 @@ try
             new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecuritySchemeReference(referenceId: "Bearer"),
+                    new OpenApiSecuritySchemeReference(referenceId: AuthHeaderNames.BearerScheme),
                     []
                 },
             });

@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Contracts.Features.Transfers.Dtos;
 using ErrorOr;
+using Shared;
 using Utilities;
 
 public partial class TransferViewModel

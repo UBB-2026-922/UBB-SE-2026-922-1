@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Application.Shared.Http;
+using BankingApp.Contracts.Http;
 using BankingApp.Infrastructure.Http.Common.Logging;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
@@ -50,7 +51,7 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     public void SetToken(string token)
     {
         Token = token;
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthHeaderNames.BearerScheme, token);
         _logger.ApiTokenSet();
     }
 

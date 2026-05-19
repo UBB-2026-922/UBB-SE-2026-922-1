@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Enums;
+namespace BankingApp.Desktop.Shared.Enums;
 
 /// <summary>Represents the possible states of the login flow.</summary>
 public enum LoginState

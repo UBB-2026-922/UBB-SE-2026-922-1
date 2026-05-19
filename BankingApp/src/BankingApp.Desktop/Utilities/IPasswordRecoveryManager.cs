@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Utilities;
 
 using System.Threading.Tasks;
-using Enums;
+using Shared.Enums;
 
 /// <summary>Encapsulates the password-recovery flow and resend throttling.</summary>
 public interface IPasswordRecoveryManager

@@ -8,10 +8,11 @@
     xmlns:payments="using:BankingApp.Contracts.Features.BillPayments.Dtos"
     xmlns:converters="using:BankingApp.Desktop.Converters"
     xmlns:dtos="using:BankingApp.Contracts.Features.Billers.Dtos"
+    xmlns:converters1="using:BankingApp.Desktop.Shared.Converters"
     Background="#0F0F1A">
 
     <Page.Resources>
-        <converters:StepToVisibilityConverter x:Key="StepToVisibility" />
+        <converters1:StepToVisibilityConverter x:Key="StepToVisibility" />
     </Page.Resources>
 
     <ScrollViewer>

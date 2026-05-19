@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Shared.Timers;
 
 using System;
 

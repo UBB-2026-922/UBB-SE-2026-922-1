@@ -6,6 +6,7 @@ using Contracts.Features.Forex.Services;
 using Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared;
 
 public class ForexViewModelTests
 {

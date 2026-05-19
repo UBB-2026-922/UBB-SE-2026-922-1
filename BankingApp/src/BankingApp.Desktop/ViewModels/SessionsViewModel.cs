@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
-using Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
+using Shared.Enums;
 using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 

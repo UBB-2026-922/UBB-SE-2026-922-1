@@ -1,6 +1,5 @@
-namespace BankingApp.Infrastructure.Common.Clock;
+namespace BankingApp.Infrastructure.Core.Clock;
 
-using Application;
 using Application.Shared.Clock;
 
 public sealed class SystemClock : ISystemClock

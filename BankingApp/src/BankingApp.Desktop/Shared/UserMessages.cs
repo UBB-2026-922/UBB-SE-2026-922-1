@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Shared;
 
 /// <summary>
 ///     Centralises all user-facing message strings shown by ViewModels.

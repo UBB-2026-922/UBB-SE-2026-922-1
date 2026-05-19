@@ -1,9 +1,10 @@
 namespace BankingApp.Desktop.Views;
 
-using Enums;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Navigation;
+using Shared;
+using Shared.Enums;
 using Utilities;
 
 /// <summary>

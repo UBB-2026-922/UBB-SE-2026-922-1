@@ -1,6 +1,5 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Enums;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using Contracts.Features.Authentication.Dtos;
@@ -8,6 +7,8 @@ using ErrorOr;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Shared.Enums;
+using Shared.Timers;
 using Xunit;
 
 public class TwoFactorViewModelTests

@@ -1,12 +1,12 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using Enums;
 using Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Navigation;
+using Shared.Enums;
 
 /// <summary>
 ///     Displays the OTP verification step of the login flow.

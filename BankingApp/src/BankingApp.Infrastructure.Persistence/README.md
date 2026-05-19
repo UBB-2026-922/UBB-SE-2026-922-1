@@ -1,6 +1,6 @@
 # BankingApp.Infrastructure
 
-Implements every I/O contract defined in Application: persistence, security primitives, notifications, exchange rates, and caching.
+Implements persistence, security primitives, and notifications for Application contracts.
 
 Business rules live in Domain. 
 
@@ -22,15 +22,12 @@ Depends on `BankingApp.Application` and `BankingApp.Domain`.
 ## Structure
 
 ```
-BankingApp.Infrastructure/
-├── Caching/              # ILockedRateCache — short-lived in-memory rate locks
+BankingApp.Infrastructure.Persistence/
+├── DependencyInjection/
 ├── Common/
-│   ├── Clock/
 │   ├── Notifications/
 │   ├── Security/
 │   └── Logging/
-├── DependencyInjection/
-├── ExchangeRates/        # IExchangeRateService — live forex rate retrieval
 └── Persistence/
     ├── AppDbContext.cs
     ├── UnitOfWork.cs
@@ -65,16 +62,7 @@ EF Core code-first migrations. Run `dotnet ef migrations add` from this project 
 | `JsonWebTokenService` | `IJsonWebTokenService` | Issues and validates JWTs; reads config from `JwtSettings` |
 | `OtpService`          | `IOtpService`          | TOTP generation and verification                           |
 | `OtpAttemptTracker`   | `IOtpAttemptTracker`   | In-memory attempt counter with sliding window              |
-| `SystemClock`         | `ISystemClock`         | Returns `DateTime.UtcNow`                                  |
 | `EmailService`        | `IEmailService`        | SMTP dispatch; templates in `EmailTemplates`               |
-
-## Caching
-
-`ILockedRateCache` stores short-lived `LockedRate` entries per user for the two-step forex flow. Backed by `IMemoryCache` for automatic TTL expiry without a separate eviction thread.
-
-## Exchange rates
-
-`IExchangeRateService` retrieves a live exchange rate for a currency pair. Implementation lives in `ExchangeRates/`.
 
 ## Registration
 
@@ -82,4 +70,6 @@ EF Core code-first migrations. Run `dotnet ef migrations add` from this project 
 services.AddPersistenceInfrastructure(configuration);
 ```
 
-Registers `AppDbContext`, `UnitOfWork`, all repositories, all `Common` services, `ILockedRateCache`, and `IExchangeRateService`.
+Registers `AppDbContext`, `UnitOfWork`, all repositories, authentication/authorization, security services, and email services.
+
+Cross-cutting infrastructure such as `ISystemClock`, `ILockedRateCache`, and `IExchangeRateService` is registered by `BankingApp.Infrastructure.Core`.

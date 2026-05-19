@@ -3,13 +3,15 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Enums;
 using BankingApp.Domain.Enums;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
+using Shared;
+using Shared.Enums;
+using Shared.Validation;
 using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 

@@ -3,10 +3,8 @@ namespace BankingApp.Infrastructure.Persistence.DependencyInjection;
 using System.Text;
 using Application.Common.Notifications;
 using Application.Common.Security;
-using Application.Shared.Clock;
 using Application.Shared.Persistence;
 using Domain.Repositories;
-using Common.Clock;
 using Common.Notifications;
 using Common.Security;
 using Data;
@@ -74,7 +72,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
         services.AddScoped<ISavedBillerRepository, SavedBillerRepository>();
 
-        services.AddSingleton<ISystemClock, SystemClock>();
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService>(_ => new OtpService(otpSecret));
         services.AddScoped<IHashService, HashService>();

@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Enums;
+namespace BankingApp.Desktop.Shared.Enums;
 
 /// <summary>Represents the UI state of the forgot-password flow.</summary>
 public enum ForgotPasswordState

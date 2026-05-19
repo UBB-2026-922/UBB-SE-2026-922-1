@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.Commands;
+﻿namespace BankingApp.Desktop.Shared.Commands;
 
 using System;
 using System.Windows.Input;

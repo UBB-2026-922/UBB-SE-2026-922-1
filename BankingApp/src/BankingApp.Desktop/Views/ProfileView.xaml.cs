@@ -3,7 +3,6 @@ namespace BankingApp.Desktop.Views;
 using System;
 using System.Threading.Tasks;
 using Contracts.Features.UserProfile.Dtos;
-using Enums;
 using ViewModels;
 using Domain.Enums;
 using Microsoft.UI;
@@ -13,6 +12,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using Navigation;
 using Serilog;
+using Shared.Enums;
 
 /// <summary>
 ///     Displays and manages the authenticated user's profile settings.

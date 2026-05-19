@@ -2,11 +2,13 @@ namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Threading.Tasks;
+using Application.Shared.Clock;
 using Application.Shared.Http;
-using BankingApp.Desktop.Enums;
 using Contracts.Features.PasswordReset.Dtos;
 using Contracts.Http;
 using ErrorOr;
+using Shared.Enums;
+using Shared.Validation;
 
 /// <summary>Default desktop implementation of <see cref="IPasswordRecoveryManager"/>.</summary>
 public sealed class PasswordRecoveryManager : IPasswordRecoveryManager

@@ -7,9 +7,11 @@ using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Contracts.Http;
+using Infrastructure.Core.DependencyInjection;
 using Infrastructure.Http.DependencyInjection;
 using Infrastructure.Http.Shared.Http;
 using Navigation;
+using Shared.Timers;
 using Utilities;
 
 /// <summary>Registers the desktop application's client services, view models, and views.</summary>
@@ -34,12 +36,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IApiClient, ApiClient>();
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
+        services.AddCoreInfrastructure(configuration);
 
         services.AddTransient<IAuthService, AuthService>();
-        services.AddTransient<IPasswordRecoveryManager>(provider =>
-            new PasswordRecoveryManager(
-                provider.GetRequiredService<IApiClient>(),
-                new SystemClock()));
+        services.AddTransient<IPasswordRecoveryManager, PasswordRecoveryManager>();
 
         services.AddHttpInfrastructure();
 

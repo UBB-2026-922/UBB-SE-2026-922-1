@@ -12,11 +12,11 @@ public static class WebServiceCollectionExtensions
         public IServiceCollection AddWebClientServices(string apiBaseUrl)
         {
             services.AddHttpContextAccessor();
-            services.AddTransient<TokenForwardingHandler>();
+            services.AddTransient<BearerTokenForwardingHandler>();
 
             services.AddHttpClient(HttpClientNames.Api, client =>
                     client.BaseAddress = new Uri(apiBaseUrl))
-                .AddHttpMessageHandler<TokenForwardingHandler>();
+                .AddHttpMessageHandler<BearerTokenForwardingHandler>();
 
             services.AddHttpInfrastructure(ServiceLifetime.Scoped);
 

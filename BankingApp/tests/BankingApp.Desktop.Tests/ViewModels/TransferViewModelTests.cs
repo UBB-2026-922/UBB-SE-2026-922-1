@@ -8,6 +8,7 @@ using Contracts.Features.Transfers.Services;
 using ErrorOr;
 using FluentAssertions;
 using Moq;
+using Shared;
 using Xunit;
 
 /// <summary>

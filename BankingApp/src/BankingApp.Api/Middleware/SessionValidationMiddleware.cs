@@ -15,7 +15,6 @@ using Logging;
 /// </summary>
 public class SessionValidationMiddleware
 {
-    private const string BearerPrefix = "Bearer ";
     private static readonly string[] _publicEndpointPrefixes = [$"/{ApiEndpoints.Auth.Base}/", "/swagger"];
     private readonly RequestDelegate _next;
 
@@ -69,7 +68,7 @@ public class SessionValidationMiddleware
 
         context.Items["UserId"] = userIdResult.Value;
         ClaimsIdentity claimsIdentity = new(
-            [new Claim("userId", userIdResult.Value.ToString(CultureInfo.InvariantCulture))],
+            [new Claim(AuthClaimTypes.UserId, userIdResult.Value.ToString(CultureInfo.InvariantCulture))],
             authenticationType: "Session");
         context.User = new ClaimsPrincipal(claimsIdentity);
         await _next(context);
@@ -85,12 +84,12 @@ public class SessionValidationMiddleware
     {
         token = string.Empty;
         string? authHeader = context.Request.Headers.Authorization.FirstOrDefault();
-        if (authHeader?.StartsWith(BearerPrefix, StringComparison.Ordinal) != true)
+        if (authHeader?.StartsWith(AuthHeaderNames.BearerPrefix, StringComparison.Ordinal) != true)
         {
             return false;
         }
 
-        token = authHeader[BearerPrefix.Length..];
+        token = authHeader[AuthHeaderNames.BearerPrefix.Length..];
         return !string.IsNullOrWhiteSpace(token);
     }
 

@@ -8,9 +8,7 @@ using Contracts.Features.Beneficiaries.Services;
 using ErrorOr;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
 using Navigation;
-using Xunit;
 
 public class BeneficiariesViewModelTests
 {

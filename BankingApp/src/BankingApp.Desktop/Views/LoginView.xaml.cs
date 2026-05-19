@@ -2,12 +2,12 @@ namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Linq;
-using Enums;
 using ErrorOr;
 using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Navigation;
+using Shared.Enums;
 using Utilities;
 
 /// <summary>

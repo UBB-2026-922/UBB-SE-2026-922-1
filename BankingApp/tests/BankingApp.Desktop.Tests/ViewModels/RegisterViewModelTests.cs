@@ -1,9 +1,9 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Enums;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Enums;
 
 public class RegisterViewModelTests
 {

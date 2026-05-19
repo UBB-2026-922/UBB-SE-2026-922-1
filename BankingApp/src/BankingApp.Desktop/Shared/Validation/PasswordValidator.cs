@@ -1,4 +1,4 @@
-namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Shared.Validation;
 
 using System.Linq;
 

@@ -7,11 +7,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BankingApp.Contracts.Features.AccountOverview.Dtos;
-using Enums;
 using BankingApp.Domain.Enums;
 using Contracts.Features.AccountOverview.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Shared;
+using Shared.Enums;
 using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 

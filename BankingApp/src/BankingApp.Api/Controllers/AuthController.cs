@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Mvc;
 [Route(ApiEndpoints.Auth.Base)]
 public class AuthController : ApiControllerBase
 {
-    private const string BearerPrefix = "Bearer ";
     private const int DeviceInfoMaxLength = 255;
     private const int BrowserMaxLength = 100;
     private const int IpAddressMaxLength = 45;
@@ -64,7 +63,7 @@ public class AuthController : ApiControllerBase
 
     [HttpPost(ApiEndpoints.Auth.Logout)]
     public async Task<IActionResult> Logout(
-        [FromHeader(Name = "Authorization")] string authorization,
+        [FromHeader(Name = AuthHeaderNames.Authorization)] string authorization,
         CancellationToken cancellationToken)
     {
         if (!TryExtractBearerToken(authorization, out string token))
@@ -145,12 +144,12 @@ public class AuthController : ApiControllerBase
     {
         token = string.Empty;
         if (string.IsNullOrWhiteSpace(authorization) ||
-            !authorization.StartsWith(BearerPrefix, StringComparison.Ordinal))
+            !authorization.StartsWith(AuthHeaderNames.BearerPrefix, StringComparison.Ordinal))
         {
             return false;
         }
 
-        token = authorization[BearerPrefix.Length..];
+        token = authorization[AuthHeaderNames.BearerPrefix.Length..];
         return !string.IsNullOrWhiteSpace(token);
     }
 

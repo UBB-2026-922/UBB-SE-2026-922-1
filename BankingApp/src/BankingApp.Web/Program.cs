@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net.Http.Json;
 using System.Security.Claims;
+using BankingApp.Contracts.Http;
 using BankingApp.Web.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -58,7 +59,7 @@ if (app.Environment.IsDevelopment())
 
                 HttpClient api = httpClientFactory.CreateClient(BankingApp.Contracts.Http.HttpClientNames.Api);
                 HttpResponseMessage response = await api.PostAsJsonAsync(
-                    "api/auth/login",
+                    ApiEndpoints.Auth.LoginFull,
                     new { Email = email, Password = password },
                     context.RequestAborted);
 
@@ -100,8 +101,8 @@ if (app.Environment.IsDevelopment())
                 [
                     new Claim(ClaimTypes.NameIdentifier, userId),
                     new Claim(ClaimTypes.Name, email),
-                    new Claim("userId", userId),
-                    new Claim("token", login.Token)
+                    new Claim(AuthClaimTypes.UserId, userId),
+                    new Claim(AuthClaimTypes.Token, login.Token)
                 ];
 
                 ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);

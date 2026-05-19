@@ -8,6 +8,7 @@ using Contracts.Features.Forex.Services;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
+using Shared;
 using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 

@@ -1,11 +1,11 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using Contracts.Features.Authentication.Dtos;
-using Enums;
 using Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Enums;
 
 public class LoginViewModelTests
 {
