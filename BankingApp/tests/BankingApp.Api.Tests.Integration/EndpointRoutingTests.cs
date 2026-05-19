@@ -59,7 +59,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Theory]
-    [InlineData("GET", "/" + ApiEndpoints.Dashboard.Base)]
+    [InlineData("GET", "/" + ApiEndpoints.AccountOverview.Base)]
     [InlineData("GET", "/" + ApiEndpoints.Profile.Base)]
     [InlineData("PUT", "/" + ApiEndpoints.Profile.Base)]
     [InlineData("PUT", "/" + ApiEndpoints.Profile.ChangePasswordFull)]
@@ -82,7 +82,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Theory]
-    [InlineData("GET", "/" + ApiEndpoints.Dashboard.Base)]
+    [InlineData("GET", "/" + ApiEndpoints.AccountOverview.Base)]
     [InlineData("GET", "/" + ApiEndpoints.Profile.Base)]
     [InlineData("PUT", "/" + ApiEndpoints.Profile.Base)]
     [InlineData("PUT", "/" + ApiEndpoints.Profile.ChangePasswordFull)]
@@ -120,7 +120,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
             .Setup(service => service.ExtractUserId(invalidToken))
             .Returns(Error.Unauthorized("Token.Invalid", "Token is invalid."));
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.Dashboard.Base);
+        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.AccountOverview.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", invalidToken);
 
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
@@ -141,7 +141,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
             .Setup(repository => repository.GetBySessionTokenAsync(orphanToken, It.IsAny<CancellationToken>()))
             .ReturnsAsync((IdentityAccount?)null);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.Dashboard.Base);
+        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.AccountOverview.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", orphanToken);
 
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
