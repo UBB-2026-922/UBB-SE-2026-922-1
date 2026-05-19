@@ -14,7 +14,7 @@
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0"/>
         <PackageReference Include="libphonenumber-csharp" Version="9.0.28"/>
         <PackageReference Include="MediatR" Version="12.4.1"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8"/>
         <PackageReference Include="NodaMoney" Version="2.7.0"/>
     </ItemGroup>
     <ItemGroup>
