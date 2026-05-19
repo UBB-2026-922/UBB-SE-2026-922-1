@@ -1,5 +1,6 @@
 namespace BankingApp.Desktop.Views;
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Contracts.Features.Cards.Dtos;
@@ -27,6 +28,20 @@ public sealed partial class CardsView
 
     private async void OnPageLoaded(object sender, RoutedEventArgs args)
     {
+        try
+        {
+            await LoadPageAsync();
+        }
+        catch (Exception ex)
+        {
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
+        }
+    }
+
+    private async Task LoadPageAsync()
+    {
         LoadingOverlay.Visibility = Visibility.Visible;
         ErrorInfoBar.IsOpen = false;
 
@@ -52,8 +67,16 @@ public sealed partial class CardsView
             return;
         }
 
-        await _viewModel.FreezeAsync(card);
-        await RefreshAsync();
+        try
+        {
+            await _viewModel.FreezeAsync(card);
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
+        }
     }
 
     private async void UnfreezeButton_Click(object sender, RoutedEventArgs args)
@@ -63,8 +86,16 @@ public sealed partial class CardsView
             return;
         }
 
-        await _viewModel.UnfreezeAsync(card);
-        await RefreshAsync();
+        try
+        {
+            await _viewModel.UnfreezeAsync(card);
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
+        }
     }
 
     private async void CancelButton_Click(object sender, RoutedEventArgs args)
@@ -74,8 +105,16 @@ public sealed partial class CardsView
             return;
         }
 
-        await _viewModel.CancelAsync(card);
-        await RefreshAsync();
+        try
+        {
+            await _viewModel.CancelAsync(card);
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
+        }
     }
 
     private void ShowIssueForm_Click(object sender, RoutedEventArgs args)
@@ -95,6 +134,19 @@ public sealed partial class CardsView
         _viewModel.NewCardBrandIndex = CardBrandCombo.SelectedIndex;
         _viewModel.NewCardTypeIndex = CardTypeCombo.SelectedIndex;
 
+        try
+        {
+            await SubmitIssueCardAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
+        }
+    }
+
+    private async Task SubmitIssueCardAsync()
+    {
         bool success = await _viewModel.IssueCardAsync();
 
         if (success)

@@ -102,7 +102,15 @@ public sealed partial class ForgotPasswordView
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
-        await _viewModel.ForgotPassword(EmailBox.Text.Trim());
+        try
+        {
+            await _viewModel.ForgotPassword(EmailBox.Text.Trim());
+        }
+        catch (Exception ex)
+        {
+            HideLoading();
+            ShowMessage(ex.Message, InfoBarSeverity.Error);
+        }
     }
 
     private async void ResetPasswordButton_Click(object sender, RoutedEventArgs e)
@@ -115,21 +123,45 @@ public sealed partial class ForgotPasswordView
         }
 
         ShowLoading();
-        await _viewModel.ResetPassword(NewPasswordBox.Password, TokenBox.Text.Trim());
+        try
+        {
+            await _viewModel.ResetPassword(NewPasswordBox.Password, TokenBox.Text.Trim());
+        }
+        catch (Exception ex)
+        {
+            HideLoading();
+            ShowMessage(ex.Message, InfoBarSeverity.Error);
+        }
     }
 
     private async void VerifyTokenButton_Click(object sender, RoutedEventArgs e)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
-        await _viewModel.VerifyToken(TokenBox.Text.Trim());
+        try
+        {
+            await _viewModel.VerifyToken(TokenBox.Text.Trim());
+        }
+        catch (Exception ex)
+        {
+            HideLoading();
+            ShowMessage(ex.Message, InfoBarSeverity.Error);
+        }
     }
 
     private async void ResendCodeButton_Click(object sender, RoutedEventArgs e)
     {
         StatusInfoBar.IsOpen = false;
         ShowLoading();
-        await _viewModel.ForgotPassword(EmailBox.Text.Trim());
+        try
+        {
+            await _viewModel.ForgotPassword(EmailBox.Text.Trim());
+        }
+        catch (Exception ex)
+        {
+            HideLoading();
+            ShowMessage(ex.Message, InfoBarSeverity.Error);
+        }
     }
 
     private void BackToLoginButton_Click(object sender, RoutedEventArgs e)

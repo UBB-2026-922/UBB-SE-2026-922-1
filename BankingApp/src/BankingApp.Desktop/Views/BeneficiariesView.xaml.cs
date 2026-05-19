@@ -28,7 +28,14 @@ public sealed partial class BeneficiariesView
 
     private async void OnPageLoaded(object sender, RoutedEventArgs routedEventArgs)
     {
-        await ViewModel.LoadBeneficiariesAsync();
+        try
+        {
+            await ViewModel.LoadBeneficiariesAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private void ShowAddForm_Click(object sender, RoutedEventArgs routedEventArgs)
@@ -43,7 +50,14 @@ public sealed partial class BeneficiariesView
 
     private async void Save_Click(object sender, RoutedEventArgs routedEventArgs)
     {
-        await ViewModel.AddBeneficiaryAsync();
+        try
+        {
+            await ViewModel.AddBeneficiaryAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private async void Delete_Click(object sender, RoutedEventArgs routedEventArgs)
@@ -54,7 +68,14 @@ public sealed partial class BeneficiariesView
             return;
         }
 
-        await ViewModel.DeleteBeneficiaryAsync(beneficiary.Id);
+        try
+        {
+            await ViewModel.DeleteBeneficiaryAsync(beneficiary.Id);
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private void Use_Click(object sender, RoutedEventArgs routedEventArgs)

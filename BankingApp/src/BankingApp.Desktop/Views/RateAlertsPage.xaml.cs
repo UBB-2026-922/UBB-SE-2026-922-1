@@ -1,5 +1,6 @@
 ﻿namespace BankingApp.Desktop.Views;
 
+using System;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -25,24 +26,54 @@ public sealed partial class RateAlertsPage
 
     private async void RateAlertsPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await _viewModel.LoadAlertsAsync();
+        try
+        {
+            await _viewModel.LoadAlertsAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        await _viewModel.LoadAlertsAsync();
+        try
+        {
+            await _viewModel.LoadAlertsAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private async void CreateAlertButton_Click(object sender, RoutedEventArgs e)
     {
-        await _viewModel.CreateAlertAsync();
+        try
+        {
+            await _viewModel.CreateAlertAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private async void DeleteAlertButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is int alertId)
+        if (sender is not Button { Tag: int alertId })
+        {
+            return;
+        }
+
+        try
         {
             await _viewModel.DeleteAlertAsync(alertId);
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
         }
     }
 }

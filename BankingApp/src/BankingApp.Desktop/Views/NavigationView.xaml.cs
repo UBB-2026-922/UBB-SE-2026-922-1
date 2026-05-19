@@ -143,22 +143,30 @@ public sealed partial class NavigationView
 
     private async void NavSavings_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Savings & Loans");
+        try { await ShowComingSoonAsync("Savings & Loans"); }
+        catch
+        { /* Dialog display failure is non-critical. */ }
     }
 
     private async void NavInvestments_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Investments & Trading");
+        try { await ShowComingSoonAsync("Investments & Trading"); }
+        catch
+        { /* Dialog display failure is non-critical. */ }
     }
 
     private async void NavStatistics_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Statistics");
+        try { await ShowComingSoonAsync("Statistics"); }
+        catch
+        { /* Dialog display failure is non-critical. */ }
     }
 
     private async void NavSupport_Click(object sender, RoutedEventArgs e)
     {
-        await ShowComingSoonAsync("Support");
+        try { await ShowComingSoonAsync("Support"); }
+        catch
+        { /* Dialog display failure is non-critical. */ }
     }
 
     private void NotificationBell_PointerPressed(object sender, PointerRoutedEventArgs e)

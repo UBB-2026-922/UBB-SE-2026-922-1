@@ -112,7 +112,7 @@ public sealed partial class ProfileView
                 "ProfileView load finished. Success={Loaded}, UserId={UserId}, PreferencesCount={PreferencesCount}.",
                 loaded,
                 _viewModel.ProfileDto.UserId,
-                _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
+                _viewModel.Notifications.NotificationPreferences.Count);
             ShowLoading(false);
             if (!loaded)
             {
@@ -145,7 +145,7 @@ public sealed partial class ProfileView
                 trigger,
                 _viewModel.ProfileDto.UserId,
                 _viewModel.ProfileDto.FullName,
-                _viewModel.Notifications.NotificationPreferences?.Count ?? 0);
+                _viewModel.Notifications.NotificationPreferences.Count);
             throw;
         }
     }
@@ -200,7 +200,14 @@ public sealed partial class ProfileView
         _isTwoFactorFlow = false;
         VerifyCurrentPasswordBox.Password = string.Empty;
         VerifyErrorInfoBar.IsOpen = false;
-        await VerifyPasswordDialog.ShowAsync();
+        try
+        {
+            await VerifyPasswordDialog.ShowAsync();
+        }
+        catch
+        {
+            // Dialog display failure is non-critical.
+        }
     }
 
     private async void VerifyPasswordDialog_PrimaryButtonClick(
@@ -217,7 +224,20 @@ public sealed partial class ProfileView
             return;
         }
 
-        bool verified = await _viewModel.PersonalInfo.VerifyPassword(VerifyCurrentPasswordBox.Password);
+        bool verified;
+        try
+        {
+            verified = await _viewModel.PersonalInfo.VerifyPassword(VerifyCurrentPasswordBox.Password);
+        }
+        catch (Exception ex)
+        {
+            VerifyErrorInfoBar.Message = ex.Message;
+            VerifyErrorInfoBar.IsOpen = true;
+            arguments.Cancel = true;
+            deferral.Complete();
+            return;
+        }
+
         if (!verified)
         {
             VerifyErrorInfoBar.Message = "Incorrect password.";
@@ -234,15 +254,32 @@ public sealed partial class ProfileView
         {
             DispatcherQueue.TryEnqueue(async void () =>
             {
-                NewPasswordBox.Password = string.Empty;
-                ConfirmPasswordBox.Password = string.Empty;
-                NewPasswordErrorInfoBar.IsOpen = false;
-                await NewPasswordDialog.ShowAsync();
+                try
+                {
+                    NewPasswordBox.Password = string.Empty;
+                    ConfirmPasswordBox.Password = string.Empty;
+                    NewPasswordErrorInfoBar.IsOpen = false;
+                    await NewPasswordDialog.ShowAsync();
+                }
+                catch
+                {
+                    // Dialog display failure is non-critical.
+                }
             });
         }
         else if (_isTwoFactorFlow)
         {
-            DispatcherQueue.TryEnqueue(async void () => { await Handle2FaActionAfterVerifyAsync(); });
+            DispatcherQueue.TryEnqueue(async void () =>
+            {
+                try
+                {
+                    await Handle2FaActionAfterVerifyAsync();
+                }
+                catch (Exception ex)
+                {
+                    ShowError(ex.Message);
+                }
+            });
         }
         else
         {
@@ -274,24 +311,32 @@ public sealed partial class ProfileView
     private async void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         ShowLoading(true);
-        bool success = await _viewModel.PersonalInfo.UpdatePersonalInfo(
-            PhoneBox.Text,
-            AddressBox.Text,
-            _verifiedPassword,
-            FullNameBox.Text);
-        ShowLoading(false);
-        if (success)
+        try
         {
-            ProfileCardName.Text = FullNameBox.Text.Trim();
-            ProfileCardPhone.Text = PhoneBox.Text.Trim();
-            ProfileCardAddress.Text = AddressBox.Text.Trim();
-            _verifiedPassword = string.Empty;
-            SetEditingEnabled(false);
-            ShowSuccess("Profile updated successfully.");
+            bool success = await _viewModel.PersonalInfo.UpdatePersonalInfo(
+                PhoneBox.Text,
+                AddressBox.Text,
+                _verifiedPassword,
+                FullNameBox.Text);
+            ShowLoading(false);
+            if (success)
+            {
+                ProfileCardName.Text = FullNameBox.Text.Trim();
+                ProfileCardPhone.Text = PhoneBox.Text.Trim();
+                ProfileCardAddress.Text = AddressBox.Text.Trim();
+                _verifiedPassword = string.Empty;
+                SetEditingEnabled(false);
+                ShowSuccess("Profile updated successfully.");
+            }
+            else
+            {
+                ShowError("Failed to update profile.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ShowError("Failed to update profile.");
+            ShowLoading(false);
+            ShowError(ex.Message);
         }
     }
 
@@ -301,7 +346,14 @@ public sealed partial class ProfileView
         _isTwoFactorFlow = false;
         VerifyCurrentPasswordBox.Password = string.Empty;
         VerifyErrorInfoBar.IsOpen = false;
-        await VerifyPasswordDialog.ShowAsync();
+        try
+        {
+            await VerifyPasswordDialog.ShowAsync();
+        }
+        catch
+        {
+            // Dialog display failure is non-critical.
+        }
     }
 
     private async void NewPasswordDialog_PrimaryButtonClick(
@@ -321,11 +373,25 @@ public sealed partial class ProfileView
             return;
         }
 
-        (bool success, string errorMessage) = await _viewModel.Security.ChangePassword(
-            userId.Value,
-            _verifiedPassword,
-            newPassword,
-            confirmPassword);
+        bool success;
+        string errorMessage;
+        try
+        {
+            (success, errorMessage) = await _viewModel.Security.ChangePassword(
+                userId.Value,
+                _verifiedPassword,
+                newPassword,
+                confirmPassword);
+        }
+        catch (Exception ex)
+        {
+            NewPasswordErrorInfoBar.Message = ex.Message;
+            NewPasswordErrorInfoBar.IsOpen = true;
+            arguments.Cancel = true;
+            deferral.Complete();
+            return;
+        }
+
         if (success)
         {
             _verifiedPassword = string.Empty;
@@ -348,18 +414,25 @@ public sealed partial class ProfileView
         _pendingTwoFactorAuthType = button?.Tag.ToString() ?? string.Empty;
         if (button?.Content.ToString() == "Remove")
         {
-            bool success = await _viewModel.DisableTwoFactor();
-            if (success)
+            try
             {
-                _viewModel.IsInitializingView = true;
-                TwoFactorToggle.IsOn = false;
-                _viewModel.IsInitializingView = false;
-                Update2FaVisuals();
-                ShowSuccess("2FA has been disabled.");
+                bool success = await _viewModel.DisableTwoFactor();
+                if (success)
+                {
+                    _viewModel.IsInitializingView = true;
+                    TwoFactorToggle.IsOn = false;
+                    _viewModel.IsInitializingView = false;
+                    Update2FaVisuals();
+                    ShowSuccess("2FA has been disabled.");
+                }
+                else
+                {
+                    ShowError("Failed to remove 2FA.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                ShowError("Failed to remove 2FA.");
+                ShowError(ex.Message);
             }
         }
         else
@@ -368,7 +441,14 @@ public sealed partial class ProfileView
             _isChangingPasswordFlow = false;
             VerifyCurrentPasswordBox.Password = string.Empty;
             VerifyErrorInfoBar.IsOpen = false;
-            await VerifyPasswordDialog.ShowAsync();
+            try
+            {
+                await VerifyPasswordDialog.ShowAsync();
+            }
+            catch
+            {
+                // Dialog display failure is non-critical.
+            }
         }
     }
 
@@ -379,17 +459,27 @@ public sealed partial class ProfileView
             return;
         }
 
-        bool success = await _viewModel.SetEmailTwoFactorEnabled(TwoFactorToggle.IsOn);
-        if (!success)
+        try
+        {
+            bool success = await _viewModel.SetEmailTwoFactorEnabled(TwoFactorToggle.IsOn);
+            if (!success)
+            {
+                _viewModel.IsInitializingView = true;
+                TwoFactorToggle.IsOn = !TwoFactorToggle.IsOn;
+                _viewModel.IsInitializingView = false;
+                ShowError("Failed to update 2FA settings.");
+            }
+            else
+            {
+                Update2FaVisuals();
+            }
+        }
+        catch (Exception ex)
         {
             _viewModel.IsInitializingView = true;
             TwoFactorToggle.IsOn = !TwoFactorToggle.IsOn;
             _viewModel.IsInitializingView = false;
-            ShowError("Failed to update 2FA settings.");
-        }
-        else
-        {
-            Update2FaVisuals();
+            ShowError(ex.Message);
         }
     }
 
@@ -490,7 +580,14 @@ public sealed partial class ProfileView
     private async void TabSessionsBtn_Click(object sender, RoutedEventArgs e)
     {
         SwitchToTab(PanelSessions, TabSessionsBtn);
-        await LoadSessionsAsync();
+        try
+        {
+            await LoadSessionsAsync();
+        }
+        catch
+        {
+            // LoadSessionsAsync surfaces errors through SessionsErrorBar.
+        }
     }
 
     private Brush GetPrimaryTextBrush()

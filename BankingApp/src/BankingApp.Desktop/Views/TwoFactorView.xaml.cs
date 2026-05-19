@@ -57,9 +57,29 @@ public sealed partial class TwoFactorView
         }
     }
 
-    private async void VerifyButton_Click(object sender, RoutedEventArgs e) => await ViewModel.VerifyOtp();
+    private async void VerifyButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await ViewModel.VerifyOtp();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
+    }
 
-    private async void ResendButton_Click(object sender, RoutedEventArgs e) => await ViewModel.ResendOtp();
+    private async void ResendButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await ViewModel.ResendOtp();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
+    }
 
     private void OtpBox_TextChanged(object sender, TextChangedEventArgs e) => ViewModel.OtpCode = OtpBox.Text;
 

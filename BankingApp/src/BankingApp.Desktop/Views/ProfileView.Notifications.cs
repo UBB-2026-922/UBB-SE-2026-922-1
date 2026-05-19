@@ -1,5 +1,6 @@
 namespace BankingApp.Desktop.Views;
 
+using System;
 using System.Collections.Generic;
 using Contracts.Features.UserProfile.Dtos;
 using Domain.Common.Extensions;
@@ -71,12 +72,21 @@ public sealed partial class ProfileView
 
         if (sender is ToggleSwitch { Tag: NotificationPreferenceDto preference } toggle)
         {
-            _isUpdatingToggle = true;
-            await _viewModel.ToggleNotificationPreference(preference, toggle.IsOn);
-            _isUpdatingToggle = false;
-            _viewModel.IsInitializingView = true;
-            toggle.IsOn = preference.EmailEnabled;
-            _viewModel.IsInitializingView = false;
+            try
+            {
+                _isUpdatingToggle = true;
+                await _viewModel.ToggleNotificationPreference(preference, toggle.IsOn);
+                _isUpdatingToggle = false;
+                _viewModel.IsInitializingView = true;
+                toggle.IsOn = preference.EmailEnabled;
+                _viewModel.IsInitializingView = false;
+            }
+            catch (Exception ex)
+            {
+                _isUpdatingToggle = false;
+                _viewModel.IsInitializingView = false;
+                ShowError(ex.Message);
+            }
         }
     }
 }

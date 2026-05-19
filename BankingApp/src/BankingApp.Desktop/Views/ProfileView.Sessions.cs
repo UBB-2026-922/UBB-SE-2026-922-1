@@ -1,5 +1,6 @@
 namespace BankingApp.Desktop.Views;
 
+using System;
 using System.Threading.Tasks;
 using Contracts.Features.UserProfile.Dtos;
 using Microsoft.UI;
@@ -119,16 +120,24 @@ public sealed partial class ProfileView
             return;
         }
 
-        (bool success, string? errorMessage) = await _viewModel.RevokeSessionAndReload(sessionId);
-        if (success)
+        try
         {
-            RenderSessions();
-            SessionsSuccessBar.Message = "Session revoked successfully.";
-            SessionsSuccessBar.IsOpen = true;
+            (bool success, string? errorMessage) = await _viewModel.RevokeSessionAndReload(sessionId);
+            if (success)
+            {
+                RenderSessions();
+                SessionsSuccessBar.Message = "Session revoked successfully.";
+                SessionsSuccessBar.IsOpen = true;
+            }
+            else
+            {
+                SessionsErrorBar.Message = errorMessage ?? "Failed to revoke session.";
+                SessionsErrorBar.IsOpen = true;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            SessionsErrorBar.Message = errorMessage ?? "Failed to revoke session.";
+            SessionsErrorBar.Message = ex.Message;
             SessionsErrorBar.IsOpen = true;
         }
     }

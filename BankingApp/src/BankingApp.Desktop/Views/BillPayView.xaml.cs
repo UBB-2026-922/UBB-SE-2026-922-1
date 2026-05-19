@@ -33,7 +33,14 @@ public sealed partial class BillPayView
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadAsync();
+        try
+        {
+            await ViewModel.LoadAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private void SearchBox_TextChanged(

@@ -31,7 +31,14 @@ public sealed partial class RecurringPaymentView
 
     private async void OnPageLoaded(object sender, RoutedEventArgs args)
     {
-        await _viewModel.LoadAsync();
+        try
+        {
+            await _viewModel.LoadAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private void AmountNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
@@ -57,7 +64,14 @@ public sealed partial class RecurringPaymentView
 
     private async void CreateButton_Click(object sender, RoutedEventArgs args)
     {
-        await _viewModel.CreateAsync();
+        try
+        {
+            await _viewModel.CreateAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private void PauseButton_Click(object sender, RoutedEventArgs args)

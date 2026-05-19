@@ -1,5 +1,6 @@
 ﻿namespace BankingApp.Desktop.Views;
 
+using System;
 using ViewModels;
 using Microsoft.UI.Xaml;
 
@@ -31,11 +32,25 @@ public sealed partial class TransferHistoryView
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadHistoryAsync();
+        try
+        {
+            await ViewModel.LoadHistoryAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadHistoryAsync();
+        try
+        {
+            await ViewModel.LoadHistoryAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 }
