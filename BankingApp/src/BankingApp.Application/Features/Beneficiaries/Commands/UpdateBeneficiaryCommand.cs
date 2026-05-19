@@ -6,6 +6,7 @@ using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;
 using MediatR;
+using Shared.Persistence;
 
 public sealed record UpdateBeneficiaryCommand(int UserId, int BeneficiaryId, string Name, string Iban, string? BankName)
     : IRequest<ErrorOr<Success>>;

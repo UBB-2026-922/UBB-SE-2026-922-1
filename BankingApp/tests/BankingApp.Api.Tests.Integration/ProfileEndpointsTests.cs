@@ -7,6 +7,7 @@ using BankingApp.Api.Tests.Integration.Infrastructure;
 using BankingApp.Application.Features.UserProfile.Commands;
 using BankingApp.Application.Features.UserProfile.Queries;
 using BankingApp.Contracts.Features.UserProfile.Dtos;
+using BankingApp.Contracts.Http;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
 
 public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
@@ -49,7 +50,7 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
                 FullName = "Test User"
             });
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/profile");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.Profile.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
@@ -67,7 +68,7 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Setup(sender => sender.Send(It.IsAny<UpdateProfileCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
-        var request = new HttpRequestMessage(HttpMethod.Put, "/api/profile");
+        var request = new HttpRequestMessage(HttpMethod.Put, "/" + ApiEndpoints.Profile.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
         request.Content = JsonContent.Create(new UpdateProfileRequest
         {
@@ -87,7 +88,7 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Setup(sender => sender.Send(It.IsAny<ChangePasswordCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Validation("Password.Mismatch", "Old password does not match."));
 
-        var request = new HttpRequestMessage(HttpMethod.Put, "/api/profile/password");
+        var request = new HttpRequestMessage(HttpMethod.Put, "/" + ApiEndpoints.Profile.ChangePasswordFull);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
         request.Content = JsonContent.Create(new ChangePasswordRequest
         {

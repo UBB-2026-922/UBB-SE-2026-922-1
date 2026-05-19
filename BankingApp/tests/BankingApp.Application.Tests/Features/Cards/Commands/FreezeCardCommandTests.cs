@@ -5,6 +5,7 @@ using BankingApp.Domain.Common.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using NodaMoney;
+using Shared.Persistence;
 
 public sealed class FreezeCardCommandTests
 {

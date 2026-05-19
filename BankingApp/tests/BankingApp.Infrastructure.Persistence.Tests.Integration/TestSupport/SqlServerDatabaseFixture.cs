@@ -1,5 +1,6 @@
 namespace BankingApp.Infrastructure.Persistence.Tests.Integration.TestSupport;
 
+using Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Respawn;

@@ -9,6 +9,7 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record GetProfileQuery(int UserId)
     : IRequest<ErrorOr<ProfileDto>>;
@@ -24,7 +25,7 @@ public sealed class GetProfileQueryHandler(
         User? user = await userRepository.GetByIdAsync(query.UserId, cancellationToken);
         if (user is null)
         {
-            logger.ProfileFetchUserNotFound(query.UserId);
+            ApplicationLogMessages.ProfileFetchUserNotFound(logger, query.UserId);
             return UserErrors.NotFound;
         }
 

@@ -1,5 +1,7 @@
 namespace BankingApp.Infrastructure.Persistence.Tests.Integration.TestSupport;
 
+using Data;
+
 public abstract class IntegrationTestBase(SqlServerDatabaseFixture databaseFixture) : IAsyncLifetime
 {
     protected SqlServerDatabaseFixture DatabaseFixture { get; } = databaseFixture;

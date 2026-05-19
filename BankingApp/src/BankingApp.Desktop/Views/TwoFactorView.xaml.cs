@@ -1,12 +1,12 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using Enums;
-using Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Navigation;
+using Session;
+using Shared.Enums;
 
 /// <summary>
 ///     Displays the OTP verification step of the login flow.
@@ -14,16 +14,19 @@ using Navigation;
 /// </summary>
 public sealed partial class TwoFactorView
 {
-    private readonly IAuthService _authService;
+    private readonly IAuthenticationSession _authenticationSession;
     private readonly IAppNavigationService _navigationService;
 
     /// <summary>Initializes a new instance of the <see cref="TwoFactorView"/> class.</summary>
-    public TwoFactorView(TwoFactorViewModel viewModel, IAppNavigationService navigationService, IAuthService authService)
+    public TwoFactorView(
+        TwoFactorViewModel viewModel,
+        IAppNavigationService navigationService,
+        IAuthenticationSession authenticationSession)
     {
         InitializeComponent();
         ViewModel = viewModel;
         _navigationService = navigationService;
-        _authService = authService;
+        _authenticationSession = authenticationSession;
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
         OnStateChanged(ViewModel.State);
     }
@@ -85,7 +88,7 @@ public sealed partial class TwoFactorView
 
     private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
     {
-        _authService.ClearToken();
+        _authenticationSession.Clear();
         _navigationService.NavigateTo<LoginView>();
     }
 }

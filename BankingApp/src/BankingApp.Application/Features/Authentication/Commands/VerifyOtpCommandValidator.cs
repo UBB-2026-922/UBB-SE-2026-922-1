@@ -1,6 +1,6 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Utilities;
+using Common.Validation;
 using Domain.Common.Errors;
 using FluentValidation;
 

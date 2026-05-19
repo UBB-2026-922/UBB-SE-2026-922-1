@@ -3,14 +3,15 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Enums;
 using BankingApp.Domain.Enums;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Shared;
+using Shared.Enums;
+using Shared.Validation;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles password changes and two-factor authentication settings for the profile area.</summary>

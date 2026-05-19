@@ -1,6 +1,6 @@
 namespace BankingApp.Application.Features.PasswordReset.Commands;
 
-using Common.Utilities;
+using Common.Validation;
 using FluentValidation;
 
 public sealed class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCommand>

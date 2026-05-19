@@ -1,12 +1,12 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Enums;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Enums;
 
 public class NotificationsViewModelTests
 {

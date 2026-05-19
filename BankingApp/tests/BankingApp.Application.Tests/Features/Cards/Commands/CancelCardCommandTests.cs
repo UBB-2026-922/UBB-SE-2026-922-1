@@ -1,11 +1,12 @@
 namespace BankingApp.Application.Tests.Features.Cards.Commands;
 
-using Common.Utilities;
 using BankingApp.Application.Features.Cards.Commands;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using NodaMoney;
+using Shared.Clock;
+using Shared.Persistence;
 
 public sealed class CancelCardCommandTests
 {

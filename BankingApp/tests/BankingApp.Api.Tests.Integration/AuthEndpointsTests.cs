@@ -9,6 +9,7 @@ using BankingApp.Application.Features.PasswordReset.Commands;
 using BankingApp.Application.Features.PasswordReset.Queries;
 using BankingApp.Application.Features.UserRegistration.Commands;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using BankingApp.Contracts.Http;
 using ErrorOr;
 
 public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
@@ -36,7 +37,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token"));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/" + ApiEndpoints.Auth.LoginFull,
             new { Email = "test@example.com", Password = "Password1!" },
             _cancellationToken);
 
@@ -56,7 +57,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync((ErrorOr<LoginSuccess>)new RequiresTwoFactor(1));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/" + ApiEndpoints.Auth.LoginFull,
             new { Email = "test@example.com", Password = "Password1!" },
             _cancellationToken);
 
@@ -76,7 +77,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync(Error.Unauthorized("invalid_credentials", "Invalid credentials."));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/login",
+            "/" + ApiEndpoints.Auth.LoginFull,
             new { Email = "test@example.com", Password = "WrongPassword!" },
             _cancellationToken);
 
@@ -91,7 +92,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync(Result.Success);
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/register",
+            "/" + ApiEndpoints.Auth.RegisterFull,
             new { Email = "new@example.com", Password = "Password1!", FullName = "Test User" },
             _cancellationToken);
 
@@ -106,7 +107,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync(Error.Conflict("email_taken", "Email is already registered."));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/register",
+            "/" + ApiEndpoints.Auth.RegisterFull,
             new { Email = "existing@example.com", Password = "Password1!", FullName = "Test User" },
             _cancellationToken);
 
@@ -121,7 +122,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token"));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/verify-otp",
+            "/" + ApiEndpoints.Auth.VerifyOtpFull,
             new { UserId = 1, OtpCode = "123456" },
             _cancellationToken);
 
@@ -139,7 +140,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync(Result.Success);
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/forgot-password",
+            "/" + ApiEndpoints.Auth.ForgotPasswordFull,
             new { Email = "test@example.com" },
             _cancellationToken);
 
@@ -154,7 +155,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync(Result.Success);
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/reset-password",
+            "/" + ApiEndpoints.Auth.ResetPasswordFull,
             new { Token = "valid-token", NewPassword = "NewStrongPassword1!" },
             _cancellationToken);
 
@@ -168,7 +169,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Setup(sender => sender.Send(It.IsAny<LogoutCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
+        var request = new HttpRequestMessage(HttpMethod.Post, "/" + ApiEndpoints.Auth.LogoutFull);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", "valid-token");
 
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
@@ -180,7 +181,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     public async Task Logout_WhenTokenIsMissing_ShouldReturnBadRequest()
     {
         HttpResponseMessage response = await _client.SendAsync(
-            new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout"),
+            new HttpRequestMessage(HttpMethod.Post, "/" + ApiEndpoints.Auth.LogoutFull),
             _cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -194,7 +195,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync(Result.Success);
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/verify-reset-token",
+            "/" + ApiEndpoints.Auth.VerifyResetTokenFull,
             new { Token = "valid-token" },
             _cancellationToken);
 
@@ -209,7 +210,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             .ReturnsAsync(Error.Validation("invalid_token", "Token is invalid or expired."));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/verify-reset-token",
+            "/" + ApiEndpoints.Auth.VerifyResetTokenFull,
             new { Token = "invalid-token" },
             _cancellationToken);
 

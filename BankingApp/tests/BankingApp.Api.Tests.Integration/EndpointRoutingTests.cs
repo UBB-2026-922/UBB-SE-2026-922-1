@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
+using BankingApp.Contracts.Http;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
 using ErrorOr;
 
@@ -34,14 +35,14 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Theory]
-    [InlineData("POST", "/api/auth/login")]
-    [InlineData("POST", "/api/auth/register")]
-    [InlineData("POST", "/api/auth/verify-otp")]
-    [InlineData("POST", "/api/auth/forgot-password")]
-    [InlineData("POST", "/api/auth/reset-password")]
-    [InlineData("POST", "/api/auth/logout")]
-    [InlineData("POST", "/api/auth/resend-otp")]
-    [InlineData("POST", "/api/auth/verify-reset-token")]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.LoginFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.RegisterFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.VerifyOtpFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.ForgotPasswordFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.ResetPasswordFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.LogoutFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.ResendOtpFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Auth.VerifyResetTokenFull)]
     public async Task SendAsync_WhenAuthEndpointIsPublicAndTokenIsMissing_ShouldNotReturnUnauthorized(
         string method,
         string path)
@@ -58,17 +59,17 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Theory]
-    [InlineData("GET", "/api/dashboard")]
-    [InlineData("GET", "/api/profile")]
-    [InlineData("PUT", "/api/profile")]
-    [InlineData("PUT", "/api/profile/password")]
-    [InlineData("GET", "/api/profile/notifications/preferences")]
-    [InlineData("PUT", "/api/profile/notifications/preferences")]
-    [InlineData("POST", "/api/profile/verify-password")]
-    [InlineData("PUT", "/api/profile/2fa/enable")]
-    [InlineData("PUT", "/api/profile/2fa/disable")]
-    [InlineData("GET", "/api/profile/sessions")]
-    [InlineData("DELETE", "/api/profile/sessions/1")]
+    [InlineData("GET", "/" + ApiEndpoints.AccountOverview.Base)]
+    [InlineData("GET", "/" + ApiEndpoints.Profile.Base)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.Base)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.ChangePasswordFull)]
+    [InlineData("GET", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Profile.VerifyPasswordFull)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.Enable2FaFull)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.Disable2FaFull)]
+    [InlineData("GET", "/" + ApiEndpoints.Profile.SessionsFull)]
+    [InlineData("DELETE", "/" + ApiEndpoints.Profile.SessionsFull + "/1")]
     public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsMissing_ShouldReturnUnauthorized(
         string method,
         string path)
@@ -81,17 +82,17 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Theory]
-    [InlineData("GET", "/api/dashboard")]
-    [InlineData("GET", "/api/profile")]
-    [InlineData("PUT", "/api/profile")]
-    [InlineData("PUT", "/api/profile/password")]
-    [InlineData("GET", "/api/profile/notifications/preferences")]
-    [InlineData("PUT", "/api/profile/notifications/preferences")]
-    [InlineData("POST", "/api/profile/verify-password")]
-    [InlineData("PUT", "/api/profile/2fa/enable")]
-    [InlineData("PUT", "/api/profile/2fa/disable")]
-    [InlineData("GET", "/api/profile/sessions")]
-    [InlineData("DELETE", "/api/profile/sessions/1")]
+    [InlineData("GET", "/" + ApiEndpoints.AccountOverview.Base)]
+    [InlineData("GET", "/" + ApiEndpoints.Profile.Base)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.Base)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.ChangePasswordFull)]
+    [InlineData("GET", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
+    [InlineData("POST", "/" + ApiEndpoints.Profile.VerifyPasswordFull)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.Enable2FaFull)]
+    [InlineData("PUT", "/" + ApiEndpoints.Profile.Disable2FaFull)]
+    [InlineData("GET", "/" + ApiEndpoints.Profile.SessionsFull)]
+    [InlineData("DELETE", "/" + ApiEndpoints.Profile.SessionsFull + "/1")]
     public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsValid_ShouldNotReturnUnauthorized(
         string method,
         string path)
@@ -119,7 +120,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
             .Setup(service => service.ExtractUserId(invalidToken))
             .Returns(Error.Unauthorized("Token.Invalid", "Token is invalid."));
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/dashboard");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.AccountOverview.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", invalidToken);
 
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
@@ -140,7 +141,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
             .Setup(repository => repository.GetBySessionTokenAsync(orphanToken, It.IsAny<CancellationToken>()))
             .ReturnsAsync((IdentityAccount?)null);
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/dashboard");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.AccountOverview.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", orphanToken);
 
         HttpResponseMessage response = await _client.SendAsync(request, TestContext.Current.CancellationToken);

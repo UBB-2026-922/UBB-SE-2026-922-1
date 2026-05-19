@@ -1,23 +1,26 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Desktop.Utilities;
 using Contracts.Features.Forex.Dtos;
 using Contracts.Features.Forex.Services;
 using Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared;
 
 public class ForexViewModelTests
 {
-    private readonly Mock<IAuthService> _authService;
+    private readonly Mock<IAuthenticationSession> _authenticationSession;
     private readonly Mock<IForexService> _forexClientService;
     private readonly ForexViewModel _viewModel;
 
     public ForexViewModelTests()
     {
-        _authService = new Mock<IAuthService>(MockBehavior.Loose);
+        _authenticationSession = new Mock<IAuthenticationSession>(MockBehavior.Loose);
         _forexClientService = new Mock<IForexService>(MockBehavior.Loose);
-        _viewModel = new ForexViewModel(_authService.Object, _forexClientService.Object, NullLogger<ForexViewModel>.Instance);
+        _viewModel = new ForexViewModel(
+            _authenticationSession.Object,
+            _forexClientService.Object,
+            NullLogger<ForexViewModel>.Instance);
     }
 
     [Fact]
@@ -140,7 +143,7 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _authService.Setup(service => service.CurrentUserId).Returns(1);
+        _authenticationSession.Setup(service => service.CurrentUserId).Returns(1);
 
         var response = new ForexTransactionResponse { Id = transactionId };
         _forexClientService
@@ -162,7 +165,7 @@ public class ForexViewModelTests
         _viewModel.SourceCurrency = "EUR";
         _viewModel.TargetCurrency = "USD";
         _viewModel.AmountText = "100";
-        _authService.Setup(forexClientService => forexClientService.CurrentUserId).Returns(1);
+        _authenticationSession.Setup(forexClientService => forexClientService.CurrentUserId).Returns(1);
 
         _forexClientService
             .Setup(forexClientService => forexClientService.ExecuteAsync(It.IsAny<ForexTransactionRequest>()))

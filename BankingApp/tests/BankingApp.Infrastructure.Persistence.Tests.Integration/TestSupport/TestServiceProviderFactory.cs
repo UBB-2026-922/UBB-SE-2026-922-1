@@ -1,5 +1,7 @@
 namespace BankingApp.Infrastructure.Persistence.Tests.Integration.TestSupport;
 
+using Infrastructure.Persistence.DependencyInjection;
+
 public sealed class TestServiceProviderFactory(string connectionString)
 {
     public IServiceProvider Create()
@@ -21,7 +23,7 @@ public sealed class TestServiceProviderFactory(string connectionString)
             .Build();
 
         services.AddSingleton(Mock.Of<IPublisher>());
-        services.AddInfrastructure(configuration);
+        services.AddPersistenceInfrastructure(configuration);
 
         return services.BuildServiceProvider(validateScopes: true);
     }

@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using Utilities;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Navigation;
+using Session;
 
 /// <summary>
 ///     Hosts the application shell after login: renders the sidebar and manages the inner content frame
@@ -18,12 +18,12 @@ public sealed partial class NavigationView
 {
     private const int MaximumInlineNotificationBadgeCount = 99;
     private const string OverflowNotificationBadgeText = "99+";
-    private readonly IAuthService _authService;
+    private readonly IAuthenticationSession _authenticationSession;
     private readonly List<Button> _navButtons;
     private readonly IAppNavigationService _navigationService;
 
     /// <summary>Initializes a new instance of the <see cref="NavigationView"/> class.</summary>
-    public NavigationView(IAuthService authService, IAppNavigationService navigationService)
+    public NavigationView(IAuthenticationSession authenticationSession, IAppNavigationService navigationService)
     {
         InitializeComponent();
         Current = this;
@@ -34,7 +34,7 @@ public sealed partial class NavigationView
             NavInvestments, NavStatistics, NavSupport, NavProfile,
             NavBeneficiaries
         ];
-        _authService = authService;
+        _authenticationSession = authenticationSession;
         _navigationService = navigationService;
         _navigationService.SetContentFrame(ContentFrame);
         _navigationService.NavigateToContent<DashboardView>();
@@ -181,7 +181,7 @@ public sealed partial class NavigationView
     {
         try
         {
-            _authService.ClearToken();
+            _authenticationSession.Clear();
         }
         catch
         {

@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.UserRegistration.Commands;
 
 using System.Transactions;
-using Common.Logging;
-using Common.Utilities;
+using Common.Security;
+using Common.Validation;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
@@ -12,7 +12,9 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record RegisterCommand(string Email, string Password, string FullName)
     : IRequest<ErrorOr<Success>>;
@@ -54,7 +56,7 @@ public sealed class RegisterCommandHandler(
         User? existing = await userRepository.GetByEmailAsync(email, cancellationToken);
         if (existing is not null)
         {
-            logger.RegistrationRejectedEmailAlreadyRegistered();
+            ApplicationLogMessages.RegistrationRejectedEmailAlreadyRegistered(logger);
             return AuthErrors.EmailAlreadyRegistered;
         }
 
@@ -66,7 +68,7 @@ public sealed class RegisterCommandHandler(
         ErrorOr<string> hashResult = hashService.GetHash(password);
         if (hashResult.IsError)
         {
-            logger.RegistrationHashGenerationFailed();
+            ApplicationLogMessages.RegistrationHashGenerationFailed(logger);
             return hashResult.FirstError;
         }
 
@@ -91,7 +93,7 @@ public sealed class RegisterCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         transactionScope.Complete();
-        logger.UserRegisteredSuccessfully();
+        ApplicationLogMessages.UserRegisteredSuccessfully(logger);
         return Result.Success;
     }
 }

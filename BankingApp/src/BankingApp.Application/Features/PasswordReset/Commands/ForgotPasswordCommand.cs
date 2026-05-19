@@ -2,7 +2,7 @@ namespace BankingApp.Application.Features.PasswordReset.Commands;
 
 using System.Security.Cryptography;
 using System.Text;
-using Common.Logging;
+using Common.Notifications;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Repositories;
@@ -10,7 +10,9 @@ using Domain.ValueObjects;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Notifications;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record ForgotPasswordCommand(string Email)
     : IRequest<ErrorOr<Success>>;
@@ -32,14 +34,14 @@ public sealed class ForgotPasswordCommandHandler(
         ErrorOr<Email> emailResult = Email.Create(command.Email);
         if (emailResult.IsError)
         {
-            logger.PasswordResetNoAccountFound();
+            ApplicationLogMessages.PasswordResetNoAccountFound(logger);
             return Result.Success; // don't reveal whether account exists
         }
 
         User? user = await userRepository.GetByEmailAsync(emailResult.Value, cancellationToken);
         if (user is null)
         {
-            logger.PasswordResetNoAccountFound();
+            ApplicationLogMessages.PasswordResetNoAccountFound(logger);
             return Result.Success;
         }
 
@@ -58,7 +60,7 @@ public sealed class ForgotPasswordCommandHandler(
         await identityRepository.UpdateAsync(identity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.PasswordResetEmailSent(user.Id);
+        ApplicationLogMessages.PasswordResetEmailSent(logger, user.Id);
         await emailService.SendPasswordResetLinkAsync(user.Email.Value, rawToken);
         return Result.Success;
     }

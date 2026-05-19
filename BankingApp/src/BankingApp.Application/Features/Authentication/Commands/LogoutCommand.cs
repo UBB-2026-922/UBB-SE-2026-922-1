@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Logging;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Common.Errors;
@@ -8,6 +7,8 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record LogoutCommand(string Token)
     : IRequest<ErrorOr<Success>>;
@@ -23,14 +24,14 @@ public sealed class LogoutCommandHandler(
         IdentityAccount? identity = await identityRepository.GetBySessionTokenAsync(command.Token, cancellationToken);
         if (identity is null)
         {
-            logger.LogoutSessionNotFound();
+            ApplicationLogMessages.LogoutSessionNotFound(logger);
             return AuthErrors.SessionNotFound;
         }
 
         Session? session = identity.Sessions.FirstOrDefault(s => s.Token == command.Token && !s.IsRevoked);
         if (session is null)
         {
-            logger.LogoutSessionNotFound();
+            ApplicationLogMessages.LogoutSessionNotFound(logger);
             return AuthErrors.SessionNotFound;
         }
 
@@ -38,7 +39,7 @@ public sealed class LogoutCommandHandler(
         await identityRepository.UpdateAsync(identity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.UserLoggedOut(identity.UserId);
+        ApplicationLogMessages.UserLoggedOut(logger, identity.UserId);
         return Result.Success;
     }
 }

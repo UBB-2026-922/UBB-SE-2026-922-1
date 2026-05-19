@@ -2,12 +2,15 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
+using Application.Features.Authentication.Services;
 using Contracts.Features.Authentication.Dtos;
-using Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Session;
+using Shared;
+using Shared.Enums;
+using Shared.Timers;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates OTP verification and resend operations for the two-factor flow.</summary>
@@ -15,18 +18,21 @@ public partial class TwoFactorViewModel : ObservableObject
 {
     private const int ResendCooldownSeconds = 30;
     private const int OtpRequiredLength = 6;
-    private readonly IAuthService _authService;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly IAuthenticationSession _authenticationSession;
     private readonly ICountdownTimer _countdownTimer;
     private readonly ILogger<TwoFactorViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="TwoFactorViewModel"/> class.</summary>
     public TwoFactorViewModel(
-        IAuthService authService,
+        IAuthenticationService authenticationService,
+        IAuthenticationSession authenticationSession,
         ICountdownTimer countdownTimer,
         ILogger<TwoFactorViewModel> logger,
         bool isLocked = false)
     {
-        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+        _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
         _countdownTimer = countdownTimer ?? throw new ArgumentNullException(nameof(countdownTimer));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         IsLocked = isLocked;
@@ -87,18 +93,19 @@ public partial class TwoFactorViewModel : ObservableObject
 
         IsLoading = true;
         State = TwoFactorState.Verifying;
-        int? userId = _authService.CurrentUserId;
+        int? userId = _authenticationSession.CurrentUserId;
         if (userId == null)
         {
             ApplyInvalidOtp();
             return;
         }
 
-        ErrorOr<LoginSuccessResponse> result = await _authService.VerifyOtpAsync(userId.Value, OtpCode);
+        ErrorOr<LoginSuccessResponse> result = await _authenticationService.VerifyOtpAsync(
+            new VerifyOtpRequest { UserId = userId.Value, OtpCode = OtpCode });
         result.Switch(
             response =>
             {
-                _authService.SetToken(response.Token!);
+                _authenticationSession.SetToken(response.Token!);
                 IsLoading = false;
                 State = TwoFactorState.Success;
             },
@@ -125,13 +132,13 @@ public partial class TwoFactorViewModel : ObservableObject
         SecondsRemaining = ResendCooldownSeconds;
         _countdownTimer.Start();
         State = TwoFactorState.Idle;
-        int? userId = _authService.CurrentUserId;
+        int? userId = _authenticationSession.CurrentUserId;
         if (userId == null)
         {
             return;
         }
 
-        ErrorOr<object> result = await _authService.ResendOtpAsync(userId.Value);
+        ErrorOr<Success> result = await _authenticationService.ResendOtpAsync(userId.Value);
         result.Switch(_ => { }, errors => DesktopLogMessages.ResendOtpFailed(_logger, errors));
     }
 

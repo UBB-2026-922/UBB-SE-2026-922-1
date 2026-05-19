@@ -1,20 +1,21 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Enums;
 using BankingApp.Desktop.ViewModels;
+using Contracts.Features.UserRegistration.Dtos;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Enums;
 
 public class RegisterViewModelTests
 {
-    private readonly Mock<IAuthService> _authClientService = new();
+    private readonly Mock<IAuthenticationService> _authenticationService = new();
 
     [Fact]
     public async Task Register_WhenEmptyFields_SetsErrorState()
     {
         // Arrange
         var viewModel = new RegisterViewModel(
-            _authClientService.Object,
+            _authenticationService.Object,
             NullLogger<RegisterViewModel>.Instance);
 
         // Act
@@ -29,7 +30,7 @@ public class RegisterViewModelTests
     {
         // Arrange
         var viewModel = new RegisterViewModel(
-            _authClientService.Object,
+            _authenticationService.Object,
             NullLogger<RegisterViewModel>.Instance);
 
         // Act
@@ -44,7 +45,7 @@ public class RegisterViewModelTests
     {
         // Arrange
         var viewModel = new RegisterViewModel(
-            _authClientService.Object,
+            _authenticationService.Object,
             NullLogger<RegisterViewModel>.Instance);
 
         // Act
@@ -59,11 +60,13 @@ public class RegisterViewModelTests
     {
         // Arrange
         var viewModel = new RegisterViewModel(
-            _authClientService.Object,
+            _authenticationService.Object,
             NullLogger<RegisterViewModel>.Instance);
 
-        _authClientService
-            .Setup(authClientService => authClientService.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _authenticationService
+            .Setup(authenticationService => authenticationService.RegisterAsync(
+                It.IsAny<RegisterRequest>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -78,11 +81,13 @@ public class RegisterViewModelTests
     {
         // Arrange
         var viewModel = new RegisterViewModel(
-            _authClientService.Object,
+            _authenticationService.Object,
             NullLogger<RegisterViewModel>.Instance);
 
-        _authClientService
-            .Setup(authClientService => authClientService.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _authenticationService
+            .Setup(authenticationService => authenticationService.RegisterAsync(
+                It.IsAny<RegisterRequest>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Conflict("Conflict", "Conflict"));
 
         // Act

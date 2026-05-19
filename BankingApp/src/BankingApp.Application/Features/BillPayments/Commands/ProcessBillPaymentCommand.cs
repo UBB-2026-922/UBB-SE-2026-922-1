@@ -1,6 +1,7 @@
 namespace BankingApp.Application.Features.BillPayments.Commands;
 
 using Common.Logging;
+using Common.Security;
 using Contracts.Features.BillPayments.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -13,7 +14,9 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 using Money = NodaMoney.Money;
 
 public sealed record ProcessBillPaymentCommand(
@@ -151,7 +154,7 @@ public sealed class ProcessBillPaymentCommandHandler(
         ErrorOr<bool> otpValid = otpService.VerifyTotp(command.UserId, command.TwoFaToken);
         if (otpValid.IsError || !otpValid.Value)
         {
-            logger.BillPaymentTwoFactorInvalid(command.UserId);
+            ApplicationLogMessages.BillPaymentTwoFactorInvalid(logger, command.UserId);
             return BillPaymentErrors.InvalidTwoFaToken;
         }
 

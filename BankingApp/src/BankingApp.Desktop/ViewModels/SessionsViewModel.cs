@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
-using Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Shared.Enums;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles active-session loading and revocation for the profile area.</summary>

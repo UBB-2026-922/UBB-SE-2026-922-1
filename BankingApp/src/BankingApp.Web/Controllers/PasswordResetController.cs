@@ -1,15 +1,14 @@
 namespace BankingApp.Web.Controllers;
 
-using BankingApp.Application.Features.PasswordReset.Commands;
-using BankingApp.Application.Features.PasswordReset.Queries;
+using Application.Features.Authentication.Services;
+using Contracts.Features.PasswordReset.Dtos;
 using BankingApp.Web.ViewModels;
 using ErrorOr;
-using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [AllowAnonymous]
-public class PasswordResetController(ISender sender) : Controller
+public class PasswordResetController(IAuthenticationService authenticationService) : Controller
 {
     public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
 
@@ -24,7 +23,9 @@ public class PasswordResetController(ISender sender) : Controller
             return View(model);
         }
 
-        await sender.Send(new ForgotPasswordCommand(model.Email), cancellationToken);
+        await authenticationService.ForgotPasswordAsync(
+            new ForgotPasswordRequest { Email = model.Email },
+            cancellationToken);
 
         TempData["Info"] = "If that email exists you will receive a password reset link.";
         return RedirectToAction(nameof(ForgotPassword));
@@ -37,7 +38,9 @@ public class PasswordResetController(ISender sender) : Controller
             return View("InvalidToken");
         }
 
-        ErrorOr<Success> verification = await sender.Send(new VerifyResetTokenQuery(token), cancellationToken);
+        ErrorOr<Success> verification = await authenticationService.VerifyResetTokenAsync(
+            new VerifyResetTokenRequest { Token = token },
+            cancellationToken);
         if (verification.IsError)
         {
             return View("InvalidToken");
@@ -57,8 +60,12 @@ public class PasswordResetController(ISender sender) : Controller
             return View(model);
         }
 
-        ErrorOr<Success> result = await sender.Send(
-            new ResetPasswordCommand(model.Token, model.NewPassword),
+        ErrorOr<Success> result = await authenticationService.ResetPasswordAsync(
+            new ResetPasswordRequest
+            {
+                Token = model.Token,
+                NewPassword = model.NewPassword,
+            },
             cancellationToken);
 
         if (result.IsError)

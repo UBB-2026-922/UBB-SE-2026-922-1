@@ -1,9 +1,12 @@
 namespace BankingApp.Application.Tests;
 
+using Application.Features.Forex.Services;
+using Common.Notifications;
+using Common.Security;
 using Domain.Enums;
 using ErrorOr;
-using Notifications;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
 using Currency = NodaMoney.Currency;
 
 /// <summary>

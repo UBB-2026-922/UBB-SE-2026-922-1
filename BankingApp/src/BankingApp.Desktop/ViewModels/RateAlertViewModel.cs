@@ -9,7 +9,8 @@ using Contracts.Features.ForexRateAlerts.Services;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Session;
+using Shared;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles rate-alert listing, creation, and deletion for the desktop client.</summary>
@@ -18,14 +19,17 @@ public partial class RateAlertViewModel : ObservableObject
     private const decimal MinimumRate = 0m;
     private static readonly string[] _availableCurrencyCodes = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
-    private readonly IAuthService _authService;
+    private readonly IAuthenticationSession _authenticationSession;
     private readonly IRateAlertService _rateAlertService;
     private readonly ILogger<RateAlertViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="RateAlertViewModel"/> class.</summary>
-    public RateAlertViewModel(IAuthService authService, IRateAlertService rateAlertService, ILogger<RateAlertViewModel> logger)
+    public RateAlertViewModel(
+        IAuthenticationSession authenticationSession,
+        IRateAlertService rateAlertService,
+        ILogger<RateAlertViewModel> logger)
     {
-        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
         _rateAlertService = rateAlertService ?? throw new ArgumentNullException(nameof(rateAlertService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         AvailableCurrencies = new ObservableCollection<string>(_availableCurrencyCodes);
@@ -133,7 +137,7 @@ public partial class RateAlertViewModel : ObservableObject
         {
             var newAlert = new ForexRateAlertDto
             {
-                UserId = _authService.CurrentUserId ?? 0,
+                UserId = _authenticationSession.CurrentUserId ?? 0,
                 BaseCurrency = BaseCurrency,
                 TargetCurrency = TargetCurrency,
                 TargetRate = parsedRate,

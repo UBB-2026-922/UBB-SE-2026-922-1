@@ -4,6 +4,8 @@ using Contracts.Features.Forex.Dtos;
 using Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
+using Services;
+using Shared.Clock;
 using Currency = NodaMoney.Currency;
 
 public sealed record GetRatePreviewQuery(

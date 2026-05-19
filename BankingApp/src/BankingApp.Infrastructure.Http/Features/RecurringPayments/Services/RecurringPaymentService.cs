@@ -1,28 +1,25 @@
 namespace BankingApp.Infrastructure.Http.Features.RecurringPayments.Services;
 
+using Application.Shared.Http;
 using Contracts.Features.RecurringPayments.Dtos;
 using Contracts.Features.RecurringPayments.Services;
 using Contracts.Http;
 using ErrorOr;
-using Microsoft.Extensions.Logging;
 
-public sealed class RecurringPaymentService(IHttpClientFactory httpClientFactory, ILogger<RecurringPaymentService> logger) : IRecurringPaymentService
+public sealed class RecurringPaymentService(IApiClient apiClient) : IRecurringPaymentService
 {
-    private readonly HttpClient _http = httpClientFactory.CreateClient(HttpClientNames.Api);
-    private readonly ILogger<RecurringPaymentService> _logger = logger;
-
     public Task<ErrorOr<List<RecurringPaymentResponse>>> GetAllAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments, _logger, ct);
+        => apiClient.GetAsync<List<RecurringPaymentResponse>>(ApiEndpoints.RecurringPayments.Base, ct);
 
     public Task<ErrorOr<RecurringPaymentResponse>> CreateAsync(CreateRecurringPaymentRequest request, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(ApiEndpoints.RecurringPayments, request, _logger, ct);
+        => apiClient.PostAsync<CreateRecurringPaymentRequest, RecurringPaymentResponse>(ApiEndpoints.RecurringPayments.Base, request, ct);
 
     public Task<ErrorOr<Success>> PauseAsync(int id, CancellationToken ct = default)
-        => _http.PutErrorOrAsync($"{ApiEndpoints.RecurringPayments}/{id}/pause", new { }, _logger, ct);
+        => apiClient.PutAsync(ApiEndpoints.RecurringPayments.PauseFull(id), new { }, ct);
 
     public Task<ErrorOr<Success>> ResumeAsync(int id, CancellationToken ct = default)
-        => _http.PutErrorOrAsync($"{ApiEndpoints.RecurringPayments}/{id}/resume", new { }, _logger, ct);
+        => apiClient.PutAsync(ApiEndpoints.RecurringPayments.ResumeFull(id), new { }, ct);
 
     public Task<ErrorOr<Success>> CancelAsync(int id, CancellationToken ct = default)
-        => _http.DeleteErrorOrAsync($"{ApiEndpoints.RecurringPayments}/{id}", _logger, ct);
+        => apiClient.DeleteAsync(ApiEndpoints.RecurringPayments.ByIdFull(id), ct);
 }

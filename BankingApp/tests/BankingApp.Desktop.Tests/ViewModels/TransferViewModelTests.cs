@@ -1,13 +1,13 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Collections.Generic;
-using BankingApp.Desktop.Utilities;
 using Desktop.ViewModels;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
 using ErrorOr;
 using FluentAssertions;
 using Moq;
+using Shared;
 using Xunit;
 
 /// <summary>

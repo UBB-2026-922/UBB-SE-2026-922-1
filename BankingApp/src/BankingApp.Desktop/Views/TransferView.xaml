@@ -3,10 +3,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:BankingApp.Desktop.Converters"
-    xmlns:transfer="using:BankingApp.Contracts.Features.Transfers.Dtos">
+    xmlns:transfer="using:BankingApp.Contracts.Features.Transfers.Dtos"
+    xmlns:converters1="using:BankingApp.Desktop.Shared.Converters">
 
     <Page.Resources>
-        <converters:StepToVisibilityConverter x:Key="StepToVisibility" />
+        <converters1:StepToVisibilityConverter x:Key="StepToVisibility" />
     </Page.Resources>
 
     <ScrollViewer Padding="40">

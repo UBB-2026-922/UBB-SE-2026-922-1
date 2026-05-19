@@ -1,10 +1,11 @@
 namespace BankingApp.Desktop.Views;
 
-using Enums;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Navigation;
-using Utilities;
+using Shared;
+using Shared.Enums;
+using State;
 
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.
@@ -12,7 +13,7 @@ using Utilities;
 public sealed partial class RegisterView
 {
     private readonly IAppNavigationService _navigationService;
-    private readonly IRegistrationContext _registrationContext;
+    private readonly ILoginNotificationState _loginNotificationState;
     private readonly RegisterViewModel _viewModel;
 
     /// <summary>
@@ -20,17 +21,17 @@ public sealed partial class RegisterView
     /// </summary>
     /// <param name="viewModel">The view model that drives registration logic and exposes registration state.</param>
     /// <param name="navigationService">Used to navigate to other pages in response to state changes.</param>
-    /// <param name="registrationContext">Carries the just-registered flag to the login page.</param>
+    /// <param name="loginNotificationState">Carries the registration success notification to the login page.</param>
     /// <returns>The result of the operation.</returns>
     public RegisterView(
         RegisterViewModel viewModel,
         IAppNavigationService navigationService,
-        IRegistrationContext registrationContext)
+        ILoginNotificationState loginNotificationState)
     {
         InitializeComponent();
         _viewModel = viewModel;
         _navigationService = navigationService;
-        _registrationContext = registrationContext;
+        _loginNotificationState = loginNotificationState;
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         OnStateChanged(_viewModel.State);
     }
@@ -55,7 +56,7 @@ public sealed partial class RegisterView
                     ShowLoading();
                     break;
                 case RegisterState.Success:
-                    _registrationContext.JustRegistered = true;
+                    _loginNotificationState.ShowRegistrationSuccess = true;
                     _navigationService.NavigateTo<LoginView>();
                     break;
                 case RegisterState.AutoLoggedIn:

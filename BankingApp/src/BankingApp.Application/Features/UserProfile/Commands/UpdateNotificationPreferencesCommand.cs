@@ -8,6 +8,8 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record UpdateNotificationPreferencesCommand(int UserId, List<NotificationPreferenceDto> Preferences)
     : IRequest<ErrorOr<Success>>;
@@ -24,7 +26,7 @@ public sealed class UpdateNotificationPreferencesCommandHandler(
         User? user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)
         {
-            logger.NotificationPreferencesUpdateUserNotFound(command.UserId);
+            ApplicationLogMessages.NotificationPreferencesUpdateUserNotFound(logger, command.UserId);
             return UserErrors.NotFound;
         }
 

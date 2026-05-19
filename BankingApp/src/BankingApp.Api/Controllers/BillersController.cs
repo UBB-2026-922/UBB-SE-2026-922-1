@@ -3,11 +3,12 @@ namespace BankingApp.Api.Controllers;
 using Application.Features.Billers.Commands;
 using Application.Features.Billers.Queries;
 using Contracts.Features.Billers.Dtos;
+using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route(ApiEndpoints.Billers.Base)]
 [Authorize]
 public class BillersController : ApiControllerBase
 {
@@ -17,14 +18,14 @@ public class BillersController : ApiControllerBase
         return ToActionResult(await Sender.Send(new GetBillersQuery(), cancellationToken), Ok);
     }
 
-    [HttpGet("saved")]
+    [HttpGet(ApiEndpoints.Billers.Saved)]
     public async Task<IActionResult> GetSavedBillers(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(await Sender.Send(new GetSavedBillersQuery(userId), cancellationToken), Ok);
     }
 
-    [HttpPost("saved")]
+    [HttpPost(ApiEndpoints.Billers.Saved)]
     public async Task<IActionResult> SaveBiller([FromBody] SaveBillerRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
@@ -34,7 +35,7 @@ public class BillersController : ApiControllerBase
             data => CreatedAtAction(nameof(GetSavedBillers), data));
     }
 
-    [HttpDelete("saved/{id:int}")]
+    [HttpDelete(ApiEndpoints.Billers.SavedById)]
     public async Task<IActionResult> RemoveSavedBiller(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();

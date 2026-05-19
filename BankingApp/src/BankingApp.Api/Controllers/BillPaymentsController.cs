@@ -3,6 +3,7 @@ namespace BankingApp.Api.Controllers;
 using Application.Features.BillPayments.Commands;
 using Application.Features.BillPayments.Queries;
 using Contracts.Features.BillPayments.Dtos;
+using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 /// Handles operations related to bill payments.
 /// </summary>
 [ApiController]
-[Route("api/bill-payment")]
+[Route(ApiEndpoints.BillPayments.Base)]
 [Authorize]
 public class BillPaymentsController : ApiControllerBase
 {
@@ -23,7 +24,7 @@ public class BillPaymentsController : ApiControllerBase
     /// </summary>
     /// <param name="amount">The payment amount.</param>
     /// <returns>A response containing the calculated fee.</returns>
-    [HttpGet("fee")]
+    [HttpGet(ApiEndpoints.BillPayments.Fee)]
     public IActionResult CalculateFee([FromQuery] decimal amount)
     {
         decimal fee = amount <= FeeThreshold ? LowTierFee : HighTierFee;
@@ -35,7 +36,7 @@ public class BillPaymentsController : ApiControllerBase
     /// </summary>
     /// <param name="amount">The payment amount.</param>
     /// <returns>A response indicating if 2FA is required.</returns>
-    [HttpGet("requires-2fa")]
+    [HttpGet(ApiEndpoints.BillPayments.Requires2Fa)]
     public IActionResult Requires2Fa([FromQuery] decimal amount)
     {
         bool required = amount >= 1000m;
@@ -48,7 +49,7 @@ public class BillPaymentsController : ApiControllerBase
     /// <param name="request">The bill payment request details.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The result of the payment processing.</returns>
-    [HttpPost("pay")]
+    [HttpPost(ApiEndpoints.BillPayments.Pay)]
     public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
@@ -67,7 +68,7 @@ public class BillPaymentsController : ApiControllerBase
     /// </summary>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>The bill payment history.</returns>
-    [HttpGet("history")]
+    [HttpGet(ApiEndpoints.BillPayments.History)]
     public async Task<IActionResult> GetHistory(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();

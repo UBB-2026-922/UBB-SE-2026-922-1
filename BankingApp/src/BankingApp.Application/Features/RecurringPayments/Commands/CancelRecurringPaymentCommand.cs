@@ -5,6 +5,7 @@ using Domain.Common.Errors;
 using Domain.Repositories;
 using ErrorOr;
 using MediatR;
+using Shared.Persistence;
 
 public sealed record CancelRecurringPaymentCommand(int UserId, int PaymentId) : IRequest<ErrorOr<Success>>;
 

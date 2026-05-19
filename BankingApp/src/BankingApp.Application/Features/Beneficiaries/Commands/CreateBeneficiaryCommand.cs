@@ -9,6 +9,9 @@ using Domain.ValueObjects;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record CreateBeneficiaryCommand(int UserId, string Name, string Iban, string? BankName)
     : IRequest<ErrorOr<BeneficiaryDto>>;
@@ -38,7 +41,7 @@ public sealed class CreateBeneficiaryCommandHandler(
         await beneficiaryRepository.AddAsync(beneficiary, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.BeneficiaryCreated(beneficiary.Id, command.UserId);
+        ApplicationLogMessages.BeneficiaryCreated(logger, beneficiary.Id, command.UserId);
 
         return new BeneficiaryDto
         {

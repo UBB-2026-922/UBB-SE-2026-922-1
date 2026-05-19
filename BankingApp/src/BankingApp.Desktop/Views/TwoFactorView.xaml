@@ -4,7 +4,7 @@
     x:Class="BankingApp.Desktop.Views.TwoFactorView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="using:BankingApp.Desktop.Utilities"
+    xmlns:converters="using:BankingApp.Desktop.Shared.Converters"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Page.Resources>

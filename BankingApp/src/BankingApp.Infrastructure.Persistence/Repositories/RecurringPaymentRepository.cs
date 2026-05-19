@@ -3,6 +3,7 @@ namespace BankingApp.Infrastructure.Persistence.Repositories;
 using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Enums;
 using BankingApp.Domain.Repositories;
+using Data;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class RecurringPaymentRepository(AppDbContext dbContext) : IRecurringPaymentRepository

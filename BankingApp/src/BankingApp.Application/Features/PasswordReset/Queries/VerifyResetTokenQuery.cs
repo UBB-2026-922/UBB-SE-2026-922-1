@@ -2,13 +2,13 @@ namespace BankingApp.Application.Features.PasswordReset.Queries;
 
 using System.Security.Cryptography;
 using System.Text;
-using Common.Utilities;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Common.Errors;
 using Domain.Repositories;
 using ErrorOr;
 using MediatR;
+using Shared.Clock;
 
 public sealed record VerifyResetTokenQuery(string Token)
     : IRequest<ErrorOr<Success>>;

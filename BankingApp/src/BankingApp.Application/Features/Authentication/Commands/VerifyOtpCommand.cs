@@ -1,6 +1,7 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Logging;
+using Common.Notifications;
+using Common.Security;
 using Contracts.Features.Authentication.Dtos;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
@@ -11,8 +12,9 @@ using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Models;
-using Notifications;
-using Security;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record VerifyOtpCommand(int UserId, string OtpCode, SessionMetadata? Metadata = null)
     : IRequest<ErrorOr<LoginSuccess>>;
@@ -37,7 +39,7 @@ public sealed class VerifyOtpCommandHandler(
         User? user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)
         {
-            logger.OtpVerificationUserNotFound(command.UserId);
+            ApplicationLogMessages.OtpVerificationUserNotFound(logger, command.UserId);
             return AuthErrors.UserNotFound;
         }
 
@@ -53,13 +55,13 @@ public sealed class VerifyOtpCommandHandler(
 
         if (verifyResult.IsError)
         {
-            logger.OtpVerificationFailed(user.Id, verifyResult.FirstError.Description);
+            ApplicationLogMessages.OtpVerificationFailed(logger, user.Id, verifyResult.FirstError.Description);
             return verifyResult.FirstError;
         }
 
         if (!verifyResult.Value)
         {
-            logger.OtpVerificationInvalidOrExpired(user.Id);
+            ApplicationLogMessages.OtpVerificationInvalidOrExpired(logger, user.Id);
             if (otpAttemptTracker.RecordFailure(user.Id) < MaxFailedOtpAttempts)
             {
                 return AuthErrors.InvalidOtp;
@@ -67,7 +69,7 @@ public sealed class VerifyOtpCommandHandler(
 
             otpService.InvalidateOtp(user.Id);
             otpAttemptTracker.Reset(user.Id);
-            logger.OtpChallengeInvalidated(user.Id, MaxFailedOtpAttempts);
+            ApplicationLogMessages.OtpChallengeInvalidated(logger, user.Id, MaxFailedOtpAttempts);
             return AuthErrors.OtpAttemptsExceeded;
         }
 
@@ -78,7 +80,7 @@ public sealed class VerifyOtpCommandHandler(
         ErrorOr<string> tokenResult = jwtService.GenerateToken(user.Id);
         if (tokenResult.IsError)
         {
-            logger.TokenGenerationFailed(user.Id, tokenResult.FirstError.Description);
+            ApplicationLogMessages.TokenGenerationFailed(logger, user.Id, tokenResult.FirstError.Description);
             return tokenResult.FirstError;
         }
 
@@ -90,7 +92,7 @@ public sealed class VerifyOtpCommandHandler(
         await identityRepository.UpdateAsync(identity, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.UserLoggedIn(user.Id);
+        ApplicationLogMessages.UserLoggedIn(logger, user.Id);
         await emailService.SendLoginAlertAsync(user.Email.Value);
         return new FullLogin(user.Id, token);
     }

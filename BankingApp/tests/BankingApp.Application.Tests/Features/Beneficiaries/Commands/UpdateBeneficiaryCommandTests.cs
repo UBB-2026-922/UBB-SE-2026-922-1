@@ -6,6 +6,7 @@ using BankingApp.Domain.Common.Errors;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;
+using Shared.Persistence;
 
 public sealed class UpdateBeneficiaryCommandTests
 {

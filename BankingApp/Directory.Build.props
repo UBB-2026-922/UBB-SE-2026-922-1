@@ -5,6 +5,7 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <WarningsNotAsErrors>$(WarningsNotAsErrors);CA1822;CA1848;IDE0057</WarningsNotAsErrors>
+        <NoWarn>$(NoWarn);CA1716</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="all"/>

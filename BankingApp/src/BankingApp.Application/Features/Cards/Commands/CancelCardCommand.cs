@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.Cards.Commands;
 
-using Common.Logging;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Common.Errors;
@@ -9,6 +8,9 @@ using Domain.Repositories;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Shared.Clock;
+using Shared.Persistence;
+using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 
 public sealed record CancelCardCommand(int UserId, int CardId) : IRequest<ErrorOr<Success>>;
 
@@ -29,7 +31,7 @@ public sealed class CancelCardCommandHandler(
 
         if (card is null)
         {
-            logger.CardNotFound(command.CardId, command.UserId);
+            ApplicationLogMessages.CardNotFound(logger, command.CardId, command.UserId);
             return CardErrors.NotFound;
         }
 
@@ -43,7 +45,7 @@ public sealed class CancelCardCommandHandler(
         await accountRepository.UpdateAsync(account, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        logger.CardCancelled(command.CardId, command.UserId);
+        ApplicationLogMessages.CardCancelled(logger, command.CardId, command.UserId);
         return Result.Success;
     }
 }

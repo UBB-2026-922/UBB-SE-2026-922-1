@@ -3,23 +3,23 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 using System.Globalization;
 using Contracts.Features.AccountOverview.Dtos;
 using Contracts.Features.AccountOverview.Services;
-using Enums;
-using BankingApp.Desktop.Utilities;
 using Desktop.ViewModels;
 using Domain.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared;
+using Shared.Enums;
 
 public class DashboardViewModelTests
 {
     private const int CardNumberVisibleSuffixLength = 4;
 
-    private readonly Mock<IDashboardService> _dashboardClientService;
+    private readonly Mock<IAccountOverviewService> _dashboardClientService;
     private readonly DashboardViewModel _viewModel;
 
     public DashboardViewModelTests()
     {
-        _dashboardClientService = new Mock<IDashboardService>(MockBehavior.Strict);
+        _dashboardClientService = new Mock<IAccountOverviewService>(MockBehavior.Strict);
         _viewModel = new DashboardViewModel(_dashboardClientService.Object, NullLogger<DashboardViewModel>.Instance);
     }
 

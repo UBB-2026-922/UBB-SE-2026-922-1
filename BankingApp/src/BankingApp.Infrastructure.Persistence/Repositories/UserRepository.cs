@@ -1,5 +1,6 @@
 namespace BankingApp.Infrastructure.Persistence.Repositories;
 
+using Data;
 using Domain.Aggregates.UserAggregate;
 using Domain.Repositories;
 using Domain.ValueObjects;

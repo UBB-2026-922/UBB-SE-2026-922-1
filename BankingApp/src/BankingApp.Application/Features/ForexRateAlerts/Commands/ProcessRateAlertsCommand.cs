@@ -4,6 +4,7 @@ using Domain.Aggregates.RateAlertAggregate;
 using Domain.Repositories;
 using ErrorOr;
 using MediatR;
+using Shared.Persistence;
 
 public sealed record ProcessRateAlertsCommand : IRequest<ErrorOr<int>>;
 

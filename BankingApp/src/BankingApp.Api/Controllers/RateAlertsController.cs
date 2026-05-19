@@ -3,12 +3,13 @@ namespace BankingApp.Api.Controllers;
 using Application.Features.ForexRateAlerts.Commands;
 using Application.Features.ForexRateAlerts.Queries;
 using Contracts.Features.ForexRateAlerts.Dtos;
+using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Authorize]
-[Route("api/forex/rate-alerts")]
+[Route(ApiEndpoints.RateAlerts.Base)]
 public class RateAlertsController : ApiControllerBase
 {
     [HttpGet]
@@ -31,7 +32,7 @@ public class RateAlertsController : ApiControllerBase
         return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete(ApiEndpoints.RateAlerts.ById)]
     public async Task<IActionResult> DeleteAlert(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();

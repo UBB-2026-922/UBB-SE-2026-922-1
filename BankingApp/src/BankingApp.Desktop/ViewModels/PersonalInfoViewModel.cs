@@ -4,11 +4,11 @@ using System;
 using System.Threading.Tasks;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
-using Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Shared;
+using Shared.Enums;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles personal-profile loading, editing, and password verification for the profile area.</summary>

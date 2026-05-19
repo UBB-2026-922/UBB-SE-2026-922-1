@@ -1,29 +1,26 @@
 namespace BankingApp.Infrastructure.Http.Features.Transfers.Services;
 
+using Application.Shared.Http;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
 using Contracts.Http;
 using ErrorOr;
-using Microsoft.Extensions.Logging;
 
-public sealed class TransferService(IHttpClientFactory httpClientFactory, ILogger<TransferService> logger) : ITransferService
+public sealed class TransferService(IApiClient apiClient) : ITransferService
 {
-    private readonly HttpClient _http = httpClientFactory.CreateClient(HttpClientNames.Api);
-    private readonly ILogger<TransferService> _logger = logger;
-
     public Task<ErrorOr<List<TransferResponse>>> GetHistoryAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<TransferResponse>>(ApiEndpoints.TransferHistory, _logger, ct);
+        => apiClient.GetAsync<List<TransferResponse>>(ApiEndpoints.Transfers.Base, ct);
 
     public Task<ErrorOr<List<TransferAccountSelectionResponse>>> GetAccountsAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<TransferAccountSelectionResponse>>(ApiEndpoints.TransferAccounts, _logger, ct);
+        => apiClient.GetAsync<List<TransferAccountSelectionResponse>>(ApiEndpoints.Transfers.AccountsFull, ct);
 
     public Task<ErrorOr<TransferIbanValidationResponse>> ValidateIbanAsync(TransferIbanValidationRequest request, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<TransferIbanValidationRequest, TransferIbanValidationResponse>(ApiEndpoints.TransferValidateIban, request, _logger, ct);
+        => apiClient.PostAsync<TransferIbanValidationRequest, TransferIbanValidationResponse>(ApiEndpoints.Transfers.ValidateIbanFull, request, ct);
 
     public Task<ErrorOr<TransferForexPreviewResponse>> GetFxPreviewAsync(string fromCurrency, string toCurrency, decimal amount, CancellationToken ct = default)
-        => _http.GetErrorOrAsync<TransferForexPreviewResponse>(
-            $"{ApiEndpoints.TransferFxPreview}?from={Uri.EscapeDataString(fromCurrency)}&to={Uri.EscapeDataString(toCurrency)}&amount={amount}", _logger, ct);
+        => apiClient.GetAsync<TransferForexPreviewResponse>(
+            $"{ApiEndpoints.Transfers.FxPreviewFull}?from={Uri.EscapeDataString(fromCurrency)}&to={Uri.EscapeDataString(toCurrency)}&amount={amount}", ct);
 
     public Task<ErrorOr<TransferExecutionResponse>> ExecuteAsync(CreateTransferRequest request, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<CreateTransferRequest, TransferExecutionResponse>(ApiEndpoints.TransferExecute, request, _logger, ct);
+        => apiClient.PostAsync<CreateTransferRequest, TransferExecutionResponse>(ApiEndpoints.Transfers.ExecuteFull, request, ct);
 }

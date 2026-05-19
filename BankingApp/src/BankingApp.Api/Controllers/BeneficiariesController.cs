@@ -3,6 +3,7 @@ namespace BankingApp.Api.Controllers;
 using Application.Features.Beneficiaries.Commands;
 using Application.Features.Beneficiaries.Queries;
 using Contracts.Features.Beneficiaries.Dtos;
+using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Authorize]
-[Route("api/[controller]")]
+[Route(ApiEndpoints.Beneficiaries.Base)]
 public class BeneficiariesController : ApiControllerBase
 {
     [HttpGet]
@@ -31,7 +32,7 @@ public class BeneficiariesController : ApiControllerBase
         return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut(ApiEndpoints.Beneficiaries.ById)]
     public async Task<IActionResult> UpdateBeneficiary(
         int id,
         [FromBody] UpdateBeneficiaryRequest request,
@@ -42,7 +43,7 @@ public class BeneficiariesController : ApiControllerBase
         return ToActionResult(await Sender.Send(command, cancellationToken));
     }
 
-    [HttpDelete("{id:int}")]
+    [HttpDelete(ApiEndpoints.Beneficiaries.ById)]
     public async Task<IActionResult> DeleteBeneficiary(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();

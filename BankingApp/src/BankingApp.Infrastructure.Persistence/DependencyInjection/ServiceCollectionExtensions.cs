@@ -1,26 +1,24 @@
-namespace BankingApp.Infrastructure.DependencyInjection;
+namespace BankingApp.Infrastructure.Persistence.DependencyInjection;
 
+using System.Text;
+using Application.Common.Notifications;
+using Application.Common.Security;
+using Application.Shared.Persistence;
 using Domain.Repositories;
-using Caching;
-using Common.Clock;
 using Common.Notifications;
 using Common.Security;
-using ExchangeRates;
-using Persistence.Repositories;
+using Data;
+using Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Application;
-using Application.Notifications;
-using Application.Security;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         string connectionString = configuration.GetConnectionString("BankingAppDb")
                                   ?? throw new InvalidOperationException(
@@ -74,14 +72,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
         services.AddScoped<ISavedBillerRepository, SavedBillerRepository>();
 
-        services.AddSingleton<ISystemClock, SystemClock>();
         services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
         services.AddSingleton<IOtpService>(_ => new OtpService(otpSecret));
         services.AddScoped<IHashService, HashService>();
         services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
         services.AddScoped<IEmailService, EmailService>();
-        services.AddSingleton<ILockedRateCache, MemoryLockedRateCache>();
-        services.AddSingleton<IExchangeRateService, ConfigurationExchangeRateService>();
 
         return services;
     }

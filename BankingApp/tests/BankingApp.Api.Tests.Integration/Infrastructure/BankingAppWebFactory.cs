@@ -1,5 +1,5 @@
 using BankingApp.Api.HostedServices;
-using BankingApp.Application.Security;
+using BankingApp.Application.Common.Security;
 using BankingApp.Domain.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
