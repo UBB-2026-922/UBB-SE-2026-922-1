@@ -5,14 +5,16 @@ COPY Directory.Build.props .
 
 # Restore dependencies in a separate layer for cache efficiency.
 COPY src/BankingApp.Domain/BankingApp.Domain.csproj          src/BankingApp.Domain/
+COPY src/BankingApp.Contracts/BankingApp.Contracts.csproj    src/BankingApp.Contracts/
 COPY src/BankingApp.Application/BankingApp.Application.csproj src/BankingApp.Application/
-COPY src/BankingApp.Infrastructure/BankingApp.Infrastructure.csproj src/BankingApp.Infrastructure/
+COPY src/BankingApp.Infrastructure.Persistence/BankingApp.Infrastructure.Persistence.csproj src/BankingApp.Infrastructure.Persistence/
 COPY src/BankingApp.Api/BankingApp.Api.csproj                src/BankingApp.Api/
 RUN dotnet restore src/BankingApp.Api/BankingApp.Api.csproj
 
 COPY src/BankingApp.Domain/       src/BankingApp.Domain/
+COPY src/BankingApp.Contracts/    src/BankingApp.Contracts/
 COPY src/BankingApp.Application/  src/BankingApp.Application/
-COPY src/BankingApp.Infrastructure/ src/BankingApp.Infrastructure/
+COPY src/BankingApp.Infrastructure.Persistence/ src/BankingApp.Infrastructure.Persistence/
 COPY src/BankingApp.Api/          src/BankingApp.Api/
 RUN dotnet publish src/BankingApp.Api/BankingApp.Api.csproj \
     --configuration Release --no-restore --output /app/publish
