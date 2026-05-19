@@ -7,7 +7,7 @@ using Contracts.Features.Billers.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Models.BillPayments;
+using ViewModels.BillPayments;
 
 [Authorize]
 public class BillPaymentsController(

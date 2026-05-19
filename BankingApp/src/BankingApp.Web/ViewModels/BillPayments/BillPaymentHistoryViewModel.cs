@@ -1,4 +1,4 @@
-namespace BankingApp.Web.Models.BillPayments;
+namespace BankingApp.Web.ViewModels.BillPayments;
 
 /// <summary>
 ///     View model for the bill-payment history page (GET /BillPayments/History).

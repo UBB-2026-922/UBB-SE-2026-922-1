@@ -1,4 +1,4 @@
-namespace BankingApp.Web.Models.BillPayments;
+namespace BankingApp.Web.ViewModels.BillPayments;
 
 using System.ComponentModel.DataAnnotations;
 using BankingApp.Contracts.Features.BillPayments.Dtos;

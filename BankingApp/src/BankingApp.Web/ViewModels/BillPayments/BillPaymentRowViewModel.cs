@@ -1,4 +1,4 @@
-namespace BankingApp.Web.Models.BillPayments;
+namespace BankingApp.Web.ViewModels.BillPayments;
 
 /// <summary>
 ///     Represents a single row in the bill-payment history table.

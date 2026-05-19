@@ -8,12 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Cards\Services\" />
-      <Folder Include="Features\PasswordReset\Services\" />
-      <Folder Include="Features\UserRegistration\Services\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="ErrorOr" Version="2.1.0" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
     </ItemGroup>
