@@ -3,23 +3,25 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Application.Common.Utilities;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles active-session loading and revocation for the profile area.</summary>
 public partial class SessionsViewModel : ObservableObject
 {
-    private readonly IProfileClientService _profileClientService;
+    private readonly IProfileService _profileService;
     private readonly ILogger<SessionsViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="SessionsViewModel"/> class.</summary>
-    public SessionsViewModel(IProfileClientService profileClientService, ILogger<SessionsViewModel> logger)
+    public SessionsViewModel(IProfileService profileService, ILogger<SessionsViewModel> logger)
     {
-        _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         ActiveSessions = new List<SessionDto>();
     }
@@ -37,7 +39,7 @@ public partial class SessionsViewModel : ObservableObject
         State = ProfileState.Loading;
         try
         {
-            ErrorOr<List<SessionDto>> result = await _profileClientService.GetSessionsAsync();
+            ErrorOr<List<SessionDto>> result = await _profileService.GetSessionsAsync();
             if (result.IsError)
             {
                 ActiveSessions = new List<SessionDto>();
@@ -51,7 +53,7 @@ public partial class SessionsViewModel : ObservableObject
         }
         catch (Exception exception)
         {
-            _logger.LoadSessionsFailed(exception, userId);
+            DesktopLogMessages.LoadSessionsFailed(_logger, exception, userId);
             ActiveSessions = new List<SessionDto>();
             State = ProfileState.Error;
             return false;
@@ -64,13 +66,13 @@ public partial class SessionsViewModel : ObservableObject
         State = ProfileState.Loading;
         try
         {
-            ErrorOr<Success> result = await _profileClientService.RevokeSessionAsync(sessionId);
+            ErrorOr<Success> result = await _profileService.RevokeSessionAsync(sessionId);
             State = result.IsError ? ProfileState.Error : ProfileState.Idle;
             return !result.IsError;
         }
         catch (Exception exception)
         {
-            _logger.RevokeSessionFailed(exception, sessionId);
+            DesktopLogMessages.RevokeSessionFailed(_logger, exception, sessionId);
             State = ProfileState.Error;
             return false;
         }

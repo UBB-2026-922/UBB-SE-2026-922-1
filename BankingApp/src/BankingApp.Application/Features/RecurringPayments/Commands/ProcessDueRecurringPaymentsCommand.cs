@@ -1,7 +1,5 @@
 namespace BankingApp.Application.Features.RecurringPayments.Commands;
 
-using Common.Contracts;
-using Common.Utilities;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Aggregates.BillPaymentAggregate;

@@ -1,11 +1,10 @@
 namespace BankingApp.Application.Features.Cards.Queries;
 
 using Common.Logging;
+using Contracts.Features.Cards.Dtos;
 using Domain.Aggregates.AccountAggregate;
-using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Common.Errors;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -23,35 +22,28 @@ public sealed class GetCardsQueryHandler(
         {
             IReadOnlyCollection<Account> accounts = await accountRepository.ListByUserIdAsync(query.UserId, cancellationToken);
 
-            var cards = new List<CardDetailsDto>();
-            foreach (Account account in accounts)
-            {
-                foreach (Card card in account.Cards)
+            return (from account in accounts
+                from card in account.Cards
+                select new CardDetailsDto
                 {
-                    cards.Add(new CardDetailsDto
-                    {
-                        Id = card.Id,
-                        CardNumber = card.GetMaskedNumber(),
-                        FullCardNumber = card.CardNumber,
-                        SecurityCode = card.Cvv,
-                        CardholderName = card.CardholderName,
-                        ExpiryDate = card.ExpiryDate,
-                        CardType = card.CardType,
-                        CardBrand = card.CardBrand,
-                        Status = card.Status,
-                        IsContactlessEnabled = card.IsContactlessEnabled,
-                        IsOnlineEnabled = card.IsOnlineEnabled,
-                        AccountName = account.AccountName,
-                        AccountId = account.Id
-                    });
-                }
-            }
-
-            return cards;
+                    Id = card.Id,
+                    CardNumber = card.GetMaskedNumber(),
+                    FullCardNumber = card.CardNumber,
+                    SecurityCode = card.Cvv,
+                    CardholderName = card.CardholderName,
+                    ExpiryDate = card.ExpiryDate,
+                    CardType = card.CardType,
+                    CardBrand = card.CardBrand,
+                    Status = card.Status,
+                    IsContactlessEnabled = card.IsContactlessEnabled,
+                    IsOnlineEnabled = card.IsOnlineEnabled,
+                    AccountName = account.AccountName,
+                    AccountId = account.Id
+                }).ToList();
         }
-        catch (Exception ex)
+        catch (Exception excpetion)
         {
-            logger.GetCardsQueryFailed(query.UserId, ex.Message);
+            logger.GetCardsQueryFailed(query.UserId, excpetion.Message);
             return UserErrors.NotFound;
         }
     }

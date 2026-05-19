@@ -1,7 +1,6 @@
 ﻿namespace BankingApp.Desktop.Tests.ViewModels;
 
 using Enums;
-using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 
 /// <summary>

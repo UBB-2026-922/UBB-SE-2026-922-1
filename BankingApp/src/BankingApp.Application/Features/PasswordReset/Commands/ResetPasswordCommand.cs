@@ -2,8 +2,6 @@ namespace BankingApp.Application.Features.PasswordReset.Commands;
 
 using System.Security.Cryptography;
 using System.Text;
-using Common.Contracts;
-using Common.Contracts.Security;
 using Common.Logging;
 using Common.Utilities;
 using Domain.Aggregates.IdentityAggregate;
@@ -15,6 +13,7 @@ using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Security;
 
 public sealed record ResetPasswordCommand(string Token, string NewPassword)
     : IRequest<ErrorOr<Success>>;

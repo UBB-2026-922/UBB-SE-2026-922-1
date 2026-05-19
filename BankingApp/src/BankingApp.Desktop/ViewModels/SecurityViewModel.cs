@@ -3,24 +3,26 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Application.Common.Utilities;
 using BankingApp.Domain.Enums;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles password changes and two-factor authentication settings for the profile area.</summary>
 public partial class SecurityViewModel : ObservableObject
 {
-    private readonly IProfileClientService _profileClientService;
+    private readonly IProfileService _profileService;
     private readonly ILogger<SecurityViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="SecurityViewModel"/> class.</summary>
-    public SecurityViewModel(IProfileClientService profileClientService, ILogger<SecurityViewModel> logger)
+    public SecurityViewModel(IProfileService profileService, ILogger<SecurityViewModel> logger)
     {
-        _profileClientService = profileClientService ?? throw new ArgumentNullException(nameof(profileClientService));
+        _profileService = profileService ?? throw new ArgumentNullException(nameof(profileService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -51,7 +53,7 @@ public partial class SecurityViewModel : ObservableObject
 
         State = ProfileState.Loading;
         var request = new ChangePasswordRequest(userId, currentPassword, newPassword);
-        ErrorOr<Success> result = await _profileClientService.ChangePasswordAsync(request);
+        ErrorOr<Success> result = await _profileService.ChangePasswordAsync(request);
         return result.Match(
             _ =>
             {
@@ -60,7 +62,7 @@ public partial class SecurityViewModel : ObservableObject
             },
             errors =>
             {
-                _logger.ChangePasswordFailed(errors);
+                DesktopLogMessages.ChangePasswordFailed(_logger, errors);
                 State = ProfileState.Error;
                 string message = errors.First().Code == "incorrect_password"
                     ? UserMessages.Security.IncorrectPassword
@@ -74,7 +76,7 @@ public partial class SecurityViewModel : ObservableObject
     {
         State = ProfileState.Loading;
         var request = new EnableTwoFaRequest { Method = method };
-        ErrorOr<Success> result = await _profileClientService.Enable2FaAsync(request);
+        ErrorOr<Success> result = await _profileService.Enable2FaAsync(request);
         return result.Match(
             _ =>
             {
@@ -83,7 +85,7 @@ public partial class SecurityViewModel : ObservableObject
             },
             errors =>
             {
-                _logger.EnableTwoFactorFailed(errors);
+                DesktopLogMessages.EnableTwoFactorFailed(_logger, errors);
                 State = ProfileState.Error;
                 return false;
             });
@@ -93,7 +95,7 @@ public partial class SecurityViewModel : ObservableObject
     public async Task<bool> DisableTwoFactor()
     {
         State = ProfileState.Loading;
-        ErrorOr<Success> result = await _profileClientService.Disable2FaAsync();
+        ErrorOr<Success> result = await _profileService.Disable2FaAsync();
         return result.Match(
             _ =>
             {
@@ -102,7 +104,7 @@ public partial class SecurityViewModel : ObservableObject
             },
             errors =>
             {
-                _logger.DisableTwoFactorFailed(errors);
+                DesktopLogMessages.DisableTwoFactorFailed(_logger, errors);
                 State = ProfileState.Error;
                 return false;
             });

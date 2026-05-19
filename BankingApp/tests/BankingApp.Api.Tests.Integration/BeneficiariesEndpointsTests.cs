@@ -4,10 +4,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
-using BankingApp.Application.Common.Contracts.Security;
 using BankingApp.Application.Features.Beneficiaries.Commands;
-using BankingApp.Application.Features.Beneficiaries.Dtos;
 using BankingApp.Application.Features.Beneficiaries.Queries;
+using BankingApp.Application.Security;
+using BankingApp.Contracts.Features.Beneficiaries.Dtos;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
 using BankingApp.Domain.Repositories;
 

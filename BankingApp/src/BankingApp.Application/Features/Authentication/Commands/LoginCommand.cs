@@ -1,22 +1,20 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Contracts;
-using Common.Contracts.Notifications;
-using Common.Contracts.Security;
 using Common.Logging;
-using Common.Utilities;
+using Contracts.Features.Authentication.Dtos;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.Repositories;
 using Domain.ValueObjects;
-using Dtos;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Models;
+using Notifications;
+using Security;
 
 public sealed record LoginCommand(string Email, string Password, SessionMetadata? Metadata = null)
     : IRequest<ErrorOr<LoginSuccess>>;

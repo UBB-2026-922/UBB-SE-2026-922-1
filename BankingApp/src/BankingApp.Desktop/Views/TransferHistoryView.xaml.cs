@@ -1,15 +1,15 @@
 ﻿namespace BankingApp.Desktop.Views;
 
+using System;
 using ViewModels;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
 /// <summary>
 ///     Displays the authenticated user's past transfers as a scrollable list.
 ///     Data is loaded automatically when the page is first shown and can be
 ///     refreshed via the Refresh button.
 /// </summary>
-public sealed partial class TransferHistoryView : Page
+public sealed partial class TransferHistoryView
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferHistoryView" /> class.
@@ -32,11 +32,25 @@ public sealed partial class TransferHistoryView : Page
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadHistoryAsync();
+        try
+        {
+            await ViewModel.LoadHistoryAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        await ViewModel.LoadHistoryAsync();
+        try
+        {
+            await ViewModel.LoadHistoryAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 }

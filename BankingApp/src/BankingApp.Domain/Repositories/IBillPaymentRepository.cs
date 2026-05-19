@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Repositories;
 
-using BankingApp.Domain.Aggregates.BillPaymentAggregate;
+using Aggregates.BillPaymentAggregate;
 
 public interface IBillPaymentRepository
 {

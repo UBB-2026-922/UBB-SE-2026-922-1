@@ -1,6 +1,5 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.Common.Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -53,26 +52,22 @@ public abstract class ApiControllerBase : ControllerBase
 
     /// <summary>
     ///     Maps an <see cref="Error" /> to the appropriate HTTP status code and
-    ///     a standardised <see cref="ApplicationErrorResponse" /> body.
+    ///     a standardised <see cref="ObjectResult" /> body.
     /// </summary>
     /// <param name="error">The error to map.</param>
-    /// <returns>An <see cref="IActionResult" /> with the matching HTTP status code.</returns>
-    protected IActionResult MapError(Error error)
+    /// <returns>An <see cref="ObjectResult" /> with the matching HTTP status code.</returns>
+    private ObjectResult MapError(Error error)
     {
-        var body = new ApplicationErrorResponse
+        int status = error.Type switch
         {
-            Error = error.Description,
-            ErrorCode = error.Code,
+            ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+            ErrorType.Forbidden    => StatusCodes.Status403Forbidden,
+            ErrorType.Validation   => StatusCodes.Status400BadRequest,
+            ErrorType.Conflict     => StatusCodes.Status409Conflict,
+            ErrorType.NotFound     => StatusCodes.Status404NotFound,
+            _                      => StatusCodes.Status500InternalServerError
         };
 
-        return error.Type switch
-        {
-            ErrorType.Unauthorized => Unauthorized(body),
-            ErrorType.Forbidden => StatusCode(StatusCodes.Status403Forbidden, body),
-            ErrorType.Validation => BadRequest(body),
-            ErrorType.Conflict => Conflict(body),
-            ErrorType.NotFound => NotFound(body),
-            _ => StatusCode(StatusCodes.Status500InternalServerError, body)
-        };
+        return Problem(detail: error.Description, statusCode: status, title: error.Code);
     }
 }

@@ -1,11 +1,9 @@
 namespace BankingApp.Application.Tests.Features.Beneficiaries.Commands;
 
-using Common.Contracts;
-using Common.Utilities;
 using BankingApp.Application.Features.Beneficiaries.Commands;
-using BankingApp.Application.Features.Beneficiaries.Dtos;
 using Domain.Aggregates.BeneficiaryAggregate;
 using BankingApp.Domain.Common.Errors;
+using Contracts.Features.Beneficiaries.Dtos;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;

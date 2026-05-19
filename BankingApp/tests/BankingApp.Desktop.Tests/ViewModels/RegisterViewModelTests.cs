@@ -1,14 +1,13 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using Enums;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class RegisterViewModelTests
 {
-    private readonly Mock<IAuthClientService> _authClientService = new();
+    private readonly Mock<IAuthService> _authClientService = new();
 
     [Fact]
     public async Task Register_WhenEmptyFields_SetsErrorState()

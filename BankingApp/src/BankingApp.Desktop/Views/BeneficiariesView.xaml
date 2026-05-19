@@ -4,7 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:local="using:BankingApp.Application.Features.Beneficiaries.Dtos"
+    xmlns:local="using:BankingApp.Contracts.Features.Beneficiaries.Dtos"
+    xmlns:dtos="using:BankingApp.Contracts.Features.Beneficiaries.Dtos"
     mc:Ignorable="d"
     Background="#F4F6FA">
 
@@ -22,7 +23,7 @@
 
         <ListView Grid.Row="1" ItemsSource="{x:Bind ViewModel.Beneficiaries, Mode=OneWay}" SelectionMode="None">
             <ListView.ItemTemplate>
-                <DataTemplate x:DataType="local:BeneficiaryDto">
+                <DataTemplate x:DataType="dtos:BeneficiaryDto">
                     <Grid Margin="0,5,0,5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />

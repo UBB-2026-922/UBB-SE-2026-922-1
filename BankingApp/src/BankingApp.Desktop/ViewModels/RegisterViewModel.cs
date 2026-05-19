@@ -4,21 +4,21 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates user-registration requests for the register view.</summary>
 public partial class RegisterViewModel : ObservableObject
 {
-    private readonly IAuthClientService _authClientService;
+    private readonly IAuthService _authService;
     private readonly ILogger<RegisterViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="RegisterViewModel"/> class.</summary>
-    public RegisterViewModel(IAuthClientService authClientService, ILogger<RegisterViewModel> logger)
+    public RegisterViewModel(IAuthService authService, ILogger<RegisterViewModel> logger)
     {
-        _authClientService = authClientService ?? throw new ArgumentNullException(nameof(authClientService));
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -39,9 +39,9 @@ public partial class RegisterViewModel : ObservableObject
         }
 
         State = RegisterState.Loading;
-        ErrorOr<Success> result = await _authClientService.RegisterAsync(email, password, fullName);
+        ErrorOr<Success> result = await _authService.RegisterAsync(email, password, fullName);
         result.Switch(
-            _ => { State = RegisterState.Success; },
+            _ => State = RegisterState.Success,
             errors =>
             {
                 Error error = errors.First();
@@ -59,13 +59,14 @@ public partial class RegisterViewModel : ObservableObject
                 }
                 else
                 {
-                    _logger.RegisterFailed(errors);
+                    DesktopLogMessages.RegisterFailed(_logger, errors);
                     State = RegisterState.Error;
                 }
             });
     }
 
-    private static RegisterState? ValidateLocally(string email, string password, string confirmPassword, string fullName)
+    private static RegisterState? ValidateLocally(string email, string password, string confirmPassword,
+        string fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName)
             || string.IsNullOrWhiteSpace(email)

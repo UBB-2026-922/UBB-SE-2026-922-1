@@ -5,8 +5,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
 using BankingApp.Application.Features.UserProfile.Commands;
-using BankingApp.Application.Features.UserProfile.Dtos;
 using BankingApp.Application.Features.UserProfile.Queries;
+using BankingApp.Contracts.Features.UserProfile.Dtos;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
 
 public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>

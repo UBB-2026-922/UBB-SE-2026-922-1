@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Repositories;
 
-using BankingApp.Domain.Aggregates.RecurringPaymentAggregate;
+using Aggregates.RecurringPaymentAggregate;
 
 public interface IRecurringPaymentRepository
 {

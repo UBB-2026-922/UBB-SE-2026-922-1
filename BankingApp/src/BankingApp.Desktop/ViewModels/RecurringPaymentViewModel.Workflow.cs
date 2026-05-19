@@ -4,11 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Application.Features.BillPayments.Dtos;
-using Application.Features.Billers.Dtos;
-using Application.Features.RecurringPayments.Dtos;
 using BankingApp.Domain.Enums;
+using Contracts.Features.Billers.Dtos;
+using Contracts.Features.BillPayments.Dtos;
+using Contracts.Features.RecurringPayments.Dtos;
+using Contracts.Features.Billers.Services;
+using Contracts.Features.RecurringPayments.Services;
 using ErrorOr;
 
 public partial class RecurringPaymentViewModel
@@ -43,7 +46,7 @@ public partial class RecurringPaymentViewModel
 
             CreateRecurringPaymentRequest request = BuildCreateRequest();
             ErrorOr<RecurringPaymentResponse> result =
-                await _billPaymentClientService.CreateRecurringPaymentAsync(request);
+                await _recurringPaymentService.CreateAsync(request);
 
             if (result.IsError)
             {
@@ -65,7 +68,7 @@ public partial class RecurringPaymentViewModel
         await ChangePaymentStatusAsync(
             payment,
             "Please select a recurring payment to pause.",
-            _billPaymentClientService.PauseRecurringPaymentAsync,
+            (id, ct) => _recurringPaymentService.PauseAsync(id, ct),
             RecurringPaymentStatus.Paused,
             "pause");
     }
@@ -75,7 +78,7 @@ public partial class RecurringPaymentViewModel
         await ChangePaymentStatusAsync(
             payment,
             "Please select a recurring payment to resume.",
-            _billPaymentClientService.ResumeRecurringPaymentAsync,
+            (id, ct) => _recurringPaymentService.ResumeAsync(id, ct),
             RecurringPaymentStatus.Active,
             "resume");
     }
@@ -85,14 +88,14 @@ public partial class RecurringPaymentViewModel
         await ChangePaymentStatusAsync(
             payment,
             "Please select a recurring payment to cancel.",
-            _billPaymentClientService.CancelRecurringPaymentAsync,
+            (id, ct) => _recurringPaymentService.CancelAsync(id, ct),
             RecurringPaymentStatus.Cancelled,
             "cancel");
     }
 
     private async Task LoadAccountsAsync()
     {
-        ErrorOr<List<AccountDto>> result = await _billPaymentClientService.GetAccountsAsync();
+        ErrorOr<List<AccountDto>> result = await _billPaymentService.GetAccountsAsync();
         if (!result.IsError)
         {
             Accounts = new ObservableCollection<AccountDto>(result.Value);
@@ -101,7 +104,7 @@ public partial class RecurringPaymentViewModel
 
     private async Task LoadPaymentsAsync()
     {
-        ErrorOr<List<RecurringPaymentResponse>> result = await _billPaymentClientService.GetRecurringPaymentsAsync();
+        ErrorOr<List<RecurringPaymentResponse>> result = await _recurringPaymentService.GetAllAsync();
         if (!result.IsError)
         {
             Payments = new ObservableCollection<RecurringPaymentResponse>(result.Value);
@@ -110,7 +113,7 @@ public partial class RecurringPaymentViewModel
 
     private async Task LoadBillersAsync()
     {
-        ErrorOr<List<BillerDto>> result = await _billPaymentClientService.GetBillersAsync();
+        ErrorOr<List<BillerDto>> result = await _billerService.GetBillersAsync();
         if (!result.IsError)
         {
             Billers = new ObservableCollection<BillerDto>(result.Value);
@@ -159,11 +162,11 @@ public partial class RecurringPaymentViewModel
         };
 
     private async Task ChangePaymentStatusAsync(
-        RecurringPaymentResponse? payment,
-        string missingSelectionMessage,
-        Func<int, Task<ErrorOr<Success>>> operation,
-        RecurringPaymentStatus newStatus,
-        string operationName)
+            RecurringPaymentResponse? payment,
+            string missingSelectionMessage,
+            Func<int, CancellationToken, Task<ErrorOr<Success>>> operation,
+            RecurringPaymentStatus newStatus,
+            string operationName)
     {
         try
         {
@@ -175,7 +178,7 @@ public partial class RecurringPaymentViewModel
                 return;
             }
 
-            ErrorOr<Success> result = await operation(payment.Id);
+            ErrorOr<Success> result = await operation(payment.Id, CancellationToken.None);
             if (result.IsError)
             {
                 ErrorMessage = result.FirstError.Description;

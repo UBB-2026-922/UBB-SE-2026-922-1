@@ -3,11 +3,13 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.BillPayments.Dtos;
-using BankingApp.Application.Features.Billers.Dtos;
-using BankingApp.Application.Features.RecurringPayments.Dtos;
-using BankingApp.Desktop.Services;
 using BankingApp.Domain.Enums;
+using Contracts.Features.Billers.Dtos;
+using Contracts.Features.BillPayments.Dtos;
+using Contracts.Features.BillPayments.Services;
+using Contracts.Features.Billers.Services;
+using Contracts.Features.RecurringPayments.Dtos;
+using Contracts.Features.RecurringPayments.Services;
 using Microsoft.UI.Xaml;
 
 /// <summary>Manages recurring bill payment creation and lifecycle actions for the desktop client.</summary>
@@ -16,12 +18,19 @@ public partial class RecurringPaymentViewModel : ObservableObject
     private const int NoBillerSelected = 0;
     private const decimal NoAmount = 0m;
 
-    private readonly IBillPaymentClientService _billPaymentClientService;
+    private readonly IBillPaymentService _billPaymentService;
+    private readonly IBillerService _billerService;
+    private readonly IRecurringPaymentService _recurringPaymentService;
 
     /// <summary>Initializes a new instance of the <see cref="RecurringPaymentViewModel"/> class.</summary>
-    public RecurringPaymentViewModel(IBillPaymentClientService billPaymentClientService)
+    public RecurringPaymentViewModel(
+        IBillPaymentService billPaymentService,
+        IBillerService billerService,
+        IRecurringPaymentService recurringPaymentService)
     {
-        _billPaymentClientService = billPaymentClientService ?? throw new ArgumentNullException(nameof(billPaymentClientService));
+        _billPaymentService = billPaymentService ?? throw new ArgumentNullException(nameof(billPaymentService));
+        _billerService = billerService ?? throw new ArgumentNullException(nameof(billerService));
+        _recurringPaymentService = recurringPaymentService ?? throw new ArgumentNullException(nameof(recurringPaymentService));
 
         Payments = [];
         Accounts = [];
@@ -97,7 +106,7 @@ public partial class RecurringPaymentViewModel : ObservableObject
 
     /// <summary>Gets or sets the accounts available as funding sources.</summary>
     [ObservableProperty]
-    public partial ObservableCollection<AccountDto> Accounts { get; set; } = default!;
+    public partial ObservableCollection<AccountDto> Accounts { get; set; }
 
     /// <summary>Gets or sets the selected funding account.</summary>
     [ObservableProperty]
@@ -105,11 +114,11 @@ public partial class RecurringPaymentViewModel : ObservableObject
 
     /// <summary>Gets or sets the billers available for recurring payments.</summary>
     [ObservableProperty]
-    public partial ObservableCollection<BillerDto> Billers { get; set; } = default!;
+    public partial ObservableCollection<BillerDto> Billers { get; set; }
 
     /// <summary>Gets or sets the selected biller.</summary>
     [ObservableProperty]
-    public partial BillerDto? SelectedBiller { get; set; } = default!;
+    public partial BillerDto? SelectedBiller { get; set; } = null!;
 
     partial void OnSelectedBillerChanged(BillerDto? value)
     {
@@ -118,7 +127,7 @@ public partial class RecurringPaymentViewModel : ObservableObject
 
     /// <summary>Gets or sets the supported recurrence frequencies.</summary>
     [ObservableProperty]
-    public partial ObservableCollection<RecurringFrequency> Frequencies { get; set; } = default!;
+    public partial ObservableCollection<RecurringFrequency> Frequencies { get; set; }
 
     /// <summary>Creates a recurring payment using the current form values.</summary>
     public Task CreateAsync() => ExecuteCreateAsync();

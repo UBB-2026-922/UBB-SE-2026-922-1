@@ -1,9 +1,7 @@
 namespace BankingApp.Application.Features.Transfers.Commands;
 
-using Common.Contracts;
-using Common.Contracts.Security;
 using Common.Logging;
-using Common.Utilities;
+using Contracts.Features.Transfers.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Aggregates.BeneficiaryAggregate;
@@ -12,11 +10,11 @@ using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.Repositories;
 using Domain.ValueObjects;
-using Dtos;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Security;
 using Money = NodaMoney.Money;
 using Currency = NodaMoney.Currency;
 
@@ -106,7 +104,8 @@ public sealed class ExecuteTransferCommandHandler(
 
         transfer.MarkExecuted(transaction.Id, now.AddDays(1));
 
-        await UpdateBeneficiaryStatsAsync(command.UserId, transfer.RecipientIban, transfer.Amount.Amount, now, cancellationToken);
+        await UpdateBeneficiaryStatsAsync(command.UserId, transfer.RecipientIban, transfer.Amount.Amount, now,
+            cancellationToken);
         await accountRepository.UpdateAsync(account, cancellationToken);
         await transferRepository.AddAsync(transfer, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -217,7 +216,8 @@ public sealed class ExecuteTransferCommandHandler(
         DateTime now,
         CancellationToken cancellationToken)
     {
-        IReadOnlyCollection<Beneficiary> beneficiaries = await beneficiaryRepository.ListByUserIdAsync(userId, cancellationToken);
+        IReadOnlyCollection<Beneficiary> beneficiaries =
+            await beneficiaryRepository.ListByUserIdAsync(userId, cancellationToken);
         Beneficiary? beneficiary = beneficiaries.FirstOrDefault(b => b.Iban.Value == iban.Value);
         if (beneficiary is not null)
         {

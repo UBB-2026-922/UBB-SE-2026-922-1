@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.RecurringPayments.Queries;
 
+using Contracts.Features.RecurringPayments.Dtos;
 using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -11,25 +11,27 @@ public sealed record GetRecurringPaymentsQuery(int UserId) : IRequest<ErrorOr<Li
 public sealed class GetRecurringPaymentsQueryHandler(IRecurringPaymentRepository recurringPaymentRepository)
     : IRequestHandler<GetRecurringPaymentsQuery, ErrorOr<List<RecurringPaymentResponse>>>
 {
-    public async Task<ErrorOr<List<RecurringPaymentResponse>>> Handle(GetRecurringPaymentsQuery query, CancellationToken cancellationToken)
+    public async Task<ErrorOr<List<RecurringPaymentResponse>>> Handle(GetRecurringPaymentsQuery query,
+        CancellationToken cancellationToken)
     {
-        IReadOnlyCollection<RecurringPayment> payments = await recurringPaymentRepository.ListByUserIdAsync(query.UserId, cancellationToken);
+        IReadOnlyCollection<RecurringPayment> payments =
+            await recurringPaymentRepository.ListByUserIdAsync(query.UserId, cancellationToken);
         return payments
-            .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new RecurringPaymentResponse
+            .OrderByDescending(recurringPayment => recurringPayment.CreatedAt)
+            .Select(recurringPayment => new RecurringPaymentResponse
             {
-                Id = p.Id,
-                UserId = p.UserId,
-                BillerId = p.BillerId,
-                SourceAccountId = p.SourceAccountId,
-                Amount = p.Amount,
-                IsPayInFull = p.IsPayInFull,
-                Frequency = p.Frequency,
-                StartDate = p.StartDate,
-                EndDate = p.EndDate,
-                NextExecutionDate = p.NextExecutionDate,
-                Status = p.Status,
-                CreatedAt = p.CreatedAt
+                Id = recurringPayment.Id,
+                UserId = recurringPayment.UserId,
+                BillerId = recurringPayment.BillerId,
+                SourceAccountId = recurringPayment.SourceAccountId,
+                Amount = recurringPayment.Amount,
+                IsPayInFull = recurringPayment.IsPayInFull,
+                Frequency = recurringPayment.Frequency,
+                StartDate = recurringPayment.StartDate,
+                EndDate = recurringPayment.EndDate,
+                NextExecutionDate = recurringPayment.NextExecutionDate,
+                Status = recurringPayment.Status,
+                CreatedAt = recurringPayment.CreatedAt
             })
             .ToList();
     }

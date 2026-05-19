@@ -3,12 +3,14 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.Billers.Dtos;
-using BankingApp.Application.Features.BillPayments.Dtos;
-using BankingApp.Application.Features.RecurringPayments.Dtos;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
+using Contracts.Features.Billers.Dtos;
+using Contracts.Features.Billers.Services;
+using Contracts.Features.BillPayments.Dtos;
+using Contracts.Features.BillPayments.Services;
+using Contracts.Features.RecurringPayments.Dtos;
+using Contracts.Features.RecurringPayments.Services;
 using ErrorOr;
 using FluentAssertions;
 using Microsoft.UI.Xaml;
@@ -17,13 +19,20 @@ using Xunit;
 
 public class RecurringPaymentViewModelTests
 {
-    private readonly Mock<IBillPaymentClientService> _billPaymentClientService;
+    private readonly Mock<IBillPaymentService> _billPaymentClientService;
+    private readonly Mock<IBillerService> _billerClientService;
+    private readonly Mock<IRecurringPaymentService> _recurringPaymentClientService;
     private readonly RecurringPaymentViewModel _viewModel;
 
     public RecurringPaymentViewModelTests()
     {
-        _billPaymentClientService = new Mock<IBillPaymentClientService>(MockBehavior.Strict);
-        _viewModel = new RecurringPaymentViewModel(_billPaymentClientService.Object);
+        _billPaymentClientService = new Mock<IBillPaymentService>(MockBehavior.Strict);
+        _billerClientService = new Mock<IBillerService>(MockBehavior.Strict);
+        _recurringPaymentClientService = new Mock<IRecurringPaymentService>(MockBehavior.Strict);
+        _viewModel = new RecurringPaymentViewModel(
+            _billPaymentClientService.Object,
+            _billerClientService.Object,
+            _recurringPaymentClientService.Object);
     }
 
     [Fact]
@@ -45,9 +54,9 @@ public class RecurringPaymentViewModelTests
 
         _billPaymentClientService.Setup(service => service.GetAccountsAsync())
             .ReturnsAsync(accounts);
-        _billPaymentClientService.Setup(service => service.GetRecurringPaymentsAsync())
+        _recurringPaymentClientService.Setup(service => service.GetAllAsync())
             .ReturnsAsync(payments);
-        _billPaymentClientService.Setup(service => service.GetBillersAsync(null, null))
+        _billerClientService.Setup(service => service.GetBillersAsync(null, null, default))
             .ReturnsAsync(billers);
 
         // Act
@@ -85,7 +94,7 @@ public class RecurringPaymentViewModelTests
             StartDate = startDate,
         };
 
-        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CreateRecurringPaymentAsync(
+        _recurringPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CreateAsync(
                 It.Is<CreateRecurringPaymentRequest>(dto =>
                     dto.BillerId == biller.Id &&
                     dto.SourceAccountId == account.Id &&
@@ -112,7 +121,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.PauseRecurringPaymentAsync(payment.Id))
+        _recurringPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.PauseAsync(payment.Id, default))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -130,7 +139,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Paused };
         _viewModel.Payments.Add(payment);
 
-        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.ResumeRecurringPaymentAsync(payment.Id))
+        _recurringPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.ResumeAsync(payment.Id, default))
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -148,7 +157,7 @@ public class RecurringPaymentViewModelTests
         var payment = new RecurringPaymentResponse { Id = 1, Status = RecurringPaymentStatus.Active };
         _viewModel.Payments.Add(payment);
 
-        _billPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CancelRecurringPaymentAsync(payment.Id))
+        _recurringPaymentClientService.Setup(billPaymentClientService => billPaymentClientService.CancelAsync(payment.Id, default))
             .ReturnsAsync(Result.Success);
 
         // Act

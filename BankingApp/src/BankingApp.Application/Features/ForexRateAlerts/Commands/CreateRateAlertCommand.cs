@@ -1,11 +1,9 @@
 namespace BankingApp.Application.Features.ForexRateAlerts.Commands;
 
-using Common.Contracts;
-using Common.Utilities;
+using Contracts.Features.ForexRateAlerts.Dtos;
 using Domain.Aggregates.RateAlertAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Currency = NodaMoney.Currency;
@@ -24,7 +22,8 @@ public sealed class CreateRateAlertCommandHandler(
     ISystemClock clock)
     : IRequestHandler<CreateRateAlertCommand, ErrorOr<ForexRateAlertDto>>
 {
-    public async Task<ErrorOr<ForexRateAlertDto>> Handle(CreateRateAlertCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<ForexRateAlertDto>> Handle(CreateRateAlertCommand command,
+        CancellationToken cancellationToken)
     {
         Currency baseCurrency;
         Currency quoteCurrency;

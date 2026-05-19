@@ -1,8 +1,6 @@
 namespace BankingApp.Application.Features.Cards.Commands;
 
-using Common.Contracts;
 using Common.Logging;
-using Common.Utilities;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Common.Errors;

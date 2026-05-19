@@ -1,16 +1,18 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
 using System.Collections.Generic;
-using BankingApp.Application.Features.Billers.Dtos;
-using BankingApp.Application.Features.BillPayments.Dtos;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.ViewModels;
+using Contracts.Features.Billers.Dtos;
+using Contracts.Features.Billers.Services;
+using Contracts.Features.BillPayments.Dtos;
+using Contracts.Features.BillPayments.Services;
 using ErrorOr;
 using Navigation;
 
 public class BillPayViewModelTests
 {
-    private readonly Mock<IBillPaymentClientService> _billPaymentClientService = new();
+    private readonly Mock<IBillPaymentService> _billPaymentClientService = new();
+    private readonly Mock<IBillerService> _billerClientService = new();
     private readonly Mock<IAppNavigationService> _navigationService = new();
 
     [Fact]
@@ -34,11 +36,11 @@ public class BillPayViewModelTests
     public async Task LoadAsync_WhenBillersApiFails_ShouldKeepBillersEmpty()
     {
         // Arrange
-        _billPaymentClientService
-            .Setup(service => service.GetBillersAsync(null, null))
+        _billerClientService
+            .Setup(service => service.GetBillersAsync(null, null, default))
             .ReturnsAsync(Error.Failure(description: "Server error"));
-        _billPaymentClientService
-            .Setup(service => service.GetSavedBillersAsync())
+        _billerClientService
+            .Setup(service => service.GetSavedBillersAsync(default))
             .ReturnsAsync(CreateMockSavedBillers());
         _billPaymentClientService
             .Setup(service => service.GetAccountsAsync())
@@ -327,7 +329,7 @@ public class BillPayViewModelTests
                 Amount = 200m,
                 Status = "Completed",
             });
-        _billPaymentClientService
+        _billerClientService
             .Setup(billPaymentClientService => billPaymentClientService.SaveBillerAsync(It.IsAny<SaveBillerRequest>()))
             .ReturnsAsync(new SavedBillerDto
             {
@@ -346,7 +348,7 @@ public class BillPayViewModelTests
 
         await vm.ExecutePayBillAsync();
 
-        _billPaymentClientService.Verify(
+        _billerClientService.Verify(
             s => s.SaveBillerAsync(It.IsAny<SaveBillerRequest>()),
             Times.Once);
         vm.SavedBillers.Should().HaveCount(1);
@@ -508,19 +510,19 @@ public class BillPayViewModelTests
 
     private BillPayViewModel CreateViewModel()
     {
-        return new BillPayViewModel(_billPaymentClientService.Object, _navigationService.Object);
+        return new BillPayViewModel(_billPaymentClientService.Object, _billerClientService.Object, _navigationService.Object);
     }
 
     private void SetupSuccessfulLoad()
     {
         _billPaymentClientService
-            .Setup(billPaymentClientService => billPaymentClientService.GetBillersAsync(null, null))
-            .ReturnsAsync(CreateMockBillers());
-        _billPaymentClientService
-            .Setup(billPaymentClientService => billPaymentClientService.GetSavedBillersAsync())
-            .ReturnsAsync(CreateMockSavedBillers());
-        _billPaymentClientService
             .Setup(billPaymentClientService => billPaymentClientService.GetAccountsAsync())
             .ReturnsAsync(CreateMockAccounts());
+        _billerClientService
+            .Setup(billPaymentClientService => billPaymentClientService.GetBillersAsync(null, null, default))
+            .ReturnsAsync(CreateMockBillers());
+        _billerClientService
+            .Setup(billPaymentClientService => billPaymentClientService.GetSavedBillersAsync(default))
+            .ReturnsAsync(CreateMockSavedBillers());
     }
 }

@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Repositories;
 
-using BankingApp.Domain.Aggregates.SavedBillerAggregate;
+using Aggregates.SavedBillerAggregate;
 
 public interface ISavedBillerRepository
 {

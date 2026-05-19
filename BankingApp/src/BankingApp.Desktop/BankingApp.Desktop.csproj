@@ -72,6 +72,7 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj" />
+        <ProjectReference Include="..\BankingApp.Infrastructure.Http\BankingApp.Infrastructure.Http.csproj" />
     </ItemGroup>
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
@@ -122,7 +123,6 @@
             <Generator>MSBuild:Compile</Generator>
         </Page>
     </ItemGroup>
-
     <!--
       Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
       Explorer "Package and Publish" context menu entry to be enabled for this project even if

@@ -1,16 +1,16 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
 using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class ProfileViewModelTests
 {
-    private readonly Mock<IProfileClientService> _profileClientService = new(MockBehavior.Strict);
+    private readonly Mock<IProfileService> _profileClientService = new(MockBehavior.Strict);
 
     [Fact]
     public async Task LoadProfile_WhenApiReturnsProfile_PopulatesProfileDto()

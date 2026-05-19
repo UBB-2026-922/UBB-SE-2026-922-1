@@ -4,6 +4,7 @@ using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Application.Features.UserRegistration.Commands;
 using BankingApp.Domain.Common.Errors;
+using BankingApp.Infrastructure;
 using BankingApp.Infrastructure.DependencyInjection;
 using BankingApp.Infrastructure.Persistence;
 using ErrorOr;

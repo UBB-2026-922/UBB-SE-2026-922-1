@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.ForexRateAlerts.Commands;
 
-using Common.Contracts;
 using Domain.Aggregates.RateAlertAggregate;
 using Domain.Repositories;
 using ErrorOr;

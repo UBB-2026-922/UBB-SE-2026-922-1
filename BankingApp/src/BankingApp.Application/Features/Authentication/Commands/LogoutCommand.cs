@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Contracts;
 using Common.Logging;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.IdentityAggregate.Entities;

@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.Transfers.Dtos;
-using Services.Transfers;
-using BankingApp.Application.Common.Utilities;
+using Contracts.Features.Transfers.Dtos;
+using Contracts.Features.Transfers.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>
 ///     Provides data for the transfer history page.
@@ -22,16 +23,16 @@ public partial class TransferHistoryViewModel : ObservableObject
     private const string FallbackReference = "—";
 
     private readonly ILogger<TransferHistoryViewModel> _logger;
-    private readonly ITransferClientService _transferClientService;
+    private readonly ITransferService _transferService;
 
     /// <summary>Initializes a new instance of the <see cref="TransferHistoryViewModel"/> class.</summary>
     public TransferHistoryViewModel(
-        ITransferClientService transferClientService,
+        ITransferService transferService,
         ILogger<TransferHistoryViewModel> logger)
     {
-        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
+        _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        Transfers = new ObservableCollection<TransferHistoryDisplayItem>();
+        Transfers = [];
     }
 
     /// <summary>Gets the pre-formatted transfer items shown in the list.</summary>
@@ -41,7 +42,7 @@ public partial class TransferHistoryViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
     [NotifyPropertyChangedFor(nameof(HasNoTransfers))]
-public partial string ErrorMessage { get; set; } = string.Empty;
+    public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>Gets a value indicating whether an error message is currently active.</summary>
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
@@ -49,7 +50,7 @@ public partial string ErrorMessage { get; set; } = string.Empty;
     /// <summary>Gets or sets a value indicating whether data is currently being fetched.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasNoTransfers))]
-public partial bool IsLoading { get; set; } = default!;
+    public partial bool IsLoading { get; set; } = false;
 
     /// <summary>Gets a value indicating whether the list is empty and no error occurred.</summary>
     public bool HasNoTransfers => !IsLoading && !HasError && Transfers.Count == 0;
@@ -63,7 +64,7 @@ public partial bool IsLoading { get; set; } = default!;
 
         try
         {
-            ErrorOr<List<TransferResponse>> result = await _transferClientService.GetTransferHistoryAsync();
+            ErrorOr<List<TransferResponse>> result = await _transferService.GetHistoryAsync();
 
             if (result.IsError)
             {
@@ -80,7 +81,7 @@ public partial bool IsLoading { get; set; } = default!;
         }
         catch (Exception loadException)
         {
-            _logger.LoadTransferHistoryFailedUnexpected(loadException);
+            DesktopLogMessages.LoadTransferHistoryFailedUnexpected(_logger, loadException);
             ErrorMessage = UserMessages.TransferHistory.LoadFailed;
         }
         finally

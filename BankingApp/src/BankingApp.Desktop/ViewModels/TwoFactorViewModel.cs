@@ -2,30 +2,31 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.Authentication.Dtos;
+using Contracts.Features.Authentication.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Application.Common.Utilities;
 using ErrorOr;
+using Logging;
 using Microsoft.Extensions.Logging;
+using Utilities;
+using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates OTP verification and resend operations for the two-factor flow.</summary>
 public partial class TwoFactorViewModel : ObservableObject
 {
     private const int ResendCooldownSeconds = 30;
     private const int OtpRequiredLength = 6;
-    private readonly IAuthClientService _authClientService;
+    private readonly IAuthService _authService;
     private readonly ICountdownTimer _countdownTimer;
     private readonly ILogger<TwoFactorViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="TwoFactorViewModel"/> class.</summary>
     public TwoFactorViewModel(
-        IAuthClientService authClientService,
+        IAuthService authService,
         ICountdownTimer countdownTimer,
         ILogger<TwoFactorViewModel> logger,
         bool isLocked = false)
     {
-        _authClientService = authClientService ?? throw new ArgumentNullException(nameof(authClientService));
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _countdownTimer = countdownTimer ?? throw new ArgumentNullException(nameof(countdownTimer));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         IsLocked = isLocked;
@@ -43,7 +44,7 @@ public partial class TwoFactorViewModel : ObservableObject
     /// <summary>Gets or sets a value indicating whether a two-factor request is currently in progress.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsInputEnabled))]
-public partial bool IsLoading { get; set; } = default!;
+    public partial bool IsLoading { get; set; } = default!;
 
     /// <summary>Gets a value indicating whether OTP input controls should be enabled.</summary>
     public bool IsInputEnabled => !IsLoading && !IsLocked;
@@ -61,7 +62,7 @@ public partial bool IsLoading { get; set; } = default!;
     [NotifyPropertyChangedFor(nameof(CanResend))]
     [NotifyPropertyChangedFor(nameof(IsCountdownVisible))]
     [NotifyPropertyChangedFor(nameof(CountdownDisplayText))]
-public partial int SecondsRemaining { get; set; } = default!;
+    public partial int SecondsRemaining { get; set; } = default!;
 
     /// <summary>Gets a value indicating whether a new OTP may be requested.</summary>
     public bool CanResend => SecondsRemaining <= 0;
@@ -86,18 +87,18 @@ public partial int SecondsRemaining { get; set; } = default!;
 
         IsLoading = true;
         State = TwoFactorState.Verifying;
-        int? userId = _authClientService.CurrentUserId;
+        int? userId = _authService.CurrentUserId;
         if (userId == null)
         {
             ApplyInvalidOtp();
             return;
         }
 
-        ErrorOr<LoginSuccessResponse> result = await _authClientService.VerifyOtpAsync(userId.Value, OtpCode);
+        ErrorOr<LoginSuccessResponse> result = await _authService.VerifyOtpAsync(userId.Value, OtpCode);
         result.Switch(
             response =>
             {
-                _authClientService.SetToken(response.Token!);
+                _authService.SetToken(response.Token!);
                 IsLoading = false;
                 State = TwoFactorState.Success;
             },
@@ -105,7 +106,7 @@ public partial int SecondsRemaining { get; set; } = default!;
             {
                 if (errors[0].Type != ErrorType.Unauthorized)
                 {
-                    _logger.VerifyOtpFailed(errors);
+                    DesktopLogMessages.VerifyOtpFailed(_logger, errors);
                 }
 
                 ApplyInvalidOtp();
@@ -124,14 +125,14 @@ public partial int SecondsRemaining { get; set; } = default!;
         SecondsRemaining = ResendCooldownSeconds;
         _countdownTimer.Start();
         State = TwoFactorState.Idle;
-        int? userId = _authClientService.CurrentUserId;
+        int? userId = _authService.CurrentUserId;
         if (userId == null)
         {
             return;
         }
 
-        ErrorOr<object> result = await _authClientService.ResendOtpAsync(userId.Value);
-        result.Switch(_ => { }, errors => _logger.ResendOtpFailed(errors));
+        ErrorOr<object> result = await _authService.ResendOtpAsync(userId.Value);
+        result.Switch(_ => { }, errors => DesktopLogMessages.ResendOtpFailed(_logger, errors));
     }
 
     private void OnCountdownTick(object? sender, EventArgs routedEventArgs)

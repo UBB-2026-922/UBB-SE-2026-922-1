@@ -1,9 +1,7 @@
 namespace BankingApp.Application.Features.BillPayments.Commands;
 
-using Common.Contracts;
-using Common.Contracts.Security;
 using Common.Logging;
-using Common.Utilities;
+using Contracts.Features.BillPayments.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Aggregates.BillPaymentAggregate;
@@ -11,11 +9,11 @@ using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.ReferenceData.Billers;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Security;
 using Money = NodaMoney.Money;
 
 public sealed record ProcessBillPaymentCommand(

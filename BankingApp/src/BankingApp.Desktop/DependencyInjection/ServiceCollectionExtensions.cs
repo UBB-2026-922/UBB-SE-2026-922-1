@@ -1,13 +1,37 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
-using BankingApp.Desktop.Services;
-using Http;
-using Services.Transfers;
+using System;
+using Application.Common.Http;
+using Infrastructure.Http.Common.Http;
+using Contracts.Features.AccountOverview.Services;
+using Contracts.Features.Authentication.Services;
+using Contracts.Features.Billers.Services;
+using Contracts.Features.Beneficiaries.Services;
+using Contracts.Features.BillPayments.Services;
+using Contracts.Features.Cards.Services;
+using Contracts.Features.Forex.Services;
+using Contracts.Features.ForexRateAlerts.Services;
+using Contracts.Features.RecurringPayments.Services;
+using Contracts.Features.Transfers.Services;
+using Contracts.Features.UserProfile.Services;
 using ViewModels;
 using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Contracts.Http;
+using Infrastructure.Http.Features.AccountOverview.Services;
+using Infrastructure.Http.Features.Authentication.Services;
+using Infrastructure.Http.Features.Beneficiaries.Services;
+using Infrastructure.Http.Features.Billers.Services;
+using Infrastructure.Http.Features.BillPayments.Services;
+using Infrastructure.Http.Features.Cards.Services;
+using Infrastructure.Http.Features.Forex.Services;
+using Infrastructure.Http.Features.ForexRateAlerts.Services;
+using Infrastructure.Http.Features.RecurringPayments.Services;
+using Infrastructure.Http.Features.Transfers.Services;
+using Infrastructure.Http.Features.UserProfile.Services;
 using Navigation;
+using Utilities;
 
 /// <summary>Registers the desktop application's client services, view models, and views.</summary>
 public static class ServiceCollectionExtensions
@@ -19,24 +43,36 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);
+        services.AddHttpClient(HttpClientNames.Api, client =>
+        {
+            string? baseUrl = configuration["ApiBaseUrl"];
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                client.BaseAddress = new Uri(baseUrl);
+            }
+        });
+
         services.AddSingleton<IApiClient, ApiClient>();
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
 
-        services.AddTransient<IAuthClientService, AuthClientService>();
-        services.AddTransient<IDashboardClientService, DashboardClientService>();
-        services.AddTransient<IProfileClientService, ProfileClientService>();
-        services.AddTransient<IForexClientService, ForexClientService>();
-        services.AddTransient<IRateAlertClientService, RateAlertClientService>();
-        services.AddTransient<IBillPaymentClientService, BillPaymentClientService>();
-        services.AddTransient<ITransferClientService, TransferClientService>();
-        services.AddTransient<ICardClientService, CardClientService>();
-
+        services.AddTransient<IAuthService, AuthService>();
         services.AddTransient<IPasswordRecoveryManager>(provider =>
-        {
-            IApiClient apiClient = provider.GetRequiredService<IApiClient>();
-            return new PasswordRecoveryManager(apiClient, new SystemClock());
-        });
+            new PasswordRecoveryManager(
+                provider.GetRequiredService<IApiClient>(),
+                new SystemClock()));
+
+        services.AddTransient<IAuthenticationService, AuthenticationService>();
+        services.AddTransient<IDashboardService, DashboardService>();
+        services.AddTransient<IBeneficiaryService, BeneficiaryService>();
+        services.AddTransient<IBillPaymentService, BillPaymentService>();
+        services.AddTransient<IBillerService, BillerService>();
+        services.AddTransient<ICardService, CardService>();
+        services.AddTransient<IForexService, ForexService>();
+        services.AddTransient<IRateAlertService, RateAlertService>();
+        services.AddTransient<IRecurringPaymentService, RecurringPaymentService>();
+        services.AddTransient<ITransferService, TransferService>();
+        services.AddTransient<IProfileService, ProfileService>();
 
         services.AddTransient<ICountdownTimer, DispatcherCountdownTimer>();
 

@@ -1,12 +1,10 @@
 namespace BankingApp.Application.Features.Billers.Commands;
 
-using Common.Contracts;
-using Common.Utilities;
+using Contracts.Features.Billers.Dtos;
 using Domain.Aggregates.SavedBillerAggregate;
 using Domain.Common.Errors;
 using Domain.ReferenceData.Billers;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 

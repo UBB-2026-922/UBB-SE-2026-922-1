@@ -4,9 +4,9 @@
     x:Class="BankingApp.Desktop.Views.RecurringPaymentView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:billers="using:BankingApp.Application.Features.Billers.Dtos"
-    xmlns:billPayments="using:BankingApp.Application.Features.BillPayments.Dtos"
-    xmlns:recurringPayments="using:BankingApp.Application.Features.RecurringPayments.Dtos"
+    xmlns:billers="using:BankingApp.Contracts.Features.Billers.Dtos"
+    xmlns:billPayments="using:BankingApp.Contracts.Features.BillPayments.Dtos"
+    xmlns:recurringPayments="using:BankingApp.Contracts.Features.RecurringPayments.Dtos"
     Background="#F4F6FA">
 
     <ScrollViewer>

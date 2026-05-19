@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.BillPayments.Queries;
 
+using Contracts.Features.BillPayments.Dtos;
 using Domain.Aggregates.BillPaymentAggregate;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -19,15 +19,15 @@ public sealed class GetBillPaymentHistoryQueryHandler(IBillPaymentRepository bil
         IReadOnlyCollection<BillPayment> payments = await billPaymentRepository.ListByUserIdAsync(query.UserId, cancellationToken);
 
         return payments
-            .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new BillPayResponse
+            .OrderByDescending(billPayment => billPayment.CreatedAt)
+            .Select(billPayment => new BillPayResponse
             {
-                Id = p.Id,
-                ReceiptNumber = p.ReceiptNumber,
-                Fee = p.Fee.Amount,
-                Amount = p.Amount.Amount,
-                Status = p.Status.ToString(),
-                CreatedAt = p.CreatedAt
+                Id = billPayment.Id,
+                ReceiptNumber = billPayment.ReceiptNumber,
+                Fee = billPayment.Fee.Amount,
+                Amount = billPayment.Amount.Amount,
+                Status = billPayment.Status.ToString(),
+                CreatedAt = billPayment.CreatedAt
             })
             .ToList();
     }

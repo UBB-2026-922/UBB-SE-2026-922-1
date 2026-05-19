@@ -1,8 +1,8 @@
 namespace BankingApp.Api.Controllers;
 
 using Application.Features.BillPayments.Commands;
-using Application.Features.BillPayments.Dtos;
 using Application.Features.BillPayments.Queries;
+using Contracts.Features.BillPayments.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

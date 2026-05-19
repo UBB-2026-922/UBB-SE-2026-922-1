@@ -5,12 +5,10 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
 using BankingApp.Application.Features.Authentication.Commands;
-using BankingApp.Application.Features.Authentication.Dtos;
-using BankingApp.Application.Features.Authentication.Models;
 using BankingApp.Application.Features.PasswordReset.Commands;
-using BankingApp.Application.Features.PasswordReset.Dtos;
 using BankingApp.Application.Features.PasswordReset.Queries;
 using BankingApp.Application.Features.UserRegistration.Commands;
+using BankingApp.Contracts.Features.Authentication.Dtos;
 using ErrorOr;
 
 public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>

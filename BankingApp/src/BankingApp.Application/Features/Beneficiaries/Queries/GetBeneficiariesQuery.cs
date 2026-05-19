@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.Beneficiaries.Queries;
 
+using Contracts.Features.Beneficiaries.Dtos;
 using Domain.Aggregates.BeneficiaryAggregate;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -17,16 +17,16 @@ public sealed class GetBeneficiariesQueryHandler(IBeneficiaryRepository benefici
         IReadOnlyCollection<Beneficiary> beneficiaries = await beneficiaryRepository.ListByUserIdAsync(query.UserId, cancellationToken);
 
         return beneficiaries
-            .Select(b => new BeneficiaryDto
+            .Select(beneficiary => new BeneficiaryDto
             {
-                Id = b.Id,
-                UserId = b.UserId,
-                Name = b.Name,
-                Iban = b.Iban.Value,
-                BankName = b.BankName,
-                LastTransferDate = b.LastTransferDate,
-                TotalAmountSent = b.TotalAmountSent,
-                TransferCount = b.TransferCount
+                Id = beneficiary.Id,
+                UserId = beneficiary.UserId,
+                Name = beneficiary.Name,
+                Iban = beneficiary.Iban.Value,
+                BankName = beneficiary.BankName,
+                LastTransferDate = beneficiary.LastTransferDate,
+                TotalAmountSent = beneficiary.TotalAmountSent,
+                TransferCount = beneficiary.TransferCount
             })
             .ToList();
     }

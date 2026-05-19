@@ -1,14 +1,15 @@
 namespace BankingApp.Desktop.Views;
 
+using System;
 using System.Collections.Generic;
-using BankingApp.Application.Features.Cards.Dtos;
+using System.Threading.Tasks;
+using Contracts.Features.Cards.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 
 /// <summary>Displays the card management screen.</summary>
-public sealed partial class CardsView : Page
+public sealed partial class CardsView
 {
     private readonly CardViewModel _viewModel;
 
@@ -26,6 +27,20 @@ public sealed partial class CardsView : Page
     public CardViewModel ViewModel => _viewModel;
 
     private async void OnPageLoaded(object sender, RoutedEventArgs args)
+    {
+        try
+        {
+            await LoadPageAsync();
+        }
+        catch (Exception ex)
+        {
+            LoadingOverlay.Visibility = Visibility.Collapsed;
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
+        }
+    }
+
+    private async Task LoadPageAsync()
     {
         LoadingOverlay.Visibility = Visibility.Visible;
         ErrorInfoBar.IsOpen = false;
@@ -47,28 +62,58 @@ public sealed partial class CardsView : Page
 
     private async void FreezeButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: CardDetailsDto card })
+        if (sender is not Button { Tag: CardDetailsDto card })
+        {
+            return;
+        }
+
+        try
         {
             await _viewModel.FreezeAsync(card);
             await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
         }
     }
 
     private async void UnfreezeButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: CardDetailsDto card })
+        if (sender is not Button { Tag: CardDetailsDto card })
+        {
+            return;
+        }
+
+        try
         {
             await _viewModel.UnfreezeAsync(card);
             await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
         }
     }
 
     private async void CancelButton_Click(object sender, RoutedEventArgs args)
     {
-        if (sender is Button { Tag: CardDetailsDto card })
+        if (sender is not Button { Tag: CardDetailsDto card })
+        {
+            return;
+        }
+
+        try
         {
             await _viewModel.CancelAsync(card);
             await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
         }
     }
 
@@ -89,6 +134,19 @@ public sealed partial class CardsView : Page
         _viewModel.NewCardBrandIndex = CardBrandCombo.SelectedIndex;
         _viewModel.NewCardTypeIndex = CardTypeCombo.SelectedIndex;
 
+        try
+        {
+            await SubmitIssueCardAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorInfoBar.Message = ex.Message;
+            ErrorInfoBar.IsOpen = true;
+        }
+    }
+
+    private async Task SubmitIssueCardAsync()
+    {
         bool success = await _viewModel.IssueCardAsync();
 
         if (success)
@@ -105,7 +163,7 @@ public sealed partial class CardsView : Page
         }
     }
 
-    private async System.Threading.Tasks.Task RefreshAsync()
+    private async Task RefreshAsync()
     {
         ErrorInfoBar.IsOpen = false;
 

@@ -1,8 +1,8 @@
 namespace BankingApp.Application.Features.Transfers.Queries;
 
+using Contracts.Features.Transfers.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 
@@ -19,14 +19,14 @@ public sealed class GetTransferAccountsQueryHandler(IAccountRepository accountRe
         IReadOnlyCollection<Account> accounts = await accountRepository.ListByUserIdAsync(query.UserId, cancellationToken);
 
         return accounts
-            .Where(a => a.IsActive())
-            .Select(a => new TransferAccountSelectionResponse
+            .Where(account => account.IsActive())
+            .Select(account => new TransferAccountSelectionResponse
             {
-                Id = a.Id,
-                Iban = a.Iban.Value,
-                Currency = a.Balance.Currency.Code,
-                Balance = a.Balance.Amount,
-                AccountName = a.AccountName ?? string.Empty
+                Id = account.Id,
+                Iban = account.Iban.Value,
+                Currency = account.Balance.Currency.Code,
+                Balance = account.Balance.Amount,
+                AccountName = account.AccountName ?? string.Empty
             })
             .ToList();
     }

@@ -2,9 +2,8 @@ namespace BankingApp.Application.Features.Cards.Commands;
 
 using System.Globalization;
 using System.Security.Cryptography;
-using Common.Contracts;
 using Common.Logging;
-using Common.Utilities;
+using Contracts.Features.Cards.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
 using Domain.Aggregates.UserAggregate;
@@ -12,7 +11,6 @@ using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.Repositories;
 using Domain.ValueObjects;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -117,33 +115,35 @@ public sealed class IssueCardCommandHandler(
     {
         Span<byte> bytes = stackalloc byte[CardNumberLength];
         RandomNumberGenerator.Fill(bytes);
-        var sb = new System.Text.StringBuilder(CardNumberLength);
+        var stringBuilder = new System.Text.StringBuilder(CardNumberLength);
         foreach (byte randomByte in bytes)
         {
-            sb.Append(randomByte % DecimalBase);
+            stringBuilder.Append(randomByte % DecimalBase);
         }
 
-        return sb.ToString();
+        return stringBuilder.ToString();
     }
 
     private static string GenerateCvv()
     {
         Span<byte> bytes = stackalloc byte[CvvLength];
         RandomNumberGenerator.Fill(bytes);
-        var sb = new System.Text.StringBuilder(CvvLength);
+        var stringBuilder = new System.Text.StringBuilder(CvvLength);
         foreach (byte randomByte in bytes)
         {
-            sb.Append(randomByte % DecimalBase);
+            stringBuilder.Append(randomByte % DecimalBase);
         }
 
-        return sb.ToString();
+        return stringBuilder.ToString();
     }
 
     private static string GenerateIban()
     {
         int accountSuffix = RandomNumberGenerator.GetInt32(IbanAccountNumberUpperBound);
-        string bban = $"{IbanBban}{IbanBankCode:D8}{accountSuffix.ToString(CultureInfo.InvariantCulture).PadLeft(IbanAccountNumberDigits, '0')}";
-        return $"{IbanCountryCode}{IbanCheckDigits:D2}{bban}";
+
+        string domesticAccountIdentifier =
+            $"{IbanBban}{IbanBankCode:D8}{accountSuffix.ToString(CultureInfo.InvariantCulture).PadLeft(IbanAccountNumberDigits, '0')}";
+
+        return $"{IbanCountryCode}{IbanCheckDigits:D2}{domesticAccountIdentifier}";
     }
 }
-

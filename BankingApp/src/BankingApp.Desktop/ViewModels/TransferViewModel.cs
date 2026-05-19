@@ -1,10 +1,9 @@
 namespace BankingApp.Desktop.ViewModels;
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using BankingApp.Application.Features.Transfers.Dtos;
-using Services.Transfers;
+using Contracts.Features.Transfers.Dtos;
+using Contracts.Features.Transfers.Services;
 
 /// <summary>Drives the multistep transfer wizard.</summary>
 public partial class TransferViewModel : ObservableObject
@@ -24,12 +23,12 @@ public partial class TransferViewModel : ObservableObject
     private const string DefaultTransferCurrency = "EUR";
     private const int MinimumAccounts = 0;
     private const int FirstAccountIndex = 0;
-    private readonly ITransferClientService _transferClientService;
+    private readonly ITransferService _transferService;
 
     /// <summary>Initializes a new instance of the <see cref="TransferViewModel"/> class.</summary>
-    public TransferViewModel(ITransferClientService transferClientService)
+    public TransferViewModel(ITransferService transferService)
     {
-        _transferClientService = transferClientService ?? throw new ArgumentNullException(nameof(transferClientService));
+        _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
         Accounts = new ObservableCollection<TransferAccountSelectionResponse>();
         CurrentStep = AccountSelectionStep;
         Currency = DefaultTransferCurrency;
@@ -96,7 +95,7 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the parsed transfer amount.</summary>
     [ObservableProperty]
-    public partial decimal Amount { get; set; } = default!;
+    public partial decimal Amount { get; set; } = 0;
 
     partial void OnAmountChanged(decimal value)
     {
@@ -106,7 +105,7 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the target currency for the transfer.</summary>
     [ObservableProperty]
-    public partial string Currency { get; set; } = default!;
+    public partial string Currency { get; set; }
 
     partial void OnCurrencyChanged(string value)
     {
@@ -147,7 +146,6 @@ public partial class TransferViewModel : ObservableObject
 
     partial void OnAmountTextChanged(string value)
     {
-        Amount = decimal.TryParse(value, out decimal parsed) ? parsed : default;
+        Amount = decimal.TryParse(value, out decimal parsed) ? parsed : 0;
     }
-
 }

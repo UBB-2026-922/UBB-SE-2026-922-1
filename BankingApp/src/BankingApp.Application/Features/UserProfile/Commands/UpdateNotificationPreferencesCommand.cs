@@ -1,12 +1,10 @@
 namespace BankingApp.Application.Features.UserProfile.Commands;
 
-using Common.Contracts;
 using Common.Logging;
+using Contracts.Features.UserProfile.Dtos;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
-using Domain.Enums;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -20,7 +18,8 @@ public sealed class UpdateNotificationPreferencesCommandHandler(
     ILogger<UpdateNotificationPreferencesCommandHandler> logger)
     : IRequestHandler<UpdateNotificationPreferencesCommand, ErrorOr<Success>>
 {
-    public async Task<ErrorOr<Success>> Handle(UpdateNotificationPreferencesCommand command, CancellationToken cancellationToken)
+    public async Task<ErrorOr<Success>> Handle(UpdateNotificationPreferencesCommand command,
+        CancellationToken cancellationToken)
     {
         User? user = await userRepository.GetByIdAsync(command.UserId, cancellationToken);
         if (user is null)

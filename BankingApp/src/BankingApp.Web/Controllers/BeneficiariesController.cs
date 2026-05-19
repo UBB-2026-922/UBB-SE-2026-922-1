@@ -1,6 +1,8 @@
 namespace BankingApp.Web.Controllers;
 
-using Services;
+using Contracts.Features.Beneficiaries.Dtos;
+using Contracts.Features.Beneficiaries.Services;
+using ErrorOr;
 using ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,12 +10,26 @@ using Microsoft.AspNetCore.Mvc;
 [Authorize]
 public class BeneficiariesController(IBeneficiaryService beneficiaryService) : Controller
 {
-    private string Token => User.FindFirst("token")!.Value;
-
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
-        IReadOnlyList<BeneficiaryListViewModel.BeneficiaryRow> rows =
-            await beneficiaryService.GetAllAsync(Token);
+        ErrorOr<List<BeneficiaryDto>> result = await beneficiaryService.GetAllAsync(ct);
+        if (result.IsError)
+        {
+            TempData["Error"] = "Could not load beneficiaries.";
+            return View(new BeneficiaryListViewModel());
+        }
+
+        IReadOnlyList<BeneficiaryListViewModel.BeneficiaryRow> rows = result.Value
+            .ConvertAll(dto => new BeneficiaryListViewModel.BeneficiaryRow
+            {
+                Id = dto.Id,
+                Name = dto.Name ?? string.Empty,
+                Iban = dto.Iban ?? string.Empty,
+                BankName = dto.BankName,
+                TransferCount = dto.TransferCount,
+                TotalAmountSent = dto.TotalAmountSent,
+                LastTransferDate = dto.LastTransferDate
+            });
 
         return View(new BeneficiaryListViewModel { Beneficiaries = rows });
     }
@@ -22,15 +38,16 @@ public class BeneficiariesController(IBeneficiaryService beneficiaryService) : C
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateBeneficiaryViewModel model)
+    public async Task<IActionResult> Create(CreateBeneficiaryViewModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        bool success = await beneficiaryService.CreateAsync(model, Token);
-        if (!success)
+        CreateBeneficiaryRequest request = new() { Name = model.Name, Iban = model.Iban, BankName = model.BankName };
+        ErrorOr<Success> createResult = await beneficiaryService.CreateAsync(request, ct);
+        if (createResult.IsError)
         {
             ModelState.AddModelError(string.Empty, "Could not save beneficiary. Check that the IBAN is valid and not already saved.");
             return View(model);
@@ -40,20 +57,27 @@ public class BeneficiariesController(IBeneficiaryService beneficiaryService) : C
         return RedirectToAction(nameof(Index));
     }
 
-    public async Task<IActionResult> Edit(int id)
+    public async Task<IActionResult> Edit(int id, CancellationToken ct)
     {
-        EditBeneficiaryViewModel? model = await beneficiaryService.GetByIdAsync(id, Token);
-        if (model is null)
+        ErrorOr<BeneficiaryDto> result = await beneficiaryService.GetByIdAsync(id, ct);
+        if (result.IsError)
         {
             return NotFound();
         }
 
-        return View(model);
+        BeneficiaryDto dto = result.Value;
+        return View(new EditBeneficiaryViewModel
+        {
+            Id = dto.Id,
+            Name = dto.Name ?? string.Empty,
+            Iban = dto.Iban ?? string.Empty,
+            BankName = dto.BankName
+        });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, EditBeneficiaryViewModel model)
+    public async Task<IActionResult> Edit(int id, EditBeneficiaryViewModel model, CancellationToken ct)
     {
         if (id != model.Id)
         {
@@ -65,8 +89,15 @@ public class BeneficiariesController(IBeneficiaryService beneficiaryService) : C
             return View(model);
         }
 
-        bool success = await beneficiaryService.UpdateAsync(model, Token);
-        if (!success)
+        UpdateBeneficiaryRequest request = new()
+        {
+            Id = id,
+            Name = model.Name,
+            Iban = model.Iban,
+            BankName = model.BankName
+        };
+        ErrorOr<Success> updateResult = await beneficiaryService.UpdateAsync(id, request, ct);
+        if (updateResult.IsError)
         {
             ModelState.AddModelError(string.Empty, "Could not update beneficiary. The IBAN may be invalid.");
             return View(model);
@@ -78,13 +109,13 @@ public class BeneficiariesController(IBeneficiaryService beneficiaryService) : C
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        bool success = await beneficiaryService.DeleteAsync(id, Token);
+        ErrorOr<Success> result = await beneficiaryService.DeleteAsync(id, ct);
 
-        TempData[success ? "Success" : "Error"] = success
-            ? "Beneficiary removed."
-            : "Could not remove beneficiary.";
+        TempData[result.IsError ? "Error" : "Success"] = result.IsError
+            ? "Could not remove beneficiary."
+            : "Beneficiary removed.";
 
         return RedirectToAction(nameof(Index));
     }

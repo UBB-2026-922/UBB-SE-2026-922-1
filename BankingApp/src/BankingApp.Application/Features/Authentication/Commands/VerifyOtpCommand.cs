@@ -1,20 +1,18 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Contracts;
-using Common.Contracts.Notifications;
-using Common.Contracts.Security;
 using Common.Logging;
-using Common.Utilities;
+using Contracts.Features.Authentication.Dtos;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Models;
+using Notifications;
+using Security;
 
 public sealed record VerifyOtpCommand(int UserId, string OtpCode, SessionMetadata? Metadata = null)
     : IRequest<ErrorOr<LoginSuccess>>;

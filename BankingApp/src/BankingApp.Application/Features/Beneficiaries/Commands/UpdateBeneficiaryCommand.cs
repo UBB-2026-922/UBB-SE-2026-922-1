@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.Beneficiaries.Commands;
 
-using Common.Contracts;
 using Domain.Aggregates.BeneficiaryAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;

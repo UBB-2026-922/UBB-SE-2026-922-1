@@ -1,16 +1,16 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Application.Features.UserProfile.Dtos;
 using Enums;
-using BankingApp.Desktop.Services;
-using BankingApp.Desktop.Utilities;
-using BankingApp.Desktop.ViewModels;
+using Utilities;
+using Desktop.ViewModels;
+using Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 
 public class PersonalInfoViewModelTests
 {
-    private readonly Mock<IProfileClientService> _profileClientService = new(MockBehavior.Strict);
+    private readonly Mock<IProfileService> _profileClientService = new(MockBehavior.Strict);
 
     [Fact]
     public async Task LoadProfile_WhenApiReturnsProfile_PopulatesProfileAndSetsSuccessState()
@@ -102,7 +102,7 @@ public class PersonalInfoViewModelTests
 
         _profileClientService
             .Setup(service => service.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
-            .Callback<UpdateProfileRequest>(request => sentRequest = request)
+            .Callback<UpdateProfileRequest, CancellationToken>((request, _) => sentRequest = request)
             .ReturnsAsync(Result.Success);
 
         // Act
@@ -142,7 +142,7 @@ public class PersonalInfoViewModelTests
 
         _profileClientService
             .Setup(profileClientService => profileClientService.UpdateProfileAsync(It.IsAny<UpdateProfileRequest>()))
-            .Callback<UpdateProfileRequest>(request => sentRequest = request)
+            .Callback<UpdateProfileRequest, CancellationToken>((request, _) => sentRequest = request)
             .ReturnsAsync(Result.Success);
 
         // Act

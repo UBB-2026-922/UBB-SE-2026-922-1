@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Application.Features.RecurringPayments.Dtos;
+using Contracts.Features.RecurringPayments.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -9,7 +9,7 @@ using Microsoft.UI.Xaml.Controls;
 /// <summary>
 ///     Displays the recurring payment management screen.
 /// </summary>
-public sealed partial class RecurringPaymentView : Page
+public sealed partial class RecurringPaymentView
 {
     private const decimal ZeroAmount = 0m;
     private readonly RecurringPaymentViewModel _viewModel;
@@ -31,7 +31,14 @@ public sealed partial class RecurringPaymentView : Page
 
     private async void OnPageLoaded(object sender, RoutedEventArgs args)
     {
-        await _viewModel.LoadAsync();
+        try
+        {
+            await _viewModel.LoadAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private void AmountNumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
@@ -57,7 +64,14 @@ public sealed partial class RecurringPaymentView : Page
 
     private async void CreateButton_Click(object sender, RoutedEventArgs args)
     {
-        await _viewModel.CreateAsync();
+        try
+        {
+            await _viewModel.CreateAsync();
+        }
+        catch
+        {
+            // ViewModel surfaces errors through its observable state.
+        }
     }
 
     private void PauseButton_Click(object sender, RoutedEventArgs args)

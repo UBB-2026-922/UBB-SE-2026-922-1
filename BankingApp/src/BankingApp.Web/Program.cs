@@ -1,9 +1,7 @@
 using System.Globalization;
 using System.Net.Http.Json;
 using System.Security.Claims;
-using BankingApp.Application.DependencyInjection;
-using BankingApp.Infrastructure.DependencyInjection;
-using BankingApp.Web.Services;
+using BankingApp.Web.DependencyInjection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -13,8 +11,7 @@ string apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl is not configured.");
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddWebClientServices(apiBaseUrl);
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -25,10 +22,6 @@ builder.Services
         options.SlidingExpiration = true;
     });
 builder.Services.AddAuthorization();
-builder.Services.AddHttpClient("BankingAppApi", client =>
-    client.BaseAddress = new Uri(apiBaseUrl));
-builder.Services.AddHttpClient<IBeneficiaryService, BeneficiaryService>(client =>
-    client.BaseAddress = new Uri(apiBaseUrl));
 
 WebApplication app = builder.Build();
 
@@ -63,7 +56,7 @@ if (app.Environment.IsDevelopment())
                         statusCode: StatusCodes.Status500InternalServerError);
                 }
 
-                HttpClient api = httpClientFactory.CreateClient("BankingAppApi");
+                HttpClient api = httpClientFactory.CreateClient(BankingApp.Contracts.Http.HttpClientNames.Api);
                 HttpResponseMessage response = await api.PostAsJsonAsync(
                     "api/auth/login",
                     new { Email = email, Password = password },

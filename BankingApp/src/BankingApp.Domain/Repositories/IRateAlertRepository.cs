@@ -1,6 +1,6 @@
 namespace BankingApp.Domain.Repositories;
 
-using BankingApp.Domain.Aggregates.RateAlertAggregate;
+using Aggregates.RateAlertAggregate;
 
 public interface IRateAlertRepository
 {

@@ -1,0 +1,28 @@
+namespace BankingApp.Infrastructure.Common.Security;
+
+using System.Collections.Concurrent;
+using Application.Security;
+
+/// <summary>
+///     In-process, thread-safe implementation of <see cref="IOtpAttemptTracker" />.
+///     Registered as a singleton so the counters survive individual request scopes.
+/// </summary>
+public sealed class OtpAttemptTracker : IOtpAttemptTracker
+{
+    private readonly ConcurrentDictionary<int, int> _failedAttempts = new();
+
+    /// <inheritdoc />
+    /// <param name="userId">The userId value.</param>
+    /// <returns>The result of the operation.</returns>
+    public int RecordFailure(int userId)
+    {
+        return _failedAttempts.AddOrUpdate(userId, 1, (_, count) => count + 1);
+    }
+
+    /// <inheritdoc />
+    /// <param name="userId">The userId value.</param>
+    public void Reset(int userId)
+    {
+        _failedAttempts.TryRemove(userId, out _);
+    }
+}

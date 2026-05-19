@@ -6,8 +6,9 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.BillPayments.Dtos;
-using BankingApp.Application.Features.Billers.Dtos;
+using BankingApp.Contracts.Features.BillPayments.Dtos;
+using BankingApp.Contracts.Features.Billers.Dtos;
+using Contracts.Features.Billers.Services;
 using ErrorOr;
 
 public partial class BillPayViewModel
@@ -98,7 +99,7 @@ public partial class BillPayViewModel
             }
 
             BillPayRequest request = BuildBillPaymentRequest();
-            ErrorOr<BillPayResponse> payResult = await _billPaymentClientService.PayBillAsync(request);
+            ErrorOr<BillPayResponse> payResult = await _billPaymentService.PayBillAsync(request);
 
             if (payResult.IsError)
             {
@@ -123,7 +124,7 @@ public partial class BillPayViewModel
 
     private async Task LoadBillersAsync()
     {
-        ErrorOr<List<BillerDto>> result = await _billPaymentClientService.GetBillersAsync();
+        ErrorOr<List<BillerDto>> result = await _billerService.GetBillersAsync();
         if (!result.IsError)
         {
             Billers = new ObservableCollection<BillerDto>(result.Value);
@@ -132,7 +133,7 @@ public partial class BillPayViewModel
 
     private async Task LoadSavedBillersAsync()
     {
-        ErrorOr<List<SavedBillerDto>> result = await _billPaymentClientService.GetSavedBillersAsync();
+        ErrorOr<List<SavedBillerDto>> result = await _billerService.GetSavedBillersAsync();
         if (!result.IsError)
         {
             SavedBillers = new ObservableCollection<SavedBillerDto>(result.Value);
@@ -141,7 +142,7 @@ public partial class BillPayViewModel
 
     private async Task LoadAccountsAsync()
     {
-        ErrorOr<List<AccountDto>> result = await _billPaymentClientService.GetAccountsAsync();
+        ErrorOr<List<AccountDto>> result = await _billPaymentService.GetAccountsAsync();
         if (!result.IsError)
         {
             Accounts = new ObservableCollection<AccountDto>(result.Value);
@@ -153,7 +154,7 @@ public partial class BillPayViewModel
         try
         {
             ErrorMessage = string.Empty;
-            ErrorOr<List<BillerDto>> result = await _billPaymentClientService.GetBillersAsync(SearchQuery, SelectedCategory);
+            ErrorOr<List<BillerDto>> result = await _billerService.GetBillersAsync(SearchQuery, SelectedCategory);
 
             if (!result.IsError)
             {
@@ -246,11 +247,11 @@ public partial class BillPayViewModel
 
     private void SetFeeAndTwoFactorRequirement()
     {
-        ErrorOr<FeeResponse> feeResult = _billPaymentClientService.GetFeeAsync(Amount).GetAwaiter().GetResult();
+        ErrorOr<FeeResponse> feeResult = _billPaymentService.GetFeeAsync(Amount).GetAwaiter().GetResult();
         Fee = !feeResult.IsError ? feeResult.Value.Fee : NoFee;
 
         ErrorOr<RequiresTwoFaResponse> twoFaResult =
-            _billPaymentClientService.GetRequires2FaAsync(Amount).GetAwaiter().GetResult();
+            _billPaymentService.GetRequires2FaAsync(Amount).GetAwaiter().GetResult();
         Requires2Fa = twoFaResult is { IsError: false, Value.Required: true };
     }
 
@@ -288,7 +289,7 @@ public partial class BillPayViewModel
             DefaultReference = BillerReference,
         };
 
-        ErrorOr<SavedBillerDto> saveResult = await _billPaymentClientService.SaveBillerAsync(saveRequest);
+        ErrorOr<SavedBillerDto> saveResult = await _billerService.SaveBillerAsync(saveRequest);
         if (!saveResult.IsError)
         {
             SavedBillers.Add(saveResult.Value);

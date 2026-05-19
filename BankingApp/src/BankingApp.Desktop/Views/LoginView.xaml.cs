@@ -3,12 +3,12 @@ namespace BankingApp.Desktop.Views;
 using System;
 using System.Linq;
 using Enums;
-using BankingApp.Application.Common.Utilities;
 using ErrorOr;
 using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Navigation;
+using Utilities;
 
 /// <summary>
 ///     Displays the login form and reacts to authentication state changes produced by <see cref="LoginViewModel" />.
@@ -140,7 +140,14 @@ public sealed partial class LoginView
             return;
         }
 
-        await _viewModel.Login(email, password);
+        try
+        {
+            await _viewModel.Login(email, password);
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex.Message);
+        }
     }
 
     private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)
@@ -155,10 +162,17 @@ public sealed partial class LoginView
 
     private async void DevLoginButton_Click(object sender, RoutedEventArgs e)
     {
-        ErrorOr<Success> result = await _viewModel.DevLogin();
-        result.Switch(
-            _ => { },
-            errors => ShowError(errors.First().Description));
+        try
+        {
+            ErrorOr<Success> result = await _viewModel.DevLogin();
+            result.Switch(
+                _ => { },
+                errors => ShowError(errors.First().Description));
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex.Message);
+        }
     }
 
     private static string BuildServerConnectionText(string? apiBaseUrl)

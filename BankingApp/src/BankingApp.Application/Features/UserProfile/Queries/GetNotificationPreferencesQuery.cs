@@ -1,10 +1,10 @@
 namespace BankingApp.Application.Features.UserProfile.Queries;
 
 using Common.Logging;
+using Contracts.Features.UserProfile.Dtos;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
-using Dtos;
 using ErrorOr;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -29,15 +29,15 @@ public sealed class GetNotificationPreferencesQueryHandler(
         }
 
         return user.NotificationPreferences
-            .Select(p => new NotificationPreferenceDto
+            .Select(notificationPreference => new NotificationPreferenceDto
             {
-                Id = p.Id,
-                UserId = p.UserId,
-                Category = p.Category,
-                PushEnabled = p.PushEnabled,
-                EmailEnabled = p.EmailEnabled,
-                SmsEnabled = p.SmsEnabled,
-                MinAmountThreshold = p.MinAmountThreshold
+                Id = notificationPreference.Id,
+                UserId = notificationPreference.UserId,
+                Category = notificationPreference.Category,
+                PushEnabled = notificationPreference.PushEnabled,
+                EmailEnabled = notificationPreference.EmailEnabled,
+                SmsEnabled = notificationPreference.SmsEnabled,
+                MinAmountThreshold = notificationPreference.MinAmountThreshold
             })
             .ToList();
     }

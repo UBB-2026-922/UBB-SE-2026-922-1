@@ -1,8 +1,7 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Application.Features.Authentication.Dtos;
+using Contracts.Features.Authentication.Dtos;
 using Enums;
-using Services;
 using Desktop.ViewModels;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 public class LoginViewModelTests
 {
-    private readonly Mock<IAuthClientService> _authServiceMock = new();
+    private readonly Mock<IAuthService> _authServiceMock = new();
 
     public LoginViewModelTests()
     {
