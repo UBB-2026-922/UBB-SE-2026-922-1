@@ -23,8 +23,9 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\BankingApp.Api\BankingApp.Api.csproj"/>
         <ProjectReference Include="..\..\src\BankingApp.Application\BankingApp.Application.csproj"/>
+        <ProjectReference Include="..\..\src\BankingApp.Contracts\BankingApp.Contracts.csproj"/>
         <ProjectReference Include="..\..\src\BankingApp.Domain\BankingApp.Domain.csproj"/>
-        <ProjectReference Include="..\..\src\BankingApp.Infrastructure\BankingApp.Infrastructure.csproj"/>
+        <ProjectReference Include="..\..\src\BankingApp.Infrastructure.Persistence\BankingApp.Infrastructure.Persistence.csproj"/>
     </ItemGroup>
 
 </Project>
