@@ -1,33 +1,22 @@
-namespace BankingApp.Desktop.Utilities;
+namespace BankingApp.Desktop.Features.PasswordRecovery;
 
-using System;
-using System.Threading.Tasks;
 using Application.Shared.Clock;
-using Application.Shared.Http;
+using Application.Features.Authentication.Services;
 using Contracts.Features.PasswordReset.Dtos;
-using Contracts.Http;
 using ErrorOr;
 using Shared.Enums;
 using Shared.Validation;
 
-/// <summary>Default desktop implementation of <see cref="IPasswordRecoveryManager"/>.</summary>
-public sealed class PasswordRecoveryManager : IPasswordRecoveryManager
+/// <summary>Default desktop password recovery flow service.</summary>
+public sealed class PasswordRecoveryService(IAuthenticationService authenticationService, ISystemClock clock)
+    : IPasswordRecoveryService
 {
     private const int ResendCooldownSeconds = 60;
-    private readonly IApiClient _apiClient;
-    private readonly ISystemClock _clock;
     private DateTime? _lastCodeRequestedAt;
-
-    /// <summary>Initializes a new instance of the <see cref="PasswordRecoveryManager"/> class.</summary>
-    public PasswordRecoveryManager(IApiClient apiClient, ISystemClock clock)
-    {
-        _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
-        _clock = clock ?? throw new ArgumentNullException(nameof(clock));
-    }
 
     /// <inheritdoc />
     public bool CanResendCode =>
-        _lastCodeRequestedAt is null || (_clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds >= ResendCooldownSeconds;
+        _lastCodeRequestedAt is null || (clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds >= ResendCooldownSeconds;
 
     /// <inheritdoc />
     public int SecondsUntilResendAllowed
@@ -39,13 +28,13 @@ public sealed class PasswordRecoveryManager : IPasswordRecoveryManager
                 return 0;
             }
 
-            double remaining = ResendCooldownSeconds - (_clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds;
+            double remaining = ResendCooldownSeconds - (clock.UtcNow - _lastCodeRequestedAt.Value).TotalSeconds;
             return remaining > 0 ? (int)Math.Ceiling(remaining) : 0;
         }
     }
 
     /// <inheritdoc />
-    public async Task<ForgotPasswordState> RequestCodeAsync(string email)
+    public async Task<ForgotPasswordState> RequestCodeAsync(string email, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -57,41 +46,52 @@ public sealed class PasswordRecoveryManager : IPasswordRecoveryManager
             return ForgotPasswordState.EmailSent;
         }
 
-        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Auth.ForgotPasswordFull, new ForgotPasswordRequest { Email = email });
+        ErrorOr<Success> result = await authenticationService.ForgotPasswordAsync(
+            new ForgotPasswordRequest { Email = email },
+            cancellationToken);
+
         if (result.IsError)
         {
             return ForgotPasswordState.Error;
         }
 
-        _lastCodeRequestedAt = _clock.UtcNow;
+        _lastCodeRequestedAt = clock.UtcNow;
         return ForgotPasswordState.EmailSent;
     }
 
     /// <inheritdoc />
-    public async Task<ForgotPasswordState> VerifyTokenAsync(string token)
+    public async Task<ForgotPasswordState> VerifyTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(token))
         {
             return ForgotPasswordState.Error;
         }
 
-        ErrorOr<Success> result = await _apiClient.PostAsync<object>(ApiEndpoints.Auth.VerifyResetTokenFull, new { Token = token });
+        ErrorOr<Success> result = await authenticationService.VerifyResetTokenAsync(
+            new VerifyResetTokenRequest { Token = token },
+            cancellationToken);
+
         return result.IsError ? MapError(result.FirstError) : ForgotPasswordState.TokenValid;
     }
 
     /// <inheritdoc />
-    public async Task<ForgotPasswordState> ResetPasswordAsync(string token, string newPassword)
+    public async Task<ForgotPasswordState> ResetPasswordAsync(
+        string token,
+        string newPassword,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
         {
             return ForgotPasswordState.Error;
         }
 
-        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Auth.ResetPasswordFull, new ResetPasswordRequest
-        {
-            Token = token,
-            NewPassword = newPassword,
-        });
+        ErrorOr<Success> result = await authenticationService.ResetPasswordAsync(
+            new ResetPasswordRequest
+            {
+                Token = token,
+                NewPassword = newPassword,
+            },
+            cancellationToken);
 
         return result.IsError ? MapError(result.FirstError) : ForgotPasswordState.PasswordResetSuccess;
     }

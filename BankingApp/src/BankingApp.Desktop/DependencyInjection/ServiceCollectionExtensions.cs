@@ -7,12 +7,14 @@ using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Contracts.Http;
+using Features.Authentication;
+using Features.PasswordRecovery;
+using Features.Registration;
 using Infrastructure.Core.DependencyInjection;
 using Infrastructure.Http.DependencyInjection;
 using Infrastructure.Http.Shared.Http;
 using Navigation;
 using Shared.Timers;
-using Utilities;
 
 /// <summary>Registers the desktop application's client services, view models, and views.</summary>
 public static class ServiceCollectionExtensions
@@ -24,22 +26,24 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddClientServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(configuration);
+        services.AddTransient<AuthenticationSessionTokenHandler>();
         services.AddHttpClient(HttpClientNames.Api, client =>
-        {
-            string? baseUrl = configuration["ApiBaseUrl"];
-            if (!string.IsNullOrWhiteSpace(baseUrl))
             {
-                client.BaseAddress = new Uri(baseUrl);
-            }
-        });
+                string? baseUrl = configuration["ApiBaseUrl"];
+                if (!string.IsNullOrWhiteSpace(baseUrl))
+                {
+                    client.BaseAddress = new Uri(baseUrl);
+                }
+            })
+            .AddHttpMessageHandler<AuthenticationSessionTokenHandler>();
 
         services.AddSingleton<IApiClient, ApiClient>();
         services.AddSingleton<IAppNavigationService, AppNavigationService>();
         services.AddSingleton<IRegistrationContext, RegistrationContext>();
+        services.AddSingleton<IAuthenticationSession, AuthenticationSession>();
         services.AddCoreInfrastructure(configuration);
 
-        services.AddTransient<IAuthService, AuthService>();
-        services.AddTransient<IPasswordRecoveryManager, PasswordRecoveryManager>();
+        services.AddTransient<IPasswordRecoveryService, PasswordRecoveryService>();
 
         services.AddHttpInfrastructure();
 

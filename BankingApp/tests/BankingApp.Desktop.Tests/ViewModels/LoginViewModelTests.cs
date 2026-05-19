@@ -9,12 +9,13 @@ using Shared.Enums;
 
 public class LoginViewModelTests
 {
-    private readonly Mock<IAuthService> _authServiceMock = new();
+    private readonly Mock<IAuthenticationService> _authenticationServiceMock = new();
+    private readonly Mock<IAuthenticationSession> _authenticationSessionMock = new();
 
     public LoginViewModelTests()
     {
-        _authServiceMock.Setup(mock => mock.EnsureConfigured()).Returns(Result.Success);
-        _authServiceMock.SetupProperty(mock => mock.CurrentUserId);
+        _authenticationSessionMock.Setup(mock => mock.EnsureConfigured()).Returns(Result.Success);
+        _authenticationSessionMock.SetupProperty(mock => mock.CurrentUserId);
     }
 
     [Fact]
@@ -39,18 +40,19 @@ public class LoginViewModelTests
         LoginViewModel viewModel = CreateViewModel();
         LoginSuccessResponse response = new() { Token = "test-token", UserId = 1, Requires2Fa = false };
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
-        _authServiceMock.Setup(mock => mock.SetToken("test-token"));
+        _authenticationSessionMock.Setup(mock => mock.SetToken("test-token"));
 
         // Act
         await viewModel.Login("test@test.com", "password");
 
         // Assert
         viewModel.State.Should().Be(LoginState.Success);
-        _authServiceMock.Object.CurrentUserId.Should().Be(1);
-        _authServiceMock.VerifyAll();
+        _authenticationSessionMock.Object.CurrentUserId.Should().Be(1);
+        _authenticationServiceMock.VerifyAll();
+        _authenticationSessionMock.VerifyAll();
     }
 
     [Fact]
@@ -60,8 +62,8 @@ public class LoginViewModelTests
         LoginViewModel viewModel = CreateViewModel();
         LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = true };
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         // Act
@@ -69,8 +71,9 @@ public class LoginViewModelTests
 
         // Assert
         viewModel.State.Should().Be(LoginState.Require2Fa);
-        _authServiceMock.Object.CurrentUserId.Should().Be(1);
-        _authServiceMock.VerifyAll();
+        _authenticationSessionMock.Object.CurrentUserId.Should().Be(1);
+        _authenticationServiceMock.VerifyAll();
+        _authenticationSessionMock.VerifyAll();
     }
 
     [Fact]
@@ -79,8 +82,8 @@ public class LoginViewModelTests
         // Arrange
         LoginViewModel viewModel = CreateViewModel();
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Unauthorized());
 
         // Act
@@ -88,7 +91,7 @@ public class LoginViewModelTests
 
         // Assert
         viewModel.State.Should().Be(LoginState.InvalidCredentials);
-        _authServiceMock.VerifyAll();
+        _authenticationServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -97,8 +100,8 @@ public class LoginViewModelTests
         // Arrange
         LoginViewModel viewModel = CreateViewModel();
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -106,7 +109,7 @@ public class LoginViewModelTests
 
         // Assert
         viewModel.State.Should().Be(LoginState.Error);
-        _authServiceMock.VerifyAll();
+        _authenticationServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -115,8 +118,8 @@ public class LoginViewModelTests
         // Arrange
         LoginViewModel viewModel = CreateViewModel();
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("test@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Forbidden());
 
         // Act
@@ -124,7 +127,7 @@ public class LoginViewModelTests
 
         // Assert
         viewModel.State.Should().Be(LoginState.AccountLocked);
-        _authServiceMock.VerifyAll();
+        _authenticationServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -138,10 +141,10 @@ public class LoginViewModelTests
         });
         LoginSuccessResponse response = new() { Token = "test-token", UserId = 1, Requires2Fa = false };
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
-        _authServiceMock.Setup(mock => mock.SetToken("test-token"));
+        _authenticationSessionMock.Setup(mock => mock.SetToken("test-token"));
 
         // Act
         ErrorOr<Success> result = await viewModel.DevLogin();
@@ -149,8 +152,9 @@ public class LoginViewModelTests
         // Assert
         result.IsError.Should().BeFalse();
         viewModel.State.Should().Be(LoginState.Success);
-        _authServiceMock.Object.CurrentUserId.Should().Be(1);
-        _authServiceMock.VerifyAll();
+        _authenticationSessionMock.Object.CurrentUserId.Should().Be(1);
+        _authenticationServiceMock.VerifyAll();
+        _authenticationSessionMock.VerifyAll();
     }
 
     [Fact]
@@ -165,7 +169,7 @@ public class LoginViewModelTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("DevLogin.NotConfigured");
-        _authServiceMock.Verify(mock => mock.LoginAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _authenticationServiceMock.Verify(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -179,8 +183,8 @@ public class LoginViewModelTests
         });
         LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = true };
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         // Act
@@ -190,7 +194,7 @@ public class LoginViewModelTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("DevLogin.Requires2Fa");
         viewModel.State.Should().Be(LoginState.Idle);
-        _authServiceMock.VerifyAll();
+        _authenticationServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -204,8 +208,8 @@ public class LoginViewModelTests
         });
         var apiError = Error.Unauthorized();
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(apiError);
 
         // Act
@@ -215,7 +219,7 @@ public class LoginViewModelTests
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(apiError);
         viewModel.State.Should().Be(LoginState.Idle);
-        _authServiceMock.VerifyAll();
+        _authenticationServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -229,8 +233,8 @@ public class LoginViewModelTests
         });
         LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = false, Token = null };
 
-        _authServiceMock
-            .Setup(mock => mock.LoginAsync("dev@test.com", "password"))
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         // Act
@@ -240,7 +244,7 @@ public class LoginViewModelTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("DevLogin.MissingToken");
         viewModel.State.Should().Be(LoginState.Idle);
-        _authServiceMock.VerifyAll();
+        _authenticationServiceMock.VerifyAll();
     }
 
     private LoginViewModel CreateViewModel(Dictionary<string, string?>? values = null)
@@ -250,7 +254,8 @@ public class LoginViewModelTests
             .Build();
 
         return new LoginViewModel(
-            _authServiceMock.Object,
+            _authenticationServiceMock.Object,
+            _authenticationSessionMock.Object,
             configuration,
             NullLogger<LoginViewModel>.Instance);
     }

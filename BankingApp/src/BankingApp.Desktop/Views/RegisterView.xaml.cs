@@ -1,11 +1,11 @@
 namespace BankingApp.Desktop.Views;
 
+using Features.Registration;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Navigation;
 using Shared;
 using Shared.Enums;
-using Utilities;
 
 /// <summary>
 ///     Displays the registration form and reacts to registration state changes.

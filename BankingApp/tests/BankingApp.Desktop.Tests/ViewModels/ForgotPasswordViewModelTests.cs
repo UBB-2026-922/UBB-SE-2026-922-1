@@ -8,7 +8,7 @@ using Shared.Enums;
 /// </summary>
 public class ForgotPasswordViewModelTests
 {
-    private readonly Mock<IPasswordRecoveryManager> _recoveryManager = new();
+    private readonly Mock<IPasswordRecoveryService> _passwordRecoveryService = new();
 
     /// <summary>
     ///     When the email is empty, state transitions to <see cref="ForgotPasswordState.Error" />
@@ -19,7 +19,7 @@ public class ForgotPasswordViewModelTests
     public async Task ForgotPassword_WhenEmailEmpty_SetsErrorState()
     {
         // Arrange
-        var viewModel = new ForgotPasswordViewModel(_recoveryManager.Object);
+        var viewModel = new ForgotPasswordViewModel(_passwordRecoveryService.Object);
 
         // Act
         await viewModel.ForgotPassword(string.Empty);
@@ -38,9 +38,11 @@ public class ForgotPasswordViewModelTests
     public async Task ForgotPassword_WhenValidEmail_SetsCodeSentState()
     {
         // Arrange
-        var viewModel = new ForgotPasswordViewModel(_recoveryManager.Object);
-        _recoveryManager
-            .Setup(requestsCodeAsync => requestsCodeAsync.RequestCodeAsync(It.IsAny<string>()))
+        var viewModel = new ForgotPasswordViewModel(_passwordRecoveryService.Object);
+        _passwordRecoveryService
+            .Setup(requestsCodeAsync => requestsCodeAsync.RequestCodeAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(ForgotPasswordState.EmailSent);
 
         // Act
@@ -60,7 +62,7 @@ public class ForgotPasswordViewModelTests
     public async Task ResetPassword_WhenFieldsEmpty_SetsErrorState()
     {
         // Arrange
-        var viewModel = new ForgotPasswordViewModel(_recoveryManager.Object);
+        var viewModel = new ForgotPasswordViewModel(_passwordRecoveryService.Object);
 
         // Act
         await viewModel.ResetPassword(string.Empty, string.Empty);
@@ -79,8 +81,8 @@ public class ForgotPasswordViewModelTests
     public async Task ResetPassword_WhenPasswordTooWeak_SetsErrorState()
     {
         // Arrange
-        var viewModel = new ForgotPasswordViewModel(_recoveryManager.Object);
-        _recoveryManager
+        var viewModel = new ForgotPasswordViewModel(_passwordRecoveryService.Object);
+        _passwordRecoveryService
             .Setup(checksIsPasswordValid => checksIsPasswordValid.IsPasswordValid(It.IsAny<string>()))
             .Returns(false);
 
@@ -101,13 +103,16 @@ public class ForgotPasswordViewModelTests
     public async Task ResetPassword_WhenValidFields_SetsSuccessState()
     {
         // Arrange
-        var viewModel = new ForgotPasswordViewModel(_recoveryManager.Object);
-        _recoveryManager
+        var viewModel = new ForgotPasswordViewModel(_passwordRecoveryService.Object);
+        _passwordRecoveryService
             .Setup(checksIsPasswordValid => checksIsPasswordValid.IsPasswordValid(It.IsAny<string>()))
             .Returns(true);
-        _recoveryManager
+        _passwordRecoveryService
             .Setup(resetsPasswordAsync =>
-                resetsPasswordAsync.ResetPasswordAsync(It.IsAny<string>(), It.IsAny<string>()))
+                resetsPasswordAsync.ResetPasswordAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
             .ReturnsAsync(ForgotPasswordState.PasswordResetSuccess);
 
         // Act
@@ -127,7 +132,7 @@ public class ForgotPasswordViewModelTests
     public async Task VerifyToken_WhenEmpty_SetsErrorState()
     {
         // Arrange
-        var viewModel = new ForgotPasswordViewModel(_recoveryManager.Object);
+        var viewModel = new ForgotPasswordViewModel(_passwordRecoveryService.Object);
 
         // Act
         await viewModel.VerifyToken(string.Empty);
@@ -146,9 +151,11 @@ public class ForgotPasswordViewModelTests
     public async Task VerifyToken_WhenValid_SetsVerifiedState()
     {
         // Arrange
-        var viewModel = new ForgotPasswordViewModel(_recoveryManager.Object);
-        _recoveryManager
-            .Setup(verifiesTokenAsync => verifiesTokenAsync.VerifyTokenAsync(It.IsAny<string>()))
+        var viewModel = new ForgotPasswordViewModel(_passwordRecoveryService.Object);
+        _passwordRecoveryService
+            .Setup(verifiesTokenAsync => verifiesTokenAsync.VerifyTokenAsync(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
             .ReturnsAsync(ForgotPasswordState.TokenValid);
 
         // Act

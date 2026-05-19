@@ -1,10 +1,12 @@
 using System.Globalization;
-using System.Net.Http.Json;
 using System.Security.Claims;
+using BankingApp.Contracts.Features.Authentication.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.DependencyInjection;
+using ErrorOr;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +45,7 @@ if (app.Environment.IsDevelopment())
             "/dev/login",
             async (
                 HttpContext context,
-                IHttpClientFactory httpClientFactory,
+                ClientAuthenticationService authenticationService,
                 IConfiguration configuration,
                 string? returnUrl) =>
             {
@@ -57,30 +59,18 @@ if (app.Environment.IsDevelopment())
                         statusCode: StatusCodes.Status500InternalServerError);
                 }
 
-                HttpClient api = httpClientFactory.CreateClient(BankingApp.Contracts.Http.HttpClientNames.Api);
-                HttpResponseMessage response = await api.PostAsJsonAsync(
-                    ApiEndpoints.Auth.LoginFull,
-                    new { Email = email, Password = password },
+                ErrorOr<LoginSuccessResponse> result = await authenticationService.LoginAsync(
+                    new LoginRequest { Email = email, Password = password },
                     context.RequestAborted);
 
-                if (!response.IsSuccessStatusCode)
+                if (result.IsError)
                 {
-                    string apiError = await response.Content.ReadAsStringAsync(context.RequestAborted);
-
                     return Results.Problem(
-                        $"Dev login failed with {(int)response.StatusCode}: {apiError}",
+                        $"Dev login failed: {result.FirstError.Description}",
                         statusCode: StatusCodes.Status502BadGateway);
                 }
 
-                DevLoginResponse? login = await response.Content.ReadFromJsonAsync<DevLoginResponse>(
-                    cancellationToken: context.RequestAborted);
-
-                if (login is null)
-                {
-                    return Results.Problem(
-                        "Dev login failed because the API returned an empty response.",
-                        statusCode: StatusCodes.Status502BadGateway);
-                }
+                LoginSuccessResponse login = result.Value;
 
                 if (login.Requires2Fa)
                 {
@@ -148,5 +138,3 @@ static bool IsLocalReturnUrl(string? returnUrl)
            && returnUrl[0] == '/'
            && (returnUrl.Length == 1 || (returnUrl[1] != '/' && returnUrl[1] != '\\'));
 }
-
-internal sealed record DevLoginResponse(int UserId, string? Token, bool Requires2Fa);

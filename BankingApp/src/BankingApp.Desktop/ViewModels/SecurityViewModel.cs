@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Enums;
 using Shared.Validation;
-using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles password changes and two-factor authentication settings for the profile area.</summary>

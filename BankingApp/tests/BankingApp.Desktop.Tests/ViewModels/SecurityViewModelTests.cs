@@ -1,6 +1,5 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using BankingApp.Desktop.Utilities;
 using BankingApp.Desktop.ViewModels;
 using BankingApp.Domain.Enums;
 using Contracts.Features.UserProfile.Dtos;

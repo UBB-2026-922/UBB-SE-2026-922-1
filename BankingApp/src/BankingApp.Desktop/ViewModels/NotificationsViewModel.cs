@@ -9,7 +9,6 @@ using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
 using Shared.Enums;
-using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles notification-preference loading and updates for the profile area.</summary>

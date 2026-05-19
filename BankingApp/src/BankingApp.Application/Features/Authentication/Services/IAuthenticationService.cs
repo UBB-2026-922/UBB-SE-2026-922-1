@@ -1,10 +1,11 @@
-namespace BankingApp.Contracts.Features.Authentication.Services;
+namespace BankingApp.Application.Features.Authentication.Services;
 
-using Dtos;
+using Contracts.Features.Authentication.Dtos;
+using Contracts.Features.PasswordReset.Dtos;
+using Contracts.Features.UserRegistration.Dtos;
 using ErrorOr;
-using PasswordReset.Dtos;
-using UserRegistration.Dtos;
 
+/// <summary>Defines authentication-related API operations used by client applications.</summary>
 public interface IAuthenticationService
 {
     public Task<ErrorOr<LoginSuccessResponse>> LoginAsync(LoginRequest request, CancellationToken ct = default);

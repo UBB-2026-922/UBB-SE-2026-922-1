@@ -2,19 +2,19 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
+using Features.PasswordRecovery;
 using Shared;
 using Shared.Enums;
-using Utilities;
 
-/// <summary>Coordinates the desktop forgot-password flow through <see cref="IPasswordRecoveryManager"/>.</summary>
+/// <summary>Coordinates the desktop forgot-password flow through <see cref="IPasswordRecoveryService"/>.</summary>
 public partial class ForgotPasswordViewModel : ObservableObject
 {
-    private readonly IPasswordRecoveryManager _recoveryManager;
+    private readonly IPasswordRecoveryService _passwordRecoveryService;
 
     /// <summary>Initializes a new instance of the <see cref="ForgotPasswordViewModel"/> class.</summary>
-    public ForgotPasswordViewModel(IPasswordRecoveryManager recoveryManager)
+    public ForgotPasswordViewModel(IPasswordRecoveryService passwordRecoveryService)
     {
-        _recoveryManager = recoveryManager ?? throw new ArgumentNullException(nameof(recoveryManager));
+        _passwordRecoveryService = passwordRecoveryService ?? throw new ArgumentNullException(nameof(passwordRecoveryService));
     }
 
     /// <summary>Gets or sets the current forgot-password workflow state.</summary>
@@ -26,10 +26,10 @@ public partial class ForgotPasswordViewModel : ObservableObject
     public partial string ValidationError { get; set; } = string.Empty;
 
     /// <summary>Gets a value indicating whether a new reset code may be requested.</summary>
-    public bool CanResendCode => _recoveryManager.CanResendCode;
+    public bool CanResendCode => _passwordRecoveryService.CanResendCode;
 
     /// <summary>Gets the remaining seconds until another code can be requested.</summary>
-    public int SecondsUntilResendAllowed => _recoveryManager.SecondsUntilResendAllowed;
+    public int SecondsUntilResendAllowed => _passwordRecoveryService.SecondsUntilResendAllowed;
 
     /// <summary>Starts the password-reset flow for the supplied email address.</summary>
     public async Task ForgotPassword(string email)
@@ -42,7 +42,7 @@ public partial class ForgotPasswordViewModel : ObservableObject
         }
 
         ValidationError = string.Empty;
-        State = await _recoveryManager.RequestCodeAsync(email);
+        State = await _passwordRecoveryService.RequestCodeAsync(email);
     }
 
     /// <summary>Resets the password with the supplied code and new password.</summary>
@@ -55,7 +55,7 @@ public partial class ForgotPasswordViewModel : ObservableObject
             return;
         }
 
-        if (!_recoveryManager.IsPasswordValid(newPassword))
+        if (!_passwordRecoveryService.IsPasswordValid(newPassword))
         {
             ValidationError = UserMessages.ForgotPassword.PasswordTooWeak;
             State = ForgotPasswordState.Error;
@@ -63,7 +63,7 @@ public partial class ForgotPasswordViewModel : ObservableObject
         }
 
         ValidationError = string.Empty;
-        State = await _recoveryManager.ResetPasswordAsync(code, newPassword);
+        State = await _passwordRecoveryService.ResetPasswordAsync(code, newPassword);
     }
 
     /// <summary>Verifies whether the supplied reset token is still valid.</summary>
@@ -77,6 +77,6 @@ public partial class ForgotPasswordViewModel : ObservableObject
         }
 
         ValidationError = string.Empty;
-        State = await _recoveryManager.VerifyTokenAsync(code);
+        State = await _passwordRecoveryService.VerifyTokenAsync(code);
     }
 }

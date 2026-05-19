@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj" />
         <ProjectReference Include="..\BankingApp.Contracts\BankingApp.Contracts.csproj" />
         <ProjectReference Include="..\BankingApp.Infrastructure.Http\BankingApp.Infrastructure.Http.csproj" />
     </ItemGroup>

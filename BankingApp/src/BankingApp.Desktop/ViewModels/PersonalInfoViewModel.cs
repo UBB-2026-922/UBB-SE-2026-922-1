@@ -9,7 +9,6 @@ using Logging;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Enums;
-using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles personal-profile loading, editing, and password verification for the profile area.</summary>

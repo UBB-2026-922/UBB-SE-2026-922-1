@@ -1,7 +1,7 @@
 namespace BankingApp.Infrastructure.Http.Features.Authentication.Services;
 
 using Contracts.Features.Authentication.Dtos;
-using Contracts.Features.Authentication.Services;
+using Application.Features.Authentication.Services;
 using Contracts.Features.PasswordReset.Dtos;
 using Contracts.Features.UserRegistration.Dtos;
 using Contracts.Http;

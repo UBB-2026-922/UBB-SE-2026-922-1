@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using BankingApp.Contracts.Features.Forex.Dtos;
 using Contracts.Features.Forex.Services;
 using ErrorOr;
+using Features.Authentication;
 using Logging;
 using Microsoft.Extensions.Logging;
 using Shared;
-using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Manages exchange-rate preview and foreign-exchange execution for the desktop client.</summary>
@@ -22,7 +22,7 @@ public partial class ForexViewModel : ObservableObject
 
     private static readonly string[] _collection = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
 
-    private readonly IAuthService _authService;
+    private readonly IAuthenticationSession _authenticationSession;
     private readonly IForexService _forexService;
     private readonly ILogger<ForexViewModel> _logger;
 
@@ -30,9 +30,12 @@ public partial class ForexViewModel : ObservableObject
     private decimal _amount;
 
     /// <summary>Initializes a new instance of the <see cref="ForexViewModel"/> class.</summary>
-    public ForexViewModel(IAuthService authService, IForexService forexService, ILogger<ForexViewModel> logger)
+    public ForexViewModel(
+        IAuthenticationSession authenticationSession,
+        IForexService forexService,
+        ILogger<ForexViewModel> logger)
     {
-        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
         _forexService = forexService ?? throw new ArgumentNullException(nameof(forexService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         CurrentStep = InitialStep;
@@ -153,7 +156,7 @@ public partial class ForexViewModel : ObservableObject
         {
             var request = new ForexTransactionRequest
             {
-                UserId = _authService.CurrentUserId ?? 0,
+                UserId = _authenticationSession.CurrentUserId ?? 0,
                 SourceCurrency = SourceCurrency,
                 TargetCurrency = TargetCurrency,
                 SourceAmount = _amount,

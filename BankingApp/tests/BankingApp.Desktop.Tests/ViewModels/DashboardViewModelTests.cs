@@ -3,7 +3,6 @@ namespace BankingApp.Desktop.Tests.ViewModels;
 using System.Globalization;
 using Contracts.Features.AccountOverview.Dtos;
 using Contracts.Features.AccountOverview.Services;
-using BankingApp.Desktop.Utilities;
 using Desktop.ViewModels;
 using Domain.Enums;
 using ErrorOr;

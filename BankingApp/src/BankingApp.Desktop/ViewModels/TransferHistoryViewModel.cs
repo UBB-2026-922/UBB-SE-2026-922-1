@@ -10,7 +10,6 @@ using Contracts.Features.Transfers.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Shared;
-using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>

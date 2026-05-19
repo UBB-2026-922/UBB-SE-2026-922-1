@@ -1,7 +1,7 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using Utilities;
+using Features.Authentication;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -14,16 +14,19 @@ using Shared.Enums;
 /// </summary>
 public sealed partial class TwoFactorView
 {
-    private readonly IAuthService _authService;
+    private readonly IAuthenticationSession _authenticationSession;
     private readonly IAppNavigationService _navigationService;
 
     /// <summary>Initializes a new instance of the <see cref="TwoFactorView"/> class.</summary>
-    public TwoFactorView(TwoFactorViewModel viewModel, IAppNavigationService navigationService, IAuthService authService)
+    public TwoFactorView(
+        TwoFactorViewModel viewModel,
+        IAppNavigationService navigationService,
+        IAuthenticationSession authenticationSession)
     {
         InitializeComponent();
         ViewModel = viewModel;
         _navigationService = navigationService;
-        _authService = authService;
+        _authenticationSession = authenticationSession;
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
         OnStateChanged(ViewModel.State);
     }
@@ -85,7 +88,7 @@ public sealed partial class TwoFactorView
 
     private void BackToLoginButton_Click(object sender, RoutedEventArgs e)
     {
-        _authService.ClearToken();
+        _authenticationSession.Clear();
         _navigationService.NavigateTo<LoginView>();
     }
 }

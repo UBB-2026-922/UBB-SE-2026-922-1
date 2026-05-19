@@ -2,7 +2,6 @@ namespace BankingApp.Desktop.Shared.Timers;
 
 using System;
 using Microsoft.UI.Xaml;
-using Utilities;
 
 /// <summary>
 ///     Production implementation of <see cref="ICountdownTimer"/> backed by <see cref="DispatcherTimer"/>.

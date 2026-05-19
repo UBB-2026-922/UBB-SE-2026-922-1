@@ -1,7 +1,7 @@
 namespace BankingApp.Infrastructure.Http.DependencyInjection;
 
 using Contracts.Features.AccountOverview.Services;
-using Contracts.Features.Authentication.Services;
+using Application.Features.Authentication.Services;
 using Contracts.Features.Beneficiaries.Services;
 using Contracts.Features.Billers.Services;
 using Contracts.Features.BillPayments.Services;

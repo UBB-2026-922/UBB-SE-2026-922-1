@@ -13,7 +13,6 @@ using ErrorOr;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Enums;
-using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Loads and exposes the data needed by the dashboard view.</summary>

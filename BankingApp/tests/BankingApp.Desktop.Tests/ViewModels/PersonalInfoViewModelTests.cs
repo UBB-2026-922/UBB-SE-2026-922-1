@@ -1,6 +1,5 @@
 namespace BankingApp.Desktop.Tests.ViewModels;
 
-using Utilities;
 using Desktop.ViewModels;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;

@@ -1,5 +1,6 @@
 namespace BankingApp.Infrastructure.Http.Http;
 
+using System.Net;
 using BankingApp.Infrastructure.Http.Common.Logging;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
@@ -219,6 +220,16 @@ internal static class HttpClientExtensions
 
         logger?.HttpRequestFailed(operation, endpoint, (int)response.StatusCode, message);
 
-        return Error.Failure($"Api.{(int)response.StatusCode}", message);
+        return response.StatusCode switch
+        {
+            HttpStatusCode.BadRequest => Error.Validation(description: message),
+            HttpStatusCode.Unauthorized => Error.Unauthorized(description: message),
+            HttpStatusCode.Forbidden => Error.Forbidden(description: message),
+            HttpStatusCode.NotFound => Error.NotFound(description: message),
+            HttpStatusCode.Conflict => Error.Conflict(description: message),
+            HttpStatusCode.UnprocessableEntity => Error.Validation(description: message),
+            >= HttpStatusCode.InternalServerError => Error.Unexpected(description: message),
+            _ => Error.Failure($"Api.{(int)response.StatusCode}", message),
+        };
     }
 }
