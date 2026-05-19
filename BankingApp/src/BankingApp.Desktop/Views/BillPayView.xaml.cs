@@ -1,15 +1,15 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Contracts.Features.Billers.Dtos;
+using Contracts.Features.Billers.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 /// <summary>
-///     Hosts the multi-step bill payment wizard.
+///     Hosts the multistep bill payment wizard.
 /// </summary>
-public sealed partial class BillPayView : Page
+public sealed partial class BillPayView
 {
     private const decimal ZeroAmount = 0m;
 

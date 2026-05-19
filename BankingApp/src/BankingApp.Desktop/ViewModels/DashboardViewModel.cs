@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using BankingApp.Contracts.Features.AccountOverview.Dtos;
 using Enums;
-using BankingApp.Application.Common.Utilities;
 using BankingApp.Domain.Enums;
 using Contracts.Features.AccountOverview.Services;
 using ErrorOr;

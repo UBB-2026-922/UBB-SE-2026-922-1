@@ -2,10 +2,10 @@ namespace BankingApp.Desktop.Views;
 
 using System;
 using System.Threading.Tasks;
-using BankingApp.Contracts.Features.UserProfile.Dtos;
+using Contracts.Features.UserProfile.Dtos;
 using Enums;
 using ViewModels;
-using BankingApp.Domain.Enums;
+using Domain.Enums;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -93,9 +93,6 @@ public sealed partial class ProfileView
             }
         });
     }
-
-    /// <inheritdoc />
-    protected override void OnNavigatedTo(NavigationEventArgs e) => base.OnNavigatedTo(e);
 
     /// <inheritdoc />
     protected override void OnNavigatedFrom(NavigationEventArgs e)

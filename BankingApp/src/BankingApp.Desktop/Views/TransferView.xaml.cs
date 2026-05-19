@@ -2,14 +2,13 @@
 
 using ViewModels;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
 
 /// <summary>
-///     Hosts the multi-step transfer wizard.
+///     Hosts the multistep transfer wizard.
 ///     The view receives its <see cref="TransferViewModel" /> through constructor injection
 ///     and triggers account loading when the page is displayed.
 /// </summary>
-public sealed partial class TransferView : Page
+public sealed partial class TransferView
 {
     /// <summary>
     ///     Initializes a new instance of the <see cref="TransferView" /> class.

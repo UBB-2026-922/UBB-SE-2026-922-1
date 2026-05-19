@@ -2,7 +2,7 @@ namespace BankingApp.Desktop.Views;
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BankingApp.Contracts.Features.Cards.Dtos;
+using Contracts.Features.Cards.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

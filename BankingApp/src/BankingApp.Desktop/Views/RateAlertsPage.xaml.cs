@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml.Controls;
 /// <summary>
 ///     Code-behind for the Rate Alerts management page.
 /// </summary>
-public sealed partial class RateAlertsPage : Page
+public sealed partial class RateAlertsPage
 {
     private readonly RateAlertViewModel _viewModel;
 

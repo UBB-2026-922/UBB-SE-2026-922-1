@@ -1,8 +1,8 @@
 namespace BankingApp.Desktop.Views;
 
 using System;
-using BankingApp.Desktop.Enums;
-using BankingApp.Desktop.Utilities;
+using Enums;
+using Utilities;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;

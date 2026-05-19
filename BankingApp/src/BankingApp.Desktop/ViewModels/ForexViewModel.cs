@@ -4,7 +4,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using BankingApp.Contracts.Features.Forex.Dtos;
-using BankingApp.Application.Common.Utilities;
 using Contracts.Features.Forex.Services;
 using ErrorOr;
 using Logging;

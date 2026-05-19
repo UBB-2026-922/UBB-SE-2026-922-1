@@ -1,8 +1,7 @@
 namespace BankingApp.Desktop.Views;
 
 using System.Collections.Generic;
-using BankingApp.Contracts.Features.UserProfile.Dtos;
-using BankingApp.Application.Common.Utilities;
+using Contracts.Features.UserProfile.Dtos;
 using Domain.Common.Extensions;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
