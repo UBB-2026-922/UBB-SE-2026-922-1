@@ -9,6 +9,7 @@ using ErrorOr;
 public interface IAuthenticationService
 {
     public Task<ErrorOr<LoginSuccessResponse>> LoginAsync(LoginRequest request, CancellationToken ct = default);
+    public Task<ErrorOr<Success>> LogoutAsync(CancellationToken ct = default);
     public Task<ErrorOr<Success>> RegisterAsync(RegisterRequest request, CancellationToken ct = default);
     public Task<ErrorOr<LoginSuccessResponse>> VerifyOtpAsync(VerifyOtpRequest request, CancellationToken ct = default);
     public Task<ErrorOr<Success>> ResendOtpAsync(int userId, CancellationToken ct = default);

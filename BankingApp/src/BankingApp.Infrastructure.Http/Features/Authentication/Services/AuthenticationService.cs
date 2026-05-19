@@ -13,6 +13,9 @@ public sealed class AuthenticationService(IApiClient apiClient) : IAuthenticatio
     public Task<ErrorOr<LoginSuccessResponse>> LoginAsync(LoginRequest request, CancellationToken ct = default)
         => apiClient.PostAsync<LoginRequest, LoginSuccessResponse>(ApiEndpoints.Auth.LoginFull, request, ct);
 
+    public Task<ErrorOr<Success>> LogoutAsync(CancellationToken ct = default)
+        => _http.PostErrorOrAsync(ApiEndpoints.Logout, new { }, _logger, ct);
+
     public Task<ErrorOr<Success>> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
         => apiClient.PostAsync(ApiEndpoints.Auth.RegisterFull, request, ct);
 
