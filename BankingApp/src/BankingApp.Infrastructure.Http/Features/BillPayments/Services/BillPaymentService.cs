@@ -12,17 +12,17 @@ public sealed class BillPaymentService(IHttpClientFactory httpClientFactory, ILo
     private readonly ILogger<BillPaymentService> _logger = logger;
 
     public Task<ErrorOr<List<AccountDto>>> GetAccountsAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<AccountDto>>(ApiEndpoints.BillPayAccounts, _logger, ct);
+        => _http.GetErrorOrAsync<List<AccountDto>>(ApiEndpoints.BillPayments.AccountsFull, _logger, ct);
 
     public Task<ErrorOr<FeeResponse>> GetFeeAsync(decimal amount, CancellationToken ct = default)
-        => _http.GetErrorOrAsync<FeeResponse>($"{ApiEndpoints.BillPayFee}?amount={amount}", _logger, ct);
+        => _http.GetErrorOrAsync<FeeResponse>($"{ApiEndpoints.BillPayments.FeeFull}?amount={amount}", _logger, ct);
 
     public Task<ErrorOr<RequiresTwoFaResponse>> GetRequires2FaAsync(decimal amount, CancellationToken ct = default)
-        => _http.GetErrorOrAsync<RequiresTwoFaResponse>($"{ApiEndpoints.BillPayRequires2Fa}?amount={amount}", _logger, ct);
+        => _http.GetErrorOrAsync<RequiresTwoFaResponse>($"{ApiEndpoints.BillPayments.Requires2FaFull}?amount={amount}", _logger, ct);
 
     public Task<ErrorOr<BillPayResponse>> PayBillAsync(BillPayRequest request, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<BillPayRequest, BillPayResponse>(ApiEndpoints.BillPayPay, request, _logger, ct);
+        => _http.PostErrorOrAsync<BillPayRequest, BillPayResponse>(ApiEndpoints.BillPayments.PayFull, request, _logger, ct);
 
     public Task<ErrorOr<List<BillPayResponse>>> GetHistoryAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<BillPayResponse>>(ApiEndpoints.BillPayHistory, _logger, ct);
+        => _http.GetErrorOrAsync<List<BillPayResponse>>(ApiEndpoints.BillPayments.HistoryFull, _logger, ct);
 }

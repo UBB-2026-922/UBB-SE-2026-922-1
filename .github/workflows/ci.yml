@@ -49,6 +49,7 @@ jobs:
           dotnet restore BankingApp/tests/BankingApp.Application.Tests/BankingApp.Application.Tests.csproj
           dotnet restore BankingApp/tests/BankingApp.Infrastructure.Persistence.Tests/BankingApp.Infrastructure.Persistence.Tests.csproj
           dotnet restore BankingApp/tests/BankingApp.Infrastructure.Persistence.Tests.Integration/BankingApp.Infrastructure.Persistence.Tests.Integration.csproj
+          dotnet restore BankingApp/tests/BankingApp.Infrastructure.Core.Tests/BankingApp.Infrastructure.Core.Tests.csproj
           dotnet restore BankingApp/tests/BankingApp.Infrastructure.Http.Tests/BankingApp.Infrastructure.Http.Tests.csproj
           dotnet restore BankingApp/tests/BankingApp.Api.Tests/BankingApp.Api.Tests.csproj
           dotnet restore BankingApp/tests/BankingApp.Api.Tests.Integration/BankingApp.Api.Tests.Integration.csproj
@@ -64,6 +65,9 @@ jobs:
 
       - name: Run persistence integration tests
         run: dotnet test BankingApp/tests/BankingApp.Infrastructure.Persistence.Tests.Integration/BankingApp.Infrastructure.Persistence.Tests.Integration.csproj --configuration Release --no-restore --logger trx --results-directory TestResults
+
+      - name: Run infrastructure core tests
+        run: dotnet test BankingApp/tests/BankingApp.Infrastructure.Core.Tests/BankingApp.Infrastructure.Core.Tests.csproj --configuration Release --no-restore --logger trx --results-directory TestResults
 
       - name: Run infrastructure HTTP tests
         run: dotnet test BankingApp/tests/BankingApp.Infrastructure.Http.Tests/BankingApp.Infrastructure.Http.Tests.csproj --configuration Release --no-restore --logger trx --results-directory TestResults

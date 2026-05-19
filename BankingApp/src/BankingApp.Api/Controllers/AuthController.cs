@@ -8,13 +8,14 @@ using Application.Features.UserRegistration.Commands;
 using Contracts.Features.Authentication.Dtos;
 using Contracts.Features.PasswordReset.Dtos;
 using Contracts.Features.UserRegistration.Dtos;
+using Contracts.Http;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
 ///     Handles authentication, registration, password reset, and two-factor endpoints.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route(ApiEndpoints.Auth.Base)]
 public class AuthController : ApiControllerBase
 {
     private const string BearerPrefix = "Bearer ";
@@ -22,28 +23,28 @@ public class AuthController : ApiControllerBase
     private const int BrowserMaxLength = 100;
     private const int IpAddressMaxLength = 45;
 
-    [HttpPost("login")]
+    [HttpPost(ApiEndpoints.Auth.Login)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         var command = new LoginCommand(request.Email, request.Password, GetSessionMetadata());
         return ToActionResult(await Sender.Send(command, cancellationToken), MapLoginSuccess);
     }
 
-    [HttpPost("register")]
+    [HttpPost(ApiEndpoints.Auth.Register)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
         return ToActionResult(
             await Sender.Send(new RegisterCommand(request.Email, request.Password, request.FullName), cancellationToken));
     }
 
-    [HttpPost("verify-otp")]
+    [HttpPost(ApiEndpoints.Auth.VerifyOtp)]
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request, CancellationToken cancellationToken)
     {
         var command = new VerifyOtpCommand(request.UserId, request.OtpCode, GetSessionMetadata());
         return ToActionResult(await Sender.Send(command, cancellationToken), MapLoginSuccess);
     }
 
-    [HttpPost("forgot-password")]
+    [HttpPost(ApiEndpoints.Auth.ForgotPassword)]
     public async Task<IActionResult> ForgotPassword(
         [FromBody] ForgotPasswordRequest request,
         CancellationToken cancellationToken)
@@ -52,7 +53,7 @@ public class AuthController : ApiControllerBase
         return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
     }
 
-    [HttpPost("reset-password")]
+    [HttpPost(ApiEndpoints.Auth.ResetPassword)]
     public async Task<IActionResult> ResetPassword(
         [FromBody] ResetPasswordRequest request,
         CancellationToken cancellationToken)
@@ -61,7 +62,7 @@ public class AuthController : ApiControllerBase
             await Sender.Send(new ResetPasswordCommand(request.Token, request.NewPassword), cancellationToken));
     }
 
-    [HttpPost("logout")]
+    [HttpPost(ApiEndpoints.Auth.Logout)]
     public async Task<IActionResult> Logout(
         [FromHeader(Name = "Authorization")] string authorization,
         CancellationToken cancellationToken)
@@ -74,7 +75,7 @@ public class AuthController : ApiControllerBase
         return ToActionResult(await Sender.Send(new LogoutCommand(token), cancellationToken));
     }
 
-    [HttpPost("resend-otp")]
+    [HttpPost(ApiEndpoints.Auth.ResendOtp)]
     public async Task<IActionResult> ResendOtp(
         [FromQuery] int userId,
         [FromQuery] string method = "email",
@@ -84,7 +85,7 @@ public class AuthController : ApiControllerBase
         return Ok(new { message = "If the user exists, a new code has been sent." });
     }
 
-    [HttpPost("verify-reset-token")]
+    [HttpPost(ApiEndpoints.Auth.VerifyResetToken)]
     public async Task<IActionResult> VerifyResetToken(
         [FromBody] VerifyResetTokenRequest request,
         CancellationToken cancellationToken)

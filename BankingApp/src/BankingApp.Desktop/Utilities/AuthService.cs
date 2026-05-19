@@ -6,7 +6,7 @@ using Contracts.Http;
 using Contracts.Features.UserRegistration.Dtos;
 using ErrorOr;
 using System.Threading.Tasks;
-using Application.Common.Http;
+using Application.Shared.Http;
 
 /// <inheritdoc />
 public sealed class AuthService : IAuthService
@@ -44,7 +44,7 @@ public sealed class AuthService : IAuthService
             Password = password,
         };
 
-        return _apiClient.PostAsync<LoginRequest, LoginSuccessResponse>(ApiEndpoints.Login, request);
+        return _apiClient.PostAsync<LoginRequest, LoginSuccessResponse>(ApiEndpoints.Auth.LoginFull, request);
     }
 
     /// <inheritdoc />
@@ -57,7 +57,7 @@ public sealed class AuthService : IAuthService
             FullName = fullName,
         };
 
-        return _apiClient.PostAsync(ApiEndpoints.Register, request);
+        return _apiClient.PostAsync(ApiEndpoints.Auth.RegisterFull, request);
     }
 
     /// <inheritdoc />
@@ -69,10 +69,10 @@ public sealed class AuthService : IAuthService
             OtpCode = otpCode,
         };
 
-        return _apiClient.PostAsync<VerifyOtpRequest, LoginSuccessResponse>(ApiEndpoints.VerifyOtp, request);
+        return _apiClient.PostAsync<VerifyOtpRequest, LoginSuccessResponse>(ApiEndpoints.Auth.VerifyOtpFull, request);
     }
 
     /// <inheritdoc />
     public Task<ErrorOr<object>> ResendOtpAsync(int userId)
-        => _apiClient.PostAsync<object?, object>($"{ApiEndpoints.ResendOtp}?userId={userId}", null);
+        => _apiClient.PostAsync<object?, object>($"{ApiEndpoints.Auth.ResendOtpFull}?userId={userId}", null);
 }

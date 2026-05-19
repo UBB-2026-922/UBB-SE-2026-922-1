@@ -12,11 +12,11 @@ public sealed class RateAlertService(IHttpClientFactory httpClientFactory, ILogg
     private readonly ILogger<RateAlertService> _logger = logger;
 
     public Task<ErrorOr<List<ForexRateAlertDto>>> GetAllAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<ForexRateAlertDto>>(ApiEndpoints.RateAlerts, _logger, ct);
+        => _http.GetErrorOrAsync<List<ForexRateAlertDto>>(ApiEndpoints.RateAlerts.Base, _logger, ct);
 
     public Task<ErrorOr<ForexRateAlertDto>> CreateAsync(ForexRateAlertDto alert, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<ForexRateAlertDto, ForexRateAlertDto>(ApiEndpoints.RateAlerts, alert, _logger, ct);
+        => _http.PostErrorOrAsync<ForexRateAlertDto, ForexRateAlertDto>(ApiEndpoints.RateAlerts.Base, alert, _logger, ct);
 
     public Task<ErrorOr<Success>> DeleteAsync(int id, CancellationToken ct = default)
-        => _http.DeleteErrorOrAsync($"{ApiEndpoints.RateAlerts}/{id}", _logger, ct);
+        => _http.DeleteErrorOrAsync(ApiEndpoints.RateAlerts.ByIdFull(id), _logger, ct);
 }

@@ -6,8 +6,8 @@ using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
 using BankingApp.Application.Features.Beneficiaries.Commands;
 using BankingApp.Application.Features.Beneficiaries.Queries;
-using BankingApp.Application.Security;
 using BankingApp.Contracts.Features.Beneficiaries.Dtos;
+using BankingApp.Contracts.Http;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
 using BankingApp.Domain.Repositories;
 
@@ -56,7 +56,7 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
                 }
             });
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/beneficiaries");
+        var request = new HttpRequestMessage(HttpMethod.Get, "/" + ApiEndpoints.Beneficiaries.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);
@@ -82,7 +82,7 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
                 BankName = "Another Bank"
             });
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/beneficiaries");
+        var request = new HttpRequestMessage(HttpMethod.Post, "/" + ApiEndpoints.Beneficiaries.Base);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
         request.Content = JsonContent.Create(new CreateBeneficiaryRequest
         {
@@ -106,7 +106,7 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
             .Setup(sender => sender.Send(It.IsAny<DeleteBeneficiaryCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.NotFound("Beneficiary.NotFound", "Beneficiary not found."));
 
-        var request = new HttpRequestMessage(HttpMethod.Delete, "/api/beneficiaries/999");
+        var request = new HttpRequestMessage(HttpMethod.Delete, "/" + ApiEndpoints.Beneficiaries.ByIdFull(999));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ValidToken);
 
         HttpResponseMessage response = await _client.SendAsync(request, _cancellationToken);

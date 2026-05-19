@@ -3,12 +3,13 @@ namespace BankingApp.Api.Controllers;
 using Application.Features.RecurringPayments.Commands;
 using Application.Features.RecurringPayments.Queries;
 using Contracts.Features.RecurringPayments.Dtos;
+using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Authorize]
-[Route("api/recurring_payments")]
+[Route(ApiEndpoints.RecurringPayments.Base)]
 public class RecurringPaymentsController : ApiControllerBase
 {
     [HttpGet]
@@ -36,21 +37,21 @@ public class RecurringPaymentsController : ApiControllerBase
             payment => CreatedAtAction(nameof(GetAll), new { }, payment));
     }
 
-    [HttpPut("{id}/pause")]
+    [HttpPut(ApiEndpoints.RecurringPayments.Pause)]
     public async Task<IActionResult> Pause(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(await Sender.Send(new PauseRecurringPaymentCommand(userId, id), cancellationToken));
     }
 
-    [HttpPut("{id}/resume")]
+    [HttpPut(ApiEndpoints.RecurringPayments.Resume)]
     public async Task<IActionResult> ResumePayment(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(await Sender.Send(new ResumeRecurringPaymentCommand(userId, id), cancellationToken));
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete(ApiEndpoints.RecurringPayments.ById)]
     public async Task<IActionResult> Cancel(int id, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();

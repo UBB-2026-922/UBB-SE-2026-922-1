@@ -12,18 +12,18 @@ public sealed class TransferService(IHttpClientFactory httpClientFactory, ILogge
     private readonly ILogger<TransferService> _logger = logger;
 
     public Task<ErrorOr<List<TransferResponse>>> GetHistoryAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<TransferResponse>>(ApiEndpoints.TransferHistory, _logger, ct);
+        => _http.GetErrorOrAsync<List<TransferResponse>>(ApiEndpoints.Transfers.Base, _logger, ct);
 
     public Task<ErrorOr<List<TransferAccountSelectionResponse>>> GetAccountsAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<TransferAccountSelectionResponse>>(ApiEndpoints.TransferAccounts, _logger, ct);
+        => _http.GetErrorOrAsync<List<TransferAccountSelectionResponse>>(ApiEndpoints.Transfers.AccountsFull, _logger, ct);
 
     public Task<ErrorOr<TransferIbanValidationResponse>> ValidateIbanAsync(TransferIbanValidationRequest request, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<TransferIbanValidationRequest, TransferIbanValidationResponse>(ApiEndpoints.TransferValidateIban, request, _logger, ct);
+        => _http.PostErrorOrAsync<TransferIbanValidationRequest, TransferIbanValidationResponse>(ApiEndpoints.Transfers.ValidateIbanFull, request, _logger, ct);
 
     public Task<ErrorOr<TransferForexPreviewResponse>> GetFxPreviewAsync(string fromCurrency, string toCurrency, decimal amount, CancellationToken ct = default)
         => _http.GetErrorOrAsync<TransferForexPreviewResponse>(
-            $"{ApiEndpoints.TransferFxPreview}?from={Uri.EscapeDataString(fromCurrency)}&to={Uri.EscapeDataString(toCurrency)}&amount={amount}", _logger, ct);
+            $"{ApiEndpoints.Transfers.FxPreviewFull}?from={Uri.EscapeDataString(fromCurrency)}&to={Uri.EscapeDataString(toCurrency)}&amount={amount}", _logger, ct);
 
     public Task<ErrorOr<TransferExecutionResponse>> ExecuteAsync(CreateTransferRequest request, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<CreateTransferRequest, TransferExecutionResponse>(ApiEndpoints.TransferExecute, request, _logger, ct);
+        => _http.PostErrorOrAsync<CreateTransferRequest, TransferExecutionResponse>(ApiEndpoints.Transfers.ExecuteFull, request, _logger, ct);
 }

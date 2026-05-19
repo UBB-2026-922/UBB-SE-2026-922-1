@@ -12,5 +12,5 @@ public sealed class AccountOverview(IHttpClientFactory httpClientFactory, ILogge
     private readonly ILogger<AccountOverview> _logger = logger;
 
     public Task<ErrorOr<AccountOverviewDto>> GetDashboardAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<AccountOverviewDto>(ApiEndpoints.Dashboard, _logger, ct);
+        => _http.GetErrorOrAsync<AccountOverviewDto>(ApiEndpoints.AccountOverview.Base, _logger, ct);
 }

@@ -3,6 +3,7 @@ namespace BankingApp.Api.Middleware;
 using System.Globalization;
 using System.Security.Claims;
 using Application.Common.Security;
+using Contracts.Http;
 using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Repositories;
@@ -15,7 +16,7 @@ using Logging;
 public class SessionValidationMiddleware
 {
     private const string BearerPrefix = "Bearer ";
-    private static readonly string[] _publicEndpointPrefixes = ["/api/auth/", "/swagger"];
+    private static readonly string[] _publicEndpointPrefixes = [$"/{ApiEndpoints.Auth.Base}/", "/swagger"];
     private readonly RequestDelegate _next;
 
     /// <summary>

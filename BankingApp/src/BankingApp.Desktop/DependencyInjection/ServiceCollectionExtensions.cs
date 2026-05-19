@@ -1,14 +1,14 @@
 namespace BankingApp.Desktop.DependencyInjection;
 
 using System;
-using Application.Common.Http;
-using Infrastructure.Http.Common.Http;
+using Application.Shared.Http;
 using ViewModels;
 using Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Contracts.Http;
 using Infrastructure.Http.DependencyInjection;
+using Infrastructure.Http.Shared.Http;
 using Navigation;
 using Utilities;
 

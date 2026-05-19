@@ -12,32 +12,32 @@ public sealed class ProfileService(IHttpClientFactory httpClientFactory, ILogger
     private readonly ILogger<ProfileService> _logger = logger;
 
     public Task<ErrorOr<ProfileDto>> GetProfileAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<ProfileDto>(ApiEndpoints.Profile, _logger, ct);
+        => _http.GetErrorOrAsync<ProfileDto>(ApiEndpoints.Profile.Base, _logger, ct);
 
     public Task<ErrorOr<Success>> UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default)
-        => _http.PutErrorOrAsync(ApiEndpoints.Profile, request, _logger, ct);
+        => _http.PutErrorOrAsync(ApiEndpoints.Profile.Base, request, _logger, ct);
 
     public Task<ErrorOr<bool>> VerifyPasswordAsync(string password, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<string, bool>(ApiEndpoints.VerifyPassword, password, _logger, ct);
+        => _http.PostErrorOrAsync<string, bool>(ApiEndpoints.Profile.VerifyPasswordFull, password, _logger, ct);
 
     public Task<ErrorOr<Success>> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default)
-        => _http.PutErrorOrAsync(ApiEndpoints.ChangePassword, request, _logger, ct);
+        => _http.PutErrorOrAsync(ApiEndpoints.Profile.ChangePasswordFull, request, _logger, ct);
 
     public Task<ErrorOr<Success>> Enable2FaAsync(EnableTwoFaRequest request, CancellationToken ct = default)
-        => _http.PutErrorOrAsync(ApiEndpoints.Enable2Fa, request, _logger, ct);
+        => _http.PutErrorOrAsync(ApiEndpoints.Profile.Enable2FaFull, request, _logger, ct);
 
     public Task<ErrorOr<Success>> Disable2FaAsync(CancellationToken ct = default)
-        => _http.PutErrorOrAsync(ApiEndpoints.Disable2Fa, new { }, _logger, ct);
+        => _http.PutErrorOrAsync(ApiEndpoints.Profile.Disable2FaFull, new { }, _logger, ct);
 
     public Task<ErrorOr<List<NotificationPreferenceDto>>> GetNotificationPreferencesAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<NotificationPreferenceDto>>(ApiEndpoints.NotificationPreferences, _logger, ct);
+        => _http.GetErrorOrAsync<List<NotificationPreferenceDto>>(ApiEndpoints.Profile.NotificationPreferencesFull, _logger, ct);
 
     public Task<ErrorOr<Success>> UpdateNotificationPreferencesAsync(List<NotificationPreferenceDto> preferences, CancellationToken ct = default)
-        => _http.PutErrorOrAsync(ApiEndpoints.NotificationPreferences, preferences, _logger, ct);
+        => _http.PutErrorOrAsync(ApiEndpoints.Profile.NotificationPreferencesFull, preferences, _logger, ct);
 
     public Task<ErrorOr<List<SessionDto>>> GetSessionsAsync(CancellationToken ct = default)
-        => _http.GetErrorOrAsync<List<SessionDto>>(ApiEndpoints.Sessions, _logger, ct);
+        => _http.GetErrorOrAsync<List<SessionDto>>(ApiEndpoints.Profile.SessionsFull, _logger, ct);
 
     public Task<ErrorOr<Success>> RevokeSessionAsync(int sessionId, CancellationToken ct = default)
-        => _http.DeleteErrorOrAsync($"{ApiEndpoints.Sessions}/{sessionId}", _logger, ct);
+        => _http.DeleteErrorOrAsync(ApiEndpoints.Profile.SessionByIdFull(sessionId), _logger, ct);
 }

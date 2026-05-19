@@ -1,9 +1,9 @@
-namespace BankingApp.Infrastructure.Http.Common.Http;
+namespace BankingApp.Infrastructure.Http.Shared.Http;
 
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Application.Common.Http;
+using BankingApp.Application.Shared.Http;
 using BankingApp.Infrastructure.Http.Common.Logging;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;

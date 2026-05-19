@@ -1,4 +1,4 @@
-namespace BankingApp.Application.Common.Http;
+namespace BankingApp.Application.Shared.Http;
 
 using ErrorOr;
 

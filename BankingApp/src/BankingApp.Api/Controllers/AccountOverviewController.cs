@@ -1,6 +1,7 @@
 namespace BankingApp.Api.Controllers;
 
 using Application.Features.AccountOverview.Queries;
+using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,8 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Authorize]
-[Route("api/[controller]")]
-public class DashboardController : ApiControllerBase
+[Route(ApiEndpoints.AccountOverview.Base)]
+public class AccountOverviewController : ApiControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)

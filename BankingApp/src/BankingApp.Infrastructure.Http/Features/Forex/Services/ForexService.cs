@@ -13,8 +13,8 @@ public sealed class ForexService(IHttpClientFactory httpClientFactory, ILogger<F
 
     public Task<ErrorOr<ForexRatePreviewResponse>> GetPreviewAsync(string fromCurrency, string toCurrency, decimal amount, CancellationToken ct = default)
         => _http.GetErrorOrAsync<ForexRatePreviewResponse>(
-            $"{ApiEndpoints.ForexPreview}?sourceCurrency={Uri.EscapeDataString(fromCurrency)}&targetCurrency={Uri.EscapeDataString(toCurrency)}&amount={amount}", _logger, ct);
+            $"{ApiEndpoints.Forex.PreviewFull}?sourceCurrency={Uri.EscapeDataString(fromCurrency)}&targetCurrency={Uri.EscapeDataString(toCurrency)}&amount={amount}", _logger, ct);
 
     public Task<ErrorOr<ForexTransactionResponse>> ExecuteAsync(ForexTransactionRequest request, CancellationToken ct = default)
-        => _http.PostErrorOrAsync<ForexTransactionRequest, ForexTransactionResponse>(ApiEndpoints.ForexExecute, request, _logger, ct);
+        => _http.PostErrorOrAsync<ForexTransactionRequest, ForexTransactionResponse>(ApiEndpoints.Forex.ExecuteFull, request, _logger, ct);
 }

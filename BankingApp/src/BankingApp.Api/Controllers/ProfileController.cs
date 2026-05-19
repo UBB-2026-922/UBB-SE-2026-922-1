@@ -3,6 +3,7 @@ namespace BankingApp.Api.Controllers;
 using Application.Features.UserProfile.Commands;
 using Application.Features.UserProfile.Queries;
 using Contracts.Features.UserProfile.Dtos;
+using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Authorize]
-[Route("api/[controller]")]
+[Route(ApiEndpoints.Profile.Base)]
 public class ProfileController : ApiControllerBase
 {
     [HttpGet]
@@ -38,7 +39,7 @@ public class ProfileController : ApiControllerBase
         return ToActionResult(await Sender.Send(command, cancellationToken));
     }
 
-    [HttpPut("password")]
+    [HttpPut(ApiEndpoints.Profile.ChangePassword)]
     public async Task<IActionResult> ChangePassword(
         [FromBody] ChangePasswordRequest request,
         CancellationToken cancellationToken)
@@ -48,14 +49,14 @@ public class ProfileController : ApiControllerBase
             await Sender.Send(new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword), cancellationToken));
     }
 
-    [HttpGet("notifications/preferences")]
+    [HttpGet(ApiEndpoints.Profile.NotificationPreferences)]
     public async Task<IActionResult> GetNotificationPreferences(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(await Sender.Send(new GetNotificationPreferencesQuery(userId), cancellationToken), Ok);
     }
 
-    [HttpPut("notifications/preferences")]
+    [HttpPut(ApiEndpoints.Profile.NotificationPreferences)]
     public async Task<IActionResult> UpdateNotificationPreferences(
         [FromBody] List<NotificationPreferenceDto> preferences,
         CancellationToken cancellationToken)
@@ -65,7 +66,7 @@ public class ProfileController : ApiControllerBase
             await Sender.Send(new UpdateNotificationPreferencesCommand(userId, preferences), cancellationToken));
     }
 
-    [HttpPost("verify-password")]
+    [HttpPost(ApiEndpoints.Profile.VerifyPassword)]
     public async Task<IActionResult> VerifyPassword([FromBody] string password, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
@@ -74,28 +75,28 @@ public class ProfileController : ApiControllerBase
             isValid => Ok(isValid));
     }
 
-    [HttpPut("2fa/enable")]
+    [HttpPut(ApiEndpoints.Profile.Enable2Fa)]
     public async Task<IActionResult> Enable2Fa([FromBody] EnableTwoFaRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(await Sender.Send(new Enable2FaCommand(userId, request.Method), cancellationToken));
     }
 
-    [HttpPut("2fa/disable")]
+    [HttpPut(ApiEndpoints.Profile.Disable2Fa)]
     public async Task<IActionResult> Disable2Fa(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(await Sender.Send(new Disable2FaCommand(userId), cancellationToken));
     }
 
-    [HttpGet("sessions")]
+    [HttpGet(ApiEndpoints.Profile.Sessions)]
     public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(await Sender.Send(new GetActiveSessionsQuery(userId), cancellationToken), Ok);
     }
 
-    [HttpDelete("sessions/{sessionId:int}")]
+    [HttpDelete(ApiEndpoints.Profile.SessionById)]
     public async Task<IActionResult> RevokeSession(int sessionId, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();

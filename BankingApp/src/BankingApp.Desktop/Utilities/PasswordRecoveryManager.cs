@@ -2,7 +2,7 @@ namespace BankingApp.Desktop.Utilities;
 
 using System;
 using System.Threading.Tasks;
-using Application.Common.Http;
+using Application.Shared.Http;
 using BankingApp.Desktop.Enums;
 using Contracts.Features.PasswordReset.Dtos;
 using Contracts.Http;
@@ -55,7 +55,7 @@ public sealed class PasswordRecoveryManager : IPasswordRecoveryManager
             return ForgotPasswordState.EmailSent;
         }
 
-        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.ForgotPassword, new ForgotPasswordRequest { Email = email });
+        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Auth.ForgotPasswordFull, new ForgotPasswordRequest { Email = email });
         if (result.IsError)
         {
             return ForgotPasswordState.Error;
@@ -73,7 +73,7 @@ public sealed class PasswordRecoveryManager : IPasswordRecoveryManager
             return ForgotPasswordState.Error;
         }
 
-        ErrorOr<Success> result = await _apiClient.PostAsync<object>(ApiEndpoints.VerifyResetToken, new { Token = token });
+        ErrorOr<Success> result = await _apiClient.PostAsync<object>(ApiEndpoints.Auth.VerifyResetTokenFull, new { Token = token });
         return result.IsError ? MapError(result.FirstError) : ForgotPasswordState.TokenValid;
     }
 
@@ -85,7 +85,7 @@ public sealed class PasswordRecoveryManager : IPasswordRecoveryManager
             return ForgotPasswordState.Error;
         }
 
-        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.ResetPassword, new ResetPasswordRequest
+        ErrorOr<Success> result = await _apiClient.PostAsync(ApiEndpoints.Auth.ResetPasswordFull, new ResetPasswordRequest
         {
             Token = token,
             NewPassword = newPassword,
