@@ -20,6 +20,7 @@
     </Folder>
     <Folder Name="/tests/">
         <Project Path="tests/BankingApp.Application.Tests/BankingApp.Application.Tests.csproj" />
+        <Project Path="tests/BankingApp.Web.Tests/BankingApp.Web.Tests.csproj" />
         <Project Path="tests/BankingApp.Desktop.Tests/BankingApp.Desktop.Tests.csproj" />
         <Project Path="tests/BankingApp.Domain.Tests/BankingApp.Domain.Tests.csproj" />
         <Project Path="tests/BankingApp.Infrastructure.Tests.Integration/BankingApp.Infrastructure.Tests.Integration.csproj" />
