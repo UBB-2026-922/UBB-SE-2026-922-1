@@ -43,6 +43,25 @@ public sealed class UnfreezeCardCommandTests
     }
 
     [Fact]
+    public async Task Handle_WhenCardIsCancelled_ShouldReturnAlreadyCancelledError()
+    {
+        var account = Account.Open(1, null!, Currency.FromCode(TestCurrency), AccountType.Checking, null, DateTime.UtcNow);
+        Card card = account.IssueCard(TestCardNumber, TestCardholderName, DateTime.UtcNow.AddYears(CardExpiryYears), TestCvv, CardType.Debit, TestCardBrand, DateTime.UtcNow);
+        card.Cancel(DateTime.UtcNow);
+
+        _accountRepositoryMock
+            .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([account]);
+
+        var command = new UnfreezeCardCommand(UserId: 1, CardId: card.Id);
+
+        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
+
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(CardErrors.AlreadyCancelled);
+    }
+
+    [Fact]
     public async Task Handle_WhenCardIsNotFrozen_ShouldReturnNotFrozenError()
     {
         var account = Account.Open(1, null!, Currency.FromCode(TestCurrency), AccountType.Checking, null, DateTime.UtcNow);
