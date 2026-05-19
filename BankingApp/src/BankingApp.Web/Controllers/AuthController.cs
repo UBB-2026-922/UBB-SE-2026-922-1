@@ -2,7 +2,7 @@ namespace BankingApp.Web.Controllers;
 
 using System.Globalization;
 using System.Security.Claims;
-using BankingApp.Application.Features.Authentication.Services;
+using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 using BankingApp.Contracts.Features.Authentication.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.ViewModels;
@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 public sealed class AuthController(
-    IAuthenticationService authenticationService) : Controller
+    ClientAuthenticationService authenticationService) : Controller
 {
     [AllowAnonymous]
     [HttpGet]

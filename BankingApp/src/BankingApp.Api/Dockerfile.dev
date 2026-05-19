@@ -7,6 +7,7 @@ COPY Directory.Build.props .
 COPY src/BankingApp.Domain/BankingApp.Domain.csproj          src/BankingApp.Domain/
 COPY src/BankingApp.Contracts/BankingApp.Contracts.csproj    src/BankingApp.Contracts/
 COPY src/BankingApp.Application/BankingApp.Application.csproj src/BankingApp.Application/
+COPY src/BankingApp.Infrastructure.Core/BankingApp.Infrastructure.Core.csproj src/BankingApp.Infrastructure.Core/
 COPY src/BankingApp.Infrastructure.Persistence/BankingApp.Infrastructure.Persistence.csproj src/BankingApp.Infrastructure.Persistence/
 COPY src/BankingApp.Api/BankingApp.Api.csproj                src/BankingApp.Api/
 RUN dotnet restore src/BankingApp.Api/BankingApp.Api.csproj
@@ -14,6 +15,7 @@ RUN dotnet restore src/BankingApp.Api/BankingApp.Api.csproj
 COPY src/BankingApp.Domain/       src/BankingApp.Domain/
 COPY src/BankingApp.Contracts/    src/BankingApp.Contracts/
 COPY src/BankingApp.Application/  src/BankingApp.Application/
+COPY src/BankingApp.Infrastructure.Core/ src/BankingApp.Infrastructure.Core/
 COPY src/BankingApp.Infrastructure.Persistence/ src/BankingApp.Infrastructure.Persistence/
 COPY src/BankingApp.Api/          src/BankingApp.Api/
 RUN dotnet publish src/BankingApp.Api/BankingApp.Api.csproj \
