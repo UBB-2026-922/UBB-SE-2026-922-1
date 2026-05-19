@@ -1,8 +1,9 @@
 namespace BankingApp.Web.Tests.Controllers;
 
 using System.Security.Claims;
+using BankingApp.Application.Features.Authentication.Services;
 using BankingApp.Contracts.Features.Authentication.Dtos;
-using BankingAppAuthenticationService = BankingApp.Contracts.Features.Authentication.Services.IAuthenticationService;
+using BankingApp.Contracts.Http;
 using BankingApp.Web.Controllers;
 using BankingApp.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
@@ -14,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 public sealed class AuthControllerTests : IDisposable
 {
-    private readonly Mock<BankingAppAuthenticationService> _authenticationServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<IAuthenticationService> _authenticationServiceMock = new(MockBehavior.Strict);
     private readonly Mock<Microsoft.AspNetCore.Authentication.IAuthenticationService> _aspNetAuthenticationMock = new(MockBehavior.Strict);
     private readonly AuthController _controller;
 
@@ -140,8 +141,8 @@ public sealed class AuthControllerTests : IDisposable
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 It.Is<ClaimsPrincipal>(principal =>
                     principal.FindFirstValue(ClaimTypes.NameIdentifier) == "15"
-                    && principal.FindFirstValue("userId") == "15"
-                    && principal.FindFirstValue("token") == "jwt-token"
+                    && principal.FindFirstValue(AuthClaimTypes.UserId) == "15"
+                    && principal.FindFirstValue(AuthClaimTypes.Token) == "jwt-token"
                     && principal.Identity!.Name == model.Email),
                 It.Is<AuthenticationProperties>(properties =>
                     properties.IsPersistent

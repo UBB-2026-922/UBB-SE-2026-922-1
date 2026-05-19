@@ -2,8 +2,9 @@ namespace BankingApp.Web.Controllers;
 
 using System.Globalization;
 using System.Security.Claims;
+using BankingApp.Application.Features.Authentication.Services;
 using BankingApp.Contracts.Features.Authentication.Dtos;
-using BankingAppAuthenticationService = BankingApp.Contracts.Features.Authentication.Services.IAuthenticationService;
+using BankingApp.Contracts.Http;
 using BankingApp.Web.ViewModels;
 using ErrorOr;
 using Microsoft.AspNetCore.Authentication;
@@ -11,7 +12,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-public sealed class AuthController(BankingAppAuthenticationService authenticationService) : Controller
+public sealed class AuthController(
+    IAuthenticationService authenticationService) : Controller
 {
     [AllowAnonymous]
     [HttpGet]
@@ -28,51 +30,53 @@ public sealed class AuthController(BankingAppAuthenticationService authenticatio
     [AllowAnonymous]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel model, CancellationToken ct)
+    public async Task<IActionResult> Login(
+        LoginViewModel loginViewModel,
+        CancellationToken cancellationToken)
     {
-        model.ReturnUrl = GetSafeReturnUrl(model.ReturnUrl);
+        loginViewModel.ReturnUrl = GetSafeReturnUrl(loginViewModel.ReturnUrl);
 
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return View(loginViewModel);
         }
 
-        ErrorOr<LoginSuccessResponse> result = await authenticationService.LoginAsync(
+        ErrorOr<LoginSuccessResponse> loginResult = await authenticationService.LoginAsync(
             new LoginRequest
             {
-                Email = model.Email,
-                Password = model.Password
+                Email = loginViewModel.Email,
+                Password = loginViewModel.Password
             },
-            ct);
+            cancellationToken);
 
-        if (result.IsError)
+        if (loginResult.IsError)
         {
-            ModelState.AddModelError(string.Empty, result.FirstError.Description);
-            return View(model);
+            ModelState.AddModelError(string.Empty, loginResult.FirstError.Description);
+            return View(loginViewModel);
         }
 
-        LoginSuccessResponse response = result.Value;
-        if (response.Requires2Fa)
+        LoginSuccessResponse loginResponse = loginResult.Value;
+        if (loginResponse.Requires2Fa)
         {
-            return Redirect($"/Auth/VerifyOtp?userId={response.UserId}");
+            return Redirect($"/Auth/VerifyOtp?userId={loginResponse.UserId}");
         }
 
-        if (string.IsNullOrWhiteSpace(response.Token))
+        if (string.IsNullOrWhiteSpace(loginResponse.Token))
         {
             ModelState.AddModelError(string.Empty, "The API did not return an authentication token.");
-            return View(model);
+            return View(loginViewModel);
         }
 
-        await SignInUserAsync(response.UserId, model.Email, response.Token);
-        return Redirect(model.ReturnUrl ?? "/Dashboard");
+        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token);
+        return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
     }
 
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout(CancellationToken ct)
+    public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
-        await authenticationService.LogoutAsync(ct);
+        await authenticationService.LogoutAsync(cancellationToken);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         return Redirect("/Auth/Login");
@@ -85,8 +89,8 @@ public sealed class AuthController(BankingAppAuthenticationService authenticatio
         [
             new Claim(ClaimTypes.NameIdentifier, userIdValue),
             new Claim(ClaimTypes.Name, email),
-            new Claim("userId", userIdValue),
-            new Claim("token", token)
+            new Claim(AuthClaimTypes.UserId, userIdValue),
+            new Claim(AuthClaimTypes.Token, token)
         ];
 
         ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
