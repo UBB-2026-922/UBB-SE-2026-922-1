@@ -1,7 +1,7 @@
 namespace BankingApp.Web.Http;
 
-using BankingApp.Contracts.Http;
 using System.Net.Http.Headers;
+using BankingApp.Contracts.Http;
 
 public sealed class BearerTokenForwardingHandler(IHttpContextAccessor httpContextAccessor) : DelegatingHandler
 {

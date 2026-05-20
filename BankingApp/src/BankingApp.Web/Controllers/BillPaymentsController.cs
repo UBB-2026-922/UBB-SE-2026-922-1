@@ -1,9 +1,9 @@
 namespace BankingApp.Web.Controllers;
 
-using Contracts.Features.BillPayments.Dtos;
-using Contracts.Features.BillPayments.Services;
 using Contracts.Features.Billers.Dtos;
 using Contracts.Features.Billers.Services;
+using Contracts.Features.BillPayments.Dtos;
+using Contracts.Features.BillPayments.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +14,11 @@ public class BillPaymentsController(
     IBillPaymentService billPaymentService,
     IBillerService billerService) : Controller
 {
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        Task<ErrorOr<List<SavedBillerDto>>> savedBillersTask = billerService.GetSavedBillersAsync(ct);
-        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(ct: ct);
-        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(ct);
+        Task<ErrorOr<List<SavedBillerDto>>> savedBillersTask = billerService.GetSavedBillersAsync(cancellationToken);
+        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(cancellationToken: cancellationToken);
+        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(cancellationToken);
 
         await Task.WhenAll(savedBillersTask, allBillersTask, accountsTask);
 
@@ -50,18 +50,18 @@ public class BillPaymentsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Preview(BillPayViewModel viewModel, CancellationToken ct)
+    public async Task<IActionResult> Preview(BillPayViewModel viewModel, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
-            await RepopulateDropdownsAsync(viewModel, ct);
+            await RepopulateDropdownsAsync(viewModel, cancellationToken);
             return View("Index", viewModel);
         }
 
-        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(ct: ct);
-        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(ct);
-        Task<ErrorOr<FeeResponse>> feeTask = billPaymentService.GetFeeAsync(viewModel.Amount, ct);
-        Task<ErrorOr<RequiresTwoFaResponse>> twoFaTask = billPaymentService.GetRequires2FaAsync(viewModel.Amount, ct);
+        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(cancellationToken: cancellationToken);
+        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(cancellationToken);
+        Task<ErrorOr<FeeResponse>> feeTask = billPaymentService.GetFeeAsync(viewModel.Amount, cancellationToken);
+        Task<ErrorOr<RequiresTwoFaResponse>> twoFaTask = billPaymentService.GetRequires2FaAsync(viewModel.Amount, cancellationToken);
 
         await Task.WhenAll(allBillersTask, accountsTask, feeTask, twoFaTask);
 
@@ -72,7 +72,7 @@ public class BillPaymentsController(
               ?? $"Biller #{viewModel.SelectedBillerId}";
 
         ErrorOr<List<AccountDto>> accounts = await accountsTask;
-        AccountDto? account = accounts.IsError ? null : accounts.Value.FirstOrDefault(a => a.Id == viewModel.SelectedAccountId);
+        AccountDto? account = accounts.IsError ? null : accounts.Value.FirstOrDefault(account => account.Id == viewModel.SelectedAccountId);
 
         ErrorOr<FeeResponse> feeResult = await feeTask;
         ErrorOr<RequiresTwoFaResponse> twoFaResult = await twoFaTask;
@@ -95,7 +95,7 @@ public class BillPaymentsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(BillPayPreviewViewModel viewModel, CancellationToken ct)
+    public async Task<IActionResult> Confirm(BillPayPreviewViewModel viewModel, CancellationToken cancellationToken)
     {
         if (viewModel.RequiresTwoFa && string.IsNullOrWhiteSpace(viewModel.TwoFaToken))
         {
@@ -112,7 +112,7 @@ public class BillPaymentsController(
             TwoFaToken = viewModel.TwoFaToken
         };
 
-        ErrorOr<BillPayResponse> result = await billPaymentService.PayBillAsync(request, ct);
+        ErrorOr<BillPayResponse> result = await billPaymentService.PayBillAsync(request, cancellationToken);
 
         if (result.IsError)
         {
@@ -128,9 +128,9 @@ public class BillPaymentsController(
         return RedirectToAction(nameof(History));
     }
 
-    public async Task<IActionResult> History(CancellationToken ct)
+    public async Task<IActionResult> History(CancellationToken cancellationToken)
     {
-        ErrorOr<List<BillPayResponse>> result = await billPaymentService.GetHistoryAsync(ct);
+        ErrorOr<List<BillPayResponse>> result = await billPaymentService.GetHistoryAsync(cancellationToken);
 
         if (result.IsError)
         {
@@ -156,19 +156,19 @@ public class BillPaymentsController(
 
     private static decimal FallbackFee(decimal amount) => amount <= 100m ? 0.50m : 1.00m;
 
-    private async Task RepopulateDropdownsAsync(BillPayViewModel vm, CancellationToken ct)
+    private async Task RepopulateDropdownsAsync(BillPayViewModel viewModel, CancellationToken cancellationToken)
     {
-        Task<ErrorOr<List<SavedBillerDto>>> savedTask = billerService.GetSavedBillersAsync(ct);
-        Task<ErrorOr<List<BillerDto>>> allTask = billerService.GetBillersAsync(ct: ct);
-        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(ct);
+        Task<ErrorOr<List<SavedBillerDto>>> savedTask = billerService.GetSavedBillersAsync(cancellationToken);
+        Task<ErrorOr<List<BillerDto>>> allTask = billerService.GetBillersAsync(cancellationToken: cancellationToken);
+        Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(cancellationToken);
         await Task.WhenAll(savedTask, allTask, accountsTask);
 
         ErrorOr<List<SavedBillerDto>> savedResult = await savedTask;
         ErrorOr<List<BillerDto>> allResult = await allTask;
         ErrorOr<List<AccountDto>> accResult = await accountsTask;
 
-        vm.SavedBillers = savedResult.IsError ? [] : savedResult.Value;
-        vm.AllBillers = allResult.IsError ? [] : allResult.Value;
-        vm.Accounts = accResult.IsError ? [] : accResult.Value;
+        viewModel.SavedBillers = savedResult.IsError ? [] : savedResult.Value;
+        viewModel.AllBillers = allResult.IsError ? [] : allResult.Value;
+        viewModel.Accounts = accResult.IsError ? [] : accResult.Value;
     }
 }

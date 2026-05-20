@@ -30,8 +30,8 @@ public class BillPaymentRowViewModel
     public string StatusBadgeClass => Status.ToLowerInvariant() switch
     {
         "completed" => "bg-success",
-        "pending"   => "bg-warning text-dark",
-        "failed"    => "bg-danger",
-        _           => "bg-secondary"
+        "pending" => "bg-warning text-dark",
+        "failed" => "bg-danger",
+        _ => "bg-secondary"
     };
 }

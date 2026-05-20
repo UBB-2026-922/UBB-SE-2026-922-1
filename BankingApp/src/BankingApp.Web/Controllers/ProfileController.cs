@@ -10,9 +10,9 @@ using ViewModels.Profile;
 [Authorize]
 public class ProfileController(IProfileService profileService) : Controller
 {
-    public async Task<IActionResult> Index(CancellationToken ct)
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        ErrorOr<ProfileDto> result = await profileService.GetProfileAsync(ct);
+        ErrorOr<ProfileDto> result = await profileService.GetProfileAsync(cancellationToken);
 
         if (result.IsError)
         {
@@ -32,9 +32,9 @@ public class ProfileController(IProfileService profileService) : Controller
         return View(viewModel);
     }
 
-    public async Task<IActionResult> PersonalInfo(CancellationToken ct)
+    public async Task<IActionResult> PersonalInfo(CancellationToken cancellationToken)
     {
-        ErrorOr<ProfileDto> result = await profileService.GetProfileAsync(ct);
+        ErrorOr<ProfileDto> result = await profileService.GetProfileAsync(cancellationToken);
 
         if (result.IsError)
         {
@@ -55,7 +55,7 @@ public class ProfileController(IProfileService profileService) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> PersonalInfo(PersonalInfoViewModel model, CancellationToken ct)
+    public async Task<IActionResult> PersonalInfo(PersonalInfoViewModel model, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -68,7 +68,7 @@ public class ProfileController(IProfileService profileService) : Controller
             PhoneNumber = model.PhoneNumber,
         };
 
-        ErrorOr<Success> result = await profileService.UpdateProfileAsync(request, ct);
+        ErrorOr<Success> result = await profileService.UpdateProfileAsync(request, cancellationToken);
 
         if (result.IsError)
         {
