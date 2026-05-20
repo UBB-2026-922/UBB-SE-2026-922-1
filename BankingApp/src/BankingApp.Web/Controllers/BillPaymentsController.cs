@@ -17,7 +17,7 @@ public class BillPaymentsController(
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         Task<ErrorOr<List<SavedBillerDto>>> savedBillersTask = billerService.GetSavedBillersAsync(cancellationToken);
-        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(cancellationToken: cancellationToken);
+        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(ct: cancellationToken);
         Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(cancellationToken);
 
         await Task.WhenAll(savedBillersTask, allBillersTask, accountsTask);
@@ -58,7 +58,7 @@ public class BillPaymentsController(
             return View("Index", viewModel);
         }
 
-        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(cancellationToken: cancellationToken);
+        Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(ct: cancellationToken);
         Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(cancellationToken);
         Task<ErrorOr<FeeResponse>> feeTask = billPaymentService.GetFeeAsync(viewModel.Amount, cancellationToken);
         Task<ErrorOr<RequiresTwoFaResponse>> twoFaTask = billPaymentService.GetRequires2FaAsync(viewModel.Amount, cancellationToken);
@@ -159,7 +159,7 @@ public class BillPaymentsController(
     private async Task RepopulateDropdownsAsync(BillPayViewModel viewModel, CancellationToken cancellationToken)
     {
         Task<ErrorOr<List<SavedBillerDto>>> savedTask = billerService.GetSavedBillersAsync(cancellationToken);
-        Task<ErrorOr<List<BillerDto>>> allTask = billerService.GetBillersAsync(cancellationToken: cancellationToken);
+        Task<ErrorOr<List<BillerDto>>> allTask = billerService.GetBillersAsync(ct: cancellationToken);
         Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(cancellationToken);
         await Task.WhenAll(savedTask, allTask, accountsTask);
 
