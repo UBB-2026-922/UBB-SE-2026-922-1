@@ -57,7 +57,7 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
         LoginSuccessResponse loginResponse = loginResult.Value;
         if (loginResponse.Requires2Fa)
         {
-            return RedirectToAction(nameof(VerifyOtp), new { userId = loginResponse.UserId });
+            return Redirect($"/Auth/VerifyOtp?userId={loginResponse.UserId}");
         }
 
         if (string.IsNullOrWhiteSpace(loginResponse.Token))
