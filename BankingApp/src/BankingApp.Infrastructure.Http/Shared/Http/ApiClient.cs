@@ -3,6 +3,7 @@ namespace BankingApp.Infrastructure.Http.Shared.Http;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using BankingApp.Application.Shared.Http;
 using BankingApp.Contracts.Http;
 using BankingApp.Infrastructure.Http.Common.Logging;
@@ -71,22 +72,46 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     }
 
     public Task<ErrorOr<TResponse>> GetAsync<TResponse>(string endpoint, CancellationToken cancellationToken = default)
-        => SendAsync<TResponse>("GET", endpoint, async ct => await _httpClient.GetAsync(endpoint, ct), cancellationToken);
+        => SendAsync<TResponse>(
+            "GET",
+            endpoint,
+            async cancellationTokenValue => await _httpClient.GetAsync(endpoint, cancellationTokenValue),
+            cancellationToken);
 
     public Task<ErrorOr<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendAsync<TResponse>("POST", endpoint, async ct => await _httpClient.PostAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendAsync<TResponse>(
+            "POST",
+            endpoint,
+            async cancellationTokenValue => await _httpClient.PostAsJsonAsync(endpoint, data, cancellationTokenValue),
+            cancellationToken);
 
     public Task<ErrorOr<Success>> PostAsync<TRequest>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendSuccessAsync("POST", endpoint, async ct => await _httpClient.PostAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendSuccessAsync(
+            "POST",
+            endpoint,
+            async cancellationTokenValue => await _httpClient.PostAsJsonAsync(endpoint, data, cancellationTokenValue),
+            cancellationToken);
 
     public Task<ErrorOr<TResponse>> PutAsync<TRequest, TResponse>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendAsync<TResponse>("PUT", endpoint, async ct => await _httpClient.PutAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendAsync<TResponse>(
+            "PUT",
+            endpoint,
+            async cancellationTokenValue => await _httpClient.PutAsJsonAsync(endpoint, data, cancellationTokenValue),
+            cancellationToken);
 
     public Task<ErrorOr<Success>> PutAsync<TRequest>(string endpoint, TRequest? data, CancellationToken cancellationToken = default)
-        => SendSuccessAsync("PUT", endpoint, async ct => await _httpClient.PutAsJsonAsync(endpoint, data, ct), cancellationToken);
+        => SendSuccessAsync(
+            "PUT",
+            endpoint,
+            async cancellationTokenValue => await _httpClient.PutAsJsonAsync(endpoint, data, cancellationTokenValue),
+            cancellationToken);
 
     public Task<ErrorOr<Success>> DeleteAsync(string endpoint, CancellationToken cancellationToken = default)
-        => SendSuccessAsync("DELETE", endpoint, async ct => await _httpClient.DeleteAsync(endpoint, ct), cancellationToken);
+        => SendSuccessAsync(
+            "DELETE",
+            endpoint,
+            async cancellationTokenValue => await _httpClient.DeleteAsync(endpoint, cancellationTokenValue),
+            cancellationToken);
 
     public void Dispose()
     {
@@ -159,19 +184,20 @@ public sealed partial class ApiClient : IApiClient, IDisposable
 
     private async Task<Error> MapErrorAsync(string operation, string endpoint, HttpResponseMessage response, CancellationToken cancellationToken)
     {
-        string details;
+        string responseBody;
         try
         {
-            details = await response.Content.ReadAsStringAsync(cancellationToken);
+            responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         }
         catch
         {
-            details = string.Empty;
+            responseBody = string.Empty;
         }
 
-        string description = string.IsNullOrWhiteSpace(details)
+        string description = TryExtractProblemDetailsMessage(responseBody)
+            ?? (string.IsNullOrWhiteSpace(responseBody)
             ? response.ReasonPhrase ?? "Request failed."
-            : details;
+            : responseBody);
 
         _logger.HttpRequestFailed(operation, endpoint, (int)response.StatusCode, description);
 
@@ -186,6 +212,46 @@ public sealed partial class ApiClient : IApiClient, IDisposable
             >= HttpStatusCode.InternalServerError => Error.Unexpected(description: description),
             _ => Error.Failure(description: description),
         };
+    }
+
+    private static string? TryExtractProblemDetailsMessage(string responseBody)
+    {
+        if (string.IsNullOrWhiteSpace(responseBody))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var jsonDocument = JsonDocument.Parse(responseBody);
+            JsonElement root = jsonDocument.RootElement;
+
+            if (root.TryGetProperty("detail", out JsonElement detailElement)
+                && detailElement.ValueKind == JsonValueKind.String)
+            {
+                string? detail = detailElement.GetString();
+                if (!string.IsNullOrWhiteSpace(detail))
+                {
+                    return detail;
+                }
+            }
+
+            if (root.TryGetProperty("title", out JsonElement titleElement)
+                && titleElement.ValueKind == JsonValueKind.String)
+            {
+                string? title = titleElement.GetString();
+                if (!string.IsNullOrWhiteSpace(title))
+                {
+                    return title;
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        return null;
     }
 
     private static HttpClient CreateStandaloneClient(IConfiguration configuration)

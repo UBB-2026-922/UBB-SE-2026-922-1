@@ -24,7 +24,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     public void Dispose() => _controller.Dispose();
 
     [Fact]
-    public void ForgotPassword_Get_ShouldReturnViewWithEmptyForgotPasswordViewModel()
+    public void ForgotPassword_WhenSendingGet_ShouldReturnViewWithEmptyForgotPasswordViewModel()
     {
         // Act
         IActionResult result = _controller.ForgotPassword();
@@ -37,7 +37,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ForgotPassword_Post_WhenModelStateIsInvalid_ShouldReturnViewWithModelAndNotSendCommand()
+    public async Task ForgotPassword_WhenInvalidPost_ShouldReturnViewWithModelAndNotSendCommand()
     {
         // Arrange
         _controller.ModelState.AddModelError(nameof(ForgotPasswordViewModel.Email), "Email address is required.");
@@ -53,7 +53,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ForgotPassword_Post_WhenModelIsValid_ShouldSendCommandWithMatchingEmailAndRedirectWithInfoBanner()
+    public async Task ForgotPassword_WhenValidPost_ShouldSendCommandWithMatchingEmailAndRedirectWithInfoBanner()
     {
         // Arrange
         const string submittedEmail = "user@example.com";
@@ -83,7 +83,7 @@ public sealed class PasswordResetControllerTests : IDisposable
 
     // Ensures the controller never reveals whether an email is registered (anti-enumeration).
     [Fact]
-    public async Task ForgotPassword_Post_WhenSenderReturnsError_ShouldStillRedirectWithInfoBanner()
+    public async Task ForgotPassword_WhenSenderErrorPost_ShouldStillRedirectWithInfoBanner()
     {
         // Arrange
         ForgotPasswordViewModel model = new() { Email = "unknown@example.com" };
@@ -109,7 +109,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Get_WhenTokenIsNull_ShouldReturnInvalidTokenViewWithoutCallingVerify()
+    public async Task ResetPassword_WhenTokenNullGet_ShouldReturnInvalidTokenViewWithoutCallingVerify()
     {
         // Act
         IActionResult result = await _controller.ResetPassword((string?)null, CancellationToken.None);
@@ -121,7 +121,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Get_WhenTokenIsWhitespace_ShouldReturnInvalidTokenViewWithoutCallingVerify()
+    public async Task ResetPassword_WhenWhitespaceTokenGet_ShouldReturnInvalidTokenViewWithoutCallingVerify()
     {
         // Act
         IActionResult result = await _controller.ResetPassword("   ", CancellationToken.None);
@@ -133,7 +133,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Get_WhenTokenVerificationFails_ShouldReturnInvalidTokenView()
+    public async Task ResetPassword_WhenVerificationFailsGet_ShouldReturnInvalidTokenView()
     {
         // Arrange
         const string expiredToken = "expired-reset-token";
@@ -160,7 +160,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Get_WhenTokenIsValid_ShouldReturnViewWithTokenPrePopulatedInModel()
+    public async Task ResetPassword_WhenValidTokenGet_ShouldReturnViewWithTokenPrePopulatedInModel()
     {
         // Arrange
         const string validToken = "valid-reset-token";
@@ -189,7 +189,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Post_WhenModelStateIsInvalid_ShouldReturnViewWithModelAndNotSendCommand()
+    public async Task ResetPassword_WhenInvalidPost_ShouldReturnViewWithModelAndNotSendCommand()
     {
         // Arrange
         _controller.ModelState.AddModelError(nameof(ResetPasswordViewModel.NewPassword), "New password is required.");
@@ -205,7 +205,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Post_WhenCommandFails_ShouldAddErrorDescriptionToModelStateAndReturnView()
+    public async Task ResetPassword_WhenCommandFailsPost_ShouldAddErrorDescriptionToModelStateAndReturnView()
     {
         // Arrange
         const string errorDescription = "Token is no longer valid.";
@@ -241,7 +241,7 @@ public sealed class PasswordResetControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task ResetPassword_Post_WhenCommandSucceeds_ShouldSetSuccessBannerAndRedirectToAuthLogin()
+    public async Task ResetPassword_WhenCommandSucceedsPost_ShouldSetSuccessBannerAndRedirectToAuthLogin()
     {
         // Arrange
         ResetPasswordViewModel model = new()
