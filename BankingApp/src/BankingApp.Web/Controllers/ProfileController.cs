@@ -47,7 +47,7 @@ public class ProfileController(IProfileService profileService) : Controller
             return View(viewModel);
         }
 
-        List<NotificationPreferenceDto> preferencesToSave = viewModel.Preferences
+        var preferencesToSave = viewModel.Preferences
             .Select(row => new NotificationPreferenceDto
             {
                 Category = row.Category,
