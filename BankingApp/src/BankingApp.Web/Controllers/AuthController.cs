@@ -67,7 +67,13 @@ public sealed class AuthController(
             return View(loginViewModel);
         }
 
-        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token, loginResponse.SessionId ?? 0);
+        if (loginResponse.SessionId is null)
+        {
+            ModelState.AddModelError(string.Empty, "The API did not return a session identifier.");
+            return View(loginViewModel);
+        }
+
+        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token, loginResponse.SessionId.Value);
         return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
     }
 

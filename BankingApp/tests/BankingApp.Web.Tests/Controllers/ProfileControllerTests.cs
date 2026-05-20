@@ -144,6 +144,52 @@ public sealed class ProfileControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Sessions_WhenSessionIdClaimMissing_ShouldSignOutAndRedirectToLogin()
+    {
+        // Arrange
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity([], "Cookies"));
+
+        _aspNetAuthenticationMock
+            .Setup(service => service.SignOutAsync(
+                _controller.ControllerContext.HttpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                null))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        IActionResult result = await _controller.Sessions(CancellationToken.None);
+
+        // Assert
+        RedirectResult redirect = result.Should().BeOfType<RedirectResult>().Subject;
+        redirect.Url.Should().Be("/Auth/Login");
+        _profileServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task RevokeSession_WhenSessionIdClaimMissing_ShouldSignOutAndRedirectToLogin()
+    {
+        // Arrange
+        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity([], "Cookies"));
+
+        _aspNetAuthenticationMock
+            .Setup(service => service.SignOutAsync(
+                _controller.ControllerContext.HttpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                null))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        IActionResult result = await _controller.RevokeSession(9, CancellationToken.None);
+
+        // Assert
+        RedirectResult redirect = result.Should().BeOfType<RedirectResult>().Subject;
+        redirect.Url.Should().Be("/Auth/Login");
+        _profileServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyAll();
+    }
+
+    [Fact]
     public async Task RevokeSession_WhenRevokingCurrentSession_ShouldSignOutAndRedirectToAuthLogin()
     {
         // Arrange

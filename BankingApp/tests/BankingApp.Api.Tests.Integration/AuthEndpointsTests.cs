@@ -34,7 +34,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         _factory.SenderMock
             .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token"));
+            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token", 42));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
             "/" + ApiEndpoints.Auth.LoginFull,
@@ -119,7 +119,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     {
         _factory.SenderMock
             .Setup(sender => sender.Send(It.IsAny<VerifyOtpCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token"));
+            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token", 42));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
             "/" + ApiEndpoints.Auth.VerifyOtpFull,

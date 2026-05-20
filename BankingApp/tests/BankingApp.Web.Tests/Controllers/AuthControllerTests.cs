@@ -118,6 +118,30 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Login_WhenApiResponseMissingSessionIdPost_ShouldAddErrorAndReturnView()
+    {
+        LoginViewModel model = new() { Email = "user@example.com", Password = "ValidPassword1!" };
+
+        _authenticationServiceMock
+            .Setup(service => service.LoginAsync(It.IsAny<LoginRequest>(), CancellationToken.None))
+            .ReturnsAsync(new LoginSuccessResponse
+            {
+                UserId = 15,
+                Token = "jwt-token",
+                SessionId = null
+            });
+
+        IActionResult result = await _controller.Login(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "The API did not return a session identifier.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Login_WhenSuccessfulPost_ShouldSignInAndRedirectToReturnUrl()
     {
         LoginViewModel model = new()

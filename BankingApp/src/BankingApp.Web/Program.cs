@@ -86,6 +86,13 @@ if (app.Environment.IsDevelopment())
                         statusCode: StatusCodes.Status502BadGateway);
                 }
 
+                if (login.SessionId is null)
+                {
+                    return Results.Problem(
+                        "Dev login failed because the API did not return a session identifier.",
+                        statusCode: StatusCodes.Status502BadGateway);
+                }
+
                 string userId = login.UserId.ToString(CultureInfo.InvariantCulture);
                 Claim[] claims =
                 [
@@ -93,7 +100,7 @@ if (app.Environment.IsDevelopment())
                     new Claim(ClaimTypes.Name, email),
                     new Claim(AuthClaimTypes.UserId, userId),
                     new Claim(AuthClaimTypes.Token, login.Token),
-                    new Claim(AuthClaimTypes.SessionId, login.SessionId?.ToString(CultureInfo.InvariantCulture) ?? "0")
+                    new Claim(AuthClaimTypes.SessionId, login.SessionId.Value.ToString(CultureInfo.InvariantCulture))
                 ];
 
                 ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
