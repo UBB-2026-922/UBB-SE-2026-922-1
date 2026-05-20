@@ -36,7 +36,6 @@ public sealed class FullLogin : LoginSuccess
     /// <param name="userId">The identifier of the authenticated user.</param>
     /// <param name="token">The signed JWT for subsequent authenticated requests.</param>
     /// <param name="sessionId">The identifier of the opened session.</param>
-    /// <returns>The result of the operation.</returns>
     public FullLogin(int userId, string token, int sessionId)
         : base(userId)
     {
@@ -48,7 +47,7 @@ public sealed class FullLogin : LoginSuccess
     ///     Gets the signed JWT for subsequent authenticated requests.
     /// </summary>
     /// <value>
-    ///     Gets or sets the current value.
+    ///     Gets the current value.
     /// </value>
     public string Token { get; }
 
