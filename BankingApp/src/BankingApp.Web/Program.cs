@@ -92,7 +92,8 @@ if (app.Environment.IsDevelopment())
                     new Claim(ClaimTypes.NameIdentifier, userId),
                     new Claim(ClaimTypes.Name, email),
                     new Claim(AuthClaimTypes.UserId, userId),
-                    new Claim(AuthClaimTypes.Token, login.Token)
+                    new Claim(AuthClaimTypes.Token, login.Token),
+                    new Claim(AuthClaimTypes.SessionId, login.SessionId?.ToString(CultureInfo.InvariantCulture) ?? "0")
                 ];
 
                 ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);

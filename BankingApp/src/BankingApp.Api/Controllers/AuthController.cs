@@ -157,7 +157,7 @@ public class AuthController : ApiControllerBase
     {
         return success switch
         {
-            FullLogin full => Ok(new LoginSuccessResponse { UserId = full.UserId, Token = full.Token }),
+            FullLogin full => Ok(new LoginSuccessResponse { UserId = full.UserId, Token = full.Token, SessionId = full.SessionId }),
             RequiresTwoFactor tfa => Ok(new LoginSuccessResponse { UserId = tfa.UserId, Requires2Fa = true }),
             _ => StatusCode(
                 StatusCodes.Status500InternalServerError,

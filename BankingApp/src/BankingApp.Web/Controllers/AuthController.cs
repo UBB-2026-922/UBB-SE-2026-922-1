@@ -67,7 +67,7 @@ public sealed class AuthController(
             return View(loginViewModel);
         }
 
-        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token);
+        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token, loginResponse.SessionId ?? 0);
         return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
     }
 
@@ -82,7 +82,7 @@ public sealed class AuthController(
         return Redirect("/Auth/Login");
     }
 
-    private async Task SignInUserAsync(int userId, string email, string token)
+    private async Task SignInUserAsync(int userId, string email, string token, int sessionId)
     {
         string userIdValue = userId.ToString(CultureInfo.InvariantCulture);
         Claim[] claims =
@@ -90,7 +90,8 @@ public sealed class AuthController(
             new Claim(ClaimTypes.NameIdentifier, userIdValue),
             new Claim(ClaimTypes.Name, email),
             new Claim(AuthClaimTypes.UserId, userIdValue),
-            new Claim(AuthClaimTypes.Token, token)
+            new Claim(AuthClaimTypes.Token, token),
+            new Claim(AuthClaimTypes.SessionId, sessionId.ToString(CultureInfo.InvariantCulture))
         ];
 
         ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);

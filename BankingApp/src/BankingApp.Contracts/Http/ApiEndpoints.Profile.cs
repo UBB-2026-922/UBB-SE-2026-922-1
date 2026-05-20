@@ -20,7 +20,7 @@ public static partial class ApiEndpoints
         public const string Enable2FaFull = $"{Base}/{Enable2Fa}";
         public const string Disable2FaFull = $"{Base}/{Disable2Fa}";
         public const string SessionsFull = $"{Base}/{Sessions}";
-
+        
         public static string SessionByIdFull(int sessionId) => $"{SessionsFull}/{sessionId}";
     }
 }

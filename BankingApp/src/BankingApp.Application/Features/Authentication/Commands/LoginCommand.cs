@@ -4,6 +4,7 @@ using Common.Notifications;
 using Common.Security;
 using Contracts.Features.Authentication.Dtos;
 using Domain.Aggregates.IdentityAggregate;
+using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Enums;
@@ -175,14 +176,14 @@ public sealed class LoginCommandHandler(
 
         string token = tokenResult.Value;
         DateTime now = clock.UtcNow;
-        identity.OpenSession(token, now.AddHours(SessionExpiryHours), now, metadata?.DeviceInfo, metadata?.Browser, metadata?.IpAddress);
+        Session session = identity.OpenSession(token, now.AddHours(SessionExpiryHours), now, metadata?.DeviceInfo, metadata?.Browser, metadata?.IpAddress);
 
         await identityRepository.UpdateAsync(identity, ct);
         await unitOfWork.SaveChangesAsync(ct);
 
         ApplicationLogMessages.UserLoggedIn(logger, user.Id);
         await emailService.SendLoginAlertAsync(user.Email.Value);
-        return new FullLogin(user.Id, token);
+        return new FullLogin(user.Id, token, session.Id);
     }
 }
 

@@ -35,7 +35,8 @@ public sealed class GetActiveSessionsQueryHandler(
                 DeviceInfo = session.DeviceInfo,
                 Browser = session.Browser,
                 IpAddress = session.IpAddress,
-                LastActiveAt = session.LastActiveAt
+                LastActiveAt = session.LastActiveAt,
+                CreatedAt = session.CreatedAt
             })
             .ToList();
     }

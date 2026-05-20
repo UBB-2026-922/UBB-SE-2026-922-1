@@ -132,7 +132,8 @@ public sealed class AuthControllerTests : IDisposable
             .ReturnsAsync(new LoginSuccessResponse
             {
                 UserId = 15,
-                Token = "jwt-token"
+                Token = "jwt-token",
+                SessionId = 3
             });
 
         _aspNetAuthenticationMock
@@ -143,6 +144,7 @@ public sealed class AuthControllerTests : IDisposable
                     principal.FindFirstValue(ClaimTypes.NameIdentifier) == "15"
                     && principal.FindFirstValue(AuthClaimTypes.UserId) == "15"
                     && principal.FindFirstValue(AuthClaimTypes.Token) == "jwt-token"
+                    && principal.FindFirstValue(AuthClaimTypes.SessionId) == "3"
                     && principal.Identity!.Name == model.Email),
                 It.Is<AuthenticationProperties>(properties =>
                     properties.IsPersistent
