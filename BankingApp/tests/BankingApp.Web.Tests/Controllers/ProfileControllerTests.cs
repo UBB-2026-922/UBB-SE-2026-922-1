@@ -5,6 +5,7 @@ using System.Security.Claims;
 using BankingApp.Contracts.Features.UserProfile.Dtos;
 using BankingApp.Contracts.Features.UserProfile.Services;
 using BankingApp.Contracts.Http;
+using BankingApp.Domain.Enums;
 using BankingApp.Web.Controllers;
 using BankingApp.Web.ViewModels;
 using ErrorOr;
@@ -49,6 +50,120 @@ public sealed class ProfileControllerTests : IDisposable
     }
 
     public void Dispose() => _controller.Dispose();
+
+    [Fact]
+    public async Task Security_WhenGet_ShouldReturnViewWithTwoFactorState()
+    {
+        // Arrange
+        _profileServiceMock
+            .Setup(service => service.GetProfileAsync(CancellationToken.None))
+            .ReturnsAsync(new ProfileDto { Is2FaEnabled = true });
+
+        // Act
+        IActionResult result = await _controller.Security(CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        SecurityViewModel model = viewResult.Model.Should().BeOfType<SecurityViewModel>().Subject;
+        model.IsTwoFaEnabled.Should().BeTrue();
+        _profileServiceMock.Verify(service => service.GetProfileAsync(CancellationToken.None), Times.Once);
+        _profileServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenInvalidModel_ShouldReloadTwoFactorStateAndReturnSecurityView()
+    {
+        // Arrange
+        SecurityViewModel model = new();
+        _controller.ModelState.AddModelError(nameof(SecurityViewModel.CurrentPassword), "Current password is required.");
+
+        _profileServiceMock
+            .Setup(service => service.GetProfileAsync(CancellationToken.None))
+            .ReturnsAsync(new ProfileDto { Is2FaEnabled = true });
+
+        // Act
+        IActionResult result = await _controller.ChangePassword(model, CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.ViewName.Should().Be(nameof(ProfileController.Security));
+        viewResult.Model.Should().Be(model);
+        model.IsTwoFaEnabled.Should().BeTrue();
+        _profileServiceMock.Verify(service => service.GetProfileAsync(CancellationToken.None), Times.Once);
+        _profileServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenServiceSucceeds_ShouldRedirectToSecurity()
+    {
+        // Arrange
+        SecurityViewModel model = new()
+        {
+            CurrentPassword = "OldPassword1!",
+            NewPassword = "NewPassword1!",
+            ConfirmNewPassword = "NewPassword1!"
+        };
+
+        _profileServiceMock
+            .Setup(service => service.ChangePasswordAsync(
+                It.Is<ChangePasswordRequest>(request =>
+                    request.CurrentPassword == model.CurrentPassword && request.NewPassword == model.NewPassword),
+                CancellationToken.None))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        IActionResult result = await _controller.ChangePassword(model, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(ProfileController.Security));
+        _controller.TempData["Success"].Should().Be("Password changed successfully.");
+        _profileServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Enable2Fa_WhenServiceSucceeds_ShouldEnableEmailTwoFactorAndRedirectToSecurity()
+    {
+        // Arrange
+        _profileServiceMock
+            .Setup(service => service.Enable2FaAsync(
+                It.Is<EnableTwoFaRequest>(request => request.Method == TwoFactorMethod.Email),
+                CancellationToken.None))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        IActionResult result = await _controller.Enable2Fa(CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(ProfileController.Security));
+        _controller.TempData["Success"].Should().Be("Two-factor authentication enabled.");
+        _profileServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Disable2Fa_WhenServiceReturnsError_ShouldSetErrorBannerAndRedirectToSecurity()
+    {
+        // Arrange
+        const string errorDescription = "Two-factor authentication could not be disabled.";
+        _profileServiceMock
+            .Setup(service => service.Disable2FaAsync(CancellationToken.None))
+            .ReturnsAsync(Error.Failure("profile.2fa_disable_failed", errorDescription));
+
+        // Act
+        IActionResult result = await _controller.Disable2Fa(CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(ProfileController.Security));
+        _controller.TempData["Error"].Should().Be(errorDescription);
+        _profileServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
 
     [Fact]
     public async Task Sessions_WhenGet_ShouldCallServiceAndReturnViewWithSessionsAndCurrentSessionIdMarked()

@@ -1,0 +1,21 @@
+namespace BankingApp.Web.ViewModels;
+
+using System.ComponentModel.DataAnnotations;
+
+public sealed class SecurityViewModel
+{
+    public bool IsTwoFaEnabled { get; set; }
+
+    [Required(ErrorMessage = "Current password is required.")]
+    [Display(Name = "Current password")]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "New password is required.")]
+    [Display(Name = "New password")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Please confirm your new password.")]
+    [Compare(nameof(NewPassword), ErrorMessage = "Passwords do not match.")]
+    [Display(Name = "Confirm new password")]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
+}
