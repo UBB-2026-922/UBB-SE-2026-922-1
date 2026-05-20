@@ -3,6 +3,7 @@ namespace BankingApp.Web.Controllers;
 using System.Globalization;
 using System.Security.Claims;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using BankingApp.Contracts.Features.UserRegistration.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.ViewModels;
 using ErrorOr;
@@ -69,6 +70,41 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
 
         await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token, loginResponse.SessionId.Value);
         return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Register() => View(new RegisterViewModel());
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(
+        RegisterViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        ErrorOr<Success> result = await authenticationService.RegisterAsync(
+            new RegisterRequest
+            {
+                Email = model.Email,
+                Password = model.Password,
+                FullName = model.FullName,
+            },
+            cancellationToken);
+
+        if (result.IsError)
+        {
+            ModelState.AddModelError(string.Empty, result.FirstError.Description);
+            return View(model);
+        }
+
+        TempData["Success"] = "Account created. Please log in.";
+        return RedirectToAction(nameof(Login));
     }
 
     [Authorize]
