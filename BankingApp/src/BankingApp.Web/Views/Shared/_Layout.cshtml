@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -100,7 +100,7 @@
                             @{
                                 string displayName = User.FindFirst("name")?.Value
                                                   ?? User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
-                                                  ?? User.Identity!.Name
+                                                  ?? User.Identity?.Name
                                                   ?? "Account";
                             }
 
