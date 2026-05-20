@@ -36,7 +36,7 @@ public sealed class AuthControllerTests : IDisposable
     public void Dispose() => _controller.Dispose();
 
     [Fact]
-    public void Login_Get_WhenAnonymous_ShouldReturnViewWithReturnUrl()
+    public void Login_WhenAnonymousGet_ShouldReturnViewWithReturnUrl()
     {
         IActionResult result = _controller.Login("/Transfers");
 
@@ -48,7 +48,7 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public void Login_Get_WhenAuthenticated_ShouldRedirectToDashboard()
+    public void Login_WhenAuthenticatedGet_ShouldRedirectToDashboard()
     {
         _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(
             new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7")], "Cookies"));
@@ -62,7 +62,7 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_Post_WhenModelStateIsInvalid_ShouldReturnViewWithoutCallingApi()
+    public async Task Login_WhenInvalidPost_ShouldReturnViewWithoutCallingApi()
     {
         _controller.ModelState.AddModelError(nameof(LoginViewModel.Email), "Email is required.");
         LoginViewModel model = new() { Email = string.Empty, Password = string.Empty };
@@ -76,7 +76,7 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_Post_WhenApiReturnsError_ShouldAddModelErrorAndReturnView()
+    public async Task Login_WhenApiErrorPost_ShouldAddModelErrorAndReturnView()
     {
         const string apiMessage = "Invalid email or password.";
         LoginViewModel model = new() { Email = "user@example.com", Password = "bad-password" };
@@ -97,7 +97,7 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_Post_WhenTwoFactorIsRequired_ShouldRedirectToVerifyOtp()
+    public async Task Login_WhenTwoFactorRequiredPost_ShouldRedirectToVerifyOtp()
     {
         LoginViewModel model = new() { Email = "user@example.com", Password = "ValidPassword1!" };
 
@@ -118,7 +118,7 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_Post_WhenLoginSucceedsWithoutTwoFactor_ShouldSignInAndRedirectToReturnUrl()
+    public async Task Login_WhenSuccessfulPost_ShouldSignInAndRedirectToReturnUrl()
     {
         LoginViewModel model = new()
         {
@@ -158,7 +158,7 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Logout_Post_ShouldCallApiSignOutCookieAndRedirectToLogin()
+    public async Task Logout_WhenSendingPost_ShouldCallApiSignOutCookieAndRedirectToLogin()
     {
         _authenticationServiceMock
             .Setup(service => service.LogoutAsync(CancellationToken.None))
