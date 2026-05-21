@@ -14,4 +14,7 @@ public sealed class ForexService(IApiClient apiClient) : IForexService
 
     public Task<ErrorOr<ForexTransactionResponse>> ExecuteAsync(ForexTransactionRequest request, CancellationToken ct = default)
         => apiClient.PostAsync<ForexTransactionRequest, ForexTransactionResponse>(ApiEndpoints.Forex.ExecuteFull, request, ct);
+
+    public Task<ErrorOr<List<ForexTransactionResponse>>> GetHistoryAsync(CancellationToken ct = default)
+        => apiClient.GetAsync<List<ForexTransactionResponse>>(ApiEndpoints.Forex.HistoryFull, ct);
 }
