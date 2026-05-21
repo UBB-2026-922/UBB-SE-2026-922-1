@@ -142,7 +142,7 @@ public sealed class ApiClient : IApiClient, IDisposable
             TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
             if (result is null)
             {
-                InfrastructureHttpLogMessages.HttpEmptyResponse(_logger, operation, endpoint);
+                InfrastructureHttpLogMessages.HttpEmptyResponse(_logger, operation, GetLogEndpoint(endpoint));
                 return Error.Failure("Api.EmptyResponse", "The API returned an empty response.");
             }
 
@@ -150,12 +150,12 @@ public sealed class ApiClient : IApiClient, IDisposable
         }
         catch (HttpRequestException exception)
         {
-            InfrastructureHttpLogMessages.HttpRequestTransportFailed(_logger, exception, operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestTransportFailed(_logger, exception, operation, GetLogEndpoint(endpoint));
             return Error.Failure(description: exception.Message);
         }
         catch (OperationCanceledException)
         {
-            InfrastructureHttpLogMessages.HttpRequestCancelled(_logger, operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestCancelled(_logger, operation, GetLogEndpoint(endpoint));
             return Error.Unexpected("Api.RequestCancelled", "The API request was cancelled.");
         }
     }
@@ -173,12 +173,12 @@ public sealed class ApiClient : IApiClient, IDisposable
         }
         catch (HttpRequestException exception)
         {
-            InfrastructureHttpLogMessages.HttpRequestTransportFailed(_logger, exception, operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestTransportFailed(_logger, exception, operation, GetLogEndpoint(endpoint));
             return Error.Failure(description: exception.Message);
         }
         catch (OperationCanceledException)
         {
-            InfrastructureHttpLogMessages.HttpRequestCancelled(_logger, operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestCancelled(_logger, operation, GetLogEndpoint(endpoint));
             return Error.Unexpected("Api.RequestCancelled", "The API request was cancelled.");
         }
     }
@@ -200,7 +200,12 @@ public sealed class ApiClient : IApiClient, IDisposable
             ? response.ReasonPhrase ?? "Request failed."
             : responseBody);
 
-        InfrastructureHttpLogMessages.HttpRequestFailed(_logger, operation, endpoint, (int)response.StatusCode, description);
+        InfrastructureHttpLogMessages.HttpRequestFailed(
+            _logger,
+            operation,
+            GetLogEndpoint(endpoint),
+            (int)response.StatusCode,
+            GetLogDescription(endpoint, description));
 
         return response.StatusCode switch
         {
@@ -254,6 +259,18 @@ public sealed class ApiClient : IApiClient, IDisposable
 
         return null;
     }
+
+    private static string GetLogEndpoint(string endpoint)
+        => IsSensitiveEndpoint(endpoint) ? "[redacted]" : endpoint;
+
+    private static string GetLogDescription(string endpoint, string description)
+        => IsSensitiveEndpoint(endpoint) ? "Response redacted for sensitive endpoint." : description;
+
+    private static bool IsSensitiveEndpoint(string endpoint)
+        => endpoint.Equals(ApiEndpoints.Auth.ForgotPasswordFull, StringComparison.OrdinalIgnoreCase)
+           || endpoint.Equals(ApiEndpoints.Auth.ResetPasswordFull, StringComparison.OrdinalIgnoreCase)
+           || endpoint.Equals(ApiEndpoints.Profile.ChangePasswordFull, StringComparison.OrdinalIgnoreCase)
+           || endpoint.Equals(ApiEndpoints.Profile.VerifyPasswordFull, StringComparison.OrdinalIgnoreCase);
 
     private static HttpClient CreateStandaloneClient(IConfiguration configuration)
     {
