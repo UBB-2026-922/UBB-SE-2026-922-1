@@ -1,8 +1,8 @@
 namespace BankingApp.Web.Controllers;
 
 using Application.Features.Authentication.Services;
-using Contracts.Features.PasswordReset.Dtos;
 using BankingApp.Web.ViewModels;
+using Contracts.Features.PasswordReset.Dtos;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -2,7 +2,6 @@ namespace BankingApp.Web.Controllers;
 
 using System.Globalization;
 using System.Security.Claims;
-using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 using BankingApp.Contracts.Features.Authentication.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.ViewModels;
@@ -11,9 +10,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 
-public sealed class AuthController(
-    ClientAuthenticationService authenticationService) : Controller
+public sealed class AuthController(ClientAuthenticationService authenticationService) : Controller
 {
     [AllowAnonymous]
     [HttpGet]
@@ -75,6 +74,66 @@ public sealed class AuthController(
 
         await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token, loginResponse.SessionId.Value);
         return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult VerifyOtp(int userId)
+    {
+        return View(new VerifyOtpViewModel { UserId = userId });
+    }
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VerifyOtp(
+        VerifyOtpViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        ErrorOr<LoginSuccessResponse> result = await authenticationService.VerifyOtpAsync(
+            new VerifyOtpRequest
+            {
+                UserId = model.UserId,
+                OtpCode = model.OtpCode
+            },
+            cancellationToken);
+
+        if (result.IsError)
+        {
+            ModelState.AddModelError(string.Empty, result.FirstError.Description);
+            return View(model);
+        }
+
+        LoginSuccessResponse response = result.Value;
+        if (string.IsNullOrWhiteSpace(response.Token))
+        {
+            ModelState.AddModelError(string.Empty, "The API did not return an authentication token.");
+            return View(model);
+        }
+
+        if (response.SessionId is null)
+        {
+            ModelState.AddModelError(string.Empty, "The API did not return a session identifier.");
+            return View(model);
+        }
+
+        await SignInUserAsync(response.UserId, string.Empty, response.Token, response.SessionId.Value);
+        return Redirect("/Dashboard");
+    }
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResendOtp(int userId, CancellationToken cancellationToken)
+    {
+        await authenticationService.ResendOtpAsync(userId, cancellationToken);
+        TempData["Success"] = "New code sent.";
+        return RedirectToAction(nameof(VerifyOtp), new { userId });
     }
 
     [Authorize]
