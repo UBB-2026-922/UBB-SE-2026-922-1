@@ -1,0 +1,134 @@
+@model BankingApp.Web.ViewModels.RecurringPayments.RecurringPaymentListViewModel
+@using BankingApp.Domain.Enums
+@{
+    ViewData["Title"] = "Recurring Payments";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title"><i class="bi bi-arrow-repeat me-2 text-primary"></i>Recurring Payments</h1>
+        <p class="page-subtitle">Manage your scheduled automatic payments.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i>New Recurring Payment
+    </a>
+</div>
+
+@if (!Model.HasPayments)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-arrow-repeat fs-1 text-muted"></i>
+            <h5 class="mt-3 text-muted">No recurring payments</h5>
+            <p class="text-muted mb-4">Set up automatic payments for bills you pay regularly.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Create Your First Recurring Payment
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="recurringPaymentsTable">
+                    <thead>
+                        <tr>
+                            <th>Biller</th>
+                            <th class="text-end">Amount</th>
+                            <th>Frequency</th>
+                            <th>Start Date</th>
+                            <th>Next Execution</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model.Payments)
+                        {
+                            <tr>
+                                <td class="fw-medium">
+                                    @if (payment.IsPayInFull)
+                                    {
+                                        <span class="badge bg-info text-dark me-1" title="Pays full balance">Full</span>
+                                    }
+                                    Biller #@payment.BillerId
+                                </td>
+                                <td class="text-end fw-600 amount-debit">@payment.Amount.ToString("N2")</td>
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary">
+                                        @payment.Frequency
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-muted-sm">@payment.StartDate.ToString("dd MMM yyyy")</span>
+                                </td>
+                                <td>
+                                    @if (payment.Status is RecurringPaymentStatus.Cancelled)
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted-sm">@payment.NextExecutionDate.ToString("dd MMM yyyy")</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @payment.StatusBadgeClass">@payment.Status</span>
+                                </td>
+                                <td class="text-end" style="white-space:nowrap">
+                                    @if (payment.CanPause)
+                                    {
+                                        <form asp-action="Pause" asp-route-id="@payment.Id"
+                                              method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-warning"
+                                                    title="Pause this payment">
+                                                <i class="bi bi-pause-fill"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (payment.CanResume)
+                                    {
+                                        <form asp-action="Resume" asp-route-id="@payment.Id"
+                                              method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-success"
+                                                    title="Resume this payment">
+                                                <i class="bi bi-play-fill"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    @if (payment.CanCancel)
+                                    {
+                                        <form asp-action="Cancel" asp-route-id="@payment.Id"
+                                              method="post" class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to permanently cancel this recurring payment?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    title="Cancel this payment permanently">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="text-muted-sm">@Model.Payments.Count payment(s)</span>
+            <span class="text-muted-sm">
+                Active:
+                <strong class="text-success">@Model.Payments.Count(p => p.Status == RecurringPaymentStatus.Active)</strong>
+                &middot; Paused:
+                <strong class="text-warning">@Model.Payments.Count(p => p.Status == RecurringPaymentStatus.Paused)</strong>
+                &middot; Cancelled:
+                <strong class="text-muted">@Model.Payments.Count(p => p.Status == RecurringPaymentStatus.Cancelled)</strong>
+            </span>
+        </div>
+    </div>
+}
