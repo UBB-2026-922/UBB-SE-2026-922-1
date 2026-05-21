@@ -7,11 +7,12 @@ using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[AllowAnonymous]
 public class PasswordResetController(IAuthenticationService authenticationService) : Controller
 {
+    [AllowAnonymous]
     public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
 
+    [AllowAnonymous]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ForgotPassword(
@@ -31,6 +32,7 @@ public class PasswordResetController(IAuthenticationService authenticationServic
         return RedirectToAction(nameof(ForgotPassword));
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> ResetPassword(string? token, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(token))
@@ -49,6 +51,7 @@ public class PasswordResetController(IAuthenticationService authenticationServic
         return View(new ResetPasswordViewModel { Token = token });
     }
 
+    [AllowAnonymous]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(

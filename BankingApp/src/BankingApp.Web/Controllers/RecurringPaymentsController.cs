@@ -15,7 +15,7 @@ using ViewModels.RecurringPayments;
 public class RecurringPaymentsController(
     IRecurringPaymentService recurringPaymentService,
     IBillerService billerService,
-    IBillPaymentService billPaymentService) : Controller
+    IBillPaymentService billPaymentService) : AuthenticatedController
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {

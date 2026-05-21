@@ -12,7 +12,7 @@ using ViewModels;
 using ViewModels.Profile;
 
 [Authorize]
-public class ProfileController(IProfileService profileService) : Controller
+public class ProfileController(IProfileService profileService) : AuthenticatedController
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
