@@ -1,5 +1,6 @@
 namespace BankingApp.Web.Tests.Controllers;
 
+using System.Globalization;
 using System.Security.Claims;
 using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 using BankingApp.Contracts.Features.Authentication.Dtos;
@@ -150,14 +151,17 @@ public sealed class AuthControllerTests : IDisposable
             Password = "ValidPassword1!",
             ReturnUrl = "/Transfers"
         };
+        int userId = 15;
+        string token = "jwt-token";
+        int sessionId = 3;
 
         _authenticationServiceMock
             .Setup(service => service.LoginAsync(It.IsAny<LoginRequest>(), CancellationToken.None))
             .ReturnsAsync(new LoginSuccessResponse
             {
-                UserId = 15,
-                Token = "jwt-token",
-                SessionId = 3
+                UserId = userId,
+                Token = token,
+                SessionId = sessionId
             });
 
         _aspNetAuthenticationMock
@@ -165,10 +169,10 @@ public sealed class AuthControllerTests : IDisposable
                 _controller.ControllerContext.HttpContext,
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 It.Is<ClaimsPrincipal>(principal =>
-                    principal.FindFirstValue(ClaimTypes.NameIdentifier) == "15"
-                    && principal.FindFirstValue(AuthClaimTypes.UserId) == "15"
-                    && principal.FindFirstValue(AuthClaimTypes.Token) == "jwt-token"
-                    && principal.FindFirstValue(AuthClaimTypes.SessionId) == "3"
+                    principal.FindFirstValue(ClaimTypes.NameIdentifier) == userId.ToString("D", CultureInfo.InvariantCulture)
+                    && principal.FindFirstValue(AuthClaimTypes.UserId) == userId.ToString("D", CultureInfo.InvariantCulture)
+                    && principal.FindFirstValue(AuthClaimTypes.Token) == token
+                    && principal.FindFirstValue(AuthClaimTypes.SessionId) == sessionId.ToString(CultureInfo.InvariantCulture)
                     && principal.Identity!.Name == model.Email),
                 It.Is<AuthenticationProperties>(properties =>
                     properties.IsPersistent
