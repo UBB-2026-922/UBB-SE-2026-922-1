@@ -122,8 +122,13 @@ public sealed class AuthController(
 
     private static bool IsLocalReturnUrl(string? returnUrl)
     {
+        int firstLetterOfUrl = 0;
+        int secondLetterOfUrl = 1;
+        int rootPathLength = 1;
         return !string.IsNullOrEmpty(returnUrl)
-               && returnUrl[0] == '/'
-               && (returnUrl.Length == 1 || (returnUrl[1] != '/' && returnUrl[1] != '\\'));
+               && returnUrl[firstLetterOfUrl] == '/'
+               && (returnUrl.Length == rootPathLength || 
+                   (returnUrl[secondLetterOfUrl] != '/'
+                    && returnUrl[secondLetterOfUrl] != '\\'));
     }
 }

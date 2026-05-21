@@ -116,7 +116,7 @@ public sealed class LoginCommandHandler(
         return (user, identity);
     }
 
-    private async Task<Error> HandleFailedPasswordAsync(IdentityAccount identity, int userId, CancellationToken ct)
+    private async Task<Error> HandleFailedPasswordAsync(IdentityAccount identity, int userId, CancellationToken cancellationToken)
     {
         identity.IncrementFailedAttempts();
         int attempts = identity.FailedLoginAttempts;
@@ -124,20 +124,20 @@ public sealed class LoginCommandHandler(
 
         if (attempts < MaxFailedAttempts)
         {
-            await identityRepository.UpdateAsync(identity, ct);
-            await unitOfWork.SaveChangesAsync(ct);
+            await identityRepository.UpdateAsync(identity, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
             return AuthErrors.InvalidCredentials;
         }
 
         identity.LockAccount(clock.UtcNow.AddMinutes(LockoutMinutes));
-        await identityRepository.UpdateAsync(identity, ct);
-        await unitOfWork.SaveChangesAsync(ct);
+        await identityRepository.UpdateAsync(identity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         ApplicationLogMessages.AccountLockedTooManyAttempts(logger, userId, LockoutMinutes, MaxFailedAttempts);
         return AuthErrors.AccountLockedTooManyAttempts;
     }
 
-    private async Task<ErrorOr<LoginSuccess>> Handle2FaAsync(User user, IdentityAccount identity, CancellationToken _)
+    private async Task<ErrorOr<LoginSuccess>> Handle2FaAsync(User user, IdentityAccount identity, CancellationToken cancellationToken)
     {
         ErrorOr<string> otpResult = identity.Preferred2FaMethod == TwoFactorMethod.Authenticator
             ? otpService.GenerateTotp(user.Id)
@@ -163,7 +163,7 @@ public sealed class LoginCommandHandler(
         User user,
         IdentityAccount identity,
         SessionMetadata? metadata,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         identity.ResetFailedAttempts();
 
@@ -178,8 +178,8 @@ public sealed class LoginCommandHandler(
         DateTime now = clock.UtcNow;
         Session session = identity.OpenSession(token, now.AddHours(SessionExpiryHours), now, metadata?.DeviceInfo, metadata?.Browser, metadata?.IpAddress);
 
-        await identityRepository.UpdateAsync(identity, ct);
-        await unitOfWork.SaveChangesAsync(ct);
+        await identityRepository.UpdateAsync(identity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         ApplicationLogMessages.UserLoggedIn(logger, user.Id);
         await emailService.SendLoginAlertAsync(user.Email.Value);

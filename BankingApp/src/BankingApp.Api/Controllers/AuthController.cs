@@ -158,7 +158,7 @@ public class AuthController : ApiControllerBase
         return success switch
         {
             FullLogin full => Ok(new LoginSuccessResponse { UserId = full.UserId, Token = full.Token, SessionId = full.SessionId }),
-            RequiresTwoFactor tfa => Ok(new LoginSuccessResponse { UserId = tfa.UserId, Requires2Fa = true }),
+            RequiresTwoFactor twoFactorAuthentification => Ok(new LoginSuccessResponse { UserId = twoFactorAuthentification.UserId, Requires2Fa = true }),
             _ => StatusCode(
                 StatusCodes.Status500InternalServerError,
                 Problem(detail: "Unexpected login result type.", statusCode: StatusCodes.Status500InternalServerError))
