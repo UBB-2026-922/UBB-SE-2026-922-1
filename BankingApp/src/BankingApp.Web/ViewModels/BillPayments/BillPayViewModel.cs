@@ -26,10 +26,10 @@ public class BillPayViewModel
     /// <summary>Gets a <see cref="SelectList"/> built from <see cref="Accounts"/>.</summary>
     public SelectList AccountSelectList =>
         new(Accounts.Select(a => new
-            {
-                a.Id,
-                Display = $"{a.AccountName} — {a.Iban} ({a.Currency}) | Balance: {a.Balance:N2}"
-            }),
+        {
+            a.Id,
+            Display = $"{a.AccountName} — {a.Iban} ({a.Currency}) | Balance: {a.Balance:N2}"
+        }),
             "Id", "Display", SelectedAccountId);
 
     /// <summary>Gets or sets the selected biller id.</summary>

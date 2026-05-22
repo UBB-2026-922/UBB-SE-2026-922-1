@@ -6,15 +6,15 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using BankingApp.Application.Shared.Http;
 using BankingApp.Contracts.Http;
-using BankingApp.Infrastructure.Http.Common.Logging;
 using ErrorOr;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using InfrastructureHttpLogMessages = Logging.InfrastructureHttpLogMessages;
 
 /// <summary>
 ///     Provides a thin HTTP client abstraction for desktop and other client-side code.
 /// </summary>
-public sealed partial class ApiClient : IApiClient, IDisposable
+public sealed class ApiClient : IApiClient, IDisposable
 {
     private readonly Error? _configurationError;
     private readonly HttpClient _httpClient;
@@ -37,12 +37,13 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
         string? baseUrl = configuration["ApiBaseUrl"];
-        if (string.IsNullOrWhiteSpace(baseUrl))
+        if (!string.IsNullOrWhiteSpace(baseUrl))
         {
-            _configurationError = Error.Failure("ApiClient.MissingBaseUrl", "ApiBaseUrl is missing from configuration.");
-            _logger.ApiBaseUrlMissing();
             return;
         }
+
+        _configurationError = Error.Failure("ApiClient.MissingBaseUrl", "ApiBaseUrl is missing from configuration.");
+        InfrastructureHttpLogMessages.ApiBaseUrlMissing(_logger);
     }
 
     public string? Token { get; private set; }
@@ -61,14 +62,14 @@ public sealed partial class ApiClient : IApiClient, IDisposable
     {
         Token = token;
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(AuthHeaderNames.BearerScheme, token);
-        _logger.ApiTokenSet();
+        InfrastructureHttpLogMessages.ApiTokenSet(_logger);
     }
 
     public void ClearToken()
     {
         Token = null;
         _httpClient.DefaultRequestHeaders.Authorization = null;
-        _logger.ApiTokenCleared();
+        InfrastructureHttpLogMessages.ApiTokenCleared(_logger);
     }
 
     public Task<ErrorOr<TResponse>> GetAsync<TResponse>(string endpoint, CancellationToken cancellationToken = default)
@@ -141,7 +142,7 @@ public sealed partial class ApiClient : IApiClient, IDisposable
             TResponse? result = await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken);
             if (result is null)
             {
-                _logger.HttpEmptyResponse(operation, endpoint);
+                InfrastructureHttpLogMessages.HttpEmptyResponse(_logger, operation, endpoint);
                 return Error.Failure("Api.EmptyResponse", "The API returned an empty response.");
             }
 
@@ -149,12 +150,12 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         }
         catch (HttpRequestException exception)
         {
-            _logger.HttpRequestTransportFailed(exception, operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestTransportFailed(_logger, exception, operation, endpoint);
             return Error.Failure(description: exception.Message);
         }
         catch (OperationCanceledException)
         {
-            _logger.HttpRequestCancelled(operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestCancelled(_logger, operation, endpoint);
             return Error.Unexpected("Api.RequestCancelled", "The API request was cancelled.");
         }
     }
@@ -172,12 +173,12 @@ public sealed partial class ApiClient : IApiClient, IDisposable
         }
         catch (HttpRequestException exception)
         {
-            _logger.HttpRequestTransportFailed(exception, operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestTransportFailed(_logger, exception, operation, endpoint);
             return Error.Failure(description: exception.Message);
         }
         catch (OperationCanceledException)
         {
-            _logger.HttpRequestCancelled(operation, endpoint);
+            InfrastructureHttpLogMessages.HttpRequestCancelled(_logger, operation, endpoint);
             return Error.Unexpected("Api.RequestCancelled", "The API request was cancelled.");
         }
     }
@@ -199,7 +200,7 @@ public sealed partial class ApiClient : IApiClient, IDisposable
             ? response.ReasonPhrase ?? "Request failed."
             : responseBody);
 
-        _logger.HttpRequestFailed(operation, endpoint, (int)response.StatusCode, description);
+        InfrastructureHttpLogMessages.HttpRequestFailed(_logger, operation, endpoint, (int)response.StatusCode, description);
 
         return response.StatusCode switch
         {

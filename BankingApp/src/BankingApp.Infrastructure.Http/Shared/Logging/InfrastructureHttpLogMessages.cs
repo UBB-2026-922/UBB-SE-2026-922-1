@@ -1,4 +1,4 @@
-namespace BankingApp.Infrastructure.Http.Common.Logging;
+namespace BankingApp.Infrastructure.Http.Shared.Logging;
 
 using System;
 using Microsoft.Extensions.Logging;

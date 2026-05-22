@@ -26,4 +26,12 @@ public class BillPaymentRowViewModel
     /// <summary>Gets or sets the UTC timestamp when the payment was created.</summary>
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>Gets the Bootstrap badge CSS class for the current status.</summary>
+    public string StatusBadgeClass => Status.ToLowerInvariant() switch
+    {
+        "completed" => "bg-success",
+        "pending" => "bg-warning text-dark",
+        "failed" => "bg-danger",
+        _ => "bg-secondary"
+    };
 }

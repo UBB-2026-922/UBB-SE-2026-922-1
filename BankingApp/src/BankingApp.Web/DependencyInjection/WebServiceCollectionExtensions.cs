@@ -1,8 +1,8 @@
 namespace BankingApp.Web.DependencyInjection;
 
-using Http;
 using BankingApp.Contracts.Http;
 using BankingApp.Infrastructure.Http.DependencyInjection;
+using Http;
 using Microsoft.Extensions.DependencyInjection;
 
 public static class WebServiceCollectionExtensions
