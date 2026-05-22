@@ -6,6 +6,7 @@ using BankingApp.Web.DependencyInjection;
 using ErrorOr;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -23,11 +24,18 @@ builder.Services
     .AddCookie(options =>
     {
         options.LoginPath = "/Auth/Login";
+        options.AccessDeniedPath = "/Auth/Login";
+        options.ReturnUrlParameter = "returnUrl";
         options.LogoutPath = "/Auth/Logout";
         options.ExpireTimeSpan = TimeSpan.FromHours(defaultCookieExpiryTime);
         options.SlidingExpiration = true;
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 
 WebApplication app = builder.Build();
 
@@ -133,7 +141,7 @@ if (app.Environment.IsDevelopment())
         .AllowAnonymous();
 }
 
-app.MapStaticAssets();
+app.MapStaticAssets().AllowAnonymous();
 
 app.MapControllerRoute(
         name: "default",
@@ -154,3 +162,5 @@ static bool IsLocalReturnUrl(string? returnUrl)
                (returnUrl[secondLetterOfUrl] != '/'
                 && returnUrl[secondLetterOfUrl] != '\\'));
 }
+
+public partial class Program;
