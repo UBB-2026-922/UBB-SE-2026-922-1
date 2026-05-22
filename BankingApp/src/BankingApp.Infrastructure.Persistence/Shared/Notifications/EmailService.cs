@@ -16,10 +16,6 @@ public sealed class EmailService(IOptions<SmtpSettings> options, ILogger<EmailSe
     private readonly SmtpSettings _settings = options.Value;
 
     /// <inheritdoc />
-    public Task SendOtpCodeAsync(string email, string code) =>
-        SendAsync(email, EmailTemplates.OtpSubject, EmailTemplates.GetOtpBody(code));
-
-    /// <inheritdoc />
     public Task SendLoginAlertAsync(string email) =>
         SendAsync(email, EmailTemplates.LoginAlertSubject, EmailTemplates.LoginAlertBody);
 

@@ -23,8 +23,4 @@ public class CreateTransferRequest
     /// <summary>Gets or sets an optional payment reference or description.</summary>
     public string? Reference { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the 2FA token. Required when <see cref="Amount" /> is >= 1000.
-    /// </summary>
-    public string? TwoFaToken { get; set; }
 }

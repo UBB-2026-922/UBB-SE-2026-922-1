@@ -20,12 +20,6 @@ public sealed class ProfileService(IApiClient apiClient) : IProfileService
     public Task<ErrorOr<Success>> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default)
         => apiClient.PutAsync(ApiEndpoints.Profile.ChangePasswordFull, request, ct);
 
-    public Task<ErrorOr<Success>> Enable2FaAsync(EnableTwoFaRequest request, CancellationToken ct = default)
-        => apiClient.PutAsync(ApiEndpoints.Profile.Enable2FaFull, request, ct);
-
-    public Task<ErrorOr<Success>> Disable2FaAsync(CancellationToken ct = default)
-        => apiClient.PutAsync(ApiEndpoints.Profile.Disable2FaFull, new { }, ct);
-
     public Task<ErrorOr<List<NotificationPreferenceDto>>> GetNotificationPreferencesAsync(CancellationToken ct = default)
         => apiClient.GetAsync<List<NotificationPreferenceDto>>(ApiEndpoints.Profile.NotificationPreferencesFull, ct);
 

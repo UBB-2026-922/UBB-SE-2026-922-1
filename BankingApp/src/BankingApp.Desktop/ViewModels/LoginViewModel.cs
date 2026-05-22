@@ -80,14 +80,6 @@ public partial class LoginViewModel : ObservableObject
         }
 
         LoginSuccessResponse response = result.Value;
-        if (response.Requires2Fa)
-        {
-            State = LoginState.Idle;
-            return Error.Failure(
-                "DevLogin.Requires2Fa",
-                "Dev login cannot use an account that requires two-factor authentication.");
-        }
-
         if (string.IsNullOrWhiteSpace(response.Token))
         {
             State = LoginState.Idle;
@@ -111,13 +103,6 @@ public partial class LoginViewModel : ObservableObject
         result.Switch(
             response =>
             {
-                if (response.Requires2Fa)
-                {
-                    _authenticationSession.CurrentUserId = response.UserId;
-                    State = LoginState.Require2Fa;
-                    return;
-                }
-
                 _authenticationSession.SetToken(response.Token!);
                 _authenticationSession.CurrentUserId = response.UserId;
                 State = LoginState.Success;

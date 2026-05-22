@@ -32,18 +32,6 @@ public class BillPaymentsController : ApiControllerBase
     }
 
     /// <summary>
-    /// Checks whether two-factor authentication is required for a bill payment amount.
-    /// </summary>
-    /// <param name="amount">The payment amount.</param>
-    /// <returns>A response indicating if 2FA is required.</returns>
-    [HttpGet(ApiEndpoints.BillPayments.Requires2Fa)]
-    public IActionResult Requires2Fa([FromQuery] decimal amount)
-    {
-        bool required = amount >= 1000m;
-        return Ok(new RequiresTwoFaResponse { Required = required });
-    }
-
-    /// <summary>
     /// Processes a bill payment request.
     /// </summary>
     /// <param name="request">The bill payment request details.</param>
@@ -58,8 +46,7 @@ public class BillPaymentsController : ApiControllerBase
             request.SourceAccountId,
             request.BillerId,
             request.BillerReference,
-            request.Amount,
-            request.TwoFaToken);
+            request.Amount);
         return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
     }
 

@@ -5,7 +5,6 @@ using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
-using Shared;
 using Shared.Enums;
 
 public class PersonalInfoViewModelTests
@@ -41,7 +40,6 @@ public class PersonalInfoViewModelTests
         viewModel.ProfileInfo.Should().BeSameAs(profile);
         viewModel.State.Should().Be(ProfileState.UpdateSuccess);
         viewModel.HasPhoneNumber.Should().BeTrue();
-        viewModel.TwoFactorPhoneDisplay.Should().Be(phoneNumber);
     }
 
     [Fact]
@@ -62,7 +60,6 @@ public class PersonalInfoViewModelTests
         viewModel.State.Should().Be(ProfileState.Error);
         viewModel.ProfileInfo.UserId.Should().BeNull();
         viewModel.HasPhoneNumber.Should().BeFalse();
-        viewModel.TwoFactorPhoneDisplay.Should().Be(UserMessages.Profile.NoPhoneNumber);
     }
 
     [Fact]

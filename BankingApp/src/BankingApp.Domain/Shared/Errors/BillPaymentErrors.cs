@@ -22,9 +22,4 @@ public static class BillPaymentErrors
     public static readonly Error InvalidFee =
         Error.Validation("billpayment.invalid_fee", "Bill payment fee cannot be negative.");
 
-    public static readonly Error TwoFaRequired =
-        Error.Forbidden("billpayment.2fa_required", "A 2FA token is required for this bill payment.");
-
-    public static readonly Error InvalidTwoFaToken =
-        Error.Unauthorized("billpayment.invalid_2fa_token", "The provided 2FA token is invalid or expired.");
 }

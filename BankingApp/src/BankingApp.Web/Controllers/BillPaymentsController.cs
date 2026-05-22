@@ -61,9 +61,8 @@ public class BillPaymentsController(
         Task<ErrorOr<List<BillerDto>>> allBillersTask = billerService.GetBillersAsync(ct: cancellationToken);
         Task<ErrorOr<List<AccountDto>>> accountsTask = billPaymentService.GetAccountsAsync(cancellationToken);
         Task<ErrorOr<FeeResponse>> feeTask = billPaymentService.GetFeeAsync(viewModel.Amount, cancellationToken);
-        Task<ErrorOr<RequiresTwoFaResponse>> twoFaTask = billPaymentService.GetRequires2FaAsync(viewModel.Amount, cancellationToken);
 
-        await Task.WhenAll(allBillersTask, accountsTask, feeTask, twoFaTask);
+        await Task.WhenAll(allBillersTask, accountsTask, feeTask);
 
         ErrorOr<List<BillerDto>> allBillers = await allBillersTask;
         string billerName = allBillers.IsError
@@ -75,7 +74,6 @@ public class BillPaymentsController(
         AccountDto? account = accounts.IsError ? null : accounts.Value.FirstOrDefault(account => account.Id == viewModel.SelectedAccountId);
 
         ErrorOr<FeeResponse> feeResult = await feeTask;
-        ErrorOr<RequiresTwoFaResponse> twoFaResult = await twoFaTask;
 
         BillPayPreviewViewModel preview = new()
         {
@@ -87,7 +85,6 @@ public class BillPaymentsController(
             BillerName = billerName,
             AccountIban = account?.Iban ?? string.Empty,
             Currency = account?.Currency ?? string.Empty,
-            RequiresTwoFa = twoFaResult.IsError ? viewModel.Amount >= 1_000m : twoFaResult.Value.Required,
         };
 
         return View("Preview", preview);
@@ -97,19 +94,12 @@ public class BillPaymentsController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Confirm(BillPayPreviewViewModel viewModel, CancellationToken cancellationToken)
     {
-        if (viewModel.RequiresTwoFa && string.IsNullOrWhiteSpace(viewModel.TwoFaToken))
-        {
-            viewModel.ErrorMessage = "A one-time password is required for payments of $1,000 or more.";
-            return View("Preview", viewModel);
-        }
-
         BillPayRequest request = new()
         {
             SourceAccountId = viewModel.SourceAccountId,
             BillerId = viewModel.BillerId,
             BillerReference = viewModel.BillerReference,
             Amount = viewModel.Amount,
-            TwoFaToken = viewModel.TwoFaToken
         };
 
         ErrorOr<BillPayResponse> result = await billPaymentService.PayBillAsync(request, cancellationToken);

@@ -9,8 +9,6 @@ using Money = NodaMoney.Money;
 
 public sealed class Transfer : AggregateRoot<int>
 {
-    private const decimal TwoFaAmountThreshold = 1000m;
-
     private Transfer()
     {
     }
@@ -88,8 +86,6 @@ public sealed class Transfer : AggregateRoot<int>
             CreatedAt = createdAt
         };
     }
-
-    public static bool RequiresTwoFactorAuthentication(Money amount) => amount.Amount >= TwoFaAmountThreshold;
 
     public void MarkExecuted(int? ledgerTransactionId, DateTime? estimatedArrival)
     {

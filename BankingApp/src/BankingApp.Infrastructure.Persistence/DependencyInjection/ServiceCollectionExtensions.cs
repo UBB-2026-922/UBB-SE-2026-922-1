@@ -25,9 +25,6 @@ public static class ServiceCollectionExtensions
                                       "Configuration value 'ConnectionStrings:BankingAppDb' is missing.");
         string jwtSecret = configuration["Jwt:Secret"]
                            ?? throw new InvalidOperationException("Configuration value 'Jwt:Secret' is missing.");
-        string otpSecret = configuration["Otp:Secret"]
-                           ?? throw new InvalidOperationException("Configuration value 'Otp:Secret' is missing.");
-
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -72,8 +69,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
         services.AddScoped<ISavedBillerRepository, SavedBillerRepository>();
 
-        services.AddSingleton<IOtpAttemptTracker, OtpAttemptTracker>();
-        services.AddSingleton<IOtpService>(_ => new OtpService(otpSecret));
         services.AddScoped<IHashService, HashService>();
         services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
         services.AddScoped<IEmailService, EmailService>();

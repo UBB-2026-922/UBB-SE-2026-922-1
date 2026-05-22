@@ -37,7 +37,7 @@ Each aggregate is a consistency boundary. Only the aggregate root is referenced 
 | Aggregate root       | Owned entities / events                        | Purpose                                      |
 |----------------------|------------------------------------------------|----------------------------------------------|
 | `User`               | `Notification`, `NotificationPreference`       | Profile, preferences, notification inbox     |
-| `IdentityAccount`    | `Session`, `PasswordResetToken`                | Authentication state, sessions, 2FA, lockout |
+| `IdentityAccount`    | `Session`, `PasswordResetToken`                | Authentication state, sessions, lockout      |
 | `Account`            | `Card`, `Transaction`                          | Bank account, balance, transaction ledger    |
 | `Transfer`           | —                                              | Outgoing wire/SEPA transfer lifecycle        |
 | `ForexTransaction`   | `LockedRate`                                   | Currency exchange between two accounts       |

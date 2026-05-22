@@ -23,8 +23,6 @@ public partial class CreateIdentityAccounts : Migration
                                 .Annotation("SqlServer:Identity", "1, 1"),
                             UserId = table.Column<int>(type: "int", nullable: false),
                             PasswordHash = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
-                            Is2FaEnabled = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                            Preferred2FaMethod = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
                             IsLocked = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                             LockoutEnd = table.Column<DateTime>(type: "datetime2", nullable: true),
                             FailedLoginAttempts = table.Column<int>(type: "int", nullable: false, defaultValue: 0)

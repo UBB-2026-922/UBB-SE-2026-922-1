@@ -11,7 +11,7 @@ public sealed class GetActiveSessionsQueryTests
 {
     private const int TestUserId = 42;
 
-    private static readonly DateTime TestNow = new(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime _testNow = new(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc);
 
     private readonly Mock<IIdentityRepository> _identityRepositoryMock = MockFactory.CreateIdentityRepositoryMock();
 
@@ -39,8 +39,8 @@ public sealed class GetActiveSessionsQueryTests
     {
         // Arrange
         (_, IdentityAccount identity) = MockFactory.CreateUserWithIdentityAccount();
-        identity.OpenSession("active-token", TestNow.AddHours(24), TestNow, "Windows", "Chrome", "1.2.3.4");
-        Session revokedSession = identity.OpenSession("revoked-token", TestNow.AddHours(24), TestNow, "Mac", "Safari", "5.6.7.8");
+        identity.OpenSession("active-token", _testNow.AddHours(24), _testNow, "Windows", "Chrome", "1.2.3.4");
+        Session revokedSession = identity.OpenSession("revoked-token", _testNow.AddHours(24), _testNow, "Mac", "Safari", "5.6.7.8");
         revokedSession.Revoke();
 
         _identityRepositoryMock
@@ -72,7 +72,7 @@ public sealed class GetActiveSessionsQueryTests
         const string ipAddress = "192.168.1.1";
 
         (_, IdentityAccount identity) = MockFactory.CreateUserWithIdentityAccount();
-        identity.OpenSession("token-abc", TestNow.AddHours(24), sessionCreatedAt, deviceInfo, browser, ipAddress);
+        identity.OpenSession("token-abc", _testNow.AddHours(24), sessionCreatedAt, deviceInfo, browser, ipAddress);
 
         _identityRepositoryMock
             .Setup(repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None))

@@ -18,10 +18,9 @@ public class TransferViewModelTests
     private const int AccountSelectionStep = 1;
     private const int RecipientDetailsStep = 2;
     private const int AmountDetailsStep = 3;
-    private const int TwoFactorAuthenticationStep = 4;
-    private const int ReviewAndConfirmationStep = 5;
-    private const int TransferCompletedStep = 6;
-    private const int TransferErrorStep = 7;
+    private const int ReviewAndConfirmationStep = 4;
+    private const int TransferCompletedStep = 5;
+    private const int TransferErrorStep = 6;
 
     private readonly Mock<ITransferService> _transferClientService;
     private readonly TransferViewModel _viewModel;
@@ -140,12 +139,8 @@ public class TransferViewModelTests
         _viewModel.ErrorMessage.Should().Be(UserMessages.Transfer.AmountMustBePositive);
     }
 
-    /// <summary>
-    ///     ExecuteNextStep at the amount step when 2FA is not required should skip
-    ///     to the review step.
-    /// </summary>
     [Fact]
-    public void ExecuteNextStep_AtAmountStep_When2FANotRequired_SkipsToReview()
+    public void ExecuteNextStep_AtAmountStep_WhenAmountIsPositive_GoesToReview()
     {
         // Arrange
         _viewModel.CurrentStep = AmountDetailsStep;
@@ -156,26 +151,6 @@ public class TransferViewModelTests
 
         // Assert
         _viewModel.CurrentStep.Should().Be(ReviewAndConfirmationStep);
-        _viewModel.Requires2Fa.Should().BeFalse();
-    }
-
-    /// <summary>
-    ///     ExecuteNextStep at the amount step when 2FA is required should go
-    ///     to the 2FA step.
-    /// </summary>
-    [Fact]
-    public void ExecuteNextStep_AtAmountStep_When2FARequired_GoesToTwoFAStep()
-    {
-        // Arrange
-        _viewModel.CurrentStep = AmountDetailsStep;
-        _viewModel.Amount = 1500m;
-
-        // Act
-        _viewModel.ExecuteNextStep();
-
-        // Assert
-        _viewModel.CurrentStep.Should().Be(TwoFactorAuthenticationStep);
-        _viewModel.Requires2Fa.Should().BeTrue();
     }
 
     /// <summary>
@@ -251,7 +226,6 @@ public class TransferViewModelTests
         _viewModel.RecipientIban = "RO49AAAA1B31007593840000";
         _viewModel.AmountText = "500";
         _viewModel.Currency = "USD";
-        _viewModel.Is2FaConfirmed = true;
         _viewModel.TransactionRef = "TXN-123";
         _viewModel.ErrorMessage = "Some error";
         _viewModel.CurrentStep = TransferCompletedStep;
@@ -265,7 +239,6 @@ public class TransferViewModelTests
         _viewModel.RecipientIban.Should().BeEmpty();
         _viewModel.AmountText.Should().BeEmpty();
         _viewModel.Currency.Should().Be("EUR");
-        _viewModel.Is2FaConfirmed.Should().BeFalse();
         _viewModel.TransactionRef.Should().BeEmpty();
         _viewModel.ErrorMessage.Should().BeEmpty();
         _viewModel.SelectedAccount.Should().NotBeNull();

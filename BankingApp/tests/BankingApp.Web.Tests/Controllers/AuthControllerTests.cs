@@ -98,27 +98,6 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_WhenTwoFactorRequiredPost_ShouldRedirectToVerifyOtp()
-    {
-        LoginViewModel model = new() { Email = "user@example.com", Password = "ValidPassword1!" };
-
-        _authenticationServiceMock
-            .Setup(service => service.LoginAsync(It.IsAny<LoginRequest>(), CancellationToken.None))
-            .ReturnsAsync(new LoginSuccessResponse
-            {
-                UserId = 42,
-                Requires2Fa = true
-            });
-
-        IActionResult result = await _controller.Login(model, CancellationToken.None);
-
-        RedirectResult redirect = result.Should().BeOfType<RedirectResult>().Subject;
-        redirect.Url.Should().Be("/Auth/VerifyOtp?userId=42");
-        _authenticationServiceMock.VerifyAll();
-        _aspNetAuthenticationMock.VerifyNoOtherCalls();
-    }
-
-    [Fact]
     public async Task Login_WhenApiResponseMissingSessionIdPost_ShouldAddErrorAndReturnView()
     {
         LoginViewModel model = new() { Email = "user@example.com", Password = "ValidPassword1!" };

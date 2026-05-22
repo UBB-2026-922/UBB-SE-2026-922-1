@@ -17,8 +17,6 @@ public sealed class IdentityAccountConfiguration : IEntityTypeConfiguration<Iden
         builder.Property(identityAccount => identityAccount.PasswordHash)
             .HasConversion(PersistenceValueConverters.NullableHashedPasswordConverter)
             .HasMaxLength(512);
-        builder.Property(identityAccount => identityAccount.Is2FaEnabled).HasDefaultValue(false);
-        builder.Property(identityAccount => identityAccount.Preferred2FaMethod).HasConversion<string>().HasMaxLength(32);
         builder.Property(identityAccount => identityAccount.IsLocked).HasDefaultValue(false);
         builder.Property(identityAccount => identityAccount.LockoutEnd);
         builder.Property(identityAccount => identityAccount.FailedLoginAttempts).HasDefaultValue(0);

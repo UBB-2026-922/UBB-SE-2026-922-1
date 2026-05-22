@@ -61,14 +61,13 @@ public class ProfileViewModelTests
     }
 
     [Fact]
-    public void HasPhoneNumber_WhenPhoneNumberIsNotSet_ReturnsFalseAndShowsPlaceholder()
+    public void HasPhoneNumber_WhenPhoneNumberIsNotSet_ReturnsFalse()
     {
         // Arrange
         var viewModel = new PersonalInfoViewModel(_profileClientService.Object, NullLogger<PersonalInfoViewModel>.Instance);
 
         // Assert
         viewModel.HasPhoneNumber.Should().BeFalse();
-        viewModel.TwoFactorPhoneDisplay.Should().Be(UserMessages.Profile.NoPhoneNumber);
     }
 
     [Fact]
@@ -179,60 +178,6 @@ public class ProfileViewModelTests
         // Assert
         success.Should().BeFalse();
         error.Should().Be(UserMessages.Security.IncorrectPassword);
-        viewModel.State.Should().Be(ProfileState.Error);
-    }
-
-    [Fact]
-    public async Task SetTwoFactorEnabled_WhenApiSucceeds_ReturnsTrue()
-    {
-        // Arrange
-        var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
-
-        _profileClientService
-            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
-            .ReturnsAsync(Result.Success);
-
-        // Act
-        bool result = await viewModel.SetTwoFactorEnabled(true);
-
-        // Assert
-        result.Should().BeTrue();
-        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
-    }
-
-    [Fact]
-    public async Task DisableTwoFactor_WhenApiSucceeds_ReturnsTrue()
-    {
-        // Arrange
-        var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
-
-        _profileClientService
-            .Setup(profileClientService => profileClientService.Disable2FaAsync())
-            .ReturnsAsync(Result.Success);
-
-        // Act
-        bool result = await viewModel.SetTwoFactorEnabled(false);
-
-        // Assert
-        result.Should().BeTrue();
-        viewModel.State.Should().Be(ProfileState.UpdateSuccess);
-    }
-
-    [Fact]
-    public async Task SetTwoFactorEnabled_WhenApiFails_ReturnsFalse()
-    {
-        // Arrange
-        var viewModel = new SecurityViewModel(_profileClientService.Object, NullLogger<SecurityViewModel>.Instance);
-
-        _profileClientService
-            .Setup(profileClientService => profileClientService.Enable2FaAsync(It.IsAny<EnableTwoFaRequest>()))
-            .ReturnsAsync(Error.Failure(description: "server error"));
-
-        // Act
-        bool result = await viewModel.SetTwoFactorEnabled(true);
-
-        // Assert
-        result.Should().BeFalse();
         viewModel.State.Should().Be(ProfileState.Error);
     }
 

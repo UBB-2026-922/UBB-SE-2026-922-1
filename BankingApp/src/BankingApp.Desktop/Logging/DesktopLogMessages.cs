@@ -77,20 +77,8 @@ internal static partial class DesktopLogMessages
     [LoggerMessage(EventId = 1021, Level = LogLevel.Error, Message = "LoadDashboard failed: {Errors}")]
     internal static partial void LoadDashboardFailed(this ILogger logger, object? errors);
 
-    [LoggerMessage(EventId = 1022, Level = LogLevel.Error, Message = "VerifyOtp failed: {Errors}")]
-    internal static partial void VerifyOtpFailed(this ILogger logger, object? errors);
-
-    [LoggerMessage(EventId = 1023, Level = LogLevel.Error, Message = "ResendOtp failed: {Errors}")]
-    internal static partial void ResendOtpFailed(this ILogger logger, object? errors);
-
     [LoggerMessage(EventId = 1024, Level = LogLevel.Error, Message = "ChangePassword failed: {Errors}")]
     internal static partial void ChangePasswordFailed(this ILogger logger, object? errors);
-
-    [LoggerMessage(EventId = 1025, Level = LogLevel.Error, Message = "EnableTwoFactor failed: {Errors}")]
-    internal static partial void EnableTwoFactorFailed(this ILogger logger, object? errors);
-
-    [LoggerMessage(EventId = 1026, Level = LogLevel.Error, Message = "DisableTwoFactor failed: {Errors}")]
-    internal static partial void DisableTwoFactorFailed(this ILogger logger, object? errors);
 
     [LoggerMessage(EventId = 1027, Level = LogLevel.Error,
         Message = "Unexpected error loading transfer history.")]

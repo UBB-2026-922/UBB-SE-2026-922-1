@@ -7,7 +7,6 @@ using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Shared;
 using Shared.Enums;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
@@ -37,10 +36,6 @@ public partial class PersonalInfoViewModel : ObservableObject
 
     /// <summary>Gets a value indicating whether the user has a phone number on file.</summary>
     public bool HasPhoneNumber => !string.IsNullOrEmpty(ProfileInfo.PhoneNumber);
-
-    /// <summary>Gets the phone-number text shown in the two-factor section.</summary>
-    public string TwoFactorPhoneDisplay =>
-        HasPhoneNumber ? ProfileInfo.PhoneNumber! : UserMessages.Profile.NoPhoneNumber;
 
     /// <summary>Loads the current user's profile.</summary>
     public async Task<bool> LoadProfile()

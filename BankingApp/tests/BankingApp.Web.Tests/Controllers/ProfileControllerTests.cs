@@ -51,6 +51,66 @@ public sealed class ProfileControllerTests : IDisposable
     public void Dispose() => _controller.Dispose();
 
     [Fact]
+    public void Security_WhenGet_ShouldReturnView()
+    {
+        // Act
+        IActionResult result = _controller.Security();
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().BeOfType<SecurityViewModel>();
+        _profileServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenInvalidModel_ShouldReturnSecurityView()
+    {
+        // Arrange
+        SecurityViewModel model = new();
+        _controller.ModelState.AddModelError(nameof(SecurityViewModel.CurrentPassword), "Current password is required.");
+
+        // Act
+        IActionResult result = await _controller.ChangePassword(model, CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.ViewName.Should().Be(nameof(ProfileController.Security));
+        viewResult.Model.Should().Be(model);
+        _profileServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task ChangePassword_WhenServiceSucceeds_ShouldRedirectToSecurity()
+    {
+        // Arrange
+        SecurityViewModel model = new()
+        {
+            CurrentPassword = "OldPassword1!",
+            NewPassword = "NewPassword1!",
+            ConfirmNewPassword = "NewPassword1!"
+        };
+
+        _profileServiceMock
+            .Setup(service => service.ChangePasswordAsync(
+                It.Is<ChangePasswordRequest>(request =>
+                    request.CurrentPassword == model.CurrentPassword && request.NewPassword == model.NewPassword),
+                CancellationToken.None))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        IActionResult result = await _controller.ChangePassword(model, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(ProfileController.Security));
+        _controller.TempData["Success"].Should().Be("Password changed successfully.");
+        _profileServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Sessions_WhenGet_ShouldCallServiceAndReturnViewWithSessionsAndCurrentSessionIdMarked()
     {
         // Arrange

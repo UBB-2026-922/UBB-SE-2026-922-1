@@ -9,8 +9,6 @@ public interface IProfileService
     public Task<ErrorOr<Success>> UpdateProfileAsync(UpdateProfileRequest request, CancellationToken ct = default);
     public Task<ErrorOr<bool>> VerifyPasswordAsync(string password, CancellationToken ct = default);
     public Task<ErrorOr<Success>> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken ct = default);
-    public Task<ErrorOr<Success>> Enable2FaAsync(EnableTwoFaRequest request, CancellationToken ct = default);
-    public Task<ErrorOr<Success>> Disable2FaAsync(CancellationToken ct = default);
     public Task<ErrorOr<List<NotificationPreferenceDto>>> GetNotificationPreferencesAsync(CancellationToken ct = default);
     public Task<ErrorOr<Success>> UpdateNotificationPreferencesAsync(List<NotificationPreferenceDto> preferences, CancellationToken ct = default);
     public Task<ErrorOr<List<SessionDto>>> GetSessionsAsync(CancellationToken ct = default);

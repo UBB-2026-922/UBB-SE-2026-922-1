@@ -14,9 +14,6 @@ public sealed class BillPaymentService(IApiClient apiClient) : IBillPaymentServi
     public Task<ErrorOr<FeeResponse>> GetFeeAsync(decimal amount, CancellationToken ct = default)
         => apiClient.GetAsync<FeeResponse>($"{ApiEndpoints.BillPayments.FeeFull}?amount={amount}", ct);
 
-    public Task<ErrorOr<RequiresTwoFaResponse>> GetRequires2FaAsync(decimal amount, CancellationToken ct = default)
-        => apiClient.GetAsync<RequiresTwoFaResponse>($"{ApiEndpoints.BillPayments.Requires2FaFull}?amount={amount}", ct);
-
     public Task<ErrorOr<BillPayResponse>> PayBillAsync(BillPayRequest request, CancellationToken ct = default)
         => apiClient.PostAsync<BillPayRequest, BillPayResponse>(ApiEndpoints.BillPayments.PayFull, request, ct);
 

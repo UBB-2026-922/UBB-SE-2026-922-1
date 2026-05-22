@@ -2,7 +2,6 @@ namespace BankingApp.Domain.Aggregates.IdentityAggregate;
 
 using Entities;
 using Common.Primitives;
-using Enums;
 using ValueObjects;
 
 public sealed class IdentityAccount : AggregateRoot<int>
@@ -17,10 +16,6 @@ public sealed class IdentityAccount : AggregateRoot<int>
     public int UserId { get; private set; }
 
     public HashedPassword? PasswordHash { get; private set; }
-
-    public bool Is2FaEnabled { get; private set; }
-
-    public TwoFactorMethod? Preferred2FaMethod { get; private set; }
 
     public bool IsLocked { get; private set; }
 
@@ -78,18 +73,6 @@ public sealed class IdentityAccount : AggregateRoot<int>
         {
             session.Revoke();
         }
-    }
-
-    public void Enable2Fa(TwoFactorMethod method)
-    {
-        Is2FaEnabled = true;
-        Preferred2FaMethod = method;
-    }
-
-    public void Disable2Fa()
-    {
-        Is2FaEnabled = false;
-        Preferred2FaMethod = null;
     }
 
     public Session OpenSession(string token, DateTime expiresAt, DateTime createdAt, string? deviceInfo = null, string? browser = null, string? ipAddress = null)

@@ -1,16 +1,40 @@
 namespace BankingApp.Application.Tests.Features.Transfers.Queries;
 
+using BankingApp.Application.Features.Transfers.Queries;
+using Contracts.Features.Transfers.Dtos;
+using ErrorOr;
+
 public sealed class ValidateIbanQueryTests
 {
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenIbanIsValid_ShouldReturnValidResponse()
+    [Fact]
+    public async Task Handle_WhenIbanIsValid_ShouldReturnValidResponse()
     {
-        throw new NotImplementedException();
+        // Arrange
+        ValidateIbanQueryHandler handler = new();
+        var query = new ValidateIbanQuery("RO12BANK1234567890123456");
+
+        // Act
+        ErrorOr<TransferIbanValidationResponse> result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.IsValid.Should().BeTrue();
+        result.Value.BankName.Should().Be("Romanian Bank");
     }
 
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenIbanIsInvalid_ShouldReturnInvalidResponse()
+    [Fact]
+    public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidResponse()
     {
-        throw new NotImplementedException();
+        // Arrange
+        ValidateIbanQueryHandler handler = new();
+        var query = new ValidateIbanQuery("invalid-iban");
+
+        // Act
+        ErrorOr<TransferIbanValidationResponse> result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.IsValid.Should().BeFalse();
+        result.Value.BankName.Should().BeEmpty();
     }
 }

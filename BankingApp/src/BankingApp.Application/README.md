@@ -26,7 +26,7 @@ BankingApp.Application/
 │   │   ├── Security/
 │   │   └── Notifications/
 │   ├── Logging/         # [LoggerMessage] source-generated log messages
-│   └── Validation/      # Shared InputRules helpers (email, phone, password, OTP)
+│   └── Validation/      # Shared InputRules helpers (email, phone, password)
 ├── DependencyInjection/
 └── Features/
     ├── Commands/        # Write operations
@@ -61,19 +61,19 @@ Interfaces that the Application layer depends on but does not implement.
 
 ### Security (`Common/Contracts/Security/`)
 
-`IHashService`, `IJsonWebTokenService`, `IOtpService`, `IOtpAttemptTracker`
+`IHashService`, `IJsonWebTokenService`
 
 ### Notifications (`Common/Contracts/Notifications/`)
 
-`IEmailService` — OTP codes, login alerts, password-reset links
+`IEmailService` — login alerts and password-reset links
 
 ## Features
 
 ### Authentication
 
-`LoginCommand` validates credentials, enforces lockout (5 attempts / 15 min), and branches on 2FA. It returns the abstract `LoginSuccess` type — either `FullLogin` (JWT issued) or `RequiresTwoFactor` (OTP pending). Pattern-match on the subtype in the controller.
+`LoginCommand` validates credentials, enforces lockout (5 attempts / 15 min), opens a session, and returns a JWT.
 
-Other handlers: `VerifyOtpCommand`, `ResendOtpCommand`, `LogoutCommand`
+Other handlers: `LogoutCommand`
 
 ### User Registration
 
@@ -81,7 +81,7 @@ Other handlers: `VerifyOtpCommand`, `ResendOtpCommand`, `LogoutCommand`
 
 ### User Profile
 
-Profile read/write, password change, 2FA toggle, session listing and revocation, notification preferences.
+Profile read/write, password change, session listing and revocation, notification preferences.
 
 ### Password Reset
 
@@ -93,7 +93,7 @@ Three-step flow: `ForgotPasswordCommand` → `VerifyResetTokenQuery` → `ResetP
 
 ### Transfers
 
-`ExecuteTransferCommand` validates IBAN and currency, enforces TOTP for large amounts, debits the source account, records a ledger transaction, and updates beneficiary stats. Supporting queries: history, account list, IBAN validation, FX preview.
+`ExecuteTransferCommand` validates IBAN and currency, debits the source account, records a ledger transaction, and updates beneficiary stats. Supporting queries: history, account list, IBAN validation, FX preview.
 
 ### Forex (Currency Exchange)
 
@@ -105,7 +105,7 @@ CRUD on user-defined rate alerts. `ProcessRateAlertsCommand` is dispatched by th
 
 ### Bill Payments
 
-`ProcessBillPaymentCommand` applies a tiered fee via `BillPaymentFeePolicy` (≤ 100 → 0.50, > 100 → 1.00), enforces 2FA when required, debits the account, and generates a receipt number.
+`ProcessBillPaymentCommand` applies a tiered fee via `BillPaymentFeePolicy` (≤ 100 → 0.50, > 100 → 1.00), debits the account, and generates a receipt number.
 
 ### Billers
 

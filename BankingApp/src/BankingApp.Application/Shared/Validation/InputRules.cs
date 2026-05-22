@@ -9,7 +9,6 @@ using PhoneNumbers;
 public static class InputRules
 {
     private const int MinPasswordLength = 8;
-    private const int OtpCodeLength = 6;
 
     /// <summary>
     ///     Determines whether the specified string is a valid email address.
@@ -39,17 +38,6 @@ public static class InputRules
                && password.Any(char.IsLower)
                && password.Any(char.IsDigit)
                && password.Any(character => !char.IsLetterOrDigit(character));
-    }
-
-    /// <summary>
-    ///     Determines whether the specified string is a valid 6-digit OTP code.
-    /// </summary>
-    /// <param name="otp">The OTP string to validate.</param>
-    /// <returns><see langword="true" /> if the OTP is valid; otherwise, <see langword="false" />.</returns>
-    public static bool IsValidOtp(string otp)
-    {
-        // TODO: inline in OTP validator
-        return !string.IsNullOrWhiteSpace(otp) && otp.Length == OtpCodeLength && otp.All(char.IsDigit);
     }
 
     /// <summary>

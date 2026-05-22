@@ -26,8 +26,4 @@ public sealed class ServiceCollectionExtensionsTests(SqlServerDatabaseFixture da
     {
     }
 
-    [Fact(Skip = "Not implemented yet.")]
-    public void AddInfrastructure_WhenOtpSecretIsMissing_ShouldThrowInvalidOperationException()
-    {
-    }
 }
