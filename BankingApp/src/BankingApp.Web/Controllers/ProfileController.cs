@@ -31,7 +31,6 @@ public class ProfileController(IProfileService profileService) : Controller
             FullName = profile.FullName ?? string.Empty,
             Email = profile.Email ?? string.Empty,
             PhoneNumber = profile.PhoneNumber ?? string.Empty,
-            Is2FaEnabled = profile.Is2FaEnabled,
         };
 
         return View(viewModel);
