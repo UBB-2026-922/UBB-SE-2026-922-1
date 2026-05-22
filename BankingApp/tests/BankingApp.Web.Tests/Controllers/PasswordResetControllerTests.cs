@@ -1,9 +1,9 @@
 namespace BankingApp.Web.Tests.Controllers;
 
-using Application.Features.Authentication.Services;
-using Contracts.Features.PasswordReset.Dtos;
-using Web.Controllers;
-using ViewModels;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Contracts.Features.PasswordReset.Dtos;
+using BankingApp.Web.Controllers;
+using BankingApp.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;

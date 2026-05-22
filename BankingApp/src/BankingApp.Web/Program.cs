@@ -13,6 +13,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 string apiBaseUrl = builder.Configuration["ApiBaseUrl"]
     ?? throw new InvalidOperationException("ApiBaseUrl is not configured.");
 
+int defaultCookieExpiryTime = 8;
+int defaultLoginExpiryTime = 12;
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddWebClientServices(apiBaseUrl);
 builder.Services
@@ -21,7 +24,7 @@ builder.Services
     {
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
-        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.ExpireTimeSpan = TimeSpan.FromHours(defaultCookieExpiryTime);
         options.SlidingExpiration = true;
     });
 builder.Services.AddAuthorization();
@@ -87,20 +90,28 @@ if (app.Environment.IsDevelopment())
                         statusCode: StatusCodes.Status502BadGateway);
                 }
 
+                if (login.SessionId is null)
+                {
+                    return Results.Problem(
+                        "Dev login failed because the API did not return a session identifier.",
+                        statusCode: StatusCodes.Status502BadGateway);
+                }
+
                 string userId = login.UserId.ToString(CultureInfo.InvariantCulture);
                 Claim[] claims =
                 [
                     new Claim(ClaimTypes.NameIdentifier, userId),
                     new Claim(ClaimTypes.Name, email),
                     new Claim(AuthClaimTypes.UserId, userId),
-                    new Claim(AuthClaimTypes.Token, login.Token)
+                    new Claim(AuthClaimTypes.Token, login.Token),
+                    new Claim(AuthClaimTypes.SessionId, login.SessionId.Value.ToString(CultureInfo.InvariantCulture))
                 ];
 
                 ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 AuthenticationProperties properties = new()
                 {
                     IsPersistent = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(12)
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddHours(defaultLoginExpiryTime)
                 };
 
                 await context.SignInAsync(
@@ -135,7 +146,12 @@ return;
 
 static bool IsLocalReturnUrl(string? returnUrl)
 {
+    int firstLetterOfUrl = 0;
+    int secondLetterOfUrl = 1;
+    int rootPathLength = 1;
     return !string.IsNullOrEmpty(returnUrl)
-           && returnUrl[0] == '/'
-           && (returnUrl.Length == 1 || (returnUrl[1] != '/' && returnUrl[1] != '\\'));
+           && returnUrl[firstLetterOfUrl] == '/'
+           && (returnUrl.Length == rootPathLength || 
+               (returnUrl[secondLetterOfUrl] != '/'
+                && returnUrl[secondLetterOfUrl] != '\\'));
 }

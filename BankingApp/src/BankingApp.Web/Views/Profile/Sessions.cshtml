@@ -1,0 +1,79 @@
+@model BankingApp.Web.ViewModels.SessionsViewModel
+@using BankingApp.Contracts.Features.UserProfile.Dtos
+@{
+    ViewData["Title"] = "Active Sessions";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title">Active Sessions</h1>
+        <p class="page-subtitle">All devices where you are currently signed in.</p>
+    </div>
+</div>
+
+@if (!Model.Sessions.Any())
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-shield-lock fs-1 text-muted mb-3 d-block"></i>
+            <p class="text-muted mb-3">No active sessions found.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Device / Browser</th>
+                            <th>IP Address</th>
+                            <th>Started</th>
+                            <th>Last Active</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (SessionDto session in Model.Sessions)
+                        {
+                            bool isCurrent = session.Id == Model.CurrentSessionId;
+                            string rowClass = isCurrent ? "table-active" : string.Empty;
+                            string confirmMessage = isCurrent
+                                ? "This will sign you out of this device. Continue?"
+                                : "Revoke this session?";
+                            string buttonClass = isCurrent ? "btn-outline-danger" : "btn-outline-secondary";
+                            <tr class="@rowClass">
+                                <td class="fw-medium">
+                                    @(session.Browser ?? session.DeviceInfo ?? "Unknown")
+                                    @if (isCurrent)
+                                    {
+                                        <span class="badge bg-success ms-2">Current</span>
+                                    }
+                                </td>
+                                <td class="font-monospace text-muted-sm">@(session.IpAddress ?? "—")</td>
+                                <td class="text-muted-sm">@session.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                <td class="text-muted-sm">
+                                    @(session.LastActiveAt.HasValue
+                                        ? session.LastActiveAt.Value.ToString("dd MMM yyyy HH:mm")
+                                        : "—")
+                                </td>
+                                <td class="text-end">
+                                    <form asp-action="RevokeSession" asp-route-sessionId="@session.Id"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('@confirmMessage')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm @buttonClass">
+                                            <i class="bi bi-x-circle me-1"></i>Revoke
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
