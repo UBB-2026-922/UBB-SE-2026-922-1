@@ -31,14 +31,6 @@ public static class TransferErrors
     public static readonly Error InsufficientFunds =
         Error.Forbidden("transfer.insufficient_funds", "Insufficient funds in the source account.");
 
-    /// <summary>A 2FA token is required for transfers of 1000 or more but was not provided.</summary>
-    public static readonly Error TwoFaRequired =
-        Error.Forbidden("transfer.2fa_required", "A 2FA token is required for transfers of 1000 or more.");
-
-    /// <summary>The provided 2FA token is invalid or expired.</summary>
-    public static readonly Error InvalidTwoFaToken =
-        Error.Unauthorized("transfer.invalid_2fa_token", "The provided 2FA token is invalid or expired.");
-
     /// <summary>The transfer record could not be persisted.</summary>
     public static readonly Error PersistenceFailed =
         Error.Failure("transfer.persistence_failed", "Failed to save the transfer record.");

@@ -37,11 +37,9 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [Theory]
     [InlineData("POST", "/" + ApiEndpoints.Auth.LoginFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.RegisterFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.VerifyOtpFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.ForgotPasswordFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.ResetPasswordFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.LogoutFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.ResendOtpFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.VerifyResetTokenFull)]
     public async Task SendAsync_WhenAuthEndpointIsPublicAndTokenIsMissing_ShouldNotReturnUnauthorized(
         string method,
@@ -66,8 +64,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("GET", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
     [InlineData("PUT", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
     [InlineData("POST", "/" + ApiEndpoints.Profile.VerifyPasswordFull)]
-    [InlineData("PUT", "/" + ApiEndpoints.Profile.Enable2FaFull)]
-    [InlineData("PUT", "/" + ApiEndpoints.Profile.Disable2FaFull)]
     [InlineData("GET", "/" + ApiEndpoints.Profile.SessionsFull)]
     [InlineData("DELETE", "/" + ApiEndpoints.Profile.SessionsFull + "/1")]
     public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsMissing_ShouldReturnUnauthorized(
@@ -89,8 +85,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [InlineData("GET", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
     [InlineData("PUT", "/" + ApiEndpoints.Profile.NotificationPreferencesFull)]
     [InlineData("POST", "/" + ApiEndpoints.Profile.VerifyPasswordFull)]
-    [InlineData("PUT", "/" + ApiEndpoints.Profile.Enable2FaFull)]
-    [InlineData("PUT", "/" + ApiEndpoints.Profile.Disable2FaFull)]
     [InlineData("GET", "/" + ApiEndpoints.Profile.SessionsFull)]
     [InlineData("DELETE", "/" + ApiEndpoints.Profile.SessionsFull + "/1")]
     public async Task SendAsync_WhenProtectedEndpointIsRequestedAndTokenIsValid_ShouldNotReturnUnauthorized(

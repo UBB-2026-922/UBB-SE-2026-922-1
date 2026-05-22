@@ -157,15 +157,11 @@ public class BillPayViewModelTests
     }
 
     [Fact]
-    public void ExecuteNextStep_WhenOnStep2AndValidLowAmount_ShouldSkipTwoFactorAuthenticationAndGoToStep4()
+    public void ExecuteNextStep_WhenOnStep2AndValidAmount_ShouldGoToReview()
     {
         _billPaymentClientService
             .Setup(service => service.GetFeeAsync(It.IsAny<decimal>()))
             .ReturnsAsync(new FeeResponse { Fee = 0.50m });
-        _billPaymentClientService
-            .Setup(service => service.GetRequires2FaAsync(It.IsAny<decimal>()))
-            .ReturnsAsync(new RequiresTwoFaResponse { Required = false });
-
         BillPayViewModel vm = CreateViewModel();
         var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
         vm.ExecuteSelectBiller(biller);
@@ -175,76 +171,22 @@ public class BillPayViewModelTests
 
         vm.ExecuteNextStep();
 
-        vm.CurrentStep.Should().Be(4);
-        vm.Fee.Should().Be(0.50m);
-        vm.Requires2Fa.Should().BeFalse();
-    }
-
-    [Fact]
-    public void ExecuteNextStep_WhenOnStep2AndHighAmount_ShouldGoToTwoFactorAuthenticationStep3()
-    {
-        _billPaymentClientService
-            .Setup(billPaymentClientService => billPaymentClientService.GetFeeAsync(It.IsAny<decimal>()))
-            .ReturnsAsync(new FeeResponse { Fee = 1.00m });
-        _billPaymentClientService
-            .Setup(billPaymentClientService => billPaymentClientService.GetRequires2FaAsync(It.IsAny<decimal>()))
-            .ReturnsAsync(new RequiresTwoFaResponse { Required = true });
-
-        BillPayViewModel vm = CreateViewModel();
-        var biller = new BillerDto { Id = 1, Name = "Test", Category = "Utilities" };
-        vm.ExecuteSelectBiller(biller);
-        vm.BillerReference = "REF-001";
-        vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
-        vm.Amount = 1500m;
-
-        vm.ExecuteNextStep();
-
         vm.CurrentStep.Should().Be(3);
-        vm.Requires2Fa.Should().BeTrue();
+        vm.Fee.Should().Be(0.50m);
     }
 
     [Fact]
-    public void ExecuteNextStep_WhenOnStep3AndNotConfirmed_ShouldSetError()
+    public void ExecuteBack_WhenFromReview_ShouldGoToStep2()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
         vm.CurrentStep = 3;
 
         // Act
-        vm.ExecuteNextStep();
-
-        // Assert
-        vm.ErrorMessage.Should().Contain("2FA");
-    }
-
-    [Fact]
-    public void ExecuteBack_WhenFromReviewWithoutTwoFactorAuthentication_ShouldGoToStep2()
-    {
-        // Arrange
-        BillPayViewModel vm = CreateViewModel();
-        vm.CurrentStep = 4;
-        vm.Requires2Fa = false;
-
-        // Act
         vm.ExecuteBack();
 
         // Assert
         vm.CurrentStep.Should().Be(2);
-    }
-
-    [Fact]
-    public void ExecuteBack_WhenFromReviewWithTwoFactorAuthentication_ShouldGoToStep3()
-    {
-        // Arrange
-        BillPayViewModel vm = CreateViewModel();
-        vm.CurrentStep = 4;
-        vm.Requires2Fa = true;
-
-        // Act
-        vm.ExecuteBack();
-
-        // Assert
-        vm.CurrentStep.Should().Be(3);
     }
 
     [Fact]
@@ -261,7 +203,7 @@ public class BillPayViewModelTests
     }
 
     [Fact]
-    public async Task ExecutePayBillAsync_WhenSuccess_ShouldSetReceiptAndGoToStep5()
+    public async Task ExecutePayBillAsync_WhenSuccess_ShouldSetReceiptAndGoToResultStep()
     {
         _billPaymentClientService
             .Setup(service => service.PayBillAsync(It.IsAny<BillPayRequest>()))
@@ -283,7 +225,7 @@ public class BillPayViewModelTests
         await vm.ExecutePayBillAsync();
 
         vm.ReceiptNumber.Should().Be("RCP-20260504-ABC123");
-        vm.CurrentStep.Should().Be(5);
+        vm.CurrentStep.Should().Be(4);
         vm.ErrorMessage.Should().BeEmpty();
     }
 
@@ -303,7 +245,7 @@ public class BillPayViewModelTests
         await vm.ExecutePayBillAsync();
 
         vm.ErrorMessage.Should().Contain("Payment failed");
-        vm.CurrentStep.Should().NotBe(5);
+        vm.CurrentStep.Should().NotBe(4);
     }
 
     [Fact]
@@ -363,7 +305,6 @@ public class BillPayViewModelTests
         vm.Amount = 500m;
         vm.Fee = 1.0m;
         vm.ReceiptNumber = "RCP-TEST";
-        vm.Is2FaConfirmed = true;
 
         vm.ResetForm();
 
@@ -374,7 +315,6 @@ public class BillPayViewModelTests
         vm.Fee.Should().Be(0);
         vm.ReceiptNumber.Should().BeEmpty();
         vm.ErrorMessage.Should().BeEmpty();
-        vm.Is2FaConfirmed.Should().BeFalse();
         vm.ShouldSaveBiller.Should().BeFalse();
     }
 

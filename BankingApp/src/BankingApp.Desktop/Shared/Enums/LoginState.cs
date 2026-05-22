@@ -9,8 +9,6 @@ public enum LoginState
     Loading,
     /// <summary>Authentication succeeded.</summary>
     Success,
-    /// <summary>The server requires a 2FA code before granting access.</summary>
-    Require2Fa,
     /// <summary>The provided email or password did not match any account.</summary>
     InvalidCredentials,
     /// <summary>The account has been temporarily locked.</summary>

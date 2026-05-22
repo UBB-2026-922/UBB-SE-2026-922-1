@@ -194,7 +194,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- STEP 3 - 2FA Confirmation -->
+            <!-- STEP 3 - Review and Confirm -->
             <Border
                 Padding="24"
                 CornerRadius="12"
@@ -202,30 +202,6 @@
                 BorderBrush="#2A3A5C"
                 BorderThickness="1"
                 Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=3}">
-                <StackPanel Spacing="16">
-                    <TextBlock Text="Step 3 - 2FA Confirmation"
-                               FontSize="16" FontWeight="SemiBold"
-                               Foreground="White"
-                               HorizontalAlignment="Center" />
-                    <CheckBox Content="I confirm this transaction"
-                              IsChecked="{Binding Is2FaConfirmed, Mode=TwoWay}"
-                              HorizontalAlignment="Center"
-                              Foreground="White" />
-                    <Button Content="Next"
-                            Command="{Binding NextStepCommand}"
-                            IsEnabled="{Binding Is2FaConfirmed, Mode=OneWay}"
-                            HorizontalAlignment="Center" Width="150" />
-                </StackPanel>
-            </Border>
-
-            <!-- STEP 4 - Review and Confirm -->
-            <Border
-                Padding="24"
-                CornerRadius="12"
-                Background="#16213E"
-                BorderBrush="#2A3A5C"
-                BorderThickness="1"
-                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=4}">
                 <StackPanel Spacing="12">
 
                     <TextBlock Text="Review Bill Payment"
@@ -278,14 +254,14 @@
                 </StackPanel>
             </Border>
 
-            <!-- STEP 5 - Payment Result -->
+            <!-- STEP 4 - Payment Result -->
             <Border
                 Padding="24"
                 CornerRadius="12"
                 Background="#16213E"
                 BorderBrush="#2A3A5C"
                 BorderThickness="1"
-                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=5}">
+                Visibility="{Binding CurrentStep, Converter={StaticResource StepToVisibility}, ConverterParameter=4}">
                 <StackPanel Spacing="16">
 
                     <TextBlock Text="Payment Successful"

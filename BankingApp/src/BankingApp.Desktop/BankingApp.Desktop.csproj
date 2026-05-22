@@ -98,9 +98,6 @@
         <Page Update="Views\ProfileView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
-        <Page Update="Views\TwoFactorView.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </Page>
         <Page Update="Views\ForexPage.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>

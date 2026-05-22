@@ -1,7 +1,5 @@
 namespace BankingApp.Web.ViewModels.BillPayments;
 
-using System.ComponentModel.DataAnnotations;
-
 /// <summary>
 ///     View model for the bill-payment preview / confirmation step.
 ///     All fields are echoed as hidden inputs and carry the payment summary.
@@ -34,20 +32,6 @@ public class BillPayPreviewViewModel
 
     /// <summary>Gets or sets the account currency code for display.</summary>
     public string Currency { get; set; } = string.Empty;
-
-    /// <summary>
-    ///     Gets or sets a value indicating whether 2FA is required for this payment
-    ///     (amount >= 1,000).
-    /// </summary>
-    public bool RequiresTwoFa { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the one-time password token supplied by the user when
-    ///     <see cref="RequiresTwoFa"/> is <c>true</c>.
-    /// </summary>
-    [Display(Name = "One-Time Password (OTP)")]
-    [MaxLength(10)]
-    public string? TwoFaToken { get; set; }
 
     /// <summary>Gets or sets a server-side validation message to show on the preview page.</summary>
     public string? ErrorMessage { get; set; }

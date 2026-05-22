@@ -27,14 +27,6 @@ public static class AuthErrors
     public static readonly Error AccountLockedTooManyAttempts =
         Error.Forbidden("account_locked", "Account locked due to too many failed attempts.");
 
-    /// <summary>The supplied OTP code was invalid or has expired.</summary>
-    public static readonly Error InvalidOtp =
-        Error.Unauthorized("invalid_otp", "Invalid or expired OTP code.");
-
-    /// <summary>The maximum number of failed OTP attempts was reached; the challenge has been invalidated.</summary>
-    public static readonly Error OtpAttemptsExceeded =
-        Error.Unauthorized("otp_attempts_exceeded", "Too many incorrect OTP entries. Please restart login.");
-
     /// <summary>No user account exists for the given identifier.</summary>
     public static readonly Error UserNotFound =
         Error.NotFound("user_not_found", "User not found.");
@@ -47,7 +39,4 @@ public static class AuthErrors
     public static readonly Error SessionNotFound =
         Error.NotFound("session_not_found", "Session not found.");
 
-    /// <summary>The requested 2FA method does not match the configured method for the user.</summary>
-    public static readonly Error InvalidTwoFactorMethod =
-        Error.Validation("invalid_2fa_method", "The requested 2FA method is not available for this user.");
 }

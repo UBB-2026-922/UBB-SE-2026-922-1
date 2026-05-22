@@ -73,7 +73,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<LoginViewModel>();
         services.AddTransient<RegisterViewModel>();
-        services.AddTransient<TwoFactorViewModel>();
         services.AddTransient<ForgotPasswordViewModel>();
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<PersonalInfoViewModel>();
@@ -98,7 +97,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<LoginView>();
         services.AddTransient<RegisterView>();
-        services.AddTransient<TwoFactorView>();
         services.AddTransient<ForgotPasswordView>();
         services.AddTransient<NavigationView>();
         services.AddTransient<DashboardView>();

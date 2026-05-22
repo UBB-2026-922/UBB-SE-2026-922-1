@@ -3,7 +3,6 @@ namespace BankingApp.Application.Tests;
 using Application.Features.Forex.Services;
 using Common.Notifications;
 using Common.Security;
-using Domain.Enums;
 using ErrorOr;
 using Shared.Clock;
 using Shared.Persistence;
@@ -122,64 +121,11 @@ internal static class MockFactory
     }
 
     /// <summary>
-    ///     Creates an OTP service mock that generates "123456", accepts all OTP verifications,
-    ///     and allows OTP invalidation.
-    /// </summary>
-    /// <remarks>
-    ///     Override verification methods in tests that cover invalid or expired OTP flows.
-    /// </remarks>
-    internal static Mock<IOtpService> CreateOtpServiceMock(MockBehavior behavior = MockBehavior.Strict)
-    {
-        var mock = new Mock<IOtpService>(behavior);
-
-        mock.Setup(service => service.GenerateTotp(It.IsAny<int>()))
-            .Returns((ErrorOr<string>)"123456");
-
-        mock.Setup(service => service.GenerateSmsOtp(It.IsAny<int>()))
-            .Returns((ErrorOr<string>)"123456");
-
-        mock.Setup(service => service.VerifyTotp(
-                It.IsAny<int>(),
-                It.IsAny<string>()))
-            .Returns(true);
-
-        mock.Setup(service => service.VerifySmsOtp(
-                It.IsAny<int>(),
-                It.IsAny<string>()))
-            .Returns(true);
-
-        mock.Setup(service => service.InvalidateOtp(It.IsAny<int>()));
-
-        return mock;
-    }
-
-    /// <summary>
-    ///     Creates an OTP attempt tracker mock whose first recorded failure returns attempt count 1
-    ///     and whose reset operation succeeds.
-    /// </summary>
-    internal static Mock<IOtpAttemptTracker> CreateOtpAttemptTrackerMock(MockBehavior behavior = MockBehavior.Strict)
-    {
-        var mock = new Mock<IOtpAttemptTracker>(behavior);
-
-        mock.Setup(tracker => tracker.RecordFailure(It.IsAny<int>()))
-            .Returns(1);
-
-        mock.Setup(tracker => tracker.Reset(It.IsAny<int>()));
-
-        return mock;
-    }
-
-    /// <summary>
     ///     Creates an email service mock whose supported send operations complete successfully.
     /// </summary>
     internal static Mock<IEmailService> CreateEmailServiceMock(MockBehavior behavior = MockBehavior.Strict)
     {
         var mock = new Mock<IEmailService>(behavior);
-
-        mock.Setup(service => service.SendOtpCodeAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
 
         mock.Setup(service => service.SendLoginAlertAsync(It.IsAny<string>()))
             .Returns(Task.CompletedTask);
@@ -544,30 +490,17 @@ internal static class MockFactory
     /// <param name="passwordHash">
     ///     Password hash wrapped in the identity account.
     /// </param>
-    /// <param name="twoFactorEnabled">
-    ///     Whether two-factor authentication should be enabled on the identity account.
-    /// </param>
-    /// <param name="twoFactorMethod">
-    ///     Two-factor method to enable when <paramref name="twoFactorEnabled"/> is true.
-    /// </param>
     /// <param name="registeredAt">
     ///     Registration time. If omitted, a deterministic default UTC test time is used.
     /// </param>
     internal static (User User, IdentityAccount IdentityAccount) CreateUserWithIdentityAccount(
         string email = "test@test.com",
         string passwordHash = "test-hash",
-        bool twoFactorEnabled = false,
-        TwoFactorMethod? twoFactorMethod = null,
         DateTime? registeredAt = null)
     {
         Email emailValue = Email.Create(email).Value;
         var user = User.Register(emailValue, "Test User", registeredAt ?? _defaultUtcNow);
         var identityAccount = IdentityAccount.Create(user.Id, HashedPassword.Wrap(passwordHash));
-
-        if (twoFactorEnabled && twoFactorMethod.HasValue)
-        {
-            identityAccount.Enable2Fa(twoFactorMethod.Value);
-        }
 
         return (user, identityAccount);
     }

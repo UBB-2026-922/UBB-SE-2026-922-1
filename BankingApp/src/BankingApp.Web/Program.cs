@@ -83,13 +83,6 @@ if (app.Environment.IsDevelopment())
 
                 LoginSuccessResponse login = result.Value;
 
-                if (login.Requires2Fa)
-                {
-                    return Results.Problem(
-                        "Dev login cannot use an account that requires two-factor authentication.",
-                        statusCode: StatusCodes.Status502BadGateway);
-                }
-
                 if (string.IsNullOrWhiteSpace(login.Token))
                 {
                     return Results.Problem(

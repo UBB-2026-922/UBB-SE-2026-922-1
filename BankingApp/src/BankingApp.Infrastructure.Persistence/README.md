@@ -60,8 +60,6 @@ EF Core code-first migrations. Run `dotnet ef migrations add` from this project 
 |-----------------------|------------------------|------------------------------------------------------------|
 | `HashService`         | `IHashService`         | BCrypt verify/hash                                         |
 | `JsonWebTokenService` | `IJsonWebTokenService` | Issues and validates JWTs; reads config from `JwtSettings` |
-| `OtpService`          | `IOtpService`          | TOTP generation and verification                           |
-| `OtpAttemptTracker`   | `IOtpAttemptTracker`   | In-memory attempt counter with sliding window              |
 | `EmailService`        | `IEmailService`        | SMTP dispatch; templates in `EmailTemplates`               |
 
 ## Registration

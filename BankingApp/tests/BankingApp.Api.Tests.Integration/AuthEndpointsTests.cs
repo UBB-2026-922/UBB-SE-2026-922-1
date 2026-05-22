@@ -30,11 +30,11 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Fact]
-    public async Task Login_WhenCredentialsAreValidAndNo2Fa_ShouldReturnOkWithToken()
+    public async Task Login_WhenCredentialsAreValid_ShouldReturnOkWithToken()
     {
         _factory.SenderMock
             .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token", 42));
+            .ReturnsAsync((ErrorOr<LoginSuccess>)new LoginSuccess(1, "fake-jwt-token", 42));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
             "/" + ApiEndpoints.Auth.LoginFull,
@@ -46,27 +46,6 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         result.Should().NotBeNull();
         result!.UserId.Should().Be(1);
         result.Token.Should().Be("fake-jwt-token");
-        result.Requires2Fa.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task Login_WhenCredentialsAreValidAndRequires2Fa_ShouldReturnOkWithRequires2FaFlag()
-    {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ErrorOr<LoginSuccess>)new RequiresTwoFactor(1));
-
-        HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/" + ApiEndpoints.Auth.LoginFull,
-            new { Email = "test@example.com", Password = "Password1!" },
-            _cancellationToken);
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
-        result.Should().NotBeNull();
-        result!.UserId.Should().Be(1);
-        result.Requires2Fa.Should().BeTrue();
-        result.Token.Should().BeNull();
     }
 
     [Fact]
@@ -112,24 +91,6 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
             _cancellationToken);
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
-    }
-
-    [Fact]
-    public async Task VerifyOtp_WhenValid_ShouldReturnOkWithToken()
-    {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<VerifyOtpCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ErrorOr<LoginSuccess>)new FullLogin(1, "fake-jwt-token", 42));
-
-        HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/" + ApiEndpoints.Auth.VerifyOtpFull,
-            new { UserId = 1, OtpCode = "123456" },
-            _cancellationToken);
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-        LoginSuccessResponse? result = await response.Content.ReadFromJsonAsync<LoginSuccessResponse>(_cancellationToken);
-        result.Should().NotBeNull();
-        result!.Token.Should().Be("fake-jwt-token");
     }
 
     [Fact]

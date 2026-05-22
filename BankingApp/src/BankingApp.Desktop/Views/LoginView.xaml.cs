@@ -78,10 +78,6 @@ public sealed partial class LoginView
                     EnableForm();
                     _navigationService.NavigateTo<NavigationView>();
                     break;
-                case LoginState.Require2Fa:
-                    EnableForm();
-                    _navigationService.NavigateTo<TwoFactorView>();
-                    break;
                 case LoginState.InvalidCredentials:
                     EnableForm();
                     ShowError("Invalid email or password.");

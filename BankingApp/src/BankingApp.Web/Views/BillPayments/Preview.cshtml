@@ -70,41 +70,6 @@
             <input type="hidden" asp-for="BillerName" />
             <input type="hidden" asp-for="AccountIban" />
             <input type="hidden" asp-for="Currency" />
-            <input type="hidden" asp-for="RequiresTwoFa" />
-
-            <!-- 2FA section (shown only when required) -->
-            @if (Model.RequiresTwoFa)
-            {
-                <div class="card mb-4 border-warning">
-                    <div class="card-body">
-                        <div class="d-flex align-items-start gap-3">
-                            <i class="bi bi-shield-lock-fill text-warning fs-4 mt-1"></i>
-                            <div class="flex-grow-1">
-                                <div class="fw-600 mb-1">Two-Factor Authentication Required</div>
-                                <p class="small text-muted mb-3">
-                                    Payments of $@(1000.ToString("N0")) or more require an OTP from
-                                    your authenticator app.
-                                </p>
-                                <div class="form-group mb-0">
-                                    <label asp-for="TwoFaToken" class="form-label">
-                                        <i class="bi bi-key me-1"></i>One-Time Password
-                                    </label>
-                                    <input asp-for="TwoFaToken"
-                                           class="form-control"
-                                           type="text"
-                                           inputmode="numeric"
-                                           pattern="[0-9]*"
-                                           autocomplete="one-time-code"
-                                           maxlength="8"
-                                           placeholder="6-digit code"
-                                           autofocus />
-                                    <span asp-validation-for="TwoFaToken" class="invalid-feedback d-block"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
 
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
                 <a asp-action="Index" class="btn btn-outline-secondary">

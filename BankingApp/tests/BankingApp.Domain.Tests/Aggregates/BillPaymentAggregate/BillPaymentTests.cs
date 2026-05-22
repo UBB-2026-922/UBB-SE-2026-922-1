@@ -101,26 +101,6 @@ public sealed class BillPaymentTests
     }
 
     [Fact]
-    public void RequiresTwoFactorAuthentication_WhenAmountMeetsThreshold_ShouldReturnTrue()
-    {
-        var amount = new Money(1000m, Currency.FromCode("USD"));
-
-        bool requires2Fa = BillPayment.RequiresTwoFactorAuthentication(amount);
-
-        requires2Fa.Should().BeTrue();
-    }
-
-    [Fact]
-    public void RequiresTwoFactorAuthentication_WhenAmountIsBelowThreshold_ShouldReturnFalse()
-    {
-        var amount = new Money(999.99m, Currency.FromCode("USD"));
-
-        bool requires2Fa = BillPayment.RequiresTwoFactorAuthentication(amount);
-
-        requires2Fa.Should().BeFalse();
-    }
-
-    [Fact]
     public void MarkProcessed_WhenCalled_ShouldSetStatusToCompleted()
     {
         BillPayment payment = BillPayment.Create(1, 1, 1, "REF", new Money(10m, "USD"), new Money(1m, "USD"), DateTime.UtcNow).Value;

@@ -9,16 +9,12 @@ public static partial class ApiEndpoints
         public const string ChangePassword = "password";
         public const string NotificationPreferences = "notifications/preferences";
         public const string VerifyPassword = "verify-password";
-        public const string Enable2Fa = "2fa/enable";
-        public const string Disable2Fa = "2fa/disable";
         public const string Sessions = "sessions";
         public const string SessionById = "sessions/{sessionId:int}";
 
         public const string ChangePasswordFull = $"{Base}/{ChangePassword}";
         public const string NotificationPreferencesFull = $"{Base}/{NotificationPreferences}";
         public const string VerifyPasswordFull = $"{Base}/{VerifyPassword}";
-        public const string Enable2FaFull = $"{Base}/{Enable2Fa}";
-        public const string Disable2FaFull = $"{Base}/{Disable2Fa}";
         public const string SessionsFull = $"{Base}/{Sessions}";
 
         public static string SessionByIdFull(int sessionId) => $"{SessionsFull}/{sessionId}";

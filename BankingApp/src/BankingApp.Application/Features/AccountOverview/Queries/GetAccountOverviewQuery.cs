@@ -3,7 +3,6 @@ namespace BankingApp.Application.Features.AccountOverview.Queries;
 using Contracts.Features.AccountOverview.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
-using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
@@ -17,7 +16,6 @@ public sealed record GetAccountOverviewQuery(int UserId)
 
 public sealed class GetDashboardQueryHandler(
     IUserRepository userRepository,
-    IIdentityRepository identityRepository,
     IAccountRepository accountRepository,
     ITransactionRepository transactionRepository,
     ILogger<GetDashboardQueryHandler> logger)
@@ -34,16 +32,13 @@ public sealed class GetDashboardQueryHandler(
             return UserErrors.NotFound;
         }
 
-        IdentityAccount? identity = await identityRepository.GetByUserIdAsync(user.Id, cancellationToken);
-
         var result = new AccountOverviewDto
         {
             CurrentUser = new UserSummaryDto
             {
                 FullName = user.FullName,
                 Email = user.Email.Value,
-                PhoneNumber = user.PhoneNumber,
-                Is2FaEnabled = identity?.Is2FaEnabled ?? false
+                PhoneNumber = user.PhoneNumber
             },
             UnreadNotificationCount = user.Notifications.Count(n => !n.IsRead)
         };

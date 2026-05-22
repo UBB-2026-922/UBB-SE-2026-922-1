@@ -3,7 +3,6 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using BankingApp.Contracts.Features.BillPayments.Dtos;
@@ -64,9 +63,6 @@ public partial class BillPayViewModel
             case PaymentDetailsStep:
                 MoveFromPaymentDetails();
                 break;
-            case TwoFactorAuthenticationStep:
-                MoveFromTwoFactorStep();
-                break;
         }
     }
 
@@ -81,7 +77,6 @@ public partial class BillPayViewModel
 
         CurrentStep = CurrentStep switch
         {
-            ReviewAndConfirmStep when Requires2Fa => TwoFactorAuthenticationStep,
             ReviewAndConfirmStep => PaymentDetailsStep,
             _ => CurrentStep - 1,
         };
@@ -196,23 +191,7 @@ public partial class BillPayViewModel
             return;
         }
 
-        SetFeeAndTwoFactorRequirement();
-        CurrentStep = Requires2Fa ? TwoFactorAuthenticationStep : ReviewAndConfirmStep;
-    }
-
-    private void MoveFromTwoFactorStep()
-    {
-        if (!Is2FaConfirmed)
-        {
-            ErrorMessage = "You must confirm the 2FA step.";
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(TwoFaToken))
-        {
-            TwoFaToken = GenerateTwoFaToken();
-        }
-
+        SetFee();
         CurrentStep = ReviewAndConfirmStep;
     }
 
@@ -245,14 +224,10 @@ public partial class BillPayViewModel
         return true;
     }
 
-    private void SetFeeAndTwoFactorRequirement()
+    private void SetFee()
     {
         ErrorOr<FeeResponse> feeResult = _billPaymentService.GetFeeAsync(Amount).GetAwaiter().GetResult();
         Fee = !feeResult.IsError ? feeResult.Value.Fee : NoFee;
-
-        ErrorOr<RequiresTwoFaResponse> twoFaResult =
-            _billPaymentService.GetRequires2FaAsync(Amount).GetAwaiter().GetResult();
-        Requires2Fa = twoFaResult is { IsError: false, Value.Required: true };
     }
 
     private BillPayRequest BuildBillPaymentRequest() =>
@@ -263,7 +238,6 @@ public partial class BillPayViewModel
             BillerReference = BillerReference,
             Amount = Amount,
             IsPayInFull = false,
-            TwoFaToken = Requires2Fa ? TwoFaToken : null,
         };
 
     private async Task SaveSelectedBillerIfNeededAsync()
@@ -303,13 +277,6 @@ public partial class BillPayViewModel
         CurrentStep = PaymentResultStep;
     }
 
-    private static string GenerateTwoFaToken()
-    {
-        Random random = new();
-        return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive)
-            .ToString(CultureInfo.InvariantCulture);
-    }
-
     private void ResetFormStateOnly()
     {
         CurrentStep = SelectBillerStep;
@@ -323,9 +290,6 @@ public partial class BillPayViewModel
         SelectedAccount = null;
         IsPayInFull = false;
         ShouldSaveBiller = false;
-        Requires2Fa = false;
-        Is2FaConfirmed = false;
-        TwoFaToken = string.Empty;
     }
 
     private void ApplySavedDefaultsForSelectedBiller()

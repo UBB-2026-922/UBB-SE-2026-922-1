@@ -38,7 +38,7 @@ public class LoginViewModelTests
     {
         // Arrange
         LoginViewModel viewModel = CreateViewModel();
-        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1, Requires2Fa = false };
+        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1 };
 
         _authenticationServiceMock
             .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
@@ -50,27 +50,6 @@ public class LoginViewModelTests
 
         // Assert
         viewModel.State.Should().Be(LoginState.Success);
-        _authenticationSessionMock.Object.CurrentUserId.Should().Be(1);
-        _authenticationServiceMock.VerifyAll();
-        _authenticationSessionMock.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Login_WhenRequires2FA_ShouldSetLoginStateToRequire2Fa()
-    {
-        // Arrange
-        LoginViewModel viewModel = CreateViewModel();
-        LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = true };
-
-        _authenticationServiceMock
-            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
-
-        // Act
-        await viewModel.Login("test@test.com", "password");
-
-        // Assert
-        viewModel.State.Should().Be(LoginState.Require2Fa);
         _authenticationSessionMock.Object.CurrentUserId.Should().Be(1);
         _authenticationServiceMock.VerifyAll();
         _authenticationSessionMock.VerifyAll();
@@ -139,7 +118,7 @@ public class LoginViewModelTests
             ["DevLogin:Email"] = "dev@test.com",
             ["DevLogin:Password"] = "password"
         });
-        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1, Requires2Fa = false };
+        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1 };
 
         _authenticationServiceMock
             .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
@@ -170,31 +149,6 @@ public class LoginViewModelTests
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("DevLogin.NotConfigured");
         _authenticationServiceMock.Verify(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task DevLogin_WhenRequires2Fa_ShouldReturnErrorAndResetState()
-    {
-        // Arrange
-        LoginViewModel viewModel = CreateViewModel(new Dictionary<string, string?>
-        {
-            ["DevLogin:Email"] = "dev@test.com",
-            ["DevLogin:Password"] = "password"
-        });
-        LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = true };
-
-        _authenticationServiceMock
-            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(response);
-
-        // Act
-        ErrorOr<Success> result = await viewModel.DevLogin();
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Code.Should().Be("DevLogin.Requires2Fa");
-        viewModel.State.Should().Be(LoginState.Idle);
-        _authenticationServiceMock.VerifyAll();
     }
 
     [Fact]
@@ -231,7 +185,7 @@ public class LoginViewModelTests
             ["DevLogin:Email"] = "dev@test.com",
             ["DevLogin:Password"] = "password"
         });
-        LoginSuccessResponse response = new() { UserId = 1, Requires2Fa = false, Token = null };
+        LoginSuccessResponse response = new() { UserId = 1, Token = null };
 
         _authenticationServiceMock
             .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))

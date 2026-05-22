@@ -12,7 +12,7 @@ using Contracts.Http;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
-///     Handles authentication, registration, password reset, and two-factor endpoints.
+///     Handles authentication, registration, and password reset endpoints.
 /// </summary>
 [ApiController]
 [Route(ApiEndpoints.Auth.Base)]
@@ -34,13 +34,6 @@ public class AuthController : ApiControllerBase
     {
         return ToActionResult(
             await Sender.Send(new RegisterCommand(request.Email, request.Password, request.FullName), cancellationToken));
-    }
-
-    [HttpPost(ApiEndpoints.Auth.VerifyOtp)]
-    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request, CancellationToken cancellationToken)
-    {
-        var command = new VerifyOtpCommand(request.UserId, request.OtpCode, GetSessionMetadata());
-        return ToActionResult(await Sender.Send(command, cancellationToken), MapLoginSuccess);
     }
 
     [HttpPost(ApiEndpoints.Auth.ForgotPassword)]
@@ -72,16 +65,6 @@ public class AuthController : ApiControllerBase
         }
 
         return ToActionResult(await Sender.Send(new LogoutCommand(token), cancellationToken));
-    }
-
-    [HttpPost(ApiEndpoints.Auth.ResendOtp)]
-    public async Task<IActionResult> ResendOtp(
-        [FromQuery] int userId,
-        [FromQuery] string method = "email",
-        CancellationToken cancellationToken = default)
-    {
-        await Sender.Send(new ResendOtpCommand(userId, method), cancellationToken);
-        return Ok(new { message = "If the user exists, a new code has been sent." });
     }
 
     [HttpPost(ApiEndpoints.Auth.VerifyResetToken)]
@@ -153,17 +136,8 @@ public class AuthController : ApiControllerBase
         return !string.IsNullOrWhiteSpace(token);
     }
 
-    private IActionResult MapLoginSuccess(LoginSuccess success)
-    {
-        return success switch
-        {
-            FullLogin full => Ok(new LoginSuccessResponse { UserId = full.UserId, Token = full.Token, SessionId = full.SessionId }),
-            RequiresTwoFactor twoFactorAuthentification => Ok(new LoginSuccessResponse { UserId = twoFactorAuthentification.UserId, Requires2Fa = true }),
-            _ => StatusCode(
-                StatusCodes.Status500InternalServerError,
-                Problem(detail: "Unexpected login result type.", statusCode: StatusCodes.Status500InternalServerError))
-        };
-    }
+    private IActionResult MapLoginSuccess(LoginSuccess success) =>
+        Ok(new LoginSuccessResponse { UserId = success.UserId, Token = success.Token, SessionId = success.SessionId });
 
     private SessionMetadata GetSessionMetadata()
     {

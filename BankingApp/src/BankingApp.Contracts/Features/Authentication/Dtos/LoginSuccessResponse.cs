@@ -1,10 +1,7 @@
 namespace BankingApp.Contracts.Features.Authentication.Dtos;
 
 /// <summary>
-///     The JSON response body returned by a successful login or OTP-verification endpoint.
-///     When <see cref="Requires2Fa" /> is <see langword="true" />, <see cref="Token" /> is
-///     <see langword="null" /> and the client must complete the two-factor flow before a
-///     token is issued.
+///     The JSON response body returned by a successful login endpoint.
 /// </summary>
 public sealed class LoginSuccessResponse
 {
@@ -17,8 +14,7 @@ public sealed class LoginSuccessResponse
     public int UserId { get; set; }
 
     /// <summary>
-    ///     Gets or sets the signed JWT for subsequent authenticated requests,
-    ///     or <see langword="null" /> when <see cref="Requires2Fa" /> is <see langword="true" />.
+    ///     Gets or sets the signed JWT for subsequent authenticated requests.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
@@ -26,17 +22,7 @@ public sealed class LoginSuccessResponse
     public string? Token { get; set; }
 
     /// <summary>
-    ///     Gets or sets a value indicating whether the user must complete a two-factor
-    ///     authentication step before a token is issued.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public bool Requires2Fa { get; set; }
-
-    /// <summary>
-    ///     Gets or sets the identifier of the session opened on this login,
-    ///     or <see langword="null" /> when <see cref="Requires2Fa" /> is <see langword="true" />.
+    ///     Gets or sets the identifier of the session opened on this login.
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.

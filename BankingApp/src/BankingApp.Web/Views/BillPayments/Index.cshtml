@@ -115,9 +115,6 @@
                         <div class="mt-2 small text-muted" id="feeHint" style="display:none;">
                             <i class="bi bi-info-circle me-1"></i>
                             Estimated fee: <strong id="feeHintValue"></strong>
-                            <span id="twoFaHint" class="ms-2 text-warning" style="display:none;">
-                                <i class="bi bi-shield-lock me-1"></i>2FA required
-                            </span>
                         </div>
                     </div>
 
@@ -153,8 +150,6 @@
         const amountInput = document.getElementById('amountInput');
         const feeHint     = document.getElementById('feeHint');
         const feeVal      = document.getElementById('feeHintValue');
-        const twoFaHint   = document.getElementById('twoFaHint');
-
         amountInput.addEventListener('input', () => {
             const amount = parseFloat(amountInput.value) || 0;
             if (amount <= 0) { feeHint.style.display = 'none'; return; }
@@ -162,7 +157,6 @@
             const fee = amount <= 100 ? 0.50 : 1.00;
             feeVal.textContent    = '$' + fee.toFixed(2);
             feeHint.style.display = '';
-            twoFaHint.style.display = amount >= 1000 ? '' : 'none';
         });
     </script>
 }

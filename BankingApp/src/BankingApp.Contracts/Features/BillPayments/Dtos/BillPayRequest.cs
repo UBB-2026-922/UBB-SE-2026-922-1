@@ -35,9 +35,4 @@ public class BillPayRequest
     /// <value>Whether to pay in full.</value>
     public bool IsPayInFull { get; set; }
 
-    /// <summary>
-    ///     Gets or sets the optional 2FA token for high-value payments.
-    /// </summary>
-    /// <value>The 2FA token.</value>
-    public string? TwoFaToken { get; set; }
 }

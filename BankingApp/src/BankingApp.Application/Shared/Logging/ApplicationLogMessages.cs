@@ -1,7 +1,6 @@
 namespace BankingApp.Application.Common.Logging;
 
 using System;
-using BankingApp.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 internal static partial class ApplicationLogMessages
@@ -14,30 +13,6 @@ internal static partial class ApplicationLogMessages
 
     [LoggerMessage(EventId = 2002, Level = LogLevel.Error, Message = "Password hash verification threw for user {UserId}: {Error}")]
     internal static partial void PasswordHashVerificationFailed(this ILogger logger, int userId, string error);
-
-    [LoggerMessage(EventId = 2003, Level = LogLevel.Warning, Message = "OTP verification failed: user {UserId} not found.")]
-    internal static partial void OtpVerificationUserNotFound(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2004, Level = LogLevel.Error, Message = "OTP verification threw for user {UserId}: {Error}")]
-    internal static partial void OtpVerificationFailed(this ILogger logger, int userId, string error);
-
-    [LoggerMessage(EventId = 2005, Level = LogLevel.Error, Message = "TOTP verification threw for user {UserId}: {Error}")]
-    internal static partial void TotpVerificationFailed(this ILogger logger, int userId, string error);
-
-    [LoggerMessage(EventId = 2006, Level = LogLevel.Warning, Message = "OTP verification failed for user {UserId}: invalid or expired code.")]
-    internal static partial void OtpVerificationInvalidOrExpired(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2007, Level = LogLevel.Warning, Message = "OTP challenge invalidated for user {UserId} after {MaxAttempts} failed attempts.")]
-    internal static partial void OtpChallengeInvalidated(this ILogger logger, int userId, int maxAttempts);
-
-    [LoggerMessage(EventId = 2008, Level = LogLevel.Warning, Message = "OTP resend failed: user {UserId} not found.")]
-    internal static partial void OtpResendUserNotFound(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2009, Level = LogLevel.Error, Message = "OTP generation failed during resend for user {UserId}: {Error}")]
-    internal static partial void OtpGenerationDuringResendFailed(this ILogger logger, int userId, string error);
-
-    [LoggerMessage(EventId = 2010, Level = LogLevel.Error, Message = "TOTP generation failed during resend for user {UserId}: {Error}")]
-    internal static partial void TotpGenerationDuringResendFailed(this ILogger logger, int userId, string error);
 
     [LoggerMessage(EventId = 2011, Level = LogLevel.Warning, Message = "Logout failed: session not found.")]
     internal static partial void LogoutSessionNotFound(this ILogger logger);
@@ -56,15 +31,6 @@ internal static partial class ApplicationLogMessages
 
     [LoggerMessage(EventId = 2016, Level = LogLevel.Warning, Message = "Account {UserId} locked for {Minutes} minutes after {Max} failed attempts.")]
     internal static partial void AccountLockedTooManyAttempts(this ILogger logger, int userId, int minutes, int max);
-
-    [LoggerMessage(EventId = 2017, Level = LogLevel.Error, Message = "OTP generation failed for user {UserId}: {Error}")]
-    internal static partial void OtpGenerationFailed(this ILogger logger, int userId, string error);
-
-    [LoggerMessage(EventId = 2018, Level = LogLevel.Error, Message = "TOTP generation failed for user {UserId}: {Error}")]
-    internal static partial void TotpGenerationFailed(this ILogger logger, int userId, string error);
-
-    [LoggerMessage(EventId = 2019, Level = LogLevel.Information, Message = "2FA required for user {UserId} via {Method}.")]
-    internal static partial void TwoFactorRequired(this ILogger logger, int userId, TwoFactorMethod? method);
 
     [LoggerMessage(EventId = 2020, Level = LogLevel.Error, Message = "Token generation failed for user {UserId}: {Error}")]
     internal static partial void TokenGenerationFailed(this ILogger logger, int userId, string error);
@@ -177,24 +143,6 @@ internal static partial class ApplicationLogMessages
     [LoggerMessage(EventId = 2056, Level = LogLevel.Information, Message = "Password changed successfully for user {UserId}.")]
     internal static partial void PasswordChangedSuccessfully(this ILogger logger, int userId);
 
-    [LoggerMessage(EventId = 2057, Level = LogLevel.Warning, Message = "Enable 2FA failed: user {UserId} not found.")]
-    internal static partial void EnableTwoFactorUserNotFound(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2058, Level = LogLevel.Error, Message = "Failed to enable 2FA for user {UserId}.")]
-    internal static partial void EnableTwoFactorFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2059, Level = LogLevel.Information, Message = "2FA enabled for user {UserId} via {Method}.")]
-    internal static partial void EnableTwoFactorSucceeded(this ILogger logger, int userId, TwoFactorMethod method);
-
-    [LoggerMessage(EventId = 2060, Level = LogLevel.Warning, Message = "Disable 2FA failed: user {UserId} not found.")]
-    internal static partial void DisableTwoFactorUserNotFound(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2061, Level = LogLevel.Error, Message = "Failed to disable 2FA for user {UserId}.")]
-    internal static partial void DisableTwoFactorFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2062, Level = LogLevel.Information, Message = "2FA disabled for user {UserId}.")]
-    internal static partial void DisableTwoFactorSucceeded(this ILogger logger, int userId);
-
     [LoggerMessage(EventId = 2063, Level = LogLevel.Warning, Message = "Notification preferences fetch failed: user {UserId} not found.")]
     internal static partial void NotificationPreferencesFetchUserNotFound(this ILogger logger, int userId);
 
@@ -252,12 +200,6 @@ internal static partial class ApplicationLogMessages
     [LoggerMessage(EventId = 2081, Level = LogLevel.Error, Message = "Failed to retrieve transfer history for user {UserId}.")]
     internal static partial void TransferHistoryFetchFailed(this ILogger logger, int userId);
 
-    [LoggerMessage(EventId = 2082, Level = LogLevel.Warning, Message = "Transfer rejected: 2FA token missing for amount {Amount}, user {UserId}.")]
-    internal static partial void TransferTwoFactorMissing(this ILogger logger, decimal amount, int userId);
-
-    [LoggerMessage(EventId = 2083, Level = LogLevel.Warning, Message = "Transfer rejected: invalid 2FA token for user {UserId}.")]
-    internal static partial void TransferTwoFactorInvalid(this ILogger logger, int userId);
-
     [LoggerMessage(EventId = 2084, Level = LogLevel.Error, Message = "Transfer failed: could not debit account {AccountId}.")]
     internal static partial void TransferDebitFailed(this ILogger logger, int accountId);
 
@@ -266,9 +208,6 @@ internal static partial class ApplicationLogMessages
 
     [LoggerMessage(EventId = 2086, Level = LogLevel.Error, Message = "Transfer failed: could not persist transfer record for user {UserId}.")]
     internal static partial void TransferPersistenceFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2087, Level = LogLevel.Warning, Message = "Bill payment rejected: invalid 2FA token for user {UserId}.")]
-    internal static partial void BillPaymentTwoFactorInvalid(this ILogger logger, int userId);
 
     [LoggerMessage(EventId = 2088, Level = LogLevel.Warning, Message = "Card {CardId} not found for user {UserId}.")]
     internal static partial void CardNotFound(this ILogger logger, int cardId, int userId);

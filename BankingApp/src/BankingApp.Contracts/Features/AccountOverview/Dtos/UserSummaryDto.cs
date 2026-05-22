@@ -29,11 +29,4 @@ public class UserSummaryDto
     /// </value>
     public string? PhoneNumber { get; set; }
 
-    /// <summary>
-    ///     Gets or sets a value indicating whether 2FA is enabled.
-    /// </summary>
-    /// <value>
-    ///     Gets or sets the current value.
-    /// </value>
-    public bool Is2FaEnabled { get; set; }
 }

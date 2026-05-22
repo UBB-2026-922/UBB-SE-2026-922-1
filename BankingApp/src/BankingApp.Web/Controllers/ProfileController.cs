@@ -31,7 +31,6 @@ public class ProfileController(IProfileService profileService) : Controller
             FullName = profile.FullName ?? string.Empty,
             Email = profile.Email ?? string.Empty,
             PhoneNumber = profile.PhoneNumber ?? string.Empty,
-            Is2FaEnabled = profile.Is2FaEnabled,
         };
 
         return View(viewModel);
@@ -140,6 +139,39 @@ public class ProfileController(IProfileService profileService) : Controller
             : "Notification preferences saved successfully.";
 
         return RedirectToAction(nameof(Notifications));
+    }
+
+    [HttpGet]
+    public IActionResult Security()
+    {
+        return View(new SecurityViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(SecurityViewModel model, CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(nameof(Security), model);
+        }
+
+        ChangePasswordRequest request = new()
+        {
+            CurrentPassword = model.CurrentPassword,
+            NewPassword = model.NewPassword,
+        };
+
+        ErrorOr<Success> result = await profileService.ChangePasswordAsync(request, cancellationToken);
+
+        if (result.IsError)
+        {
+            ModelState.AddModelError(string.Empty, result.FirstError.Description);
+            return View(nameof(Security), model);
+        }
+
+        TempData["Success"] = "Password changed successfully.";
+        return RedirectToAction(nameof(Security));
     }
 
     public async Task<IActionResult> Sessions(CancellationToken cancellationToken)
