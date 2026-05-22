@@ -44,4 +44,12 @@ public class SessionDto
     ///     Gets or sets the current value.
     /// </value>
     public DateTime? LastActiveAt { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the date and time when this session was created.
+    /// </summary>
+    /// <value>
+    ///     Gets or sets the current value.
+    /// </value>
+    public DateTime CreatedAt { get; set; }
 }

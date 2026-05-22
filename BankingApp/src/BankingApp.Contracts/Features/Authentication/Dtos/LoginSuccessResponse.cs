@@ -33,4 +33,13 @@ public sealed class LoginSuccessResponse
     ///     Gets or sets the current value.
     /// </value>
     public bool Requires2Fa { get; set; }
+
+    /// <summary>
+    ///     Gets or sets the identifier of the session opened on this login,
+    ///     or <see langword="null" /> when <see cref="Requires2Fa" /> is <see langword="true" />.
+    /// </summary>
+    /// <value>
+    ///     Gets or sets the current value.
+    /// </value>
+    public int? SessionId { get; set; }
 }
