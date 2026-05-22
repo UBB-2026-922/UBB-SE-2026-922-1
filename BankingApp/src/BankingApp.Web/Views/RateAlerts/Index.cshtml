@@ -1,0 +1,83 @@
+@model BankingApp.Web.ViewModels.RateAlerts.RateAlertListViewModel
+@{
+    ViewData["Title"] = "Rate Alerts";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="page-title"><i class="bi bi-bell me-2 text-primary"></i>Rate Alerts</h1>
+        <p class="page-subtitle">Get notified when a currency pair reaches your target rate.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>New Alert
+    </a>
+</div>
+
+@if (!Model.HasAlerts)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-bell-slash fs-1 text-muted"></i>
+            <h5 class="mt-3 text-muted">No rate alerts yet</h5>
+            <p class="text-muted mb-4">Create an alert to be notified when a currency pair reaches your target rate.</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Create Alert
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="rateAlertsTable">
+                    <thead>
+                        <tr>
+                            <th>Currency Pair</th>
+                            <th class="text-end">Target Rate</th>
+                            <th class="text-center">Direction</th>
+                            <th class="text-center">Status</th>
+                            <th>Created</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Alerts)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="fw-600">@row.CurrencyPair</span>
+                                </td>
+                                <td class="text-end font-monospace">@row.TargetRate.ToString("N6")</td>
+                                <td class="text-center">
+                                    <span class="badge @row.DirectionBadgeClass">@row.Direction</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge @row.StatusBadgeClass">@row.Status</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted-sm">@row.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span>
+                                </td>
+                                <td class="text-center">
+                                    <form asp-action="Delete" asp-route-id="@row.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('Delete this rate alert?');"
+                                                title="Delete alert">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="text-muted-sm">@Model.Alerts.Count alert(s)</span>
+        </div>
+    </div>
+}
