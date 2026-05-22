@@ -1,37 +1,37 @@
 namespace BankingApp.Application.Tests.Features.UserProfile.Commands;
 
 using BankingApp.Application.Features.UserProfile.Commands;
-using BankingApp.Domain.Aggregates.IdentityAggregate.Entities;
 using BankingApp.Domain.Common.Errors;
+using Domain.Aggregates.IdentityAggregate.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Persistence;
 
 public sealed class RevokeSessionCommandTests
 {
-    private const int TestUserId = 7;
+    private const int TestUserId = 1;
+    private const int SessionId = 10;
+    private static readonly DateTime _testNow = new(2026, 5, 17, 12, 0, 0, DateTimeKind.Utc);
 
-    private static readonly DateTime _testNow = new(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc);
-
-    private readonly Mock<IIdentityRepository> _identityRepositoryMock = MockFactory.CreateIdentityRepositoryMock();
-    private readonly Mock<IUnitOfWork> _unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
+    private readonly Mock<IIdentityRepository> _identityRepositoryMock = new(MockBehavior.Strict);
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
 
     [Fact]
     public async Task Handle_WhenIdentityNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        _identityRepositoryMock.Setup(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken))
+            .ReturnsAsync((IdentityAccount?)null);
         RevokeSessionCommandHandler handler = CreateHandler();
-        RevokeSessionCommand command = new(TestUserId, 1);
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await handler.Handle(new RevokeSessionCommand(TestUserId, SessionId), cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(UserErrors.NotFound);
-        _identityRepositoryMock.Verify(
-            repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None),
-            Times.Once);
+        _identityRepositoryMock.Verify(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken), Times.Once);
         _identityRepositoryMock.VerifyNoOtherCalls();
         _unitOfWorkMock.VerifyNoOtherCalls();
     }
@@ -40,67 +40,54 @@ public sealed class RevokeSessionCommandTests
     public async Task Handle_WhenSessionNotFound_ShouldReturnSessionNotFoundError()
     {
         // Arrange
-        (_, IdentityAccount identity) = MockFactory.CreateUserWithIdentityAccount();
-
-        _identityRepositoryMock
-            .Setup(repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None))
-            .ReturnsAsync(identity);
-
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        var identity = IdentityAccount.Create(TestUserId, HashedPassword.Wrap("hash"));
+        _identityRepositoryMock.Setup(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken)).ReturnsAsync(identity);
         RevokeSessionCommandHandler handler = CreateHandler();
-        RevokeSessionCommand command = new(TestUserId, 999);
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await handler.Handle(new RevokeSessionCommand(TestUserId, SessionId), cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AuthErrors.SessionNotFound);
-        _identityRepositoryMock.Verify(
-            repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None),
-            Times.Once);
+        _identityRepositoryMock.Verify(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken), Times.Once);
         _identityRepositoryMock.VerifyNoOtherCalls();
         _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldMarkSessionRevokedAndSaveChanges()
+    public async Task Handle_WhenValid_ShouldRevokeSessionAndSaveChanges()
     {
         // Arrange
-        (_, IdentityAccount identity) = MockFactory.CreateUserWithIdentityAccount();
-        Session session = identity.OpenSession("test-token", _testNow.AddHours(24), _testNow);
-        int sessionId = session.Id;
-
-        _identityRepositoryMock
-            .Setup(repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None))
-            .ReturnsAsync(identity);
-
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        var identity = IdentityAccount.Create(TestUserId, HashedPassword.Wrap("hash"));
+        Session session = identity.OpenSession("token", _testNow.AddDays(1), _testNow, null, null, null);
+        SetEntityId(session, SessionId);
+        _identityRepositoryMock.Setup(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken)).ReturnsAsync(identity);
+        _identityRepositoryMock.Setup(repository => repository.UpdateAsync(identity, cancellationToken)).Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync(cancellationToken)).Returns(Task.CompletedTask);
         RevokeSessionCommandHandler handler = CreateHandler();
-        RevokeSessionCommand command = new(TestUserId, sessionId);
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await handler.Handle(new RevokeSessionCommand(TestUserId, SessionId), cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
         session.IsRevoked.Should().BeTrue();
-        _identityRepositoryMock.Verify(
-            repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None),
-            Times.Once);
-        _identityRepositoryMock.Verify(
-            repository => repository.UpdateAsync(identity, CancellationToken.None),
-            Times.Once);
-        _unitOfWorkMock.Verify(
-            unitOfWork => unitOfWork.SaveChangesAsync(CancellationToken.None),
-            Times.Once);
+        _identityRepositoryMock.Verify(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken), Times.Once);
+        _identityRepositoryMock.Verify(repository => repository.UpdateAsync(identity, cancellationToken), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(cancellationToken), Times.Once);
         _identityRepositoryMock.VerifyNoOtherCalls();
         _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
-    private RevokeSessionCommandHandler CreateHandler()
+    private RevokeSessionCommandHandler CreateHandler() =>
+        new(_identityRepositoryMock.Object, _unitOfWorkMock.Object, NullLogger<RevokeSessionCommandHandler>.Instance);
+
+    private static void SetEntityId<T>(T entity, int id)
+        where T : class
     {
-        return new RevokeSessionCommandHandler(
-            _identityRepositoryMock.Object,
-            _unitOfWorkMock.Object,
-            NullLogger<RevokeSessionCommandHandler>.Instance);
+        typeof(T).BaseType!.GetProperty("Id")!.SetValue(entity, id);
     }
 }
