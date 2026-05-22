@@ -3,7 +3,7 @@
 using ErrorOr;
 
 /// <summary>
-///     Canonical error definitions for user management, profile updates, and 2FA operations.
+///     Canonical error definitions for user management and profile updates.
 /// </summary>
 public static class UserErrors
 {
@@ -26,14 +26,6 @@ public static class UserErrors
     /// <summary>The password hash could not be persisted.</summary>
     public static readonly Error PasswordUpdateFailed =
         Error.Failure("update_failed", "Could not update password. Please try again.");
-
-    /// <summary>Two-factor authentication could not be enabled for the user.</summary>
-    public static readonly Error Enable2FaFailed =
-        Error.Failure("update_failed", "Failed to enable 2FA.");
-
-    /// <summary>Two-factor authentication could not be disabled for the user.</summary>
-    public static readonly Error Disable2FaFailed =
-        Error.Failure("update_failed", "Failed to disable 2FA.");
 
     /// <summary>The notification preferences could not be saved.</summary>
     public static readonly Error NotificationPreferencesUpdateFailed =

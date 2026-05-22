@@ -51,18 +51,6 @@ public sealed class TransferTests
     }
 
     [Fact(Skip = "Not implemented yet.")]
-    public void RequiresTwoFactorAuthentication_WhenAmountMeetsThreshold_ShouldReturnTrue()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void RequiresTwoFactorAuthentication_WhenAmountIsBelowThreshold_ShouldReturnFalse()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
     public void MarkExecuted_WhenCalled_ShouldSetStatusToCompleted()
     {
         throw new NotImplementedException();

@@ -25,7 +25,6 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Database__ApplyMigrations", "false");
         Environment.SetEnvironmentVariable("ConnectionStrings__BankingAppDb", TestConnectionString);
         Environment.SetEnvironmentVariable("Jwt__Secret", "integration-test-secret-that-is-long-enough-for-hmac");
-        Environment.SetEnvironmentVariable("Otp__Secret", "integration-test-otp-secret-placeholder");
     }
 
     public Mock<ISender> SenderMock { get; } = new();

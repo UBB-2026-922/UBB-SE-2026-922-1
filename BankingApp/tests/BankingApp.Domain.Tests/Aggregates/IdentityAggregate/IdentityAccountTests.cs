@@ -81,30 +81,6 @@ public sealed class IdentityAccountTests
     }
 
     [Fact(Skip = "Not implemented yet.")]
-    public void Enable2Fa_WhenCalled_ShouldSetIs2FaEnabledToTrue()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void Enable2Fa_WhenCalled_ShouldSetPreferred2FaMethod()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void Disable2Fa_WhenCalled_ShouldSetIs2FaEnabledToFalse()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void Disable2Fa_WhenCalled_ShouldClearPreferred2FaMethod()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
     public void OpenSession_WhenCalled_ShouldAddSessionToCollection()
     {
         throw new NotImplementedException();

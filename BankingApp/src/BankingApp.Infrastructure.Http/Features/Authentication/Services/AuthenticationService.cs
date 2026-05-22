@@ -19,12 +19,6 @@ public sealed class AuthenticationService(IApiClient apiClient) : IAuthenticatio
     public Task<ErrorOr<Success>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
         => apiClient.PostAsync(ApiEndpoints.Auth.RegisterFull, request, cancellationToken);
 
-    public Task<ErrorOr<LoginSuccessResponse>> VerifyOtpAsync(VerifyOtpRequest request, CancellationToken cancellationToken = default)
-        => apiClient.PostAsync<VerifyOtpRequest, LoginSuccessResponse>(ApiEndpoints.Auth.VerifyOtpFull, request, cancellationToken);
-
-    public Task<ErrorOr<Success>> ResendOtpAsync(int userId, CancellationToken cancellationToken = default)
-        => apiClient.PostAsync($"{ApiEndpoints.Auth.ResendOtpFull}?userId={userId}", new { }, cancellationToken);
-
     public Task<ErrorOr<Success>> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
         => apiClient.PostAsync(ApiEndpoints.Auth.ForgotPasswordFull, request, cancellationToken);
 

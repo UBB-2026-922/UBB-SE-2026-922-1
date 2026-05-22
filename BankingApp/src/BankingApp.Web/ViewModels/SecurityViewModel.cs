@@ -4,8 +4,6 @@ using System.ComponentModel.DataAnnotations;
 
 public sealed class SecurityViewModel
 {
-    public bool IsTwoFaEnabled { get; set; }
-
     [Required(ErrorMessage = "Current password is required.")]
     [Display(Name = "Current password")]
     public string CurrentPassword { get; set; } = string.Empty;

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
-///     Exposes profile, password, notification, two-factor, and session management endpoints.
+///     Exposes profile, password, notification, and session management endpoints.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -73,20 +73,6 @@ public class ProfileController : ApiControllerBase
         return ToActionResult(
             await Sender.Send(new VerifyPasswordQuery(userId, password), cancellationToken),
             isValid => Ok(isValid));
-    }
-
-    [HttpPut(ApiEndpoints.Profile.Enable2Fa)]
-    public async Task<IActionResult> Enable2Fa([FromBody] EnableTwoFaRequest request, CancellationToken cancellationToken)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new Enable2FaCommand(userId, request.Method), cancellationToken));
-    }
-
-    [HttpPut(ApiEndpoints.Profile.Disable2Fa)]
-    public async Task<IActionResult> Disable2Fa(CancellationToken cancellationToken)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new Disable2FaCommand(userId), cancellationToken));
     }
 
     [HttpGet(ApiEndpoints.Profile.Sessions)]

@@ -11,15 +11,11 @@ public partial class TransferViewModel : ObservableObject
     private const int AccountSelectionStep = 1;
     private const int RecipientDetailsStep = 2;
     private const int AmountDetailsStep = 3;
-    private const int TwoFactorAuthenticationStep = 4;
-    private const int ReviewAndConfirmationStep = 5;
-    private const int TransferCompletedStep = 6;
-    private const int TransferErrorStep = 7;
-    private const int MinimumTwoFactorToken = 100000;
-    private const int MaximumTwoFactorTokenExclusive = 1000000;
+    private const int ReviewAndConfirmationStep = 4;
+    private const int TransferCompletedStep = 5;
+    private const int TransferErrorStep = 6;
     private const decimal ZeroAmount = 0m;
     private const decimal IdentityExchangeRate = 1m;
-    private const decimal TwoFaAmountThreshold = 1000m;
     private const string DefaultTransferCurrency = "EUR";
     private const int MinimumAccounts = 0;
     private const int FirstAccountIndex = 0;
@@ -100,7 +96,6 @@ public partial class TransferViewModel : ObservableObject
     partial void OnAmountChanged(decimal value)
     {
         _ = UpdateFxPreviewAsync();
-        UpdateRequires2Fa();
     }
 
     /// <summary>Gets or sets the target currency for the transfer.</summary>
@@ -115,18 +110,6 @@ public partial class TransferViewModel : ObservableObject
     /// <summary>Gets or sets the human-readable FX preview text shown on the amount step.</summary>
     [ObservableProperty]
     public partial string FxPreviewText { get; set; } = string.Empty;
-
-    /// <summary>Gets or sets the 2FA token generated for the transfer.</summary>
-    [ObservableProperty]
-    public partial string TwoFaToken { get; set; } = string.Empty;
-
-    /// <summary>Gets or sets a value indicating whether the transfer amount requires two-factor authentication.</summary>
-    [ObservableProperty]
-    public partial bool Requires2Fa { get; set; } = default!;
-
-    /// <summary>Gets or sets a value indicating whether the user has confirmed the 2FA step.</summary>
-    [ObservableProperty]
-    public partial bool Is2FaConfirmed { get; set; } = default!;
 
     /// <summary>Gets or sets the transaction reference returned after a successful transfer.</summary>
     [ObservableProperty]

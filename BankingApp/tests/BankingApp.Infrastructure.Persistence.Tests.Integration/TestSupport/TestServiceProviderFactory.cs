@@ -13,7 +13,6 @@ public sealed class TestServiceProviderFactory(string connectionString)
             {
                 ["ConnectionStrings:BankingAppDb"] = connectionString,
                 ["Jwt:Secret"] = "integration-tests-jwt-secret",
-                ["Otp:Secret"] = "integration-tests-otp-secret",
                 ["Email:SmtpHost"] = "localhost",
                 ["Email:SmtpPort"] = "2525",
                 ["Email:SmtpUser"] = "integration-user",

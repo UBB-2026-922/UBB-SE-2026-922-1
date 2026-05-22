@@ -4,7 +4,6 @@ using BankingApp.Contracts.Http;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
 using Domain.Common.Extensions;
-using Domain.Enums;
 using ErrorOr;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -32,7 +31,6 @@ public class ProfileController(IProfileService profileService) : Controller
             FullName = profile.FullName ?? string.Empty,
             Email = profile.Email ?? string.Empty,
             PhoneNumber = profile.PhoneNumber ?? string.Empty,
-            Is2FaEnabled = profile.Is2FaEnabled,
         };
 
         return View(viewModel);
@@ -144,22 +142,9 @@ public class ProfileController(IProfileService profileService) : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Security(CancellationToken cancellationToken)
+    public IActionResult Security()
     {
-        ErrorOr<ProfileDto> result = await profileService.GetProfileAsync(cancellationToken);
-
-        if (result.IsError)
-        {
-            TempData["Error"] = "Failed to load profile information.";
-            return View(new SecurityViewModel());
-        }
-
-        SecurityViewModel viewModel = new()
-        {
-            IsTwoFaEnabled = result.Value.Is2FaEnabled,
-        };
-
-        return View(viewModel);
+        return View(new SecurityViewModel());
     }
 
     [HttpPost]
@@ -168,7 +153,6 @@ public class ProfileController(IProfileService profileService) : Controller
     {
         if (!ModelState.IsValid)
         {
-            await PopulateSecurityState(model, cancellationToken);
             return View(nameof(Security), model);
         }
 
@@ -183,44 +167,10 @@ public class ProfileController(IProfileService profileService) : Controller
         if (result.IsError)
         {
             ModelState.AddModelError(string.Empty, result.FirstError.Description);
-            await PopulateSecurityState(model, cancellationToken);
             return View(nameof(Security), model);
         }
 
         TempData["Success"] = "Password changed successfully.";
-        return RedirectToAction(nameof(Security));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Enable2Fa(CancellationToken cancellationToken)
-    {
-        EnableTwoFaRequest request = new() { Method = TwoFactorMethod.Email };
-        ErrorOr<Success> result = await profileService.Enable2FaAsync(request, cancellationToken);
-
-        if (result.IsError)
-        {
-            TempData["Error"] = result.FirstError.Description;
-            return RedirectToAction(nameof(Security));
-        }
-
-        TempData["Success"] = "Two-factor authentication enabled.";
-        return RedirectToAction(nameof(Security));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Disable2Fa(CancellationToken cancellationToken)
-    {
-        ErrorOr<Success> result = await profileService.Disable2FaAsync(cancellationToken);
-
-        if (result.IsError)
-        {
-            TempData["Error"] = result.FirstError.Description;
-            return RedirectToAction(nameof(Security));
-        }
-
-        TempData["Success"] = "Two-factor authentication disabled.";
         return RedirectToAction(nameof(Security));
     }
 
@@ -270,12 +220,6 @@ public class ProfileController(IProfileService profileService) : Controller
 
         TempData["Success"] = "Session revoked successfully.";
         return RedirectToAction(nameof(Sessions));
-    }
-
-    private async Task PopulateSecurityState(SecurityViewModel model, CancellationToken cancellationToken)
-    {
-        ErrorOr<ProfileDto> profileResult = await profileService.GetProfileAsync(cancellationToken);
-        model.IsTwoFaEnabled = !profileResult.IsError && profileResult.Value.Is2FaEnabled;
     }
 
     private int? ParseCurrentSessionId()

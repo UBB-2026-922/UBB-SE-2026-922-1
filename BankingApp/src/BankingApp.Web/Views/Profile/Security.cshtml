@@ -5,7 +5,7 @@
 
 <div class="page-header">
     <h1 class="page-title">Security</h1>
-    <p class="page-subtitle">Manage your password and two-factor authentication.</p>
+    <p class="page-subtitle">Manage your password.</p>
 </div>
 
 <div class="row g-4">
@@ -51,64 +51,6 @@
                         <i class="bi bi-check-lg me-1"></i>Update password
                     </button>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-lg-6">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-shield-lock me-2"></i>Two-factor authentication
-            </div>
-            <div class="card-body d-flex flex-column">
-
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    @if (Model.IsTwoFaEnabled)
-                    {
-                        <span class="badge bg-success fs-6 px-3 py-2">
-                            <i class="bi bi-shield-check me-1"></i>Enabled
-                        </span>
-                        <span class="text-muted-sm">
-                            Your account is protected with a second verification step at login.
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary fs-6 px-3 py-2">
-                            <i class="bi bi-shield-x me-1"></i>Disabled
-                        </span>
-                        <span class="text-muted-sm">
-                            Add an extra layer of security to your account.
-                        </span>
-                    }
-                </div>
-
-                <p class="text-muted-sm mb-4">
-                    When two-factor authentication is enabled, you will be asked to enter a
-                    verification code sent to your email each time you sign in.
-                </p>
-
-                <div class="mt-auto">
-                    @if (Model.IsTwoFaEnabled)
-                    {
-                        <form asp-action="Disable2Fa" method="post"
-                              onsubmit="return confirm('Disable two-factor authentication? Your account will be less secure.')">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-outline-danger btn-full">
-                                <i class="bi bi-shield-x me-1"></i>Disable two-factor authentication
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <form asp-action="Enable2Fa" method="post">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-primary btn-full">
-                                <i class="bi bi-shield-check me-1"></i>Enable two-factor authentication
-                            </button>
-                        </form>
-                    }
-                </div>
             </div>
         </div>
     </div>

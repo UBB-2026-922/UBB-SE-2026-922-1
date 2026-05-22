@@ -51,25 +51,7 @@ public sealed class LoginCommandTests
     }
 
     [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenPasswordCorrectAndNo2Fa_ShouldOpenSessionAndReturnToken()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenPasswordCorrectAnd2FaEnabled_ShouldReturnRequiresTwoFactor()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenPasswordCorrectAnd2FaMethodIsEmail_ShouldSendOtpByEmail()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenPasswordCorrectAnd2FaMethodIsAuthenticator_ShouldGenerateTotp()
+    public void Handle_WhenPasswordCorrect_ShouldOpenSessionAndReturnToken()
     {
         throw new NotImplementedException();
     }

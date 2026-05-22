@@ -39,18 +39,6 @@ public sealed class ExecuteTransferCommandTests
     }
 
     [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenAmountAboveThresholdAndTwoFaTokenMissing_ShouldReturnTwoFaRequiredError()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenAmountAboveThresholdAndTwoFaTokenIsInvalid_ShouldReturnInvalidTwoFaTokenError()
-    {
-        throw new NotImplementedException();
-    }
-
-    [Fact(Skip = "Not implemented yet.")]
     public void Handle_WhenInsufficientFunds_ShouldReturnInsufficientFundsError()
     {
         throw new NotImplementedException();

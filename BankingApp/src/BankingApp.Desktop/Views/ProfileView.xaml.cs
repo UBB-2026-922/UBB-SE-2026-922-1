@@ -4,7 +4,6 @@ using System;
 using System.Threading.Tasks;
 using Contracts.Features.UserProfile.Dtos;
 using ViewModels;
-using Domain.Enums;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -29,9 +28,7 @@ public sealed partial class ProfileView
     private readonly IAppNavigationService _navigationService;
     private readonly ProfileViewModel _viewModel;
     private bool _isChangingPasswordFlow;
-    private bool _isTwoFactorFlow;
     private bool _isUpdatingToggle;
-    private string _pendingTwoFactorAuthType = string.Empty;
     private string _verifiedPassword = string.Empty;
 
     /// <summary>
@@ -154,10 +151,9 @@ public sealed partial class ProfileView
     {
         ProfileDto user = _viewModel.ProfileDto;
         Log.Information(
-            "ProfileView populating UI for UserId={UserId}, HasPhone={HasPhone}, Preferred2FaMethod={Preferred2FaMethod}.",
+            "ProfileView populating UI for UserId={UserId}, HasPhone={HasPhone}.",
             user.UserId,
-            !string.IsNullOrWhiteSpace(user.PhoneNumber),
-            user.Preferred2FaMethod);
+            !string.IsNullOrWhiteSpace(user.PhoneNumber));
         ProfileCardName.Text = user.FullName ?? string.Empty;
         ProfileCardEmail.Text = user.Email ?? string.Empty;
         ProfileCardPhone.Text = user.PhoneNumber ?? string.Empty;
@@ -166,13 +162,7 @@ public sealed partial class ProfileView
         EmailBox.Text = user.Email ?? string.Empty;
         PhoneBox.Text = user.PhoneNumber ?? string.Empty;
         AddressBox.Text = user.Address ?? string.Empty;
-        TwoFactorPhoneDisplay.Text = user.PhoneNumber ?? string.Empty;
-        TwoFactorEmailDisplay.Text = user.Email ?? string.Empty;
-        _viewModel.IsInitializingView = true;
-        TwoFactorToggle.IsOn = user.Is2FaEnabled;
-        _viewModel.IsInitializingView = false;
         PopulateNotificationPreferences(_viewModel.Notifications.NotificationPreferences);
-        Update2FaVisuals();
     }
 
     private void SetEditingEnabled(bool enabled)
@@ -197,7 +187,6 @@ public sealed partial class ProfileView
     private async void UpdateButton_Click(object sender, RoutedEventArgs e)
     {
         _isChangingPasswordFlow = false;
-        _isTwoFactorFlow = false;
         VerifyCurrentPasswordBox.Password = string.Empty;
         VerifyErrorInfoBar.IsOpen = false;
         try
@@ -267,44 +256,10 @@ public sealed partial class ProfileView
                 }
             });
         }
-        else if (_isTwoFactorFlow)
-        {
-            DispatcherQueue.TryEnqueue(async void () =>
-            {
-                try
-                {
-                    await Handle2FaActionAfterVerifyAsync();
-                }
-                catch (Exception ex)
-                {
-                    ShowError(ex.Message);
-                }
-            });
-        }
         else
         {
             SetEditingEnabled(true);
             ShowSuccess("You can now edit your profile.");
-        }
-    }
-
-    private async Task Handle2FaActionAfterVerifyAsync()
-    {
-        TwoFactorMethod method = _pendingTwoFactorAuthType == "Phone"
-            ? TwoFactorMethod.Phone
-            : TwoFactorMethod.Email;
-        bool success = await _viewModel.EnableTwoFactor(method);
-        if (success)
-        {
-            _viewModel.IsInitializingView = true;
-            TwoFactorToggle.IsOn = true;
-            _viewModel.IsInitializingView = false;
-            Update2FaVisuals();
-            ShowSuccess($"2FA enabled via {_pendingTwoFactorAuthType}.");
-        }
-        else
-        {
-            ShowError($"Failed to enable 2FA via {_pendingTwoFactorAuthType}.");
         }
     }
 
@@ -343,7 +298,6 @@ public sealed partial class ProfileView
     private async void ChangePasswordButton_Click(object sender, RoutedEventArgs e)
     {
         _isChangingPasswordFlow = true;
-        _isTwoFactorFlow = false;
         VerifyCurrentPasswordBox.Password = string.Empty;
         VerifyErrorInfoBar.IsOpen = false;
         try
@@ -408,129 +362,11 @@ public sealed partial class ProfileView
         }
     }
 
-    private async void Handle2FAAction_Click(object sender, RoutedEventArgs e)
-    {
-        var button = sender as Button;
-        _pendingTwoFactorAuthType = button?.Tag.ToString() ?? string.Empty;
-        if (button?.Content.ToString() == "Remove")
-        {
-            try
-            {
-                bool success = await _viewModel.DisableTwoFactor();
-                if (success)
-                {
-                    _viewModel.IsInitializingView = true;
-                    TwoFactorToggle.IsOn = false;
-                    _viewModel.IsInitializingView = false;
-                    Update2FaVisuals();
-                    ShowSuccess("2FA has been disabled.");
-                }
-                else
-                {
-                    ShowError("Failed to remove 2FA.");
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowError(ex.Message);
-            }
-        }
-        else
-        {
-            _isTwoFactorFlow = true;
-            _isChangingPasswordFlow = false;
-            VerifyCurrentPasswordBox.Password = string.Empty;
-            VerifyErrorInfoBar.IsOpen = false;
-            try
-            {
-                await VerifyPasswordDialog.ShowAsync();
-            }
-            catch
-            {
-                // Dialog display failure is non-critical.
-            }
-        }
-    }
-
-    private async void TwoFactorToggle_Toggled(object sender, RoutedEventArgs e)
-    {
-        if (_viewModel.IsInitializingView)
-        {
-            return;
-        }
-
-        try
-        {
-            bool success = await _viewModel.SetEmailTwoFactorEnabled(TwoFactorToggle.IsOn);
-            if (!success)
-            {
-                _viewModel.IsInitializingView = true;
-                TwoFactorToggle.IsOn = !TwoFactorToggle.IsOn;
-                _viewModel.IsInitializingView = false;
-                ShowError("Failed to update 2FA settings.");
-            }
-            else
-            {
-                Update2FaVisuals();
-            }
-        }
-        catch (Exception ex)
-        {
-            _viewModel.IsInitializingView = true;
-            TwoFactorToggle.IsOn = !TwoFactorToggle.IsOn;
-            _viewModel.IsInitializingView = false;
-            ShowError(ex.Message);
-        }
-    }
-
     private void DashboardNavButton_Click(object sender, RoutedEventArgs e) =>
         _navigationService.NavigateTo<DashboardView>();
 
     private void LogoutButton_Click(object sender, RoutedEventArgs e) =>
         _navigationService.NavigateTo<LoginView>();
-
-    private void Update2FaVisuals()
-    {
-        Log.Information(
-            "ProfileView updating 2FA visuals. PhoneActive={PhoneActive}, EmailActive={EmailActive}, PhoneDisplay={PhoneDisplay}.",
-            _viewModel.IsPhoneTwoFactorActive,
-            _viewModel.IsEmailTwoFactorActive,
-            _viewModel.PersonalInfo.TwoFactorPhoneDisplay);
-        TwoFactorPhoneDisplay.Text = _viewModel.PersonalInfo.TwoFactorPhoneDisplay;
-
-        if (!_viewModel.PersonalInfo.HasPhoneNumber)
-        {
-            ConfigureActionButton(ActionPhoneBtn, PhoneStatusBadge, PhoneStatusText, "Add", "#F1F5F9", "#64748B", "Not configured");
-        }
-        else if (_viewModel.IsPhoneTwoFactorActive)
-        {
-            ConfigureActionButton(ActionPhoneBtn, PhoneStatusBadge, PhoneStatusText, "Remove", "#DCFCE7", "#16A34A", "Active");
-        }
-        else
-        {
-            ConfigureActionButton(ActionPhoneBtn, PhoneStatusBadge, PhoneStatusText, "Verify", "#FFF7ED", "#C2410C", "Unverified");
-        }
-
-        ConfigureActionButton(
-            ActionEmailBtn, EmailStatusBadge, EmailStatusText,
-            _viewModel.IsEmailTwoFactorActive ? "Remove" : "Verify",
-            _viewModel.IsEmailTwoFactorActive ? "#DCFCE7" : "#FFF7ED",
-            _viewModel.IsEmailTwoFactorActive ? "#16A34A" : "#C2410C",
-            _viewModel.IsEmailTwoFactorActive ? "Active" : "Unverified");
-    }
-
-    private static void ConfigureActionButton(
-        Button button,
-        Border badge,
-        TextBlock statusText,
-        string action,
-        string badgeBg,
-        string textCol,
-        string status)
-    {
-        button.Content = action;
-        statusText.Text = status;
-    }
 
     private void ShowLoading(bool visible)
     {

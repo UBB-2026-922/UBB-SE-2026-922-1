@@ -7,7 +7,6 @@ using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
-using Domain.Enums;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;
@@ -27,8 +26,6 @@ public sealed class LoginCommandHandler(
     IIdentityRepository identityRepository,
     IHashService hashService,
     IJsonWebTokenService jwtService,
-    IOtpService otpService,
-    IOtpAttemptTracker otpAttemptTracker,
     IEmailService emailService,
     IUnitOfWork unitOfWork,
     ISystemClock clock,
@@ -88,11 +85,6 @@ public sealed class LoginCommandHandler(
             return await HandleFailedPasswordAsync(identity, user.Id, cancellationToken);
         }
 
-        if (identity.Is2FaEnabled)
-        {
-            return await Handle2FaAsync(user, identity, cancellationToken);
-        }
-
         return await CompleteLoginAsync(user, identity, command.Metadata, cancellationToken);
     }
 
@@ -137,28 +129,6 @@ public sealed class LoginCommandHandler(
         return AuthErrors.AccountLockedTooManyAttempts;
     }
 
-    private async Task<ErrorOr<LoginSuccess>> Handle2FaAsync(User user, IdentityAccount identity, CancellationToken cancellationToken)
-    {
-        ErrorOr<string> otpResult = identity.Preferred2FaMethod == TwoFactorMethod.Authenticator
-            ? otpService.GenerateTotp(user.Id)
-            : otpService.GenerateSmsOtp(user.Id);
-
-        if (otpResult.IsError)
-        {
-            ApplicationLogMessages.OtpGenerationFailed(logger, user.Id, otpResult.FirstError.Description);
-            return otpResult.FirstError;
-        }
-
-        if (identity.Preferred2FaMethod == TwoFactorMethod.Email)
-        {
-            await emailService.SendOtpCodeAsync(user.Email.Value, otpResult.Value);
-        }
-
-        otpAttemptTracker.Reset(user.Id);
-        ApplicationLogMessages.TwoFactorRequired(logger, user.Id, identity.Preferred2FaMethod);
-        return new RequiresTwoFactor(user.Id);
-    }
-
     private async Task<ErrorOr<LoginSuccess>> CompleteLoginAsync(
         User user,
         IdentityAccount identity,
@@ -183,7 +153,7 @@ public sealed class LoginCommandHandler(
 
         ApplicationLogMessages.UserLoggedIn(logger, user.Id);
         await emailService.SendLoginAlertAsync(user.Email.Value);
-        return new FullLogin(user.Id, token, session.Id);
+        return new LoginSuccess(user.Id, token, session.Id);
     }
 }
 

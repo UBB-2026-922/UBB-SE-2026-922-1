@@ -1,7 +1,5 @@
 namespace BankingApp.Infrastructure.Common.Notifications;
 
-using Security;
-
 /// <summary>
 ///     Defines the subjects and body templates for all transactional emails sent by the application.
 /// </summary>
@@ -24,28 +22,8 @@ public static class EmailTemplates
         "If this was you, no action is needed. " +
         "If this wasn't you, please change your password immediately.";
 
-    /// <summary>Subject for the OTP delivery email.</summary>
-    public const string OtpSubject = "Your BankingApp Login Code";
-
     /// <summary>Subject for the password-reset email.</summary>
     public const string PasswordResetSubject = "BankingApp - Password Reset Code";
-
-    /// <summary>OTP validity period in minutes, derived from <see cref="OtpService.TotpWindowSeconds" />.</summary>
-    private const int OtpValidityMinutes = OtpService.TotpWindowSeconds / SecondsPerMinute;
-
-    private const int SecondsPerMinute = 60;
-
-    /// <summary>
-    ///     Returns the body for the OTP delivery email, embedding the generated <paramref name="code" />
-    ///     and the validity window derived from <see cref="OtpService.TotpWindowSeconds" />.
-    /// </summary>
-    /// <param name="code">The OTP to include in the message.</param>
-    /// <returns>The formatted email body.</returns>
-    public static string GetOtpBody(string code)
-    {
-        return $"Hello,\n\nYour OTP is: {code}\n\n" +
-               $"This code is valid for {OtpValidityMinutes} minutes. Do not share it with anyone.";
-    }
 
     /// <summary>
     ///     Returns the body for the password-reset email, embedding the raw <paramref name="token" />.

@@ -15,12 +15,6 @@ internal static class UserMessages
         internal const string IncompleteResponse = "The dashboard response was incomplete.";
     }
 
-    internal static class TwoFactor
-    {
-        internal const string InvalidCodeFormat = "Please enter a valid 6-digit code.";
-        internal const string IncorrectCode = "The code you entered is incorrect.";
-    }
-
     internal static class Register
     {
         internal const string EmailAlreadyExists = "This email is already registered.";
@@ -82,7 +76,6 @@ internal static class UserMessages
     {
         internal const string InvalidIban = "Invalid IBAN format.";
         internal const string AmountMustBePositive = "The amount must be greater than 0.";
-        internal const string TwoFaRequired = "You must confirm the 2FA step.";
         internal const string NoAccountSelected = "No account selected.";
         internal const string AccountLoadFailed = "Could not load your accounts. Please try again.";
         internal const string TransferFailed = "Transfer failed. Please try again.";

@@ -8,8 +8,6 @@ using Money = NodaMoney.Money;
 
 public sealed class BillPayment : AggregateRoot<int>
 {
-    private const decimal TwoFaAmountThreshold = 1000m;
-
     private BillPayment()
     {
     }
@@ -77,8 +75,6 @@ public sealed class BillPayment : AggregateRoot<int>
             CreatedAt = createdAt
         };
     }
-
-    public static bool RequiresTwoFactorAuthentication(Money amount) => amount.Amount >= TwoFaAmountThreshold;
 
     public void MarkProcessed(string receiptNumber, int? ledgerTransactionId)
     {
