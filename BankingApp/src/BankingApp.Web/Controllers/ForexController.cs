@@ -12,7 +12,7 @@ using ViewModels.Forex;
 [Authorize]
 public class ForexController(
     IForexService forexService,
-    IBillPaymentService billPaymentService) : AuthenticatedController
+    IBillPaymentService billPaymentService) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken ct)
     {

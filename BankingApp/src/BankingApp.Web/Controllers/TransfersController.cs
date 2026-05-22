@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using ViewModels.Transfers;
 
 [Authorize]
-public class TransfersController(ITransferService transferService) : AuthenticatedController
+public class TransfersController(ITransferService transferService) : Controller
 {
     public IActionResult New() => View(new TransferNewViewModel());
 

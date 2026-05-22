@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using ViewModels.RateAlerts;
 
 [Authorize]
-public class RateAlertsController(IRateAlertService rateAlertService) : AuthenticatedController
+public class RateAlertsController(IRateAlertService rateAlertService) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken ct)
     {

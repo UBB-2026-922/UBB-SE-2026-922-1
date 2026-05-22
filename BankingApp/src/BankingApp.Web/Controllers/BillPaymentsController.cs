@@ -12,7 +12,7 @@ using ViewModels.BillPayments;
 [Authorize]
 public class BillPaymentsController(
     IBillPaymentService billPaymentService,
-    IBillerService billerService) : AuthenticatedController
+    IBillerService billerService) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {

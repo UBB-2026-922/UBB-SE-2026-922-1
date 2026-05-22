@@ -48,7 +48,7 @@ If this document and the analyzer or editor configuration conflict, update the c
 2. Use camelCase for local variables and method parameters.
 3. Prefix private instance fields with `_` and use camelCase after the prefix, for example `_apiClient`.
 4. Prefix interface names with `I`, for example `IApiClient`.
-5. Use file-scoped namespaces and place `using` directives outside the namespace.
+5. Use file-scoped namespaces and place `using` directives inside the namespace.
 6. Order `using` directives alphabetically, with `System` namespaces first.
 7. Prefer `var` only when the exact type is obvious from the same line through the constructed value, such as `new SomeType(...)`. Use the explicit type for built-in literals and in every other case where the right-hand side does not make the type immediately clear.
 8. Keep one public type per `.cs` file, and name the file after that type.

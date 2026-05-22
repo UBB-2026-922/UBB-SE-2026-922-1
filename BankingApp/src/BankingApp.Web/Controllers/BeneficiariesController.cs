@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using ViewModels;
 
 [Authorize]
-public class BeneficiariesController(IBeneficiaryService beneficiaryService) : AuthenticatedController
+public class BeneficiariesController(IBeneficiaryService beneficiaryService) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {

@@ -25,6 +25,7 @@ builder.Services
     {
         options.LoginPath = "/Auth/Login";
         options.AccessDeniedPath = "/Auth/Login";
+        options.ReturnUrlParameter = "returnUrl";
         options.LogoutPath = "/Auth/Logout";
         options.ExpireTimeSpan = TimeSpan.FromHours(defaultCookieExpiryTime);
         options.SlidingExpiration = true;
@@ -161,3 +162,5 @@ static bool IsLocalReturnUrl(string? returnUrl)
                (returnUrl[secondLetterOfUrl] != '/'
                 && returnUrl[secondLetterOfUrl] != '\\'));
 }
+
+public partial class Program;
