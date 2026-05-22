@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Tests.Features.Transfers.Commands;
 
-using BankingApp.Application.Common.Security;
 using BankingApp.Application.Features.Transfers.Commands;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.Transfers.Dtos;
@@ -25,7 +24,6 @@ public sealed class ExecuteTransferCommandTests
     private readonly Mock<IAccountRepository> _accountRepositoryMock = new(MockBehavior.Strict);
     private readonly Mock<ITransferRepository> _transferRepositoryMock = new(MockBehavior.Strict);
     private readonly Mock<IBeneficiaryRepository> _beneficiaryRepositoryMock = new(MockBehavior.Strict);
-    private readonly Mock<IOtpService> _otpServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
     private readonly Mock<ISystemClock> _clockMock = new(MockBehavior.Strict);
 
@@ -160,59 +158,6 @@ public sealed class ExecuteTransferCommandTests
     }
 
     [Fact]
-    public async Task Handle_WhenAmountAboveThresholdAndTwoFaTokenMissing_ShouldReturnTwoFaRequiredError()
-    {
-        // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
-        Account account = CreateAccount(TestUserId, balance: 2000m);
-        SetupAccountLookup(account, cancellationToken);
-        _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
-
-        ExecuteTransferCommandHandler handler = CreateHandler();
-        ExecuteTransferCommand command = CreateCommand(amount: 1000m, twoFaToken: null);
-
-        // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(command, cancellationToken);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Should().Be(TransferErrors.TwoFaRequired);
-
-        _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
-        _clockMock.Verify(clock => clock.UtcNow, Times.Once);
-        VerifyNoOtherCalls();
-    }
-
-    [Fact]
-    public async Task Handle_WhenAmountAboveThresholdAndTwoFaTokenIsInvalid_ShouldReturnInvalidTwoFaTokenError()
-    {
-        // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
-        Account account = CreateAccount(TestUserId, balance: 2000m);
-        SetupAccountLookup(account, cancellationToken);
-        _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
-
-        _otpServiceMock
-            .Setup(service => service.VerifyTotp(TestUserId, "000000"))
-            .Returns((ErrorOr<bool>)false);
-
-        ExecuteTransferCommandHandler handler = CreateHandler();
-        ExecuteTransferCommand command = CreateCommand(amount: 1000m, twoFaToken: "000000");
-
-        // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(command, cancellationToken);
-
-        // Assert
-        result.IsError.Should().BeTrue();
-        result.FirstError.Should().Be(TransferErrors.InvalidTwoFaToken);
-
-        _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
-        _clockMock.Verify(clock => clock.UtcNow, Times.Once);
-        _otpServiceMock.Verify(service => service.VerifyTotp(TestUserId, "000000"), Times.Once);
-        VerifyNoOtherCalls();
-    }
-
-    [Fact]
     public async Task Handle_WhenInsufficientFunds_ShouldReturnInsufficientFundsError()
     {
         // Arrange
@@ -343,7 +288,6 @@ public sealed class ExecuteTransferCommandTests
             _accountRepositoryMock.Object,
             _transferRepositoryMock.Object,
             _beneficiaryRepositoryMock.Object,
-            _otpServiceMock.Object,
             _unitOfWorkMock.Object,
             _clockMock.Object,
             NullLogger<ExecuteTransferCommandHandler>.Instance);
@@ -352,8 +296,7 @@ public sealed class ExecuteTransferCommandTests
     private static ExecuteTransferCommand CreateCommand(
         string recipientIban = RecipientIban,
         decimal amount = 100m,
-        string currency = CurrencyCode,
-        string? twoFaToken = null)
+        string currency = CurrencyCode)
     {
         return new ExecuteTransferCommand(
             TestUserId,
@@ -362,8 +305,7 @@ public sealed class ExecuteTransferCommandTests
             recipientIban,
             amount,
             currency,
-            "Invoice",
-            twoFaToken);
+            "Invoice");
     }
 
     private void SetupAccountLookup(Account account, CancellationToken cancellationToken)
@@ -424,7 +366,6 @@ public sealed class ExecuteTransferCommandTests
         _accountRepositoryMock.VerifyNoOtherCalls();
         _transferRepositoryMock.VerifyNoOtherCalls();
         _beneficiaryRepositoryMock.VerifyNoOtherCalls();
-        _otpServiceMock.VerifyNoOtherCalls();
         _unitOfWorkMock.VerifyNoOtherCalls();
         _clockMock.VerifyNoOtherCalls();
     }
