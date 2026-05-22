@@ -1,22 +1,113 @@
 namespace BankingApp.Application.Tests.Features.UserProfile.Commands;
 
+using BankingApp.Application.Features.UserProfile.Commands;
+using BankingApp.Domain.Common.Errors;
+using Contracts.Features.UserProfile.Dtos;
+using Domain.Aggregates.UserAggregate.Entities;
+using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Persistence;
+
 public sealed class UpdateNotificationPreferencesCommandTests
 {
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenUserNotFound_ShouldReturnNotFoundError()
+    private const int TestUserId = 1;
+    private static readonly DateTime _testNow = new(2026, 5, 17, 12, 0, 0, DateTimeKind.Utc);
+
+    private readonly Mock<IUserRepository> _userRepositoryMock = new(MockBehavior.Strict);
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
+
+    [Fact]
+    public async Task Handle_WhenUserNotFound_ShouldReturnNotFoundError()
     {
-        throw new NotImplementedException();
+        // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        _userRepositoryMock.Setup(repository => repository.GetByIdAsync(TestUserId, cancellationToken)).ReturnsAsync((User?)null);
+        UpdateNotificationPreferencesCommandHandler handler = CreateHandler();
+
+        // Act
+        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Should().Be(UserErrors.NotFound);
+        _userRepositoryMock.Verify(repository => repository.GetByIdAsync(TestUserId, cancellationToken), Times.Once);
+        _userRepositoryMock.VerifyNoOtherCalls();
+        _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenValid_ShouldSetNotificationPreferences()
+    [Fact]
+    public async Task Handle_WhenValid_ShouldSetNotificationPreferences()
     {
-        throw new NotImplementedException();
+        // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        User user = CreateUser();
+        SetupValid(user, cancellationToken);
+        UpdateNotificationPreferencesCommandHandler handler = CreateHandler();
+
+        // Act
+        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        user.NotificationPreferences.Should().ContainSingle();
+        NotificationPreference preference = user.NotificationPreferences.Single();
+        preference.Category.Should().Be(NotificationType.Payment);
+        preference.PushEnabled.Should().BeTrue();
+        preference.EmailEnabled.Should().BeFalse();
+        preference.SmsEnabled.Should().BeTrue();
+        preference.MinAmountThreshold.Should().Be(100m);
+        VerifyValid(user, cancellationToken);
     }
 
-    [Fact(Skip = "Not implemented yet.")]
-    public void Handle_WhenValid_ShouldSaveChanges()
+    [Fact]
+    public async Task Handle_WhenValid_ShouldSaveChanges()
     {
-        throw new NotImplementedException();
+        // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        User user = CreateUser();
+        SetupValid(user, cancellationToken);
+        UpdateNotificationPreferencesCommandHandler handler = CreateHandler();
+
+        // Act
+        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        result.Value.Should().Be(Result.Success);
+        VerifyValid(user, cancellationToken);
     }
+
+    private UpdateNotificationPreferencesCommandHandler CreateHandler() =>
+        new(_userRepositoryMock.Object, _unitOfWorkMock.Object, NullLogger<UpdateNotificationPreferencesCommandHandler>.Instance);
+
+    private static UpdateNotificationPreferencesCommand CreateCommand() =>
+        new(TestUserId,
+            [
+                new NotificationPreferenceDto
+                {
+                    Category = NotificationType.Payment,
+                    PushEnabled = true,
+                    EmailEnabled = false,
+                    SmsEnabled = true,
+                    MinAmountThreshold = 100m
+                }
+            ]);
+
+    private void SetupValid(User user, CancellationToken cancellationToken)
+    {
+        _userRepositoryMock.Setup(repository => repository.GetByIdAsync(TestUserId, cancellationToken)).ReturnsAsync(user);
+        _userRepositoryMock.Setup(repository => repository.UpdateAsync(user, cancellationToken)).Returns(Task.CompletedTask);
+        _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync(cancellationToken)).Returns(Task.CompletedTask);
+    }
+
+    private void VerifyValid(User user, CancellationToken cancellationToken)
+    {
+        _userRepositoryMock.Verify(repository => repository.GetByIdAsync(TestUserId, cancellationToken), Times.Once);
+        _userRepositoryMock.Verify(repository => repository.UpdateAsync(user, cancellationToken), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(cancellationToken), Times.Once);
+        _userRepositoryMock.VerifyNoOtherCalls();
+        _unitOfWorkMock.VerifyNoOtherCalls();
+    }
+
+    private static User CreateUser() => User.Register(Email.Create("test@example.com").Value, "Test User", _testNow);
 }
