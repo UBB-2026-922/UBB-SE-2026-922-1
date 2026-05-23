@@ -53,8 +53,10 @@ public partial class LoginViewModel : ObservableObject
     public bool IsDevLoginAvailable { get; }
 
     /// <summary>Returns true when both email and password contain non-whitespace content.</summary>
-    public static bool CanLogin(string email, string password) =>
-        !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password);
+    public static bool CanLogin(string email, string password)
+    {
+        return !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password);
+    }
 
     /// <summary>Attempts to sign the configured development user in without manual entry.</summary>
     public async Task<ErrorOr<Success>> DevLogin()
