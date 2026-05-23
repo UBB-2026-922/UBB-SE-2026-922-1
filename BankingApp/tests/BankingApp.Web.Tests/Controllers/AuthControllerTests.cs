@@ -4,8 +4,10 @@ using System.Globalization;
 using System.Security.Claims;
 using ClientAuthenticationService = BankingApp.Application.Features.Authentication.Services.IAuthenticationService;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using BankingApp.Contracts.Features.UserRegistration.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.Controllers;
+using BankingApp.Web.Models;
 using BankingApp.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -186,5 +188,94 @@ public sealed class AuthControllerTests : IDisposable
         redirect.Url.Should().Be("/Auth/Login");
         _authenticationServiceMock.VerifyAll();
         _aspNetAuthenticationMock.VerifyAll();
+    }
+
+    [Fact]
+    public void Register_WhenAnonymousGet_ShouldReturnViewWithEmptyModel()
+    {
+        IActionResult result = _controller.Register();
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        RegisterModel model = viewResult.Model.Should().BeOfType<RegisterModel>().Subject;
+        model.Email.Should().BeEmpty();
+        model.FullName.Should().BeEmpty();
+        _authenticationServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Register_WhenInvalidPost_ShouldReturnViewWithoutCallingApi()
+    {
+        _controller.ModelState.AddModelError(nameof(RegisterModel.Email), "Email is required.");
+        RegisterModel model = new() { Email = string.Empty, Password = string.Empty, FullName = string.Empty };
+
+        IActionResult result = await _controller.Register(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _authenticationServiceMock.VerifyNoOtherCalls();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Register_WhenApiReturnsConflict_ShouldShowEmailAlreadyExistsMessage()
+    {
+        RegisterModel model = new() { Email = "user@example.com", Password = "StrongPassword1!", FullName = "John Doe", PasswordConfirmation = "StrongPassword1!" };
+
+        _authenticationServiceMock
+            .Setup(service => service.RegisterAsync(
+                It.Is<RegisterRequest>(request => request.Email == model.Email && request.Password == model.Password && request.FullName == model.FullName),
+                CancellationToken.None))
+            .ReturnsAsync(Error.Conflict("auth.conflict", "Conflict."));
+
+        IActionResult result = await _controller.Register(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "This email is already registered.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Register_WhenApiReturnsGenericError_ShouldShowGenericMessage()
+    {
+        RegisterModel model = new() { Email = "user@example.com", Password = "StrongPassword1!", FullName = "John Doe", PasswordConfirmation = "StrongPassword1!" };
+
+        _authenticationServiceMock
+            .Setup(service => service.RegisterAsync(
+                It.IsAny<RegisterRequest>(),
+                CancellationToken.None))
+            .ReturnsAsync(Error.Failure("auth.failure", "Failure."));
+
+        IActionResult result = await _controller.Register(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "Something went wrong. Please try again.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Register_WhenSuccessfulPost_ShouldSetTempDataAndRedirectToLogin()
+    {
+        RegisterModel model = new() { Email = "user@example.com", Password = "StrongPassword1!", FullName = "John Doe", PasswordConfirmation = "StrongPassword1!" };
+
+        _authenticationServiceMock
+            .Setup(service => service.RegisterAsync(
+                It.Is<RegisterRequest>(request => request.Email == model.Email && request.Password == model.Password && request.FullName == model.FullName),
+                CancellationToken.None))
+            .ReturnsAsync(Result.Success);
+
+        IActionResult result = await _controller.Register(model, CancellationToken.None);
+
+        RedirectResult redirect = result.Should().BeOfType<RedirectResult>().Subject;
+        redirect.Url.Should().Be("/Auth/Login");
+        _controller.TempData["Success"].Should().Be("Account created! You can now sign in.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
     }
 }
