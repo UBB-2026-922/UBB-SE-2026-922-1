@@ -8,12 +8,11 @@ using Contracts.Features.Transfers.Services;
 /// <summary>Drives the multistep transfer wizard.</summary>
 public partial class TransferViewModel : ObservableObject
 {
-    private const int AccountSelectionStep = 1;
-    private const int RecipientDetailsStep = 2;
-    private const int AmountDetailsStep = 3;
-    private const int ReviewAndConfirmationStep = 4;
-    private const int TransferCompletedStep = 5;
-    private const int TransferErrorStep = 6;
+    private const int IbanValidationStep = 1;
+    private const int TransferDetailsStep = 2;
+    private const int ReviewAndConfirmationStep = 3;
+    private const int TransferCompletedStep = 4;
+    private const int TransferErrorStep = 5;
     private const decimal ZeroAmount = 0m;
     private const decimal IdentityExchangeRate = 1m;
     private const string DefaultTransferCurrency = "EUR";
@@ -26,7 +25,7 @@ public partial class TransferViewModel : ObservableObject
     {
         _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
         Accounts = new ObservableCollection<TransferAccountSelectionResponse>();
-        CurrentStep = AccountSelectionStep;
+        CurrentStep = IbanValidationStep;
         Currency = DefaultTransferCurrency;
 
         NextStepCommand = new RelayCommand(ExecuteNextStep);
@@ -110,6 +109,9 @@ public partial class TransferViewModel : ObservableObject
     /// <summary>Gets or sets the human-readable FX preview text shown on the amount step.</summary>
     [ObservableProperty]
     public partial string FxPreviewText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial string Reference { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the transaction reference returned after a successful transfer.</summary>
     [ObservableProperty]

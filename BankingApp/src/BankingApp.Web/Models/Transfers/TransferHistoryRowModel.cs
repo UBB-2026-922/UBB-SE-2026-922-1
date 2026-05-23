@@ -1,9 +1,9 @@
-namespace BankingApp.Web.ViewModels.Transfers;
+namespace BankingApp.Web.Models.Transfers;
 
 /// <summary>
 ///     Represents a single row in the transfer history table.
 /// </summary>
-public class TransferHistoryRowViewModel
+public class TransferHistoryRowModel
 {
     /// <summary>Gets or sets the transfer id.</summary>
     public int Id { get; set; }

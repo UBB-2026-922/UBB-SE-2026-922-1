@@ -1,10 +1,10 @@
-namespace BankingApp.Web.ViewModels.Transfers;
+namespace BankingApp.Web.Models.Transfers;
 
 /// <summary>
 ///     View model for the transfer preview / confirmation step.
 ///     Shows forex preview (if cross-currency) and transfer summary.
 /// </summary>
-public class TransferPreviewViewModel
+public class TransferPreviewModel
 {
     /// <summary>Gets or sets the source account id.</summary>
     public int SourceAccountId { get; set; }

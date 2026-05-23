@@ -23,135 +23,125 @@
                 Severity="Error"
                 Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" />
 
-            <!-- STEP 1: Select Account -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay,
-                                     Converter={StaticResource StepToVisibility}, ConverterParameter=1}">
-                <TextBlock Text="Step 1 of 4 - Select source account"
-                           FontSize="16" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <ComboBox ItemsSource="{x:Bind ViewModel.Accounts}"
-                          SelectedItem="{x:Bind ViewModel.SelectedAccount, Mode=TwoWay}"
-                          HorizontalAlignment="Stretch">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="transfer:TransferAccountSelectionResponse">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBlock Text="{x:Bind AccountName}" />
-                                <TextBlock Text="{x:Bind Currency}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
-                <Button Content="Next" Command="{x:Bind ViewModel.NextStepCommand}"
-                        HorizontalAlignment="Center" Width="150" />
-            </StackPanel>
-
-            <!-- STEP 2: Recipient Info -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay,
-                                     Converter={StaticResource StepToVisibility}, ConverterParameter=2}">
-                <TextBlock Text="Step 2 of 4 - Recipient Information"
-                           FontSize="16" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <TextBox Header="Recipient Name" Text="{x:Bind ViewModel.RecipientName, Mode=TwoWay}" />
-                <TextBox Header="Recipient IBAN" Text="{x:Bind ViewModel.RecipientIban, Mode=TwoWay}" />
-                <TextBlock Text="{x:Bind ViewModel.BankName, Mode=OneWay}" />
-                <Button Content="Next" Command="{x:Bind ViewModel.NextStepCommand}"
-                        HorizontalAlignment="Center" Width="150" />
-            </StackPanel>
-
-            <!-- STEP 3: Amount -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay,
-                                     Converter={StaticResource StepToVisibility}, ConverterParameter=3}">
-                <TextBlock Text="Step 3 of 4 - Enter Amount"
-                           FontSize="16" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <TextBox Header="Amount" Text="{x:Bind ViewModel.AmountText, Mode=TwoWay}" />
-                <ComboBox SelectedValue="{x:Bind ViewModel.Currency, Mode=TwoWay}"
-                          SelectedValuePath="Content">
-                    <ComboBoxItem Content="EUR" />
-                    <ComboBoxItem Content="USD" />
-                    <ComboBoxItem Content="RON" />
-                </ComboBox>
-                <TextBlock Text="{x:Bind ViewModel.FxPreviewText, Mode=OneWay}" />
-                <Button Content="Next" Command="{x:Bind ViewModel.NextStepCommand}"
-                        HorizontalAlignment="Center" Width="150" />
-            </StackPanel>
-
-            <!-- STEP 4: Confirm Transfer -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay,
-                                     Converter={StaticResource StepToVisibility}, ConverterParameter=4}">
-                <TextBlock Text="Confirm Transfer" FontSize="16" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="From:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.SelectedAccountName, Mode=OneWay}" />
+            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8"
+                    Padding="24"
+                    Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay, Converter={StaticResource StepToVisibility}, ConverterParameter=1}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Step 1 of 3 - Validate IBAN" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <TextBox Header="Recipient IBAN" Text="{x:Bind ViewModel.RecipientIban, Mode=TwoWay}" />
+                    <TextBlock Text="{x:Bind ViewModel.BankName, Mode=OneWay}" Foreground="Green" />
+                    <Button Content="Next" Command="{x:Bind ViewModel.NextStepCommand}" HorizontalAlignment="Center" Width="150" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="To:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.RecipientName, Mode=OneWay}" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="Amount:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.AmountText, Mode=OneWay}" />
-                    <TextBlock Text="{x:Bind ViewModel.Currency, Mode=OneWay}" />
-                </StackPanel>
-                <Button Content="Confirm Transfer" Command="{x:Bind ViewModel.TransferCommand}"
-                        HorizontalAlignment="Center" Width="200" />
-            </StackPanel>
+            </Border>
 
-            <!-- STEP 5: Success / Receipt -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay,
-                                     Converter={StaticResource StepToVisibility}, ConverterParameter=5}">
-                <TextBlock Text="Transfer Successful!" FontSize="20" FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="To:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.RecipientName, Mode=OneWay}" />
+            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8"
+                    Padding="24"
+                    Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay, Converter={StaticResource StepToVisibility}, ConverterParameter=2}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Step 2 of 3 - Transfer Details" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <ComboBox Header="Source Account" ItemsSource="{x:Bind ViewModel.Accounts}" SelectedItem="{x:Bind ViewModel.SelectedAccount, Mode=TwoWay}" HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="transfer:TransferAccountSelectionResponse">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{x:Bind AccountName}" />
+                                    <TextBlock Text="{x:Bind Currency}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBox Header="Recipient Name" Text="{x:Bind ViewModel.RecipientName, Mode=TwoWay}" />
+                    <TextBox Header="Amount" Text="{x:Bind ViewModel.AmountText, Mode=TwoWay}" />
+                    <ComboBox Header="Currency" SelectedValue="{x:Bind ViewModel.Currency, Mode=TwoWay}" SelectedValuePath="Content">
+                        <ComboBoxItem Content="EUR" />
+                        <ComboBoxItem Content="USD" />
+                        <ComboBoxItem Content="RON" />
+                    </ComboBox>
+                    <TextBox Header="Reference" Text="{x:Bind ViewModel.Reference, Mode=TwoWay}" />
+                    <TextBlock Text="{x:Bind ViewModel.FxPreviewText, Mode=OneWay}" />
+                    <Button Content="Next" Command="{x:Bind ViewModel.NextStepCommand}" HorizontalAlignment="Center" Width="150" />
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="IBAN:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.RecipientIban, Mode=OneWay}" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="Reference:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.TransactionRef, Mode=OneWay}" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="Amount:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.AmountText, Mode=OneWay}" />
-                    <TextBlock Text="{x:Bind ViewModel.Currency, Mode=OneWay}" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="From:" FontWeight="Bold" />
-                    <TextBlock Text="{x:Bind ViewModel.SelectedAccountName, Mode=OneWay}" />
-                </StackPanel>
-                <Button Content="New Transfer" Command="{x:Bind ViewModel.SendAgainCommand}"
-                        HorizontalAlignment="Center" Width="200" />
-            </StackPanel>
+            </Border>
 
-            <!-- STEP 6: Error -->
-            <StackPanel Spacing="16"
-                        Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay,
-                                     Converter={StaticResource StepToVisibility}, ConverterParameter=6}">
+            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8"
+                    Padding="24"
+                    Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay, Converter={StaticResource StepToVisibility}, ConverterParameter=3}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Step 3 of 3 - Confirm Transfer" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="From:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.SelectedAccountName, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="To:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.RecipientName, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Amount:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.AmountText, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind ViewModel.Currency, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Reference:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.Reference, Mode=OneWay}" />
+                    </StackPanel>
+                    <Button Content="Confirm Transfer" Command="{x:Bind ViewModel.TransferCommand}" HorizontalAlignment="Center" Width="200" />
+                </StackPanel>
+            </Border>
 
-                <TextBlock Text="Error"
-                           FontSize="18"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
+            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8"
+                    Padding="24"
+                    Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay, Converter={StaticResource StepToVisibility}, ConverterParameter=4}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Transfer Successful!" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="To:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.RecipientName, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="IBAN:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.RecipientIban, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Reference:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.TransactionRef, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Amount:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.AmountText, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind ViewModel.Currency, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="From:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.SelectedAccountName, Mode=OneWay}" />
+                    </StackPanel>
+                    <Button Content="New Transfer" Command="{x:Bind ViewModel.SendAgainCommand}" HorizontalAlignment="Center" Width="200" />
+                </StackPanel>
+            </Border>
 
-                <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap" />
-
-                <Button Content="Start Again"
-                        Command="{x:Bind ViewModel.SendAgainCommand}"
-                        HorizontalAlignment="Center"
-                        Width="200" />
-            </StackPanel>
+            <Border BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8"
+                    Padding="24"
+                    Visibility="{x:Bind ViewModel.CurrentStep, Mode=OneWay, Converter={StaticResource StepToVisibility}, ConverterParameter=5}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Error" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}" TextAlignment="Center" TextWrapping="Wrap" />
+                    <Button Content="Start Again" Command="{x:Bind ViewModel.SendAgainCommand}" HorizontalAlignment="Center" Width="200" />
+                </StackPanel>
+            </Border>
 
         </StackPanel>
     </ScrollViewer>
