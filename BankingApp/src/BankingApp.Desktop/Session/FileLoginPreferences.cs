@@ -13,6 +13,7 @@ public sealed class FileLoginPreferences : ILoginPreferences
     private string? _savedEmail;
     private bool _rememberMe;
 
+    /// <summary>Initializes a new instance of the <see cref="FileLoginPreferences"/> class and loads any saved preferences.</summary>
     public FileLoginPreferences()
     {
         string directory = Path.Combine(
