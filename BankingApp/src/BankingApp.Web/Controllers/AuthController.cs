@@ -3,7 +3,9 @@ namespace BankingApp.Web.Controllers;
 using System.Globalization;
 using System.Security.Claims;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using BankingApp.Contracts.Features.UserRegistration.Dtos;
 using BankingApp.Contracts.Http;
+using BankingApp.Web.Models;
 using BankingApp.Web.ViewModels;
 using ErrorOr;
 using Microsoft.AspNetCore.Authentication;
@@ -107,6 +109,65 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
             CookieAuthenticationDefaults.AuthenticationScheme,
             principal,
             properties);
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View(new RegisterModel());
+    }
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(
+        RegisterModel registerModel,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(registerModel);
+        }
+
+        ErrorOr<Success> registerResult = await authenticationService.RegisterAsync(
+            new RegisterRequest
+            {
+                Email = registerModel.Email,
+                Password = registerModel.Password,
+                FullName = registerModel.FullName
+            },
+            cancellationToken);
+
+        if (registerResult.IsError)
+        {
+            string errorMessage = MapRegisterError(registerResult.FirstError);
+            ModelState.AddModelError(string.Empty, errorMessage);
+            return View(registerModel);
+        }
+
+        TempData["Success"] = "Account created! You can now sign in.";
+        return Redirect("/Auth/Login");
+    }
+
+    private static string MapRegisterError(Error error)
+    {
+        if (error.Type == ErrorType.Conflict)
+        {
+            return "This email is already registered.";
+        }
+
+        if (error.Code == "invalid_email")
+        {
+            return "Please enter a valid email address.";
+        }
+
+        if (error.Code == "weak_password")
+        {
+            return "Password must be at least 8 characters with uppercase, lowercase, a digit and a special character.";
+        }
+
+        return "Something went wrong. Please try again.";
     }
 
     private static string? GetSafeReturnUrl(string? returnUrl)
