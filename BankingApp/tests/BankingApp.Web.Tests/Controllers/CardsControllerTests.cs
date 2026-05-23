@@ -1,0 +1,324 @@
+namespace BankingApp.Web.Tests.Controllers;
+
+using BankingApp.Contracts.Features.Cards.Dtos;
+using BankingApp.Contracts.Features.Cards.Services;
+using BankingApp.Domain.Enums;
+using BankingApp.Web.Controllers;
+using BankingApp.Web.ViewModels.Cards;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+
+public sealed class CardsControllerTests : IDisposable
+{
+    private const int ExistingCardId = 42;
+
+    private readonly Mock<ICardService> _cardServiceMock = new(MockBehavior.Strict);
+    private readonly CardsController _controller;
+
+    public CardsControllerTests()
+    {
+        DefaultHttpContext httpContext = new();
+
+        _controller = new CardsController(_cardServiceMock.Object)
+        {
+            ControllerContext = new ControllerContext { HttpContext = httpContext },
+            TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
+        };
+    }
+
+    public void Dispose() => _controller.Dispose();
+
+    // -------------------------------------------------------------------------
+    // Index
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Index_WhenServiceReturnsCards_ShouldReturnViewWithMappedCards()
+    {
+        // Arrange
+        DateTime expiryDate = new(2028, 12, 31, 0, 0, 0, DateTimeKind.Utc);
+        List<CardDetailsDto> cards =
+        [
+            new CardDetailsDto
+            {
+                Id = ExistingCardId,
+                CardNumber = "**** **** **** 1234",
+                FullCardNumber = "4111111111111234",
+                SecurityCode = "123",
+                CardholderName = "Jane Doe",
+                ExpiryDate = expiryDate,
+                CardType = CardType.Debit,
+                CardBrand = "Visa",
+                Status = CardStatus.Active,
+                IsContactlessEnabled = true,
+                IsOnlineEnabled = false,
+                AccountName = "Checking Account"
+            }
+        ];
+
+        _cardServiceMock
+            .Setup(service => service.GetCardsAsync(CancellationToken.None))
+            .ReturnsAsync(cards);
+
+        // Act
+        IActionResult result = await _controller.Index(CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        CardListViewModel viewModel = viewResult.Model.Should().BeOfType<CardListViewModel>().Subject;
+
+        viewModel.Cards.Should().HaveCount(1);
+        CardRowViewModel row = viewModel.Cards[0];
+        row.Id.Should().Be(ExistingCardId);
+        row.CardNumber.Should().Be("**** **** **** 1234");
+        row.FullCardNumber.Should().Be("4111111111111234");
+        row.SecurityCode.Should().Be("123");
+        row.CardholderName.Should().Be("Jane Doe");
+        row.ExpiryDate.Should().Be(expiryDate);
+        row.CardType.Should().Be(CardType.Debit);
+        row.CardBrand.Should().Be("Visa");
+        row.Status.Should().Be(CardStatus.Active);
+        row.IsContactlessEnabled.Should().BeTrue();
+        row.IsOnlineEnabled.Should().BeFalse();
+        row.AccountName.Should().Be("Checking Account");
+        _cardServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Index_WhenServiceReturnsEmptyList_ShouldReturnViewWithNoCards()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.GetCardsAsync(CancellationToken.None))
+            .ReturnsAsync(new List<CardDetailsDto>());
+
+        // Act
+        IActionResult result = await _controller.Index(CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        CardListViewModel viewModel = viewResult.Model.Should().BeOfType<CardListViewModel>().Subject;
+        viewModel.HasCards.Should().BeFalse();
+        _cardServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Index_WhenServiceReturnsError_ShouldSetTempDataErrorAndReturnEmptyView()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.GetCardsAsync(CancellationToken.None))
+            .ReturnsAsync(Error.Failure("cards.load_failed", "Unable to load cards."));
+
+        // Act
+        IActionResult result = await _controller.Index(CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        CardListViewModel viewModel = viewResult.Model.Should().BeOfType<CardListViewModel>().Subject;
+        viewModel.HasCards.Should().BeFalse();
+        _controller.TempData["Error"].Should().Be("Could not load cards. Please try again.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    // -------------------------------------------------------------------------
+    // Issue (GET)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void Issue_WhenGet_ShouldReturnViewWithEmptyModel()
+    {
+        // Act
+        IActionResult result = _controller.Issue();
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().BeOfType<IssueCardViewModel>();
+        _cardServiceMock.VerifyNoOtherCalls();
+    }
+
+    // -------------------------------------------------------------------------
+    // Issue (POST)
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Issue_WhenInvalidModel_ShouldReturnViewWithoutCallingService()
+    {
+        // Arrange
+        IssueCardViewModel model = new() { CardBrand = string.Empty };
+        _controller.ModelState.AddModelError(nameof(IssueCardViewModel.CardBrand), "Please select a card brand.");
+
+        // Act
+        IActionResult result = await _controller.Issue(model, CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _cardServiceMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Issue_WhenServiceSucceeds_ShouldSetSuccessTempDataAndRedirectToIndex()
+    {
+        // Arrange
+        IssueCardViewModel model = new() { CardType = CardType.Debit, CardBrand = "Visa" };
+
+        _cardServiceMock
+            .Setup(service => service.IssueCardAsync(
+                It.Is<IssueCardRequest>(request =>
+                    request.CardType == CardType.Debit && request.CardBrand == "Visa"),
+                CancellationToken.None))
+            .ReturnsAsync(new CardDetailsDto { Id = ExistingCardId });
+
+        // Act
+        IActionResult result = await _controller.Issue(model, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(CardsController.Index));
+        _controller.TempData["Success"].Should().Be("Your new Visa Debit card has been issued successfully.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Issue_WhenServiceReturnsError_ShouldAddModelErrorAndReturnView()
+    {
+        // Arrange
+        IssueCardViewModel model = new() { CardType = CardType.Credit, CardBrand = "Mastercard" };
+
+        _cardServiceMock
+            .Setup(service => service.IssueCardAsync(It.IsAny<IssueCardRequest>(), CancellationToken.None))
+            .ReturnsAsync(Error.Failure("cards.issue_failed", "Issue failed."));
+
+        // Act
+        IActionResult result = await _controller.Issue(model, CancellationToken.None);
+
+        // Assert
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "Could not issue card. Please try again.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    // -------------------------------------------------------------------------
+    // Freeze
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Freeze_WhenServiceSucceeds_ShouldSetSuccessTempDataAndRedirectToIndex()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.FreezeCardAsync(ExistingCardId, CancellationToken.None))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        IActionResult result = await _controller.Freeze(ExistingCardId, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(CardsController.Index));
+        _controller.TempData["Success"].Should().Be("Card has been frozen successfully.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Freeze_WhenServiceReturnsError_ShouldSetErrorTempDataAndRedirectToIndex()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.FreezeCardAsync(ExistingCardId, CancellationToken.None))
+            .ReturnsAsync(Error.Failure("cards.freeze_failed", "Freeze failed."));
+
+        // Act
+        IActionResult result = await _controller.Freeze(ExistingCardId, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(CardsController.Index));
+        _controller.TempData["Error"].Should().Be("Could not freeze the card. Please try again.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    // -------------------------------------------------------------------------
+    // Unfreeze
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Unfreeze_WhenServiceSucceeds_ShouldSetSuccessTempDataAndRedirectToIndex()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.UnfreezeCardAsync(ExistingCardId, CancellationToken.None))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        IActionResult result = await _controller.Unfreeze(ExistingCardId, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(CardsController.Index));
+        _controller.TempData["Success"].Should().Be("Card has been unfrozen successfully.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Unfreeze_WhenServiceReturnsError_ShouldSetErrorTempDataAndRedirectToIndex()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.UnfreezeCardAsync(ExistingCardId, CancellationToken.None))
+            .ReturnsAsync(Error.Failure("cards.unfreeze_failed", "Unfreeze failed."));
+
+        // Act
+        IActionResult result = await _controller.Unfreeze(ExistingCardId, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(CardsController.Index));
+        _controller.TempData["Error"].Should().Be("Could not unfreeze the card. Please try again.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    // -------------------------------------------------------------------------
+    // Cancel
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Cancel_WhenServiceSucceeds_ShouldSetSuccessTempDataAndRedirectToIndex()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.CancelCardAsync(ExistingCardId, CancellationToken.None))
+            .ReturnsAsync(Result.Success);
+
+        // Act
+        IActionResult result = await _controller.Cancel(ExistingCardId, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(CardsController.Index));
+        _controller.TempData["Success"].Should().Be("Card has been cancelled.");
+        _cardServiceMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Cancel_WhenServiceReturnsError_ShouldSetErrorTempDataAndRedirectToIndex()
+    {
+        // Arrange
+        _cardServiceMock
+            .Setup(service => service.CancelCardAsync(ExistingCardId, CancellationToken.None))
+            .ReturnsAsync(Error.Failure("cards.cancel_failed", "Cancel failed."));
+
+        // Act
+        IActionResult result = await _controller.Cancel(ExistingCardId, CancellationToken.None);
+
+        // Assert
+        RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
+        redirect.ActionName.Should().Be(nameof(CardsController.Index));
+        _controller.TempData["Error"].Should().Be("Could not cancel the card. Please try again.");
+        _cardServiceMock.VerifyAll();
+    }
+}
