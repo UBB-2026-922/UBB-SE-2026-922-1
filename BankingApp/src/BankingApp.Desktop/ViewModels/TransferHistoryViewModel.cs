@@ -93,7 +93,7 @@ public partial class TransferHistoryViewModel : ObservableObject
     private static TransferHistoryDisplayItem MapToDisplayItem(TransferResponse transfer)
     {
         string amountDisplay =
-            $"-{transfer.Amount.ToString("F2", CultureInfo.InvariantCulture)} {transfer.Currency}";
+            $"-{transfer.Amount.ToString("F2", CultureInfo.InvariantCulture)}";
         string dateDisplay =
             transfer.CreatedAt.ToLocalTime().ToString(DateTimeFormat, CultureInfo.CurrentCulture);
         string referenceDisplay = string.IsNullOrWhiteSpace(transfer.TransactionRef)
@@ -105,7 +105,8 @@ public partial class TransferHistoryViewModel : ObservableObject
             RecipientName = transfer.RecipientName,
             RecipientIban = transfer.RecipientIban,
             BankName = transfer.RecipientBankName ?? string.Empty,
-            AmountDisplay = amountDisplay,
+            Amount = amountDisplay,
+            Currency = transfer.Currency,
             DateDisplay = dateDisplay,
             StatusDisplay = transfer.Status.ToString(),
             ReferenceDisplay = referenceDisplay,
