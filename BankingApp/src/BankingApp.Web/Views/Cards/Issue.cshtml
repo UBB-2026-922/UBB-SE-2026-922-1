@@ -1,0 +1,67 @@
+@model BankingApp.Web.ViewModels.Cards.IssueCardViewModel
+@{
+    ViewData["Title"] = "Issue New Card";
+}
+
+<div class="page-header">
+    <h1 class="page-title"><i class="bi bi-credit-card-fill me-2 text-primary"></i>Issue New Card</h1>
+    <p class="page-subtitle">Choose a card brand and type to issue a new card.</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-plus-circle text-primary"></i>
+                <span>Card Details</span>
+            </div>
+            <div class="card-body">
+
+                <form asp-action="Issue" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Card Brand -->
+                    <div class="form-group">
+                        <label asp-for="CardBrand" class="form-label">
+                            <i class="bi bi-credit-card me-1"></i>Card Brand
+                        </label>
+                        <select asp-for="CardBrand" class="form-select">
+                            <option value="">— Select brand —</option>
+                            @foreach (string brand in BankingApp.Web.ViewModels.Cards.IssueCardViewModel.SupportedBrands)
+                            {
+                                <option value="@brand">@brand</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CardBrand" class="invalid-feedback d-block"></span>
+                    </div>
+
+                    <!-- Card Type -->
+                    <div class="form-group">
+                        <label asp-for="CardType" class="form-label">
+                            <i class="bi bi-wallet2 me-1"></i>Card Type
+                        </label>
+                        <select asp-for="CardType" class="form-select">
+                            <option value="">— Select type —</option>
+                            <option value="Debit">Debit</option>
+                            <option value="Credit">Credit</option>
+                        </select>
+                        <span asp-validation-for="CardType" class="invalid-feedback d-block"></span>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Issue Card
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Cancel
+                        </a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
