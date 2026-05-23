@@ -19,6 +19,7 @@ public partial class LoginViewModel : ObservableObject
     private readonly IAuthenticationService _authenticationService;
     private readonly IAuthenticationSession _authenticationSession;
     private readonly IConfiguration _configuration;
+    private readonly ILoginPreferences _loginPreferences;
     private readonly ILogger<LoginViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="LoginViewModel"/> class.</summary>
@@ -26,16 +27,20 @@ public partial class LoginViewModel : ObservableObject
         IAuthenticationService authenticationService,
         IAuthenticationSession authenticationSession,
         IConfiguration configuration,
+        ILoginPreferences loginPreferences,
         ILogger<LoginViewModel> logger)
     {
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
         _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _loginPreferences = loginPreferences ?? throw new ArgumentNullException(nameof(loginPreferences));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
         IsDevLoginAvailable = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
             "Development",
             StringComparison.OrdinalIgnoreCase);
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
         State = _authenticationSession.EnsureConfigured().Match(
             _ => LoginState.Idle,
             errors =>
@@ -51,6 +56,18 @@ public partial class LoginViewModel : ObservableObject
 
     /// <summary>Gets a value indicating whether fast development login is available.</summary>
     public bool IsDevLoginAvailable { get; }
+
+    /// <summary>Gets the previously saved email address when Remember Me was active.</summary>
+    public string? SavedEmail
+    {
+        get { return _loginPreferences.SavedEmail; }
+    }
+
+    /// <summary>Gets a value indicating whether the user previously opted to be remembered.</summary>
+    public bool SavedRememberMe
+    {
+        get { return _loginPreferences.RememberMe; }
+    }
 
     /// <summary>Returns true when both email and password contain non-whitespace content.</summary>
     public static bool CanLogin(string email, string password)
@@ -97,7 +114,7 @@ public partial class LoginViewModel : ObservableObject
     }
 
     /// <summary>Attempts to sign the user in with the supplied credentials.</summary>
-    public async Task Login(string email, string password)
+    public async Task Login(string email, string password, bool rememberMe)
     {
         State = LoginState.Loading;
         ErrorOr<LoginSuccessResponse> result = await _authenticationService.LoginAsync(
@@ -107,6 +124,7 @@ public partial class LoginViewModel : ObservableObject
             {
                 _authenticationSession.SetToken(response.Token!);
                 _authenticationSession.CurrentUserId = response.UserId;
+                _loginPreferences.Save(email.Trim(), rememberMe);
                 State = LoginState.Success;
             },
             errors =>
