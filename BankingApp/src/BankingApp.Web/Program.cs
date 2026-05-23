@@ -41,7 +41,8 @@ WebApplication app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Error/500");
+    app.UseStatusCodePagesWithReExecute("/Error/{0}");
     app.UseHsts();
 }
 
