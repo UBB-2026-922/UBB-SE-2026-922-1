@@ -55,7 +55,7 @@ public sealed class BeneficiariesControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Create_WhenServiceSucceeds_NormalizesDataAndRedirects()
+    public async Task Create_WhenServiceSucceeds_MapsFormModelAndRedirects()
     {
         BeneficiaryFormModel beneficiaryForm = new()
         {
@@ -67,9 +67,9 @@ public sealed class BeneficiariesControllerTests : IDisposable
         _beneficiaryService
             .Setup(service => service.CreateAsync(
                 It.Is<CreateBeneficiaryRequest>(request =>
-                    request.Name == "Jane Doe" &&
+                    request.Name == "  Jane Doe  " &&
                     request.Iban == "ro49 aaaa1b31007593840000" &&
-                    request.BankName == "ING"),
+                    request.BankName == "  ING  "),
                 CancellationToken.None))
             .ReturnsAsync(Result.Success);
 

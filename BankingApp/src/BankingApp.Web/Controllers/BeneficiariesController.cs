@@ -40,7 +40,7 @@ public class BeneficiariesController(IBeneficiaryService beneficiaryService) : C
             return View(model);
         }
 
-        TempData["Success"] = $"{model.Name} was added to your beneficiaries.";
+        TempData["Success"] = $"{model.Name.Trim()} was added to your beneficiaries.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -76,7 +76,7 @@ public class BeneficiariesController(IBeneficiaryService beneficiaryService) : C
             return View(model);
         }
 
-        TempData["Success"] = $"{model.Name} was updated.";
+        TempData["Success"] = $"{model.Name.Trim()} was updated.";
         return RedirectToAction(nameof(Index));
     }
 
