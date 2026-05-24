@@ -20,4 +20,9 @@
         <ProjectReference Include="..\BankingApp.Infrastructure.Http\BankingApp.Infrastructure.Http.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\RecurringPayments\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\RecurringPayments\Index.cshtml" />
+    </ItemGroup>
+
 </Project>

@@ -29,8 +29,8 @@ public sealed partial class NavigationView
         Current = this;
         _navButtons =
         [
-            NavDashboard, NavTransfers, NavBillPayments, NavRecurringPayments, NavCards,
-            NavTransferHistory, NavCurrencyExchange, NavRateAlerts, NavSavings,
+            NavDashboard, NavTransfers, NavBillPayments, NavCards,
+            NavTransferHistory, NavCurrencyExchange, NavSavings,
             NavInvestments, NavStatistics, NavSupport, NavProfile,
             NavBeneficiaries
         ];
@@ -111,12 +111,6 @@ public sealed partial class NavigationView
         _navigationService.NavigateToContent<BillPayView>();
     }
 
-    private void NavRecurringPayments_Click(object sender, RoutedEventArgs e)
-    {
-        SetActiveNav(NavRecurringPayments);
-        _navigationService.NavigateToContent<RecurringPaymentView>();
-    }
-
     private void NavCards_Click(object sender, RoutedEventArgs e)
     {
         SetActiveNav(NavCards);
@@ -133,12 +127,6 @@ public sealed partial class NavigationView
     {
         SetActiveNav(NavCurrencyExchange);
         _navigationService.NavigateToContent<ForexPage>();
-    }
-
-    private void NavRateAlerts_Click(object sender, RoutedEventArgs e)
-    {
-        SetActiveNav(NavRateAlerts);
-        _navigationService.NavigateToContent<RateAlertsPage>();
     }
 
     private async void NavSavings_Click(object sender, RoutedEventArgs e)

@@ -22,7 +22,6 @@ public sealed class IdentityAccountConfiguration : IEntityTypeConfiguration<Iden
         builder.Property(identityAccount => identityAccount.FailedLoginAttempts).HasDefaultValue(0);
 
         builder.Navigation(identityAccount => identityAccount.Sessions).UsePropertyAccessMode(PropertyAccessMode.Field);
-        builder.Navigation(identityAccount => identityAccount.PasswordResetTokens).UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.OwnsMany(identityAccount => identityAccount.Sessions, sessions =>
         {
@@ -39,19 +38,6 @@ public sealed class IdentityAccountConfiguration : IEntityTypeConfiguration<Iden
             sessions.Property(session => session.ExpiresAt).IsRequired();
             sessions.Property(session => session.IsRevoked).HasDefaultValue(false);
             sessions.Property(session => session.CreatedAt).IsRequired();
-        });
-
-        builder.OwnsMany(identityAccount => identityAccount.PasswordResetTokens, tokens =>
-        {
-            tokens.ToTable("PasswordResetTokens");
-            tokens.WithOwner().HasForeignKey(token => token.IdentityAccountId);
-            tokens.HasKey(token => token.Id);
-            tokens.Property(token => token.Id).ValueGeneratedOnAdd();
-            tokens.Property(token => token.TokenHash).HasMaxLength(512).IsRequired();
-            tokens.HasIndex(token => token.TokenHash).IsUnique();
-            tokens.Property(token => token.ExpiresAt).IsRequired();
-            tokens.Property(token => token.UsedAt);
-            tokens.Property(token => token.CreatedAt).IsRequired();
         });
     }
 }

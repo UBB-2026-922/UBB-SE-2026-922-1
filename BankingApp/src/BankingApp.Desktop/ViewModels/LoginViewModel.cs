@@ -5,12 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Application.Features.Authentication.Services;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using Shared.Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Session;
-using Shared.Enums;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates interactive sign-in for the desktop client.</summary>
@@ -35,7 +35,6 @@ public partial class LoginViewModel : ObservableObject
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _loginPreferences = loginPreferences ?? throw new ArgumentNullException(nameof(loginPreferences));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
         IsDevLoginAvailable = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
             "Development",
@@ -99,6 +98,7 @@ public partial class LoginViewModel : ObservableObject
         }
 
         LoginSuccessResponse response = result.Value;
+
         if (string.IsNullOrWhiteSpace(response.Token))
         {
             State = LoginState.Idle;

@@ -5,8 +5,6 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
 using BankingApp.Application.Features.Authentication.Commands;
-using BankingApp.Application.Features.PasswordReset.Commands;
-using BankingApp.Application.Features.PasswordReset.Queries;
 using BankingApp.Application.Features.UserRegistration.Commands;
 using BankingApp.Contracts.Features.Authentication.Dtos;
 using BankingApp.Contracts.Http;
@@ -94,36 +92,6 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     }
 
     [Fact]
-    public async Task ForgotPassword_WhenEmailProvided_ShouldReturnOk()
-    {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<ForgotPasswordCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success);
-
-        HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/" + ApiEndpoints.Auth.ForgotPasswordFull,
-            new { Email = "test@example.com" },
-            _cancellationToken);
-
-        response.StatusCode.Should().Be(HttpStatusCode.OK);
-    }
-
-    [Fact]
-    public async Task ResetPassword_WhenValid_ShouldReturnNoContent()
-    {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<ResetPasswordCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success);
-
-        HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/" + ApiEndpoints.Auth.ResetPasswordFull,
-            new { Token = "valid-token", NewPassword = "NewStrongPassword1!" },
-            _cancellationToken);
-
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
-
-    [Fact]
     public async Task Logout_WhenTokenIsProvided_ShouldReturnNoContent()
     {
         _factory.SenderMock
@@ -148,33 +116,4 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
-    [Fact]
-    public async Task VerifyResetToken_WhenValid_ShouldReturnNoContent()
-    {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<VerifyResetTokenQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success);
-
-        HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/" + ApiEndpoints.Auth.VerifyResetTokenFull,
-            new { Token = "valid-token" },
-            _cancellationToken);
-
-        response.StatusCode.Should().Be(HttpStatusCode.NoContent);
-    }
-
-    [Fact]
-    public async Task VerifyResetToken_WhenInvalid_ShouldReturnBadRequest()
-    {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<VerifyResetTokenQuery>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Error.Validation("invalid_token", "Token is invalid or expired."));
-
-        HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/" + ApiEndpoints.Auth.VerifyResetTokenFull,
-            new { Token = "invalid-token" },
-            _cancellationToken);
-
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
 }

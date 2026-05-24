@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using BankingApp.Api.HostedServices;
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
 using BankingApp.Application.Features.UserRegistration.Commands;
@@ -78,7 +77,7 @@ try
     builder.Services.AddApplication();
     builder.Services.AddPersistenceInfrastructure(builder.Configuration);
     builder.Services.AddCoreInfrastructure(builder.Configuration);
-    builder.Services.AddHostedService<FinanceBackgroundService>();
+
     WebApplication application = builder.Build();
     bool applyDatabaseMigrations = !bool.TryParse(
         application.Configuration[applyDatabaseMigrationsConfigurationKey],

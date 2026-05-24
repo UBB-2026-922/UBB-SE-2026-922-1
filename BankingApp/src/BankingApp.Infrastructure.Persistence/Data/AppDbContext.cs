@@ -5,8 +5,6 @@ using Domain.Aggregates.BeneficiaryAggregate;
 using Domain.Aggregates.BillPaymentAggregate;
 using Domain.Aggregates.ForexAggregate;
 using Domain.Aggregates.IdentityAggregate;
-using Domain.Aggregates.RateAlertAggregate;
-using Domain.Aggregates.RecurringPaymentAggregate;
 using Domain.Aggregates.SavedBillerAggregate;
 using Domain.Aggregates.TransferAggregate;
 using Domain.Aggregates.UserAggregate;
@@ -28,10 +26,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Biller> Billers => Set<Biller>();
 
     public DbSet<ForexTransaction> ForexTransactions => Set<ForexTransaction>();
-
-    public DbSet<RateAlert> RateAlerts => Set<RateAlert>();
-
-    public DbSet<RecurringPayment> RecurringPayments => Set<RecurringPayment>();
 
     public DbSet<SavedBiller> SavedBillers => Set<SavedBiller>();
 

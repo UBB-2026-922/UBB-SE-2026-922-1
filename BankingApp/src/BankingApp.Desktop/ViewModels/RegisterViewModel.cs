@@ -4,10 +4,10 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Features.Authentication.Services;
-using Contracts.Features.UserRegistration.Dtos;
+using BankingApp.Contracts.Features.UserRegistration.Dtos;
+using Shared.Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-using Shared.Enums;
 using Shared.Validation;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
@@ -42,12 +42,7 @@ public partial class RegisterViewModel : ObservableObject
 
         State = RegisterState.Loading;
         ErrorOr<Success> result = await _authenticationService.RegisterAsync(
-            new RegisterRequest
-            {
-                Email = email,
-                Password = password,
-                FullName = fullName,
-            });
+            new RegisterRequest { Email = email, Password = password, FullName = fullName });
         result.Switch(
             _ => State = RegisterState.Success,
             errors =>
