@@ -32,6 +32,8 @@ public partial class TransferViewModel
             {
                 SelectedAccount = Accounts[FirstAccountIndex];
             }
+
+            ApplyDraftRecipient();
         }
         catch (Exception loadAccountsException)
         {
@@ -197,6 +199,19 @@ public partial class TransferViewModel
         {
             FxPreviewText = string.Empty;
         }
+    }
+
+    private void ApplyDraftRecipient()
+    {
+        if (!_transferDraftState.HasDraft)
+        {
+            return;
+        }
+
+        RecipientName = _transferDraftState.RecipientName;
+        RecipientIban = _transferDraftState.RecipientIban;
+        CurrentStep = RecipientDetailsStep;
+        _transferDraftState.Clear();
     }
 
 }

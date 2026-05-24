@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
+using State;
 
 /// <summary>Drives the multistep transfer wizard.</summary>
 public partial class TransferViewModel : ObservableObject
@@ -20,11 +21,13 @@ public partial class TransferViewModel : ObservableObject
     private const int MinimumAccounts = 0;
     private const int FirstAccountIndex = 0;
     private readonly ITransferService _transferService;
+    private readonly ITransferDraftState _transferDraftState;
 
     /// <summary>Initializes a new instance of the <see cref="TransferViewModel"/> class.</summary>
-    public TransferViewModel(ITransferService transferService)
+    public TransferViewModel(ITransferService transferService, ITransferDraftState transferDraftState)
     {
         _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
+        _transferDraftState = transferDraftState ?? throw new ArgumentNullException(nameof(transferDraftState));
         Accounts = new ObservableCollection<TransferAccountSelectionResponse>();
         CurrentStep = AccountSelectionStep;
         Currency = DefaultTransferCurrency;

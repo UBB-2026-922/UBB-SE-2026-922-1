@@ -1,5 +1,7 @@
 namespace BankingApp.Web.Controllers;
 
+using Contracts.Features.Beneficiaries.Dtos;
+using Contracts.Features.Beneficiaries.Services;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
 using ErrorOr;
@@ -8,9 +10,53 @@ using Microsoft.AspNetCore.Mvc;
 using ViewModels.Transfers;
 
 [Authorize]
-public class TransfersController(ITransferService transferService) : Controller
+public class TransfersController(
+    ITransferService transferService,
+    IBeneficiaryService beneficiaryService) : Controller
 {
-    public IActionResult New() => View(new TransferNewViewModel());
+    public async Task<IActionResult> New(int? beneficiaryId, CancellationToken ct)
+    {
+        if (!beneficiaryId.HasValue)
+        {
+            return View(new TransferNewViewModel());
+        }
+
+        ErrorOr<BeneficiaryDto> beneficiaryResult = await beneficiaryService.GetByIdAsync(beneficiaryId.Value, ct);
+        if (beneficiaryResult.IsError)
+        {
+            TempData["Error"] = "Unable to open transfer for the selected beneficiary.";
+            return RedirectToAction("Index", "Beneficiaries");
+        }
+
+        Task<ErrorOr<TransferIbanValidationResponse>> validationTask =
+            transferService.ValidateIbanAsync(
+                new TransferIbanValidationRequest { Iban = beneficiaryResult.Value.Iban ?? string.Empty },
+                ct);
+        Task<ErrorOr<List<TransferAccountSelectionResponse>>> accountsTask = transferService.GetAccountsAsync(ct);
+
+        await Task.WhenAll(validationTask, accountsTask);
+
+        ErrorOr<TransferIbanValidationResponse> validationResult = await validationTask;
+        ErrorOr<List<TransferAccountSelectionResponse>> accountsResult = await accountsTask;
+
+        if (validationResult.IsError || !validationResult.Value.IsValid || accountsResult.IsError)
+        {
+            TempData["Error"] = "Unable to prepare a transfer for the selected beneficiary.";
+            return RedirectToAction("Index", "Beneficiaries");
+        }
+
+        return View(
+            "ValidateIban",
+            new TransferIbanValidatedViewModel
+            {
+                RecipientIban = beneficiaryResult.Value.Iban ?? string.Empty,
+                RecipientName = beneficiaryResult.Value.Name ?? string.Empty,
+                RecipientBankName = string.IsNullOrWhiteSpace(beneficiaryResult.Value.BankName)
+                    ? validationResult.Value.BankName
+                    : beneficiaryResult.Value.BankName,
+                Accounts = accountsResult.Value,
+            });
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
