@@ -51,7 +51,7 @@ public partial class BillPayViewModel
         }
     }
 
-    internal void ExecuteNextStep()
+    internal async Task ExecuteNextStepAsync()
     {
         ErrorMessage = string.Empty;
 
@@ -61,7 +61,7 @@ public partial class BillPayViewModel
                 MoveFromBillerSelection();
                 break;
             case PaymentDetailsStep:
-                MoveFromPaymentDetails();
+                await MoveFromPaymentDetailsAsync();
                 break;
         }
     }
@@ -184,14 +184,14 @@ public partial class BillPayViewModel
         CurrentStep = PaymentDetailsStep;
     }
 
-    private void MoveFromPaymentDetails()
+    private async Task MoveFromPaymentDetailsAsync()
     {
         if (!ValidatePaymentRequest())
         {
             return;
         }
 
-        SetFee();
+        await SetFeeAsync();
         CurrentStep = ReviewAndConfirmStep;
     }
 
@@ -224,9 +224,9 @@ public partial class BillPayViewModel
         return true;
     }
 
-    private void SetFee()
+    private async Task SetFeeAsync()
     {
-        ErrorOr<FeeResponse> feeResult = _billPaymentService.GetFeeAsync(Amount).GetAwaiter().GetResult();
+        ErrorOr<FeeResponse> feeResult = await _billPaymentService.GetFeeAsync(Amount);
         Fee = !feeResult.IsError ? feeResult.Value.Fee : NoFee;
     }
 

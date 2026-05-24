@@ -94,13 +94,13 @@ public class BillPayViewModelTests
     }
 
     [Fact]
-    public void ExecuteNextStep_WhenOnStep1AndNoBillerSelected_ShouldSetError()
+    public async Task ExecuteNextStep_WhenOnStep1AndNoBillerSelected_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
 
         // Act
-        vm.ExecuteNextStep();
+        await vm.ExecuteNextStepAsync();
 
         // Assert
         vm.ErrorMessage.Should().Contain("select a biller");
@@ -108,7 +108,7 @@ public class BillPayViewModelTests
     }
 
     [Fact]
-    public void ExecuteNextStep_WhenOnStep2AndNoReferenceProvided_ShouldSetError()
+    public async Task ExecuteNextStep_WhenOnStep2AndNoReferenceProvided_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -116,14 +116,14 @@ public class BillPayViewModelTests
         vm.ExecuteSelectBiller(biller);
 
         // Act
-        vm.ExecuteNextStep();
+        await vm.ExecuteNextStepAsync();
 
         // Assert
         vm.ErrorMessage.Should().Contain("biller reference");
     }
 
     [Fact]
-    public void ExecuteNextStep_WhenOnStep2AndNoAccountSelected_ShouldSetError()
+    public async Task ExecuteNextStep_WhenOnStep2AndNoAccountSelected_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -132,14 +132,14 @@ public class BillPayViewModelTests
         vm.BillerReference = "REF-001";
 
         // Act
-        vm.ExecuteNextStep();
+        await vm.ExecuteNextStepAsync();
 
         // Assert
         vm.ErrorMessage.Should().Contain("source account");
     }
 
     [Fact]
-    public void ExecuteNextStep_WhenOnStep2AndZeroAmount_ShouldSetError()
+    public async Task ExecuteNextStep_WhenOnStep2AndZeroAmount_ShouldSetError()
     {
         // Arrange
         BillPayViewModel vm = CreateViewModel();
@@ -150,14 +150,14 @@ public class BillPayViewModelTests
         vm.Amount = 0;
 
         // Act
-        vm.ExecuteNextStep();
+        await vm.ExecuteNextStepAsync();
 
         // Assert
         vm.ErrorMessage.Should().Contain("valid amount");
     }
 
     [Fact]
-    public void ExecuteNextStep_WhenOnStep2AndValidAmount_ShouldGoToReview()
+    public async Task ExecuteNextStep_WhenOnStep2AndValidAmount_ShouldGoToReview()
     {
         _billPaymentClientService
             .Setup(service => service.GetFeeAsync(It.IsAny<decimal>()))
@@ -169,7 +169,7 @@ public class BillPayViewModelTests
         vm.SelectedAccount = new AccountDto { Id = 1, AccountName = "Test" };
         vm.Amount = 50m;
 
-        vm.ExecuteNextStep();
+        await vm.ExecuteNextStepAsync();
 
         vm.CurrentStep.Should().Be(3);
         vm.Fee.Should().Be(0.50m);

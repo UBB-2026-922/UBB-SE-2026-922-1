@@ -24,12 +24,12 @@ public sealed class BillerService(
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            filtered = filtered.Where(b => b.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(biller => biller.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.IsNullOrWhiteSpace(category))
         {
-            filtered = filtered.Where(b => b.Category.ToString().Equals(category, StringComparison.OrdinalIgnoreCase));
+            filtered = filtered.Where(biller => biller.Category.ToString().Equals(category, StringComparison.OrdinalIgnoreCase));
         }
 
         return filtered

@@ -42,7 +42,7 @@ public partial class BillPayViewModel : ObservableObject
 
         SearchCommand = new RelayCommand(ExecuteSearch);
         SelectBillerCommand = new RelayCommand<object?>(ExecuteSelectBiller);
-        NextStepCommand = new RelayCommand(ExecuteNextStep);
+        NextStepCommand = new AsyncRelayCommand(ExecuteNextStepAsync);
         BackCommand = new RelayCommand(ExecuteBack);
         PayAnotherBillCommand = new RelayCommand(ResetForm);
         PayBillCommand = new AsyncRelayCommand(ExecutePayBillAsync);

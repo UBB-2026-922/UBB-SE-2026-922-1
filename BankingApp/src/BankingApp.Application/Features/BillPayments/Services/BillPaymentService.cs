@@ -98,13 +98,22 @@ public sealed class BillPaymentService(
 
         return accounts
             .Where(account => account.IsActive())
-            .Select(account => new AccountDto
+            .Select(account =>
             {
-                Id = account.Id,
-                Iban = account.Iban.Value,
-                Currency = account.Balance.Currency.Code,
-                Balance = account.Balance.Amount,
-                AccountName = account.AccountName ?? string.Empty
+                Card? primaryCard = account.Cards.FirstOrDefault(card => card.IsActive());
+                string? lastFour = primaryCard is not null && primaryCard.CardNumber.Length >= 4
+                    ? primaryCard.CardNumber[^4..]
+                    : null;
+
+                return new AccountDto
+                {
+                    Id = account.Id,
+                    Iban = account.Iban.Value,
+                    Currency = account.Balance.Currency.Code,
+                    Balance = account.Balance.Amount,
+                    AccountName = account.AccountName ?? string.Empty,
+                    CardLastFourDigits = lastFour
+                };
             })
             .ToList();
     }
