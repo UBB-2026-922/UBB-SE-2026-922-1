@@ -3,6 +3,7 @@ namespace BankingApp.Web.Controllers;
 using System.Globalization;
 using System.Security.Claims;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using BankingApp.Contracts.Features.UserRegistration.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.ViewModels;
 using ErrorOr;
@@ -55,20 +56,54 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
         }
 
         LoginSuccessResponse loginResponse = loginResult.Value;
+        if (loginResponse.Requires2Fa)
+        {
+            return Redirect($"/Auth/VerifyOtp?userId={loginResponse.UserId}");
+        }
+
         if (string.IsNullOrWhiteSpace(loginResponse.Token))
         {
             ModelState.AddModelError(string.Empty, "The API did not return an authentication token.");
             return View(loginViewModel);
         }
 
-        if (loginResponse.SessionId is null)
+        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token);
+        return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Register() => View(new RegisterViewModel());
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(
+        RegisterViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
         {
-            ModelState.AddModelError(string.Empty, "The API did not return a session identifier.");
-            return View(loginViewModel);
+            return View(model);
         }
 
-        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token, loginResponse.SessionId.Value);
-        return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
+        ErrorOr<Success> result = await authenticationService.RegisterAsync(
+            new RegisterRequest
+            {
+                Email = model.Email,
+                Password = model.Password,
+                FullName = model.FullName,
+            },
+            cancellationToken);
+
+        if (result.IsError)
+        {
+            ModelState.AddModelError(string.Empty, result.FirstError.Description);
+            return View(model);
+        }
+
+        TempData["Success"] = "Account created. Please log in.";
+        return RedirectToAction(nameof(Login));
     }
 
     [Authorize]
@@ -82,7 +117,7 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
         return Redirect("/Auth/Login");
     }
 
-    private async Task SignInUserAsync(int userId, string email, string token, int sessionId)
+    private async Task SignInUserAsync(int userId, string email, string token)
     {
         string userIdValue = userId.ToString(CultureInfo.InvariantCulture);
         Claim[] claims =
@@ -90,8 +125,7 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
             new Claim(ClaimTypes.NameIdentifier, userIdValue),
             new Claim(ClaimTypes.Name, email),
             new Claim(AuthClaimTypes.UserId, userIdValue),
-            new Claim(AuthClaimTypes.Token, token),
-            new Claim(AuthClaimTypes.SessionId, sessionId.ToString(CultureInfo.InvariantCulture))
+            new Claim(AuthClaimTypes.Token, token)
         ];
 
         ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -116,13 +150,8 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
 
     private static bool IsLocalReturnUrl(string? returnUrl)
     {
-        int firstLetterOfUrl = 0;
-        int secondLetterOfUrl = 1;
-        int rootPathLength = 1;
         return !string.IsNullOrEmpty(returnUrl)
-               && returnUrl[firstLetterOfUrl] == '/'
-               && (returnUrl.Length == rootPathLength || 
-                   (returnUrl[secondLetterOfUrl] != '/'
-                    && returnUrl[secondLetterOfUrl] != '\\'));
+               && returnUrl[0] == '/'
+               && (returnUrl.Length == 1 || (returnUrl[1] != '/' && returnUrl[1] != '\\'));
     }
 }
