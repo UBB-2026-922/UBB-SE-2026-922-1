@@ -1,4 +1,3 @@
-using BankingApp.Api.HostedServices;
 using BankingApp.Application.Common.Security;
 using BankingApp.Domain.Repositories;
 using MediatR;
@@ -47,7 +46,6 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
         {
             services.AddControllers().AddApplicationPart(typeof(Program).Assembly);
 
-            RemoveHostedService<FinanceBackgroundService>(services);
             ReplaceService(services, SenderMock.Object);
             ReplaceService(services, JwtServiceMock.Object);
             ReplaceService(services, IdentityRepositoryMock.Object);
