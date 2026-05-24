@@ -1,8 +1,7 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.Features.Authentication.Commands;
 using Application.Features.Authentication.Models;
-using Application.Features.UserRegistration.Commands;
+using Application.Features.Authentication.Services;
 using Contracts.Features.Authentication.Dtos;
 using Contracts.Features.UserRegistration.Dtos;
 using Contracts.Http;
@@ -13,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 /// </summary>
 [ApiController]
 [Route(ApiEndpoints.Auth.Base)]
-public class AuthController : ApiControllerBase
+public class AuthController(IAuthService authService) : ApiControllerBase
 {
     private const int DeviceInfoMaxLength = 255;
     private const int BrowserMaxLength = 100;
@@ -22,15 +21,16 @@ public class AuthController : ApiControllerBase
     [HttpPost(ApiEndpoints.Auth.Login)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var command = new LoginCommand(request.Email, request.Password, GetSessionMetadata());
-        return ToActionResult(await Sender.Send(command, cancellationToken), MapLoginSuccess);
+        return ToActionResult(
+            await authService.LoginAsync(request.Email, request.Password, GetSessionMetadata(), cancellationToken),
+            MapLoginSuccess);
     }
 
     [HttpPost(ApiEndpoints.Auth.Register)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
         return ToActionResult(
-            await Sender.Send(new RegisterCommand(request.Email, request.Password, request.FullName), cancellationToken));
+            await authService.RegisterAsync(request.Email, request.Password, request.FullName, cancellationToken));
     }
 
     [HttpPost(ApiEndpoints.Auth.Logout)]
@@ -43,7 +43,7 @@ public class AuthController : ApiControllerBase
             return Problem(detail: "No token provided.", statusCode: StatusCodes.Status400BadRequest);
         }
 
-        return ToActionResult(await Sender.Send(new LogoutCommand(token), cancellationToken));
+        return ToActionResult(await authService.LogoutAsync(token, cancellationToken));
     }
 
     private static string? GetClientIpAddress(HttpContext context)
