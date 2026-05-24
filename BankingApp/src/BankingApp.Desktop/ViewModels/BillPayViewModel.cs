@@ -46,7 +46,7 @@ public partial class BillPayViewModel : ObservableObject
         BackCommand = new RelayCommand(ExecuteBack);
         PayAnotherBillCommand = new RelayCommand(ResetForm);
         PayBillCommand = new AsyncRelayCommand(ExecutePayBillAsync);
-        CancelCommand = new RelayCommand(() => _navigationService.NavigateToContent<DashboardView>());
+        CancelCommand = new RelayCommand(ResetForm);
     }
 
     /// <summary>Gets the command that refreshes billers using the current filters.</summary>
