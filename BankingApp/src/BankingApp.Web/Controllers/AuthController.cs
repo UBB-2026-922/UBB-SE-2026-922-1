@@ -3,6 +3,7 @@ namespace BankingApp.Web.Controllers;
 using System.Globalization;
 using System.Security.Claims;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using BankingApp.Contracts.Features.UserRegistration.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.ViewModels;
 using ErrorOr;
@@ -55,11 +56,6 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
         }
 
         LoginSuccessResponse loginResponse = loginResult.Value;
-        if (string.IsNullOrWhiteSpace(loginResponse.Token))
-        {
-            ModelState.AddModelError(string.Empty, "The API did not return an authentication token.");
-            return View(loginViewModel);
-        }
 
         if (loginResponse.SessionId is null)
         {
@@ -67,8 +63,43 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
             return View(loginViewModel);
         }
 
-        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token, loginResponse.SessionId.Value);
+        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token ?? string.Empty, loginResponse.SessionId.Value);
         return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Register() => View(new RegisterViewModel());
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(
+        RegisterViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        ErrorOr<Success> result = await authenticationService.RegisterAsync(
+            new RegisterRequest
+            {
+                Email = model.Email,
+                Password = model.Password,
+                FullName = model.FullName,
+            },
+            cancellationToken);
+
+        if (result.IsError)
+        {
+            ModelState.AddModelError(string.Empty, result.FirstError.Description);
+            return View(model);
+        }
+
+        TempData["Success"] = "Account created. Please log in.";
+        return RedirectToAction(nameof(Login));
     }
 
     [Authorize]
@@ -85,7 +116,7 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
 
     private async Task SignInUserAsync(int userId, string email, string token, int sessionId)
     {
-        string userIdValue = userId.ToString(CultureInfo.InvariantCulture);
+        string userIdValue = userId.ToString("D", CultureInfo.InvariantCulture);
         Claim[] claims =
         [
             new Claim(ClaimTypes.NameIdentifier, userIdValue),
@@ -117,13 +148,8 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
 
     private static bool IsLocalReturnUrl(string? returnUrl)
     {
-        int firstLetterOfUrl = 0;
-        int secondLetterOfUrl = 1;
-        int rootPathLength = 1;
         return !string.IsNullOrEmpty(returnUrl)
-               && returnUrl[firstLetterOfUrl] == '/'
-               && (returnUrl.Length == rootPathLength || 
-                   (returnUrl[secondLetterOfUrl] != '/'
-                    && returnUrl[secondLetterOfUrl] != '\\'));
+               && returnUrl[0] == '/'
+               && (returnUrl.Length == 1 || (returnUrl[1] != '/' && returnUrl[1] != '\\'));
     }
 }

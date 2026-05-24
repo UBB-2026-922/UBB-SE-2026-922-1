@@ -39,7 +39,7 @@ public partial class TransferViewModel
         }
     }
 
-    /// <summary>Advances the wizard to the next step, validating IBAN and amount before allowing progression.</summary>
+    /// <summary>Advances the wizard to the next step, validating IBAN, amount, and 2FA before allowing progression.</summary>
     internal void ExecuteNextStep()
     {
         ErrorMessage = string.Empty;

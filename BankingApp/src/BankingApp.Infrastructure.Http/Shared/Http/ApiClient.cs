@@ -263,9 +263,7 @@ public sealed class ApiClient : IApiClient, IDisposable
         => IsSensitiveEndpoint(endpoint) ? "Response redacted for sensitive endpoint." : description;
 
     private static bool IsSensitiveEndpoint(string endpoint)
-        => endpoint.Equals(ApiEndpoints.Auth.ForgotPasswordFull, StringComparison.OrdinalIgnoreCase)
-           || endpoint.Equals(ApiEndpoints.Auth.ResetPasswordFull, StringComparison.OrdinalIgnoreCase)
-           || endpoint.Equals(ApiEndpoints.Profile.ChangePasswordFull, StringComparison.OrdinalIgnoreCase)
+        => endpoint.Equals(ApiEndpoints.Profile.ChangePasswordFull, StringComparison.OrdinalIgnoreCase)
            || endpoint.Equals(ApiEndpoints.Profile.VerifyPasswordFull, StringComparison.OrdinalIgnoreCase);
 
     private static HttpClient CreateStandaloneClient(IConfiguration configuration)
