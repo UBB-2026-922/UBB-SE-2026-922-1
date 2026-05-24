@@ -7,7 +7,7 @@ using Contracts.Features.BillPayments.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ViewModels.BillPayments;
+using Models.BillPayments;
 
 [Authorize]
 public class BillPaymentsController(
@@ -26,19 +26,19 @@ public class BillPaymentsController(
         if (allBillersResult.IsError)
         {
             TempData["Error"] = "Unable to load billers. Please try again.";
-            return View(new BillPayViewModel());
+            return View(new BillPayModel());
         }
 
         ErrorOr<List<AccountDto>> accountsResult = await accountsTask;
         if (accountsResult.IsError)
         {
             TempData["Error"] = "Unable to load your accounts. Please try again.";
-            return View(new BillPayViewModel());
+            return View(new BillPayModel());
         }
 
         ErrorOr<List<SavedBillerDto>> savedResult = await savedBillersTask;
 
-        BillPayViewModel viewModel = new()
+        BillPayModel viewModel = new()
         {
             SavedBillers = savedResult.IsError ? [] : savedResult.Value,
             AllBillers = allBillersResult.Value,
@@ -50,7 +50,7 @@ public class BillPaymentsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Preview(BillPayViewModel viewModel, CancellationToken cancellationToken)
+    public async Task<IActionResult> Preview(BillPayModel viewModel, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -75,16 +75,17 @@ public class BillPaymentsController(
 
         ErrorOr<FeeResponse> feeResult = await feeTask;
 
-        BillPayPreviewViewModel preview = new()
+        BillPayPreviewModel preview = new()
         {
             SourceAccountId = viewModel.SelectedAccountId,
             BillerId = viewModel.SelectedBillerId,
             BillerReference = viewModel.BillerReference,
             Amount = viewModel.Amount,
-            Fee = feeResult.IsError ? FallbackFee(viewModel.Amount) : feeResult.Value.Fee,
+            Fee = feeResult.IsError ? decimal.Zero : feeResult.Value.Fee,
             BillerName = billerName,
             AccountIban = account?.Iban ?? string.Empty,
             Currency = account?.Currency ?? string.Empty,
+            ShouldSaveBiller = viewModel.ShouldSaveBiller,
         };
 
         return View("Preview", preview);
@@ -92,7 +93,7 @@ public class BillPaymentsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(BillPayPreviewViewModel viewModel, CancellationToken cancellationToken)
+    public async Task<IActionResult> Confirm(BillPayPreviewModel viewModel, CancellationToken cancellationToken)
     {
         BillPayRequest request = new()
         {
@@ -110,12 +111,23 @@ public class BillPaymentsController(
             return RedirectToAction(nameof(Index));
         }
 
-        BillPayResponse response = result.Value;
-        TempData["Success"] =
-            $"Payment confirmed! Receipt: {response.ReceiptNumber} — " +
-            $"Amount: {response.Amount:N2}, Fee: {response.Fee:N2}.";
+        if (viewModel.ShouldSaveBiller)
+        {
+            await SaveBillerIfNotAlreadySavedAsync(viewModel.BillerId, viewModel.BillerName, viewModel.BillerReference, cancellationToken);
+        }
 
-        return RedirectToAction(nameof(History));
+        BillPayResponse response = result.Value;
+
+        BillPaySuccessModel success = new()
+        {
+            ReceiptNumber = response.ReceiptNumber,
+            Amount = response.Amount,
+            Fee = response.Fee,
+            BillerName = viewModel.BillerName,
+            Currency = viewModel.Currency,
+        };
+
+        return View("Success", success);
     }
 
     public async Task<IActionResult> History(CancellationToken cancellationToken)
@@ -125,12 +137,12 @@ public class BillPaymentsController(
         if (result.IsError)
         {
             TempData["Error"] = "Unable to load payment history. Please try again.";
-            return View(new BillPaymentHistoryViewModel());
+            return View(new BillPaymentHistoryModel());
         }
 
-        BillPaymentHistoryViewModel viewModel = new()
+        BillPaymentHistoryModel viewModel = new()
         {
-            Payments = result.Value.ConvertAll(p => new BillPaymentRowViewModel
+            Payments = result.Value.ConvertAll(p => new BillPaymentRowModel
             {
                 Id = p.Id,
                 ReceiptNumber = p.ReceiptNumber,
@@ -144,9 +156,38 @@ public class BillPaymentsController(
         return View(viewModel);
     }
 
-    private static decimal FallbackFee(decimal amount) => amount <= 100m ? 0.50m : 1.00m;
+    private async Task SaveBillerIfNotAlreadySavedAsync(
+        int billerId,
+        string billerName,
+        string billerReference,
+        CancellationToken cancellationToken)
+    {
+        ErrorOr<List<SavedBillerDto>> savedResult = await billerService.GetSavedBillersAsync(cancellationToken);
+        if (savedResult.IsError)
+        {
+            return;
+        }
 
-    private async Task RepopulateDropdownsAsync(BillPayViewModel viewModel, CancellationToken cancellationToken)
+        bool alreadySaved = savedResult.Value.Exists(savedBiller =>
+            savedBiller.BillerId == billerId &&
+            string.Equals(savedBiller.DefaultReference, billerReference, StringComparison.OrdinalIgnoreCase));
+
+        if (alreadySaved)
+        {
+            return;
+        }
+
+        SaveBillerRequest saveRequest = new()
+        {
+            BillerId = billerId,
+            Nickname = billerName,
+            DefaultReference = billerReference,
+        };
+
+        await billerService.SaveBillerAsync(saveRequest, cancellationToken);
+    }
+
+    private async Task RepopulateDropdownsAsync(BillPayModel viewModel, CancellationToken cancellationToken)
     {
         Task<ErrorOr<List<SavedBillerDto>>> savedTask = billerService.GetSavedBillersAsync(cancellationToken);
         Task<ErrorOr<List<BillerDto>>> allTask = billerService.GetBillersAsync(ct: cancellationToken);

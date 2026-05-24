@@ -1,6 +1,6 @@
 namespace BankingApp.Web.Tests.ViewModels.Shared;
 
-using BankingApp.Web.ViewModels.BillPayments;
+using BankingApp.Web.Models.BillPayments;
 using BankingApp.Web.ViewModels.Shared;
 
 public sealed class TransactionRowViewModelTests
@@ -38,7 +38,7 @@ public sealed class TransactionRowViewModelTests
     [Fact]
     public void FromBillPayment_MapsAllFields()
     {
-        var billPayment = new BillPaymentRowViewModel()
+        var billPayment = new BillPaymentRowModel()
         {
             ReceiptNumber = "RCP-001",
             Amount        = 100m,
