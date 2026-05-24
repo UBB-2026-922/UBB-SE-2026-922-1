@@ -4,8 +4,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
-using BankingApp.Application.Features.UserProfile.Commands;
-using BankingApp.Application.Features.UserProfile.Queries;
 using BankingApp.Contracts.Features.UserProfile.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
@@ -25,7 +23,7 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
         _client = factory.CreateClient();
         _cancellationToken = TestContext.Current.CancellationToken;
 
-        _factory.SenderMock.Reset();
+        _factory.UserProfileServiceMock.Reset();
         _factory.JwtServiceMock.Reset();
         _factory.IdentityRepositoryMock.Reset();
 
@@ -41,8 +39,8 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task GetProfile_WhenUserExists_ShouldReturnOkWithProfileInfo()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<GetProfileQuery>(), It.IsAny<CancellationToken>()))
+        _factory.UserProfileServiceMock
+            .Setup(s => s.GetProfileAsync(ValidUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ProfileDto
             {
                 UserId = ValidUserId,
@@ -64,8 +62,8 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task UpdateProfile_WhenDataIsValid_ShouldReturnNoContent()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<UpdateProfileCommand>(), It.IsAny<CancellationToken>()))
+        _factory.UserProfileServiceMock
+            .Setup(s => s.UpdateProfileAsync(ValidUserId, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<DateTime?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
         var request = new HttpRequestMessage(HttpMethod.Put, "/" + ApiEndpoints.Profile.Base);
@@ -84,8 +82,8 @@ public class ProfileEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task ChangePassword_WhenOldPasswordIsIncorrect_ShouldReturnBadRequest()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<ChangePasswordCommand>(), It.IsAny<CancellationToken>()))
+        _factory.UserProfileServiceMock
+            .Setup(s => s.ChangePasswordAsync(ValidUserId, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Validation("Password.Mismatch", "Old password does not match."));
 
         var request = new HttpRequestMessage(HttpMethod.Put, "/" + ApiEndpoints.Profile.ChangePasswordFull);
