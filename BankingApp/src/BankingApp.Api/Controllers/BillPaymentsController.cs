@@ -27,7 +27,7 @@ public class BillPaymentsController(IBillPaymentService billPaymentService) : Ap
     public async Task<IActionResult> GetAccounts(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new GetBillPayAccountsQuery(userId), cancellationToken), Ok);
+        return ToActionResult(await billPaymentService.GetAccountsAsync(userId, cancellationToken), Ok);
     }
 
     /// <summary>
