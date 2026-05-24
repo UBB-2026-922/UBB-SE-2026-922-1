@@ -68,11 +68,6 @@ internal static class MockFactory
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((IdentityAccount?)null);
 
-        mock.Setup(repository => repository.GetByResetTokenHashAsync(
-                It.IsAny<string>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IdentityAccount?)null);
-
         mock.Setup(repository => repository.AddAsync(
                 It.IsAny<IdentityAccount>(),
                 It.IsAny<CancellationToken>()))
@@ -116,24 +111,6 @@ internal static class MockFactory
 
         mock.Setup(service => service.GenerateToken(It.IsAny<int>()))
             .Returns((ErrorOr<string>)"jwt-token");
-
-        return mock;
-    }
-
-    /// <summary>
-    ///     Creates an email service mock whose supported send operations complete successfully.
-    /// </summary>
-    internal static Mock<IEmailService> CreateEmailServiceMock(MockBehavior behavior = MockBehavior.Strict)
-    {
-        var mock = new Mock<IEmailService>(behavior);
-
-        mock.Setup(service => service.SendLoginAlertAsync(It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
-
-        mock.Setup(service => service.SendPasswordResetLinkAsync(
-                It.IsAny<string>(),
-                It.IsAny<string>()))
-            .Returns(Task.CompletedTask);
 
         return mock;
     }
@@ -282,43 +259,6 @@ internal static class MockFactory
     }
 
     /// <summary>
-    ///     Creates a recurring payment repository mock whose read operations return no recurring payments by default
-    ///     and whose write operations complete successfully.
-    /// </summary>
-    internal static Mock<IRecurringPaymentRepository> CreateRecurringPaymentRepositoryMock(
-        MockBehavior behavior = MockBehavior.Strict)
-    {
-        var mock = new Mock<IRecurringPaymentRepository>(behavior);
-
-        mock.Setup(repository => repository.GetByIdAsync(
-                It.IsAny<int>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((RecurringPayment?)null);
-
-        mock.Setup(repository => repository.ListByUserIdAsync(
-                It.IsAny<int>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<RecurringPayment>());
-
-        mock.Setup(repository => repository.ListDueAsync(
-                It.IsAny<DateTime>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<RecurringPayment>());
-
-        mock.Setup(repository => repository.AddAsync(
-                It.IsAny<RecurringPayment>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        mock.Setup(repository => repository.UpdateAsync(
-                It.IsAny<RecurringPayment>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        return mock;
-    }
-
-    /// <summary>
     ///     Creates a biller repository mock whose single-item lookup returns no biller
     ///     and whose active list operation returns an empty list.
     /// </summary>
@@ -384,45 +324,6 @@ internal static class MockFactory
 
         mock.Setup(repository => repository.AddAsync(
                 It.IsAny<ForexTransaction>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        return mock;
-    }
-
-    /// <summary>
-    ///     Creates a rate alert repository mock whose read operations return no alerts by default
-    ///     and whose write operations complete successfully.
-    /// </summary>
-    internal static Mock<IRateAlertRepository> CreateRateAlertRepositoryMock(MockBehavior behavior = MockBehavior.Strict)
-    {
-        var mock = new Mock<IRateAlertRepository>(behavior);
-
-        mock.Setup(repository => repository.GetByIdAsync(
-                It.IsAny<int>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((RateAlert?)null);
-
-        mock.Setup(repository => repository.ListByUserIdAsync(
-                It.IsAny<int>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<RateAlert>());
-
-        mock.Setup(repository => repository.ListAllUntriggeredAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<RateAlert>());
-
-        mock.Setup(repository => repository.AddAsync(
-                It.IsAny<RateAlert>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        mock.Setup(repository => repository.UpdateAsync(
-                It.IsAny<RateAlert>(),
-                It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        mock.Setup(repository => repository.DeleteAsync(
-                It.IsAny<RateAlert>(),
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 

@@ -110,9 +110,6 @@
         <Page Update="Views\BillPayView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
-        <Page Update="Views\RecurringPaymentView.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </Page>
         <Page Update="Views\CardsView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>

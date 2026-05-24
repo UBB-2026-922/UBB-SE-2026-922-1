@@ -4,10 +4,11 @@ using System;
 using System.Threading.Tasks;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
+using Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Shared.Enums;
+using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Handles personal-profile loading, editing, and password verification for the profile area.</summary>
@@ -36,6 +37,10 @@ public partial class PersonalInfoViewModel : ObservableObject
 
     /// <summary>Gets a value indicating whether the user has a phone number on file.</summary>
     public bool HasPhoneNumber => !string.IsNullOrEmpty(ProfileInfo.PhoneNumber);
+
+    /// <summary>Gets the phone-number text shown in the two-factor section.</summary>
+    public string TwoFactorPhoneDisplay =>
+        HasPhoneNumber ? ProfileInfo.PhoneNumber! : UserMessages.Profile.NoPhoneNumber;
 
     /// <summary>Loads the current user's profile.</summary>
     public async Task<bool> LoadProfile()

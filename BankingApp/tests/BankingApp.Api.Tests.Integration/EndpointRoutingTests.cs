@@ -37,10 +37,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [Theory]
     [InlineData("POST", "/" + ApiEndpoints.Auth.LoginFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.RegisterFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.ForgotPasswordFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.ResetPasswordFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.LogoutFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.VerifyResetTokenFull)]
     public async Task SendAsync_WhenAuthEndpointIsPublicAndTokenIsMissing_ShouldNotReturnUnauthorized(
         string method,
         string path)

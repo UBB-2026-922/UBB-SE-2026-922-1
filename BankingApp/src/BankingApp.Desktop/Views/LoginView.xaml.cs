@@ -7,7 +7,6 @@ using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Navigation;
-using Shared.Enums;
 using State;
 
 /// <summary>
@@ -144,11 +143,6 @@ public sealed partial class LoginView
         {
             ShowError(ex.Message);
         }
-    }
-
-    private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)
-    {
-        _navigationService.NavigateTo<ForgotPasswordView>();
     }
 
     private void CreateAccountButton_Click(object sender, RoutedEventArgs e)

@@ -15,8 +15,11 @@ public partial class BillPayViewModel : ObservableObject
 {
     private const int SelectBillerStep = 1;
     private const int PaymentDetailsStep = 2;
-    private const int ReviewAndConfirmStep = 3;
-    private const int PaymentResultStep = 4;
+    private const int TwoFactorAuthenticationStep = 3;
+    private const int ReviewAndConfirmStep = 4;
+    private const int PaymentResultStep = 5;
+    private const int MinimumTwoFactorToken = 100000;
+    private const int MaximumTwoFactorTokenExclusive = 1000000;
     private const int MinimumBillers = 0;
     private const int MinimumAmount = 0;
     private const int NoFee = 0;
@@ -156,6 +159,18 @@ public partial class BillPayViewModel : ObservableObject
     /// <summary>Gets the visibility of the error message panel.</summary>
     public Visibility ErrorMessageVisibility =>
         string.IsNullOrWhiteSpace(ErrorMessage) ? Visibility.Collapsed : Visibility.Visible;
+
+    /// <summary>Gets or sets a value indicating whether two-factor confirmation is required.</summary>
+    [ObservableProperty]
+    public partial bool Requires2Fa { get; set; } = default!;
+
+    /// <summary>Gets or sets a value indicating whether the user confirmed the two-factor step.</summary>
+    [ObservableProperty]
+    public partial bool Is2FaConfirmed { get; set; } = default!;
+
+    /// <summary>Gets or sets the two-factor token entered for the payment.</summary>
+    [ObservableProperty]
+    public partial string TwoFaToken { get; set; } = string.Empty;
 
     /// <summary>Gets or sets a value indicating whether the selected biller should be saved for reuse.</summary>
     [ObservableProperty]

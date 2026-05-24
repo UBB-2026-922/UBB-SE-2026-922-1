@@ -2,10 +2,11 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using Contracts.Features.Transfers.Dtos;
 using ErrorOr;
-using Shared;
+using Utilities;
 
 public partial class TransferViewModel
 {
@@ -39,7 +40,7 @@ public partial class TransferViewModel
         }
     }
 
-    /// <summary>Advances the wizard to the next step, validating IBAN and amount before allowing progression.</summary>
+    /// <summary>Advances the wizard to the next step, validating IBAN, amount, and 2FA before allowing progression.</summary>
     internal void ExecuteNextStep()
     {
         ErrorMessage = string.Empty;
@@ -51,6 +52,9 @@ public partial class TransferViewModel
                 break;
             case AmountDetailsStep:
                 MoveFromAmountStep();
+                break;
+            case TwoFactorAuthenticationStep:
+                MoveFromTwoFactorStep();
                 break;
             default:
                 CurrentStep++;
@@ -77,6 +81,7 @@ public partial class TransferViewModel
                 RecipientIban = RecipientIban,
                 Amount = Amount,
                 Currency = Currency,
+                TwoFaToken = Requires2Fa ? TwoFaToken : null,
             };
 
             ErrorOr<TransferExecutionResponse> result =
@@ -110,6 +115,9 @@ public partial class TransferViewModel
         Amount = ZeroAmount;
         Currency = DefaultTransferCurrency;
         FxPreviewText = string.Empty;
+        TwoFaToken = string.Empty;
+        Requires2Fa = false;
+        Is2FaConfirmed = false;
         TransactionRef = string.Empty;
         ErrorMessage = string.Empty;
         AmountText = string.Empty;
@@ -137,12 +145,29 @@ public partial class TransferViewModel
     {
         if (Amount > ZeroAmount)
         {
-            CurrentStep = ReviewAndConfirmationStep;
+            CurrentStep = Requires2Fa ? TwoFactorAuthenticationStep : ReviewAndConfirmationStep;
             return;
         }
 
         ErrorMessage = UserMessages.Transfer.AmountMustBePositive;
         CurrentStep = TransferErrorStep;
+    }
+
+    private void MoveFromTwoFactorStep()
+    {
+        if (!Is2FaConfirmed)
+        {
+            ErrorMessage = UserMessages.Transfer.TwoFaRequired;
+            CurrentStep = TransferErrorStep;
+            return;
+        }
+
+        if (Requires2Fa && string.IsNullOrWhiteSpace(TwoFaToken))
+        {
+            TwoFaToken = GenerateTwoFaToken();
+        }
+
+        CurrentStep = ReviewAndConfirmationStep;
     }
 
     private async Task UpdateIbanValidationAsync(string iban)
@@ -199,4 +224,15 @@ public partial class TransferViewModel
         }
     }
 
+    private void UpdateRequires2Fa()
+    {
+        Requires2Fa = Amount >= TwoFaAmountThreshold;
+    }
+
+    private static string GenerateTwoFaToken()
+    {
+        Random random = new();
+        return random.Next(MinimumTwoFactorToken, MaximumTwoFactorTokenExclusive)
+            .ToString(CultureInfo.InvariantCulture);
+    }
 }

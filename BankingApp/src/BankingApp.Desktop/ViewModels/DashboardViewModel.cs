@@ -7,12 +7,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BankingApp.Contracts.Features.AccountOverview.Dtos;
+using Enums;
+using BankingApp.Application.Common.Utilities;
 using BankingApp.Domain.Enums;
 using Contracts.Features.AccountOverview.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-using Shared;
-using Shared.Enums;
+using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Loads and exposes the data needed by the dashboard view.</summary>
@@ -27,14 +28,14 @@ public partial class DashboardViewModel : ObservableObject
     private const int CardNumberVisibleSuffixLength = 4;
     private const string FullyMaskedCardNumber = "**** **** **** ****";
     private const string CardNumberMaskPrefix = "**** **** ****";
-    private readonly IAccountOverviewService _accountOverviewService;
+    private readonly IDashboardService _dashboardService;
     private readonly ILogger<DashboardViewModel> _logger;
     private int _currentCardIndex;
 
     /// <summary>Initializes a new instance of the <see cref="DashboardViewModel"/> class.</summary>
-    public DashboardViewModel(IAccountOverviewService accountOverviewService, ILogger<DashboardViewModel> logger)
+    public DashboardViewModel(IDashboardService dashboardService, ILogger<DashboardViewModel> logger)
     {
-        _accountOverviewService = accountOverviewService ?? throw new ArgumentNullException(nameof(accountOverviewService));
+        _dashboardService = dashboardService ?? throw new ArgumentNullException(nameof(dashboardService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Cards = new List<CardDto>();
         RecentTransactions = new List<TransactionDto>();
@@ -161,7 +162,7 @@ public partial class DashboardViewModel : ObservableObject
     {
         State = DashboardState.Loading;
         ErrorMessage = string.Empty;
-        ErrorOr<AccountOverviewDto> result = await _accountOverviewService.GetDashboardAsync(cancellationToken);
+        ErrorOr<AccountOverviewDto> result = await _dashboardService.GetDashboardAsync(cancellationToken);
         return result.Match<ErrorOr<Success>>(
             dashboard =>
             {

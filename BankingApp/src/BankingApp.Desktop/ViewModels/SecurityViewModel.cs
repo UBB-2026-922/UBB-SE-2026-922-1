@@ -3,17 +3,17 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Enums;
+using BankingApp.Domain.Enums;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Features.UserProfile.Services;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
-using Shared;
-using Shared.Enums;
-using Shared.Validation;
+using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
-/// <summary>Handles password changes for the profile area.</summary>
+/// <summary>Handles password changes and two-factor authentication settings for the profile area.</summary>
 public partial class SecurityViewModel : ObservableObject
 {
     private readonly IProfileService _profileService;
@@ -29,6 +29,10 @@ public partial class SecurityViewModel : ObservableObject
     /// <summary>Gets or sets the current security workflow state.</summary>
     [ObservableProperty]
     public partial ProfileState State { get; set; } = ProfileState.Idle;
+
+    /// <summary>Enables or disables two-factor authentication using the default email flow.</summary>
+    public async Task<bool> SetTwoFactorEnabled(bool enabled) =>
+        enabled ? await EnableTwoFactor(TwoFactorMethod.Email) : await DisableTwoFactor();
 
     /// <summary>Changes the user's password.</summary>
     public async Task<(bool Success, string ErrorMessage)> ChangePassword(
@@ -67,4 +71,42 @@ public partial class SecurityViewModel : ObservableObject
             });
     }
 
+    /// <summary>Enables two-factor authentication using the specified method.</summary>
+    public async Task<bool> EnableTwoFactor(TwoFactorMethod method)
+    {
+        State = ProfileState.Loading;
+        var request = new EnableTwoFaRequest { Method = method };
+        ErrorOr<Success> result = await _profileService.Enable2FaAsync(request);
+        return result.Match(
+            _ =>
+            {
+                State = ProfileState.UpdateSuccess;
+                return true;
+            },
+            errors =>
+            {
+                DesktopLogMessages.EnableTwoFactorFailed(_logger, errors);
+                State = ProfileState.Error;
+                return false;
+            });
+    }
+
+    /// <summary>Disables two-factor authentication.</summary>
+    public async Task<bool> DisableTwoFactor()
+    {
+        State = ProfileState.Loading;
+        ErrorOr<Success> result = await _profileService.Disable2FaAsync();
+        return result.Match(
+            _ =>
+            {
+                State = ProfileState.UpdateSuccess;
+                return true;
+            },
+            errors =>
+            {
+                DesktopLogMessages.DisableTwoFactorFailed(_logger, errors);
+                State = ProfileState.Error;
+                return false;
+            });
+    }
 }

@@ -2,8 +2,9 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
+using Enums;
+using BankingApp.Domain.Enums;
 using Contracts.Features.UserProfile.Dtos;
-using Shared.Enums;
 
 /// <summary>
 ///     Coordinates profile-related operations by delegating to specialized sub-ViewModels
@@ -48,6 +49,14 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
     /// <summary>Gets the current user's profile details (convenience accessor).</summary>
     public ProfileDto ProfileDto => PersonalInfo.ProfileDto;
 
+    /// <summary>Gets a value indicating whether phone-based 2FA is active.</summary>
+    public bool IsPhoneTwoFactorActive =>
+        ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Phone };
+
+    /// <summary>Gets a value indicating whether email-based 2FA is active.</summary>
+    public bool IsEmailTwoFactorActive =>
+        ProfileDto is { Is2FaEnabled: true, Preferred2FaMethod: TwoFactorMethod.Email };
+
     /// <summary>Loads the current user's profile, OAuth links, and notification preferences.</summary>
     public async Task<bool> LoadProfile()
     {
@@ -59,6 +68,48 @@ public partial class ProfileViewModel : ObservableObject, IDisposable
         }
 
         State = ProfileState.UpdateSuccess;
+        return true;
+    }
+
+    /// <summary>Enables 2FA and updates the local profile state when successful.</summary>
+    public async Task<bool> EnableTwoFactor(TwoFactorMethod method)
+    {
+        bool success = await Security.EnableTwoFactor(method);
+        if (!success)
+        {
+            return false;
+        }
+
+        ProfileDto.Is2FaEnabled = true;
+        ProfileDto.Preferred2FaMethod = method;
+        return true;
+    }
+
+    /// <summary>Disables 2FA and updates the local profile state when successful.</summary>
+    public async Task<bool> DisableTwoFactor()
+    {
+        bool success = await Security.DisableTwoFactor();
+        if (!success)
+        {
+            return false;
+        }
+
+        ProfileDto.Is2FaEnabled = false;
+        ProfileDto.Preferred2FaMethod = null;
+        return true;
+    }
+
+    /// <summary>Sets email 2FA from the profile toggle and updates local state.</summary>
+    public async Task<bool> SetEmailTwoFactorEnabled(bool enabled)
+    {
+        bool success = await Security.SetTwoFactorEnabled(enabled);
+        if (!success)
+        {
+            return false;
+        }
+
+        ProfileDto.Is2FaEnabled = enabled;
+        ProfileDto.Preferred2FaMethod = enabled ? TwoFactorMethod.Email : null;
         return true;
     }
 

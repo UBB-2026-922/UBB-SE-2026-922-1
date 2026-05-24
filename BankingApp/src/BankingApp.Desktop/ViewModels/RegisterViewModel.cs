@@ -3,24 +3,22 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Application.Features.Authentication.Services;
-using Contracts.Features.UserRegistration.Dtos;
+using Enums;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-using Shared.Enums;
-using Shared.Validation;
+using Utilities;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates user-registration requests for the register view.</summary>
 public partial class RegisterViewModel : ObservableObject
 {
-    private readonly IAuthenticationService _authenticationService;
+    private readonly IAuthService _authService;
     private readonly ILogger<RegisterViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="RegisterViewModel"/> class.</summary>
-    public RegisterViewModel(IAuthenticationService authenticationService, ILogger<RegisterViewModel> logger)
+    public RegisterViewModel(IAuthService authService, ILogger<RegisterViewModel> logger)
     {
-        _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -41,13 +39,7 @@ public partial class RegisterViewModel : ObservableObject
         }
 
         State = RegisterState.Loading;
-        ErrorOr<Success> result = await _authenticationService.RegisterAsync(
-            new RegisterRequest
-            {
-                Email = email,
-                Password = password,
-                FullName = fullName,
-            });
+        ErrorOr<Success> result = await _authService.RegisterAsync(email, password, fullName);
         result.Switch(
             _ => State = RegisterState.Success,
             errors =>
