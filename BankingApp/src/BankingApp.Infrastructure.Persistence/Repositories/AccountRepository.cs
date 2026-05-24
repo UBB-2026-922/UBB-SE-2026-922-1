@@ -15,6 +15,14 @@ public sealed class AccountRepository(AppDbContext dbContext) : IAccountReposito
             .FirstOrDefaultAsync(account => account.Id == id, cancellationToken);
     }
 
+    public async Task<Account?> GetByIbanAsync(string iban, CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Accounts
+            .Include(account => account.Cards)
+            .Include(account => account.Transactions)
+            .FirstOrDefaultAsync(account => account.Iban.Value == iban, cancellationToken);
+    }
+
     public async Task<IReadOnlyCollection<Account>> ListByUserIdAsync(int userId, CancellationToken cancellationToken = default)
     {
         return await dbContext.Accounts

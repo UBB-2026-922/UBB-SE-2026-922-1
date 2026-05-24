@@ -10,6 +10,8 @@ using Models.Transfers;
 [Authorize]
 public class TransfersController(ITransferService transferService) : Controller
 {
+    public IActionResult Index() => RedirectToAction(nameof(New));
+
     public IActionResult New() => View(new TransferNewModel());
 
     [HttpPost]
