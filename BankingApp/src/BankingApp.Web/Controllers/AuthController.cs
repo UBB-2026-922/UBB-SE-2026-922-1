@@ -57,13 +57,13 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
 
         LoginSuccessResponse loginResponse = loginResult.Value;
 
-        if (string.IsNullOrWhiteSpace(loginResponse.Token))
+        if (loginResponse.SessionId is null)
         {
-            ModelState.AddModelError(string.Empty, "The API did not return an authentication token.");
+            ModelState.AddModelError(string.Empty, "The API did not return a session identifier.");
             return View(loginViewModel);
         }
 
-        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token);
+        await SignInUserAsync(loginResponse.UserId, loginViewModel.Email, loginResponse.Token ?? string.Empty, loginResponse.SessionId.Value);
         return Redirect(loginViewModel.ReturnUrl ?? "/Dashboard");
     }
 
@@ -113,15 +113,16 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
         return Redirect("/Auth/Login");
     }
 
-    private async Task SignInUserAsync(int userId, string email, string token)
+    private async Task SignInUserAsync(int userId, string email, string token, int sessionId)
     {
-        string userIdValue = userId.ToString(CultureInfo.InvariantCulture);
+        string userIdValue = userId.ToString("D", CultureInfo.InvariantCulture);
         Claim[] claims =
         [
             new Claim(ClaimTypes.NameIdentifier, userIdValue),
             new Claim(ClaimTypes.Name, email),
             new Claim(AuthClaimTypes.UserId, userIdValue),
-            new Claim(AuthClaimTypes.Token, token)
+            new Claim(AuthClaimTypes.Token, token),
+            new Claim(AuthClaimTypes.SessionId, sessionId.ToString(CultureInfo.InvariantCulture))
         ];
 
         ClaimsIdentity identity = new(claims, CookieAuthenticationDefaults.AuthenticationScheme);
