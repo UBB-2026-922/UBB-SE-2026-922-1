@@ -21,7 +21,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         _factory = factory;
         _client = factory.CreateClient();
 
-        _factory.SenderMock.Reset();
         _factory.JwtServiceMock.Reset();
         _factory.IdentityRepositoryMock.Reset();
 
