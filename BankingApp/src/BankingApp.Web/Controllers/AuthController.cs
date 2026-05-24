@@ -3,8 +3,10 @@ namespace BankingApp.Web.Controllers;
 using System.Globalization;
 using System.Security.Claims;
 using BankingApp.Contracts.Features.Authentication.Dtos;
+using BankingApp.Contracts.Features.UserRegistration.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.Models;
+using BankingApp.Web.ViewModels;
 using ErrorOr;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -85,6 +87,41 @@ public sealed class AuthController : Controller
         return Redirect(loginModel.ReturnUrl ?? "/Dashboard");
     }
 
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Register() => View(new RegisterViewModel());
+
+    [AllowAnonymous]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(
+        RegisterViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        ErrorOr<Success> result = await _authenticationService.RegisterAsync(
+            new RegisterRequest
+            {
+                Email = model.Email,
+                Password = model.Password,
+                FullName = model.FullName,
+            },
+            cancellationToken);
+
+        if (result.IsError)
+        {
+            ModelState.AddModelError(string.Empty, result.FirstError.Description);
+            return View(model);
+        }
+
+        TempData["Success"] = "Account created. Please log in.";
+        return RedirectToAction(nameof(Login));
+    }
+
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -118,7 +155,7 @@ public sealed class AuthController : Controller
         int sessionId,
         bool rememberMe)
     {
-        string userIdValue = userId.ToString(CultureInfo.InvariantCulture);
+        string userIdValue = userId.ToString("D", CultureInfo.InvariantCulture);
         Claim[] claims =
         [
             new Claim(ClaimTypes.NameIdentifier, userIdValue),
@@ -150,9 +187,10 @@ public sealed class AuthController : Controller
 
     private static bool IsLocalReturnUrl(string? returnUrl)
     {
-        int firstLetterOfUrl = 0;
-        int secondLetterOfUrl = 1;
-        int rootPathLength = 1;
+        const int firstLetterOfUrl = 0;
+        const int secondLetterOfUrl = 1;
+        const int rootPathLength = 1;
+
         return !string.IsNullOrEmpty(returnUrl)
                && returnUrl[firstLetterOfUrl] == '/'
                && (returnUrl.Length == rootPathLength ||
