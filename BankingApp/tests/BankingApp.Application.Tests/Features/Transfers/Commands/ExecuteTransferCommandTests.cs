@@ -244,10 +244,10 @@ public sealed class ExecuteTransferCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(amount: 100m), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();

@@ -1,12 +1,10 @@
 namespace BankingApp.Infrastructure.Persistence.Data;
 
-using Application;
 using Application.Shared.Persistence;
 using Domain.Common;
 using Domain.Common.Primitives;
-using MediatR;
 
-public sealed class UnitOfWork(AppDbContext dbContext, IPublisher publisher) : IUnitOfWork
+public sealed class UnitOfWork(AppDbContext dbContext) : IUnitOfWork
 {
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -20,11 +18,6 @@ public sealed class UnitOfWork(AppDbContext dbContext, IPublisher publisher) : I
 
         foreach (AggregateRoot<int> aggregate in aggregates)
         {
-            foreach (IDomainEvent domainEvent in aggregate.DomainEvents)
-            {
-                await publisher.Publish(domainEvent, cancellationToken);
-            }
-
             aggregate.ClearDomainEvents();
         }
     }
