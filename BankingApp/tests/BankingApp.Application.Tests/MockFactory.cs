@@ -1,7 +1,6 @@
 namespace BankingApp.Application.Tests;
 
 using Application.Features.Forex.Services;
-using Common.Notifications;
 using Common.Security;
 using ErrorOr;
 using Shared.Clock;

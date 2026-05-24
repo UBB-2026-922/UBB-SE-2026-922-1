@@ -3,6 +3,7 @@ namespace BankingApp.Desktop.Views;
 using System;
 using System.Linq;
 using ErrorOr;
+using Shared.Enums;
 using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;

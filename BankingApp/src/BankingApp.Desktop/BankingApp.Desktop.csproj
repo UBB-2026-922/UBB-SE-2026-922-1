@@ -92,16 +92,10 @@
         <Page Update="Views\LoginView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
-        <Page Update="Views\ForgotPasswordView.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </Page>
         <Page Update="Views\ProfileView.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\ForexPage.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </Page>
-        <Page Update="Views\RateAlertsPage.xaml">
             <Generator>MSBuild:Compile</Generator>
         </Page>
         <Page Update="Views\TransferView.xaml">

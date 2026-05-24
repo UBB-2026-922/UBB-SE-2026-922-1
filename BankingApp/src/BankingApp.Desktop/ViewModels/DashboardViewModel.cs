@@ -7,13 +7,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BankingApp.Contracts.Features.AccountOverview.Dtos;
-using Enums;
-using BankingApp.Application.Common.Utilities;
+using Shared.Enums;
 using BankingApp.Domain.Enums;
 using Contracts.Features.AccountOverview.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Shared;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Loads and exposes the data needed by the dashboard view.</summary>
@@ -28,12 +27,12 @@ public partial class DashboardViewModel : ObservableObject
     private const int CardNumberVisibleSuffixLength = 4;
     private const string FullyMaskedCardNumber = "**** **** **** ****";
     private const string CardNumberMaskPrefix = "**** **** ****";
-    private readonly IDashboardService _dashboardService;
+    private readonly IAccountOverviewService _dashboardService;
     private readonly ILogger<DashboardViewModel> _logger;
     private int _currentCardIndex;
 
     /// <summary>Initializes a new instance of the <see cref="DashboardViewModel"/> class.</summary>
-    public DashboardViewModel(IDashboardService dashboardService, ILogger<DashboardViewModel> logger)
+    public DashboardViewModel(IAccountOverviewService dashboardService, ILogger<DashboardViewModel> logger)
     {
         _dashboardService = dashboardService ?? throw new ArgumentNullException(nameof(dashboardService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

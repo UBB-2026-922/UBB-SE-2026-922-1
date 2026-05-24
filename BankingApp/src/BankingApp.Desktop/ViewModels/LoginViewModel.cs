@@ -3,36 +3,40 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Features.Authentication.Services;
 using BankingApp.Contracts.Features.Authentication.Dtos;
-using Enums;
+using Shared.Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Session;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates interactive sign-in for the desktop client.</summary>
 public partial class LoginViewModel : ObservableObject
 {
-    private readonly IAuthService _authService;
+    private readonly IAuthenticationService _authenticationService;
+    private readonly IAuthenticationSession _authenticationSession;
     private readonly IConfiguration _configuration;
     private readonly ILogger<LoginViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="LoginViewModel"/> class.</summary>
     public LoginViewModel(
-        IAuthService authService,
+        IAuthenticationService authenticationService,
+        IAuthenticationSession authenticationSession,
         IConfiguration configuration,
         ILogger<LoginViewModel> logger)
     {
-        _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+        _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
+        _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         IsDevLoginAvailable = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
             "Development",
             StringComparison.OrdinalIgnoreCase);
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        State = _authService.EnsureConfigured().Match(
+        State = _authenticationSession.EnsureConfigured().Match(
             _ => LoginState.Idle,
             errors =>
             {
@@ -66,7 +70,8 @@ public partial class LoginViewModel : ObservableObject
         }
 
         State = LoginState.Loading;
-        ErrorOr<LoginSuccessResponse> result = await _authService.LoginAsync(email.Trim(), password);
+        ErrorOr<LoginSuccessResponse> result = await _authenticationService.LoginAsync(
+            new LoginRequest { Email = email.Trim(), Password = password });
         if (result.IsError)
         {
             DesktopLogMessages.LoginFailed(_logger, result.Errors);
@@ -75,13 +80,6 @@ public partial class LoginViewModel : ObservableObject
         }
 
         LoginSuccessResponse response = result.Value;
-        if (response.Requires2Fa)
-        {
-            State = LoginState.Idle;
-            return Error.Failure(
-                "DevLogin.Requires2Fa",
-                "Dev login cannot use an account that requires two-factor authentication.");
-        }
 
         if (string.IsNullOrWhiteSpace(response.Token))
         {
@@ -91,8 +89,8 @@ public partial class LoginViewModel : ObservableObject
                 "Dev login failed because the API did not return an authentication token.");
         }
 
-        _authService.SetToken(response.Token);
-        _authService.CurrentUserId = response.UserId;
+        _authenticationSession.SetToken(response.Token);
+        _authenticationSession.CurrentUserId = response.UserId;
         State = LoginState.Success;
         return Result.Success;
     }
@@ -101,19 +99,13 @@ public partial class LoginViewModel : ObservableObject
     public async Task Login(string email, string password)
     {
         State = LoginState.Loading;
-        ErrorOr<LoginSuccessResponse> result = await _authService.LoginAsync(email.Trim(), password);
+        ErrorOr<LoginSuccessResponse> result = await _authenticationService.LoginAsync(
+            new LoginRequest { Email = email.Trim(), Password = password });
         result.Switch(
             response =>
             {
-                if (response.Requires2Fa)
-                {
-                    _authService.CurrentUserId = response.UserId;
-                    State = LoginState.Require2Fa;
-                    return;
-                }
-
-                _authService.SetToken(response.Token!);
-                _authService.CurrentUserId = response.UserId;
+                _authenticationSession.SetToken(response.Token!);
+                _authenticationSession.CurrentUserId = response.UserId;
                 State = LoginState.Success;
             },
             errors =>

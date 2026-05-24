@@ -9,7 +9,7 @@ using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
 using ErrorOr;
 using Microsoft.Extensions.Logging;
-using Utilities;
+using Shared;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>
