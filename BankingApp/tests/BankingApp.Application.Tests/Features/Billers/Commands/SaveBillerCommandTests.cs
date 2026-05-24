@@ -1,6 +1,6 @@
 namespace BankingApp.Application.Tests.Features.Billers.Commands;
 
-using BankingApp.Application.Features.Billers.Commands;
+using BankingApp.Application.Features.Billers.Services;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.Billers.Dtos;
 using ErrorOr;
@@ -29,11 +29,10 @@ public sealed class SaveBillerCommandTests
             .Setup(repository => repository.GetByIdAsync(TestBillerId, cancellationToken))
             .ReturnsAsync((Biller?)null);
 
-        SaveBillerCommandHandler handler = CreateHandler();
-        var command = new SaveBillerCommand(TestUserId, TestBillerId, "Power", "ACC-123");
+        BillerService service = CreateService();
 
         // Act
-        ErrorOr<SavedBillerDto> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<SavedBillerDto> result = await service.SaveBillerAsync(TestUserId, TestBillerId, "Power", "ACC-123", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -62,11 +61,10 @@ public sealed class SaveBillerCommandTests
             .Setup(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken))
             .ReturnsAsync([savedBiller]);
 
-        SaveBillerCommandHandler handler = CreateHandler();
-        var command = new SaveBillerCommand(TestUserId, TestBillerId, "Power", "ACC-123");
+        BillerService service = CreateService();
 
         // Act
-        ErrorOr<SavedBillerDto> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<SavedBillerDto> result = await service.SaveBillerAsync(TestUserId, TestBillerId, "Power", "ACC-123", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -107,19 +105,18 @@ public sealed class SaveBillerCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        SaveBillerCommandHandler handler = CreateHandler();
-        var command = new SaveBillerCommand(TestUserId, TestBillerId, "  Power  ", "  ACC-123  ");
+        BillerService service = CreateService();
 
         // Act
-        ErrorOr<SavedBillerDto> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<SavedBillerDto> result = await service.SaveBillerAsync(TestUserId, TestBillerId, "  Power  ", "  ACC-123  ", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
         persistedSavedBiller.Should().NotBeNull();
         persistedSavedBiller!.UserId.Should().Be(TestUserId);
         persistedSavedBiller.BillerId.Should().Be(TestBillerId);
-        persistedSavedBiller.Nickname.Should().Be(command.Nickname);
-        persistedSavedBiller.DefaultReference.Should().Be(command.DefaultReference);
+        persistedSavedBiller.Nickname.Should().Be("  Power  ");
+        persistedSavedBiller.DefaultReference.Should().Be("  ACC-123  ");
         persistedSavedBiller.CreatedAt.Should().Be(_testNow);
 
         result.Value.UserId.Should().Be(TestUserId);
@@ -127,8 +124,8 @@ public sealed class SaveBillerCommandTests
         result.Value.BillerName.Should().Be(biller.Name);
         result.Value.BillerCategory.Should().Be(biller.Category.ToString());
         result.Value.LogoUrl.Should().Be(biller.LogoUrl);
-        result.Value.Nickname.Should().Be(command.Nickname);
-        result.Value.DefaultReference.Should().Be(command.DefaultReference);
+        result.Value.Nickname.Should().Be("  Power  ");
+        result.Value.DefaultReference.Should().Be("  ACC-123  ");
         result.Value.CreatedAt.Should().Be(_testNow);
         result.Value.Biller.Should().NotBeNull();
         result.Value.Biller!.Id.Should().Be(biller.Id);
@@ -173,11 +170,10 @@ public sealed class SaveBillerCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        SaveBillerCommandHandler handler = CreateHandler();
-        var command = new SaveBillerCommand(TestUserId, TestBillerId, null, null);
+        BillerService service = CreateService();
 
         // Act
-        ErrorOr<SavedBillerDto> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<SavedBillerDto> result = await service.SaveBillerAsync(TestUserId, TestBillerId, null, null, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -193,9 +189,9 @@ public sealed class SaveBillerCommandTests
         _clockMock.VerifyNoOtherCalls();
     }
 
-    private SaveBillerCommandHandler CreateHandler()
+    private BillerService CreateService()
     {
-        return new SaveBillerCommandHandler(
+        return new BillerService(
             _billerRepositoryMock.Object,
             _savedBillerRepositoryMock.Object,
             _unitOfWorkMock.Object,

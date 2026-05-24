@@ -1,11 +1,12 @@
 namespace BankingApp.Application.Tests.Features.Beneficiaries.Commands;
 
-using BankingApp.Application.Features.Beneficiaries.Commands;
+using BankingApp.Application.Features.Beneficiaries.Services;
 using Domain.Aggregates.BeneficiaryAggregate;
 using BankingApp.Domain.Common.Errors;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Persistence;
 
 public sealed class UpdateBeneficiaryCommandTests
@@ -31,11 +32,10 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
             .ReturnsAsync((Beneficiary?)null);
 
-        UpdateBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.UpdateAsync(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -57,11 +57,10 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
             .ReturnsAsync(otherUserBeneficiary);
 
-        UpdateBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank");
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.UpdateAsync(TestUserId, TestBeneficiaryId, "New Name", ValidIban, "New Bank", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -83,11 +82,10 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
             .ReturnsAsync(beneficiary);
 
-        UpdateBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "New Name", "invalid-iban", "New Bank");
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.UpdateAsync(TestUserId, TestBeneficiaryId, "New Name", "invalid-iban", "New Bank", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -117,18 +115,17 @@ public sealed class UpdateBeneficiaryCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        UpdateBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new UpdateBeneficiaryCommand(TestUserId, TestBeneficiaryId, "  New Name  ", NewValidIban, "New Bank");
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.UpdateAsync(TestUserId, TestBeneficiaryId, "  New Name  ", NewValidIban, "New Bank", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Should().Be(Result.Success);
         beneficiary.Name.Should().Be("New Name");
         beneficiary.Iban.Value.Should().Be(NewValidIban);
-        beneficiary.BankName.Should().Be(command.BankName);
+        beneficiary.BankName.Should().Be("New Bank");
 
         _beneficiaryRepositoryMock.Verify(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken), Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.UpdateAsync(beneficiary, cancellationToken), Times.Once);
@@ -137,9 +134,13 @@ public sealed class UpdateBeneficiaryCommandTests
         _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
-    private UpdateBeneficiaryCommandHandler CreateHandler()
+    private BeneficiaryService CreateService()
     {
-        return new UpdateBeneficiaryCommandHandler(_beneficiaryRepositoryMock.Object, _unitOfWorkMock.Object);
+        return new BeneficiaryService(
+            _beneficiaryRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            new Mock<Shared.Clock.ISystemClock>().Object,
+            NullLogger<BeneficiaryService>.Instance);
     }
 
     private static Beneficiary CreateBeneficiary(int userId)

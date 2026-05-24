@@ -3,13 +3,13 @@ namespace BankingApp.Application.Tests.Features.BillPayments.Commands;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using BankingApp.Application.Features.BillPayments.Commands;
+using BankingApp.Application.Features.BillPayments.Services;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.BillPaymentAggregate;
 using BankingApp.Domain.Common.Errors;
 using BankingApp.Domain.ReferenceData.Billers;
 using Contracts.Features.BillPayments.Dtos;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NodaMoney;
 using ErrorOr;
 using Shared.Clock;
@@ -21,7 +21,7 @@ public sealed class ProcessBillPaymentCommandTests
     private readonly Mock<IBillPaymentRepository> _billPaymentRepositoryMock;
     private readonly Mock<IBillerRepository> _billerRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly ProcessBillPaymentCommandHandler _handler;
+    private readonly BillPaymentService _service;
 
     public ProcessBillPaymentCommandTests()
     {
@@ -31,7 +31,7 @@ public sealed class ProcessBillPaymentCommandTests
         _unitOfWorkMock = new Mock<IUnitOfWork>();
         Mock<ISystemClock> clockMock = MockFactory.CreateSystemClockMock();
 
-        _handler = new ProcessBillPaymentCommandHandler(
+        _service = new BillPaymentService(
             _accountRepositoryMock.Object,
             _billPaymentRepositoryMock.Object,
             _billerRepositoryMock.Object,
@@ -50,10 +50,9 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenAccountNotFound_ShouldReturnAccountNotFoundError()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m);
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync((Account?)null);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 10m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AccountErrors.NotFound);
@@ -64,11 +63,10 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenAccountBelongsToDifferentUser_ShouldReturnAccountNotFoundError()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m);
         Account account = CreateTestAccount(99, AccountStatus.Active, Currency.FromCode("USD"));
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 10m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AccountErrors.NotFound);
@@ -79,11 +77,10 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenAccountIsNotActive_ShouldReturnAccountNotActiveError()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m);
         Account account = CreateTestAccount(1, AccountStatus.Closed, Currency.FromCode("USD"));
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 10m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BillPaymentErrors.AccountNotActive);
@@ -94,12 +91,11 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenBillerNotFound_ShouldReturnBillerNotFoundError()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 10m);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"));
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
         _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync((Biller?)null);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 10m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(BillPaymentErrors.NotFound);
@@ -111,14 +107,13 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenInsufficientFunds_ShouldReturnInsufficientFundsError()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 100m);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 50m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
-        
+
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
         _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 100m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AccountErrors.InsufficientFunds);
@@ -130,14 +125,13 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenAccountHasSufficientFunds_ShouldDebitAccountAndCreateBillPaymentTransaction()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 100m);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
-        
+
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
         _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 100m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeFalse();
         account.Balance.Amount.Should().Be(99.50m);
@@ -150,7 +144,6 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenAccountHasSufficientFunds_ShouldMarkBillPaymentAsProcessed()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 50m);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
 
@@ -162,7 +155,7 @@ public sealed class ProcessBillPaymentCommandTests
             .Callback<BillPayment, CancellationToken>((payment, _) => savedPayment = payment)
             .Returns(Task.CompletedTask);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 50m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeFalse();
         savedPayment.Should().NotBeNull();
@@ -178,14 +171,13 @@ public sealed class ProcessBillPaymentCommandTests
     [Fact]
     public async Task Handle_WhenAccountHasSufficientFunds_ShouldSaveChanges()
     {
-        var command = new ProcessBillPaymentCommand(1, 2, 3, "REF", 50m);
         Account account = CreateTestAccount(1, AccountStatus.Active, Currency.FromCode("USD"), 200m);
         var biller = new Biller { Id = 3, Name = "Test Biller" };
-        
+
         _accountRepositoryMock.Setup(repository => repository.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync(account);
         _billerRepositoryMock.Setup(repository => repository.GetByIdAsync(3, It.IsAny<CancellationToken>())).ReturnsAsync(biller);
 
-        ErrorOr<BillPayResponse> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<BillPayResponse> result = await _service.ProcessAsync(1, 2, 3, "REF", 50m, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeFalse();
         _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);

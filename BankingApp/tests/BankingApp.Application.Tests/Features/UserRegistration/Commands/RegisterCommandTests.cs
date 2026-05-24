@@ -1,7 +1,7 @@
 namespace BankingApp.Application.Tests.Features.UserRegistration.Commands;
 
 using BankingApp.Application.Common.Security;
-using BankingApp.Application.Features.UserRegistration.Commands;
+using BankingApp.Application.Features.Authentication.Services;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,6 +22,7 @@ public sealed class RegisterCommandTests
     private readonly Mock<IHashService> _hashServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
     private readonly Mock<ISystemClock> _clockMock = new(MockBehavior.Strict);
+    private readonly Mock<IJsonWebTokenService> _jwtServiceMock = new();
 
     [Fact]
     public async Task Handle_WhenEmailIsAlreadyRegistered_ShouldReturnEmailAlreadyRegisteredError()
@@ -34,10 +35,10 @@ public sealed class RegisterCommandTests
             .Setup(repository => repository.GetByEmailAsync(It.Is<Email>(email => email.Value == TestEmail), cancellationToken))
             .ReturnsAsync(existingUser);
 
-        RegisterCommandHandler handler = CreateHandler();
+        AuthService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.RegisterAsync(TestEmail, TestPassword, FullName, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -62,10 +63,10 @@ public sealed class RegisterCommandTests
             .Setup(service => service.GetHash(TestPassword))
             .Returns((ErrorOr<string>)hashError);
 
-        RegisterCommandHandler handler = CreateHandler();
+        AuthService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.RegisterAsync(TestEmail, TestPassword, FullName, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -85,10 +86,10 @@ public sealed class RegisterCommandTests
         IdentityAccount? persistedIdentity = null;
         SetupValidFlow(cancellationToken, user => persistedUser = user, identity => persistedIdentity = identity);
 
-        RegisterCommandHandler handler = CreateHandler();
+        AuthService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(fullName: "  Test User  "), cancellationToken);
+        ErrorOr<Success> result = await service.RegisterAsync(TestEmail, TestPassword, "  Test User  ", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -111,10 +112,10 @@ public sealed class RegisterCommandTests
         // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         SetupValidFlow(cancellationToken);
-        RegisterCommandHandler handler = CreateHandler();
+        AuthService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.RegisterAsync(TestEmail, TestPassword, FullName, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -129,19 +130,15 @@ public sealed class RegisterCommandTests
         VerifyNoOtherCalls();
     }
 
-    private RegisterCommandHandler CreateHandler()
-    {
-        return new RegisterCommandHandler(
+    private AuthService CreateService() =>
+        new(
             _userRepositoryMock.Object,
             _identityRepositoryMock.Object,
             _hashServiceMock.Object,
+            _jwtServiceMock.Object,
             _unitOfWorkMock.Object,
             _clockMock.Object,
-            NullLogger<RegisterCommandHandler>.Instance);
-    }
-
-    private static RegisterCommand CreateCommand(string fullName = FullName) =>
-        new(TestEmail, TestPassword, fullName);
+            NullLogger<AuthService>.Instance);
 
     private void SetupValidFlow(
         CancellationToken cancellationToken,
