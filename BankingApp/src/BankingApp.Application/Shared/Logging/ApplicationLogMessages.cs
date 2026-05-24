@@ -71,36 +71,6 @@ internal static partial class ApplicationLogMessages
     [LoggerMessage(EventId = 2032, Level = LogLevel.Error, Message = "Failed to load beneficiaries for user {UserId} during update.")]
     internal static partial void BeneficiariesLoadForUpdateFailed(this ILogger logger, int userId);
 
-    [LoggerMessage(EventId = 2033, Level = LogLevel.Information, Message = "Password reset requested: no account found.")]
-    internal static partial void PasswordResetNoAccountFound(this ILogger logger);
-
-    [LoggerMessage(EventId = 2034, Level = LogLevel.Error, Message = "Failed to save password reset token for user {UserId}.")]
-    internal static partial void PasswordResetSaveTokenFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2035, Level = LogLevel.Information, Message = "Password reset email sent for user {UserId}.")]
-    internal static partial void PasswordResetEmailSent(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2036, Level = LogLevel.Warning, Message = "Password reset failed: token not found.")]
-    internal static partial void PasswordResetTokenNotFound(this ILogger logger);
-
-    [LoggerMessage(EventId = 2037, Level = LogLevel.Warning, Message = "Password reset failed for user {UserId}: {Code}.")]
-    internal static partial void PasswordResetValidationFailed(this ILogger logger, int userId, string code);
-
-    [LoggerMessage(EventId = 2038, Level = LogLevel.Error, Message = "Hash generation failed during password reset for user {UserId}.")]
-    internal static partial void PasswordResetHashGenerationFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2039, Level = LogLevel.Error, Message = "Password update failed for user {UserId}.")]
-    internal static partial void PasswordUpdateFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2040, Level = LogLevel.Error, Message = "Failed to mark password reset token as used for user {UserId}. Token may be replayable.")]
-    internal static partial void PasswordResetMarkUsedFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2041, Level = LogLevel.Error, Message = "Failed to invalidate sessions for user {UserId} after password reset. Active sessions may remain valid.")]
-    internal static partial void PasswordResetInvalidateSessionsFailed(this ILogger logger, int userId);
-
-    [LoggerMessage(EventId = 2042, Level = LogLevel.Information, Message = "Password reset successfully for user {UserId}.")]
-    internal static partial void PasswordResetSucceeded(this ILogger logger, int userId);
-
     [LoggerMessage(EventId = 2043, Level = LogLevel.Warning, Message = "Account overview fetch failed: user {UserId} not found.")]
     internal static partial void AccountOverviewUserNotFound(this ILogger logger, int userId);
 
@@ -175,15 +145,6 @@ internal static partial class ApplicationLogMessages
 
     [LoggerMessage(EventId = 2073, Level = LogLevel.Information, Message = "Session {SessionId} revoked for user {UserId}.")]
     internal static partial void SessionRevoked(this ILogger logger, int sessionId, int userId);
-
-    [LoggerMessage(EventId = 2074, Level = LogLevel.Warning, Message = "Failed to update recurring payment {RecurringPaymentId} after execution: {Error}")]
-    internal static partial void RecurringPaymentUpdateAfterExecutionFailed(this ILogger logger, int recurringPaymentId, string error);
-
-    [LoggerMessage(EventId = 2075, Level = LogLevel.Warning, Message = "Recurring payment {RecurringPaymentId} failed during background execution.")]
-    internal static partial void RecurringPaymentBackgroundExecutionFailed(this ILogger logger, Exception exception, int recurringPaymentId);
-
-    [LoggerMessage(EventId = 2076, Level = LogLevel.Error, Message = "Failed to create recurring payment for user {UserId}: {Error}")]
-    internal static partial void RecurringPaymentCreateFailed(this ILogger logger, int userId, string error);
 
     [LoggerMessage(EventId = 2077, Level = LogLevel.Warning, Message = "Transfer failed: could not retrieve accounts for user {UserId}.")]
     internal static partial void TransferAccountsLookupFailed(this ILogger logger, int userId);

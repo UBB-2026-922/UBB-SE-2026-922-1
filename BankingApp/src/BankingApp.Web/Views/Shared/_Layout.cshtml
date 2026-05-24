@@ -66,23 +66,9 @@
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link @(IsActive("RateAlerts") ? "active" : string.Empty)"
-                                       asp-controller="RateAlerts" asp-action="Index">
-                                    <i class="bi bi-bell me-1"></i>Rate Alerts
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
                                 <a class="nav-link @(IsActive("BillPayments") ? "active" : string.Empty)"
                                        asp-controller="BillPayments" asp-action="Index">
                                     <i class="bi bi-receipt me-1"></i>Bill Payments
-                                </a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link @(IsActive("RecurringPayments") ? "active" : string.Empty)"
-                                       asp-controller="RecurringPayments" asp-action="Index">
-                                    <i class="bi bi-arrow-repeat me-1"></i>Recurring Payments
                                 </a>
                             </li>
 

@@ -7,7 +7,6 @@ using ValueObjects;
 public sealed class IdentityAccount : AggregateRoot<int>
 {
     private readonly List<Session> _sessions = [];
-    private readonly List<PasswordResetToken> _passwordResetTokens = [];
 
     private IdentityAccount()
     {
@@ -24,8 +23,6 @@ public sealed class IdentityAccount : AggregateRoot<int>
     public int FailedLoginAttempts { get; private set; }
 
     public IReadOnlyCollection<Session> Sessions => _sessions.AsReadOnly();
-
-    public IReadOnlyCollection<PasswordResetToken> PasswordResetTokens => _passwordResetTokens.AsReadOnly();
 
     public static IdentityAccount Create(int userId, HashedPassword? passwordHash)
     {
@@ -82,10 +79,4 @@ public sealed class IdentityAccount : AggregateRoot<int>
         return session;
     }
 
-    public PasswordResetToken IssuePasswordResetToken(string tokenHash, DateTime expiresAt, DateTime createdAt)
-    {
-        var resetToken = PasswordResetToken.Create(Id, tokenHash, expiresAt, createdAt);
-        _passwordResetTokens.Add(resetToken);
-        return resetToken;
-    }
 }

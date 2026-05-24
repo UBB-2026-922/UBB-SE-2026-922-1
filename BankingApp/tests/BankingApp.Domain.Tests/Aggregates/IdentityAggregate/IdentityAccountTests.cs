@@ -86,9 +86,4 @@ public sealed class IdentityAccountTests
         throw new NotImplementedException();
     }
 
-    [Fact(Skip = "Not implemented yet.")]
-    public void IssuePasswordResetToken_WhenCalled_ShouldAddTokenToCollection()
-    {
-        throw new NotImplementedException();
-    }
 }

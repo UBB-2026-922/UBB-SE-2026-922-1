@@ -3,7 +3,6 @@ namespace BankingApp.Infrastructure.Http.Features.Authentication.Services;
 using Application.Features.Authentication.Services;
 using Application.Shared.Http;
 using Contracts.Features.Authentication.Dtos;
-using Contracts.Features.PasswordReset.Dtos;
 using Contracts.Features.UserRegistration.Dtos;
 using Contracts.Http;
 using ErrorOr;
@@ -18,13 +17,4 @@ public sealed class AuthenticationService(IApiClient apiClient) : IAuthenticatio
 
     public Task<ErrorOr<Success>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
         => apiClient.PostAsync(ApiEndpoints.Auth.RegisterFull, request, cancellationToken);
-
-    public Task<ErrorOr<Success>> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
-        => apiClient.PostAsync(ApiEndpoints.Auth.ForgotPasswordFull, request, cancellationToken);
-
-    public Task<ErrorOr<Success>> VerifyResetTokenAsync(VerifyResetTokenRequest request, CancellationToken cancellationToken = default)
-        => apiClient.PostAsync(ApiEndpoints.Auth.VerifyResetTokenFull, request, cancellationToken);
-
-    public Task<ErrorOr<Success>> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
-        => apiClient.PostAsync(ApiEndpoints.Auth.ResetPasswordFull, request, cancellationToken);
 }
