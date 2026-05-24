@@ -53,7 +53,6 @@ Important environment variables:
 | `ConnectionStrings__BankingAppDb` | SQL Server connection string                                   |
 | `Database__ApplyMigrations`       | Set to `false` to skip automatic EF Core migrations at startup |
 | `Jwt__Secret`                     | JWT signing secret                                             |
-| `Otp__Secret`                     | server-side OTP secret                                         |
 | `Email__SmtpHost`                 | SMTP host                                                      |
 | `Email__SmtpPort`                 | SMTP port                                                      |
 | `Email__SmtpUser`                 | SMTP username                                                  |

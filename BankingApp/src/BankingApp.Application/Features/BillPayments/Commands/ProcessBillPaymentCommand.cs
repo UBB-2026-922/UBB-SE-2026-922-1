@@ -1,7 +1,5 @@
 namespace BankingApp.Application.Features.BillPayments.Commands;
 
-using Common.Logging;
-using Common.Security;
 using Contracts.Features.BillPayments.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -13,10 +11,8 @@ using Domain.Repositories;
 using ErrorOr;
 using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using Shared.Clock;
 using Shared.Persistence;
-using ApplicationLogMessages = Common.Logging.ApplicationLogMessages;
 using Money = NodaMoney.Money;
 
 public sealed record ProcessBillPaymentCommand(
@@ -24,18 +20,15 @@ public sealed record ProcessBillPaymentCommand(
     int SourceAccountId,
     int BillerId,
     string BillerReference,
-    decimal Amount,
-    string? TwoFaToken)
+    decimal Amount)
     : IRequest<ErrorOr<BillPayResponse>>;
 
 public sealed class ProcessBillPaymentCommandHandler(
     IAccountRepository accountRepository,
     IBillPaymentRepository billPaymentRepository,
     IBillerRepository billerRepository,
-    IOtpService otpService,
     IUnitOfWork unitOfWork,
-    ISystemClock clock,
-    ILogger<ProcessBillPaymentCommandHandler> logger)
+    ISystemClock clock)
     : IRequestHandler<ProcessBillPaymentCommand, ErrorOr<BillPayResponse>>
 {
     public async Task<ErrorOr<BillPayResponse>> Handle(ProcessBillPaymentCommand command, CancellationToken cancellationToken)
@@ -69,12 +62,6 @@ public sealed class ProcessBillPaymentCommandHandler(
         }
 
         BillPayment payment = paymentResult.Value;
-        ErrorOr<Success> twoFactorResult = VerifyTwoFactorIfRequired(command, payment);
-        if (twoFactorResult.IsError)
-        {
-            return twoFactorResult.FirstError;
-        }
-
         DateTime now = clock.UtcNow;
         string receiptNumber = $"RCP-{now:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpperInvariant()}";
 
@@ -139,27 +126,6 @@ public sealed class ProcessBillPaymentCommandHandler(
     private static Money CreateFee(decimal amount, NodaMoney.Currency currency) =>
         BillPaymentFeePolicy.Calculate(amount, currency);
 
-    private ErrorOr<Success> VerifyTwoFactorIfRequired(ProcessBillPaymentCommand command, BillPayment payment)
-    {
-        if (!BillPayment.RequiresTwoFactorAuthentication(payment.Amount))
-        {
-            return Result.Success;
-        }
-
-        if (string.IsNullOrWhiteSpace(command.TwoFaToken))
-        {
-            return BillPaymentErrors.TwoFaRequired;
-        }
-
-        ErrorOr<bool> otpValid = otpService.VerifyTotp(command.UserId, command.TwoFaToken);
-        if (otpValid.IsError || !otpValid.Value)
-        {
-            ApplicationLogMessages.BillPaymentTwoFactorInvalid(logger, command.UserId);
-            return BillPaymentErrors.InvalidTwoFaToken;
-        }
-
-        return Result.Success;
-    }
 }
 
 public sealed class ProcessBillPaymentCommandValidator : AbstractValidator<ProcessBillPaymentCommand>

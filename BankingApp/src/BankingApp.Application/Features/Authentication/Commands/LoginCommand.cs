@@ -4,9 +4,9 @@ using Common.Notifications;
 using Common.Security;
 using Contracts.Features.Authentication.Dtos;
 using Domain.Aggregates.IdentityAggregate;
+using Domain.Aggregates.IdentityAggregate.Entities;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
-using Domain.Enums;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;
@@ -26,8 +26,6 @@ public sealed class LoginCommandHandler(
     IIdentityRepository identityRepository,
     IHashService hashService,
     IJsonWebTokenService jwtService,
-    IOtpService otpService,
-    IOtpAttemptTracker otpAttemptTracker,
     IEmailService emailService,
     IUnitOfWork unitOfWork,
     ISystemClock clock,
@@ -87,11 +85,6 @@ public sealed class LoginCommandHandler(
             return await HandleFailedPasswordAsync(identity, user.Id, cancellationToken);
         }
 
-        if (identity.Is2FaEnabled)
-        {
-            return await Handle2FaAsync(user, identity, cancellationToken);
-        }
-
         return await CompleteLoginAsync(user, identity, command.Metadata, cancellationToken);
     }
 
@@ -115,7 +108,7 @@ public sealed class LoginCommandHandler(
         return (user, identity);
     }
 
-    private async Task<Error> HandleFailedPasswordAsync(IdentityAccount identity, int userId, CancellationToken ct)
+    private async Task<Error> HandleFailedPasswordAsync(IdentityAccount identity, int userId, CancellationToken cancellationToken)
     {
         identity.IncrementFailedAttempts();
         int attempts = identity.FailedLoginAttempts;
@@ -123,46 +116,24 @@ public sealed class LoginCommandHandler(
 
         if (attempts < MaxFailedAttempts)
         {
-            await identityRepository.UpdateAsync(identity, ct);
-            await unitOfWork.SaveChangesAsync(ct);
+            await identityRepository.UpdateAsync(identity, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
             return AuthErrors.InvalidCredentials;
         }
 
         identity.LockAccount(clock.UtcNow.AddMinutes(LockoutMinutes));
-        await identityRepository.UpdateAsync(identity, ct);
-        await unitOfWork.SaveChangesAsync(ct);
+        await identityRepository.UpdateAsync(identity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         ApplicationLogMessages.AccountLockedTooManyAttempts(logger, userId, LockoutMinutes, MaxFailedAttempts);
         return AuthErrors.AccountLockedTooManyAttempts;
-    }
-
-    private async Task<ErrorOr<LoginSuccess>> Handle2FaAsync(User user, IdentityAccount identity, CancellationToken _)
-    {
-        ErrorOr<string> otpResult = identity.Preferred2FaMethod == TwoFactorMethod.Authenticator
-            ? otpService.GenerateTotp(user.Id)
-            : otpService.GenerateSmsOtp(user.Id);
-
-        if (otpResult.IsError)
-        {
-            ApplicationLogMessages.OtpGenerationFailed(logger, user.Id, otpResult.FirstError.Description);
-            return otpResult.FirstError;
-        }
-
-        if (identity.Preferred2FaMethod == TwoFactorMethod.Email)
-        {
-            await emailService.SendOtpCodeAsync(user.Email.Value, otpResult.Value);
-        }
-
-        otpAttemptTracker.Reset(user.Id);
-        ApplicationLogMessages.TwoFactorRequired(logger, user.Id, identity.Preferred2FaMethod);
-        return new RequiresTwoFactor(user.Id);
     }
 
     private async Task<ErrorOr<LoginSuccess>> CompleteLoginAsync(
         User user,
         IdentityAccount identity,
         SessionMetadata? metadata,
-        CancellationToken ct)
+        CancellationToken cancellationToken)
     {
         identity.ResetFailedAttempts();
 
@@ -175,14 +146,14 @@ public sealed class LoginCommandHandler(
 
         string token = tokenResult.Value;
         DateTime now = clock.UtcNow;
-        identity.OpenSession(token, now.AddHours(SessionExpiryHours), now, metadata?.DeviceInfo, metadata?.Browser, metadata?.IpAddress);
+        Session session = identity.OpenSession(token, now.AddHours(SessionExpiryHours), now, metadata?.DeviceInfo, metadata?.Browser, metadata?.IpAddress);
 
-        await identityRepository.UpdateAsync(identity, ct);
-        await unitOfWork.SaveChangesAsync(ct);
+        await identityRepository.UpdateAsync(identity, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         ApplicationLogMessages.UserLoggedIn(logger, user.Id);
         await emailService.SendLoginAlertAsync(user.Email.Value);
-        return new FullLogin(user.Id, token);
+        return new LoginSuccess(user.Id, token, session.Id);
     }
 }
 

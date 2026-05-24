@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.Transfers.Commands;
 
-using Common.Security;
 using Contracts.Features.Transfers.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -27,15 +26,13 @@ public sealed record ExecuteTransferCommand(
     string RecipientIban,
     decimal Amount,
     string Currency,
-    string? Reference,
-    string? TwoFaToken)
+    string? Reference)
     : IRequest<ErrorOr<TransferResponse>>;
 
 public sealed class ExecuteTransferCommandHandler(
     IAccountRepository accountRepository,
     ITransferRepository transferRepository,
     IBeneficiaryRepository beneficiaryRepository,
-    IOtpService otpService,
     IUnitOfWork unitOfWork,
     ISystemClock clock,
     ILogger<ExecuteTransferCommandHandler> logger)
@@ -81,12 +78,6 @@ public sealed class ExecuteTransferCommandHandler(
         }
 
         Transfer transfer = transferResult.Value;
-        ErrorOr<Success> twoFactorResult = VerifyTwoFactorIfRequired(command, transfer);
-        if (twoFactorResult.IsError)
-        {
-            return twoFactorResult.FirstError;
-        }
-
         string transactionRef = CreateTransactionReference(now);
         ErrorOr<Money> newBalanceResult = account.Debit(transfer.TotalDebit, now);
         if (newBalanceResult.IsError)
@@ -166,29 +157,6 @@ public sealed class ExecuteTransferCommandHandler(
             fee,
             command.Reference,
             createdAt);
-    }
-
-    private ErrorOr<Success> VerifyTwoFactorIfRequired(ExecuteTransferCommand command, Transfer transfer)
-    {
-        if (!Transfer.RequiresTwoFactorAuthentication(transfer.Amount))
-        {
-            return Result.Success;
-        }
-
-        if (string.IsNullOrWhiteSpace(command.TwoFaToken))
-        {
-            ApplicationLogMessages.TransferTwoFactorMissing(logger, command.Amount, command.UserId);
-            return TransferErrors.TwoFaRequired;
-        }
-
-        ErrorOr<bool> otpValid = otpService.VerifyTotp(command.UserId, command.TwoFaToken);
-        if (otpValid.IsError || !otpValid.Value)
-        {
-            ApplicationLogMessages.TransferTwoFactorInvalid(logger, command.UserId);
-            return TransferErrors.InvalidTwoFaToken;
-        }
-
-        return Result.Success;
     }
 
     private static string CreateTransactionReference(DateTime now) =>

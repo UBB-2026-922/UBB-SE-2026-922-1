@@ -2,7 +2,6 @@ namespace BankingApp.Application.Features.UserProfile.Queries;
 
 using Common.Logging;
 using Contracts.Features.UserProfile.Dtos;
-using Domain.Aggregates.IdentityAggregate;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Repositories;
@@ -16,7 +15,6 @@ public sealed record GetProfileQuery(int UserId)
 
 public sealed class GetProfileQueryHandler(
     IUserRepository userRepository,
-    IIdentityRepository identityRepository,
     ILogger<GetProfileQueryHandler> logger)
     : IRequestHandler<GetProfileQuery, ErrorOr<ProfileDto>>
 {
@@ -29,8 +27,6 @@ public sealed class GetProfileQueryHandler(
             return UserErrors.NotFound;
         }
 
-        IdentityAccount? identity = await identityRepository.GetByUserIdAsync(user.Id, cancellationToken);
-
         return new ProfileDto
         {
             UserId = user.Id,
@@ -40,9 +36,7 @@ public sealed class GetProfileQueryHandler(
             DateOfBirth = user.DateOfBirth,
             Address = user.Address,
             Nationality = user.Nationality,
-            PreferredLanguage = user.PreferredLanguage,
-            Is2FaEnabled = identity?.Is2FaEnabled ?? false,
-            Preferred2FaMethod = identity?.Preferred2FaMethod
+            PreferredLanguage = user.PreferredLanguage
         };
     }
 }

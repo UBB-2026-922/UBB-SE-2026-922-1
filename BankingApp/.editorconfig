@@ -130,8 +130,3 @@ dotnet_diagnostic.RCS1246.severity = none
 [tests/**/*.cs]
 dotnet_diagnostic.IDE1006.severity = none
 dotnet_diagnostic.CA1707.severity = none
-
-[src/BankingApp.Infrastructure/Migrations/**.cs]
-dotnet_analyzer_diagnostic.category-Style.severity = none
-dotnet_analyzer_diagnostic.category-CodeQuality.severity = none
-generated_code = true

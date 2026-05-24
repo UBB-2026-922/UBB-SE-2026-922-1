@@ -24,8 +24,7 @@ public class TransferController : ApiControllerBase
             request.RecipientIban,
             request.Amount,
             request.Currency,
-            request.Reference,
-            request.TwoFaToken);
+            request.Reference);
         return ToActionResult(
             await Sender.Send(command, cancellationToken),
             transfer => CreatedAtAction(nameof(GetHistory), new { }, transfer));
@@ -42,8 +41,7 @@ public class TransferController : ApiControllerBase
             request.RecipientIban,
             request.Amount,
             request.Currency,
-            request.Reference,
-            request.TwoFaToken);
+            request.Reference);
         return ToActionResult(
             await Sender.Send(command, cancellationToken),
             transfer => Ok(new TransferExecutionResponse { TransactionRef = transfer.TransactionRef ?? string.Empty }));
