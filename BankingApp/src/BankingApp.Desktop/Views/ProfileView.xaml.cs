@@ -177,6 +177,9 @@ public sealed partial class ProfileView
         FullNameBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         PhoneBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
         AddressBox.Opacity = enabled ? EnabledFormOpacity : DisabledFormOpacity;
+        
+        UpdateButton.Content = enabled ? "Cancel Update" : "Unlock Update";
+
         if (enabled)
         {
             PhoneBox.Focus(FocusState.Programmatic);
@@ -186,6 +189,15 @@ public sealed partial class ProfileView
 
     private async void UpdateButton_Click(object sender, RoutedEventArgs e)
     {
+        if (SaveButton.IsEnabled)
+        {
+            // Cancel the update mode
+            _verifiedPassword = string.Empty;
+            SetEditingEnabled(false);
+            TryPopulateUi("cancel-update");
+            return;
+        }
+
         _isChangingPasswordFlow = false;
         VerifyCurrentPasswordBox.Password = string.Empty;
         VerifyErrorInfoBar.IsOpen = false;
@@ -402,6 +414,13 @@ public sealed partial class ProfileView
         TabSessionsBtn.Style = (Style)Resources["TabButtonStyle"];
         activePanel.Visibility = Visibility.Visible;
         activeButton.Style = (Style)Resources["TabButtonActiveStyle"];
+
+        if (activePanel != PanelPersonal && SaveButton.IsEnabled)
+        {
+            _verifiedPassword = string.Empty;
+            SetEditingEnabled(false);
+            TryPopulateUi("tab-switch-cancel");
+        }
     }
 
     private void TabPersonalBtn_Click(object sender, RoutedEventArgs e) =>

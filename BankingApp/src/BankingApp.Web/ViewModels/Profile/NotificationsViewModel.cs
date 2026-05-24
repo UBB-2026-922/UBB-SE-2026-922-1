@@ -20,15 +20,5 @@ public sealed class NotificationPreferenceRowViewModel
     public bool SmsEnabled { get; set; }
 
     public decimal? MinAmountThreshold { get; set; }
-
-    public string CategoryIcon => Category switch
-    {
-        NotificationType.Payment           => "bi-credit-card",
-        NotificationType.InboundTransfer   => "bi-arrow-down-circle",
-        NotificationType.OutboundTransfer  => "bi-arrow-up-circle",
-        NotificationType.LowBalance        => "bi-exclamation-triangle",
-        NotificationType.DuePayment        => "bi-calendar-check",
-        NotificationType.SuspiciousActivity => "bi-shield-exclamation",
-        _                                   => "bi-bell"
-    };
 }
+

@@ -184,6 +184,10 @@ public sealed class AuthControllerTests : IDisposable
 
         RedirectResult redirect = result.Should().BeOfType<RedirectResult>().Subject;
         redirect.Url.Should().Be("/Auth/Login");
+        
+        // Assert that TempData is cleared
+        _controller.TempData.Should().BeEmpty();
+        
         _authenticationServiceMock.VerifyAll();
         _aspNetAuthenticationMock.VerifyAll();
     }

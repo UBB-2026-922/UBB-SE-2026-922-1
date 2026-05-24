@@ -78,6 +78,7 @@ public sealed class AuthController(ClientAuthenticationService authenticationSer
     {
         await authenticationService.LogoutAsync(cancellationToken);
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        TempData.Clear();
 
         return Redirect("/Auth/Login");
     }
