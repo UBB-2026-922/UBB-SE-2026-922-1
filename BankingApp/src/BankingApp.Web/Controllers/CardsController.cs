@@ -23,45 +23,23 @@ public class CardsController(ICardService cardService) : Controller
             return View(new CardListViewModel());
         }
 
-        CardListViewModel viewModel = new()
-        {
-            Cards = result.Value.ConvertAll(dto => new CardRowViewModel
-            {
-                Id = dto.Id,
-                CardNumber = dto.CardNumber,
-                FullCardNumber = dto.FullCardNumber,
-                SecurityCode = dto.SecurityCode,
-                CardholderName = dto.CardholderName,
-                ExpiryDate = dto.ExpiryDate,
-                CardType = dto.CardType,
-                CardBrand = dto.CardBrand,
-                Status = dto.Status,
-                IsContactlessEnabled = dto.IsContactlessEnabled,
-                IsOnlineEnabled = dto.IsOnlineEnabled,
-                AccountName = dto.AccountName,
-            })
-        };
-
-        return View(viewModel);
+        return View(new CardListViewModel { Cards = result.Value });
     }
-
-    /// <summary>Displays the issue-card form.</summary>
-    public IActionResult Issue() => View(new IssueCardViewModel());
 
     /// <summary>Processes the issue-card form submission.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Issue(IssueCardViewModel model, CancellationToken cancellationToken)
+    public async Task<IActionResult> Issue(IssueCardViewModel issueForm, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return await ReturnIndexWithIssueFormAsync(issueForm, cancellationToken);
         }
 
         IssueCardRequest request = new()
         {
-            CardType = model.CardType,
-            CardBrand = model.CardBrand,
+            CardType = issueForm.CardType,
+            CardBrand = issueForm.CardBrand,
         };
 
         ErrorOr<CardDetailsDto> result = await cardService.IssueCardAsync(request, cancellationToken);
@@ -69,10 +47,10 @@ public class CardsController(ICardService cardService) : Controller
         if (result.IsError)
         {
             ModelState.AddModelError(string.Empty, "Could not issue card. Please try again.");
-            return View(model);
+            return await ReturnIndexWithIssueFormAsync(issueForm, cancellationToken);
         }
 
-        TempData["Success"] = $"Your new {model.CardBrand} {model.CardType} card has been issued successfully.";
+        TempData["Success"] = $"Your new {issueForm.CardBrand} {issueForm.CardType} card has been issued successfully.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -116,5 +94,21 @@ public class CardsController(ICardService cardService) : Controller
             : "Card has been cancelled.";
 
         return RedirectToAction(nameof(Index));
+    }
+
+    private async Task<IActionResult> ReturnIndexWithIssueFormAsync(
+        IssueCardViewModel issueForm,
+        CancellationToken cancellationToken)
+    {
+        ErrorOr<List<CardDetailsDto>> cardsResult = await cardService.GetCardsAsync(cancellationToken);
+
+        CardListViewModel listModel = new()
+        {
+            Cards = cardsResult.IsError ? [] : cardsResult.Value,
+            IssueForm = issueForm,
+            ShowIssueForm = true,
+        };
+
+        return View(nameof(Index), listModel);
     }
 }

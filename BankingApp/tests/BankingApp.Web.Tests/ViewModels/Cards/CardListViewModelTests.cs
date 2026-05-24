@@ -1,5 +1,6 @@
 namespace BankingApp.Web.Tests.ViewModels.Cards;
 
+using BankingApp.Contracts.Features.Cards.Dtos;
 using BankingApp.Web.ViewModels.Cards;
 
 public sealed class CardListViewModelTests
@@ -17,7 +18,7 @@ public sealed class CardListViewModelTests
     {
         CardListViewModel viewModel = new()
         {
-            Cards = [new CardRowViewModel()]
+            Cards = [new CardDetailsDto()]
         };
 
         viewModel.HasCards.Should().BeTrue();
@@ -28,9 +29,10 @@ public sealed class CardListViewModelTests
     {
         CardListViewModel viewModel = new()
         {
-            Cards = [new CardRowViewModel(), new CardRowViewModel(), new CardRowViewModel()]
+            Cards = [new CardDetailsDto(), new CardDetailsDto(), new CardDetailsDto()]
         };
 
         viewModel.HasCards.Should().BeTrue();
     }
 }
+
