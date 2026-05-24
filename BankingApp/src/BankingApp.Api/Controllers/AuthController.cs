@@ -2,17 +2,14 @@ namespace BankingApp.Api.Controllers;
 
 using Application.Features.Authentication.Commands;
 using Application.Features.Authentication.Models;
-using Application.Features.PasswordReset.Commands;
-using Application.Features.PasswordReset.Queries;
 using Application.Features.UserRegistration.Commands;
 using Contracts.Features.Authentication.Dtos;
-using Contracts.Features.PasswordReset.Dtos;
 using Contracts.Features.UserRegistration.Dtos;
 using Contracts.Http;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
-///     Handles authentication, registration, and password reset endpoints.
+///     Handles authentication and registration endpoints.
 /// </summary>
 [ApiController]
 [Route(ApiEndpoints.Auth.Base)]
@@ -36,24 +33,6 @@ public class AuthController : ApiControllerBase
             await Sender.Send(new RegisterCommand(request.Email, request.Password, request.FullName), cancellationToken));
     }
 
-    [HttpPost(ApiEndpoints.Auth.ForgotPassword)]
-    public async Task<IActionResult> ForgotPassword(
-        [FromBody] ForgotPasswordRequest request,
-        CancellationToken cancellationToken)
-    {
-        await Sender.Send(new ForgotPasswordCommand(request.Email), cancellationToken);
-        return Ok(new { message = "If an account with that email exists, a password reset link has been sent." });
-    }
-
-    [HttpPost(ApiEndpoints.Auth.ResetPassword)]
-    public async Task<IActionResult> ResetPassword(
-        [FromBody] ResetPasswordRequest request,
-        CancellationToken cancellationToken)
-    {
-        return ToActionResult(
-            await Sender.Send(new ResetPasswordCommand(request.Token, request.NewPassword), cancellationToken));
-    }
-
     [HttpPost(ApiEndpoints.Auth.Logout)]
     public async Task<IActionResult> Logout(
         [FromHeader(Name = AuthHeaderNames.Authorization)] string authorization,
@@ -65,14 +44,6 @@ public class AuthController : ApiControllerBase
         }
 
         return ToActionResult(await Sender.Send(new LogoutCommand(token), cancellationToken));
-    }
-
-    [HttpPost(ApiEndpoints.Auth.VerifyResetToken)]
-    public async Task<IActionResult> VerifyResetToken(
-        [FromBody] VerifyResetTokenRequest request,
-        CancellationToken cancellationToken)
-    {
-        return ToActionResult(await Sender.Send(new VerifyResetTokenQuery(request.Token), cancellationToken));
     }
 
     private static string? GetClientIpAddress(HttpContext context)

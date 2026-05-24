@@ -10,6 +10,7 @@ using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
 using Navigation;
+using Shared;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>

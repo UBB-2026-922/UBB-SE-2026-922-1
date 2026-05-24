@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Features.Authentication.Commands;
 
-using Common.Notifications;
 using Common.Security;
 using Contracts.Features.Authentication.Dtos;
 using Domain.Aggregates.IdentityAggregate;
@@ -26,7 +25,6 @@ public sealed class LoginCommandHandler(
     IIdentityRepository identityRepository,
     IHashService hashService,
     IJsonWebTokenService jwtService,
-    IEmailService emailService,
     IUnitOfWork unitOfWork,
     ISystemClock clock,
     ILogger<LoginCommandHandler> logger)
@@ -152,7 +150,6 @@ public sealed class LoginCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         ApplicationLogMessages.UserLoggedIn(logger, user.Id);
-        await emailService.SendLoginAlertAsync(user.Email.Value);
         return new LoginSuccess(user.Id, token, session.Id);
     }
 }

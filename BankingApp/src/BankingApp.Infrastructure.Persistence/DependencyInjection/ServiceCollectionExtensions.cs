@@ -1,11 +1,9 @@
 namespace BankingApp.Infrastructure.Persistence.DependencyInjection;
 
 using System.Text;
-using Application.Common.Notifications;
 using Application.Common.Security;
 using Application.Shared.Persistence;
 using Domain.Repositories;
-using Common.Notifications;
 using Common.Security;
 using Data;
 using Repositories;
@@ -40,15 +38,6 @@ public static class ServiceCollectionExtensions
             });
         services.AddAuthorization();
 
-        services.Configure<SmtpSettings>(settings =>
-        {
-            IConfigurationSection section = configuration.GetSection("Email");
-            settings.SmtpHost = section["SmtpHost"] ?? string.Empty;
-            settings.SmtpPort = int.TryParse(section["SmtpPort"], out int port) ? port : 587;
-            settings.SmtpUser = section["SmtpUser"] ?? string.Empty;
-            settings.SmtpPass = section["SmtpPass"] ?? string.Empty;
-            settings.FromAddress = section["FromAddress"] ?? string.Empty;
-        });
         services.AddMemoryCache();
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString)
@@ -65,13 +54,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBillPaymentRepository, BillPaymentRepository>();
         services.AddScoped<ITransferRepository, TransferRepository>();
         services.AddScoped<IForexRepository, ForexTransactionRepository>();
-        services.AddScoped<IRateAlertRepository, RateAlertRepository>();
-        services.AddScoped<IRecurringPaymentRepository, RecurringPaymentRepository>();
         services.AddScoped<ISavedBillerRepository, SavedBillerRepository>();
 
         services.AddScoped<IHashService, HashService>();
         services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
-        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }

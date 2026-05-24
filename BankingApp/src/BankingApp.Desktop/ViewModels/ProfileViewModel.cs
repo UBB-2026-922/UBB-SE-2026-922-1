@@ -2,8 +2,8 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Threading.Tasks;
-using Contracts.Features.UserProfile.Dtos;
 using Shared.Enums;
+using Contracts.Features.UserProfile.Dtos;
 
 /// <summary>
 ///     Coordinates profile-related operations by delegating to specialized sub-ViewModels
