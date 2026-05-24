@@ -1,6 +1,7 @@
 namespace BankingApp.Application.Tests.Features.UserProfile.Commands;
 
-using BankingApp.Application.Features.UserProfile.Commands;
+using BankingApp.Application.Common.Security;
+using BankingApp.Application.Features.UserProfile.Services;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -15,6 +16,8 @@ public sealed class UpdateProfileCommandTests
     private readonly Mock<IUserRepository> _userRepositoryMock = new(MockBehavior.Strict);
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
     private readonly Mock<ISystemClock> _clockMock = new(MockBehavior.Strict);
+    private readonly Mock<IIdentityRepository> _identityRepositoryMock = new();
+    private readonly Mock<IHashService> _hashServiceMock = new();
 
     [Fact]
     public async Task Handle_WhenUserNotFound_ShouldReturnNotFoundError()
@@ -22,10 +25,10 @@ public sealed class UpdateProfileCommandTests
         // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         _userRepositoryMock.Setup(repository => repository.GetByIdAsync(TestUserId, cancellationToken)).ReturnsAsync((User?)null);
-        UpdateProfileCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.UpdateProfileAsync(TestUserId, " Jane Doe ", "+40722123456", new DateTime(1990, 1, 1), " Main Street ", " RO ", " ro ", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -41,10 +44,10 @@ public sealed class UpdateProfileCommandTests
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         User user = CreateUser();
         SetupValid(user, cancellationToken);
-        UpdateProfileCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.UpdateProfileAsync(TestUserId, " Jane Doe ", "+40722123456", new DateTime(1990, 1, 1), " Main Street ", " RO ", " ro ", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -64,10 +67,10 @@ public sealed class UpdateProfileCommandTests
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         User user = CreateUser();
         SetupValid(user, cancellationToken);
-        UpdateProfileCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.UpdateProfileAsync(TestUserId, " Jane Doe ", "+40722123456", new DateTime(1990, 1, 1), " Main Street ", " RO ", " ro ", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -75,11 +78,14 @@ public sealed class UpdateProfileCommandTests
         VerifyValid(user, cancellationToken);
     }
 
-    private UpdateProfileCommandHandler CreateHandler() =>
-        new(_userRepositoryMock.Object, _unitOfWorkMock.Object, _clockMock.Object, NullLogger<UpdateProfileCommandHandler>.Instance);
-
-    private static UpdateProfileCommand CreateCommand() =>
-        new(TestUserId, " Jane Doe ", "+40722123456", new DateTime(1990, 1, 1), " Main Street ", " RO ", " ro ");
+    private UserProfileService CreateService() =>
+        new(
+            _userRepositoryMock.Object,
+            _identityRepositoryMock.Object,
+            _hashServiceMock.Object,
+            _unitOfWorkMock.Object,
+            _clockMock.Object,
+            NullLogger<UserProfileService>.Instance);
 
     private void SetupValid(User user, CancellationToken cancellationToken)
     {

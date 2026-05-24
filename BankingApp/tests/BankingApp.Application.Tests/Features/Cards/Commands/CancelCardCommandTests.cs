@@ -1,9 +1,9 @@
 namespace BankingApp.Application.Tests.Features.Cards.Commands;
 
-using BankingApp.Application.Features.Cards.Commands;
+using BankingApp.Application.Features.Cards.Services;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NodaMoney;
 using Shared.Clock;
 using Shared.Persistence;
@@ -19,15 +19,20 @@ public sealed class CancelCardCommandTests
 
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly CancelCardCommandHandler _handler;
+    private readonly CardService _service;
 
     public CancelCardCommandTests()
     {
         _accountRepositoryMock = MockFactory.CreateAccountRepositoryMock();
         _unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
         Mock<ISystemClock> clockMock = MockFactory.CreateSystemClockMock();
-        var loggerMock = new Mock<ILogger<CancelCardCommandHandler>>();
-        _handler = new CancelCardCommandHandler(_accountRepositoryMock.Object, _unitOfWorkMock.Object, clockMock.Object, loggerMock.Object);
+        Mock<IUserRepository> userRepositoryMock = MockFactory.CreateUserRepositoryMock();
+        _service = new CardService(
+            _accountRepositoryMock.Object,
+            userRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            clockMock.Object,
+            NullLogger<CardService>.Instance);
     }
 
     [Fact]
@@ -37,9 +42,7 @@ public sealed class CancelCardCommandTests
             .Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<Account>());
 
-        var command = new CancelCardCommand(UserId: 1, CardId: 99);
-
-        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _service.CancelAsync(1, 99, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(CardErrors.NotFound);
@@ -56,9 +59,7 @@ public sealed class CancelCardCommandTests
             .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync([account]);
 
-        var command = new CancelCardCommand(UserId: 1, CardId: card.Id);
-
-        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _service.CancelAsync(1, card.Id, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(CardErrors.AlreadyCancelled);
@@ -74,9 +75,7 @@ public sealed class CancelCardCommandTests
             .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync([account]);
 
-        var command = new CancelCardCommand(UserId: 1, CardId: card.Id);
-
-        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _service.CancelAsync(1, card.Id, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeFalse();
         card.Status.Should().Be(CardStatus.Cancelled);

@@ -1,11 +1,13 @@
 namespace BankingApp.Application.Tests.Features.UserProfile.Commands;
 
-using BankingApp.Application.Features.UserProfile.Commands;
+using BankingApp.Application.Common.Security;
+using BankingApp.Application.Features.UserProfile.Services;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.UserProfile.Dtos;
 using Domain.Aggregates.UserAggregate.Entities;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Clock;
 using Shared.Persistence;
 
 public sealed class UpdateNotificationPreferencesCommandTests
@@ -15,6 +17,9 @@ public sealed class UpdateNotificationPreferencesCommandTests
 
     private readonly Mock<IUserRepository> _userRepositoryMock = new(MockBehavior.Strict);
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
+    private readonly Mock<IIdentityRepository> _identityRepositoryMock = new();
+    private readonly Mock<IHashService> _hashServiceMock = new();
+    private readonly Mock<ISystemClock> _clockMock = new();
 
     [Fact]
     public async Task Handle_WhenUserNotFound_ShouldReturnNotFoundError()
@@ -22,10 +27,10 @@ public sealed class UpdateNotificationPreferencesCommandTests
         // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         _userRepositoryMock.Setup(repository => repository.GetByIdAsync(TestUserId, cancellationToken)).ReturnsAsync((User?)null);
-        UpdateNotificationPreferencesCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.UpdateNotificationPreferencesAsync(TestUserId, CreatePreferences(), cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -42,10 +47,10 @@ public sealed class UpdateNotificationPreferencesCommandTests
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         User user = CreateUser();
         SetupValid(user, cancellationToken);
-        UpdateNotificationPreferencesCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.UpdateNotificationPreferencesAsync(TestUserId, CreatePreferences(), cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -66,10 +71,10 @@ public sealed class UpdateNotificationPreferencesCommandTests
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         User user = CreateUser();
         SetupValid(user, cancellationToken);
-        UpdateNotificationPreferencesCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.UpdateNotificationPreferencesAsync(TestUserId, CreatePreferences(), cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -77,21 +82,26 @@ public sealed class UpdateNotificationPreferencesCommandTests
         VerifyValid(user, cancellationToken);
     }
 
-    private UpdateNotificationPreferencesCommandHandler CreateHandler() =>
-        new(_userRepositoryMock.Object, _unitOfWorkMock.Object, NullLogger<UpdateNotificationPreferencesCommandHandler>.Instance);
+    private UserProfileService CreateService() =>
+        new(
+            _userRepositoryMock.Object,
+            _identityRepositoryMock.Object,
+            _hashServiceMock.Object,
+            _unitOfWorkMock.Object,
+            _clockMock.Object,
+            NullLogger<UserProfileService>.Instance);
 
-    private static UpdateNotificationPreferencesCommand CreateCommand() =>
-        new(TestUserId,
-            [
-                new NotificationPreferenceDto
-                {
-                    Category = NotificationType.Payment,
-                    PushEnabled = true,
-                    EmailEnabled = false,
-                    SmsEnabled = true,
-                    MinAmountThreshold = 100m
-                }
-            ]);
+    private static List<NotificationPreferenceDto> CreatePreferences() =>
+        [
+            new NotificationPreferenceDto
+            {
+                Category = NotificationType.Payment,
+                PushEnabled = true,
+                EmailEnabled = false,
+                SmsEnabled = true,
+                MinAmountThreshold = 100m
+            }
+        ];
 
     private void SetupValid(User user, CancellationToken cancellationToken)
     {

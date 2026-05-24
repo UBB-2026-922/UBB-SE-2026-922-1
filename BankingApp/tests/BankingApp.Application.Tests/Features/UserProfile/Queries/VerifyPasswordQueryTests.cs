@@ -1,10 +1,12 @@
 namespace BankingApp.Application.Tests.Features.UserProfile.Queries;
 
 using BankingApp.Application.Common.Security;
-using BankingApp.Application.Features.UserProfile.Queries;
+using BankingApp.Application.Features.UserProfile.Services;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Clock;
+using Shared.Persistence;
 
 public sealed class VerifyPasswordQueryTests
 {
@@ -14,6 +16,9 @@ public sealed class VerifyPasswordQueryTests
 
     private readonly Mock<IIdentityRepository> _identityRepositoryMock = new(MockBehavior.Strict);
     private readonly Mock<IHashService> _hashServiceMock = new(MockBehavior.Strict);
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
+    private readonly Mock<ISystemClock> _clockMock = new();
 
     [Fact]
     public async Task Handle_WhenUserNotFound_ShouldReturnNotFoundError()
@@ -21,10 +26,10 @@ public sealed class VerifyPasswordQueryTests
         // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         _identityRepositoryMock.Setup(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken)).ReturnsAsync((IdentityAccount?)null);
-        VerifyPasswordQueryHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<bool> result = await handler.Handle(new VerifyPasswordQuery(TestUserId, Password), cancellationToken);
+        ErrorOr<bool> result = await service.VerifyPasswordAsync(TestUserId, Password, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -48,10 +53,10 @@ public sealed class VerifyPasswordQueryTests
         var identity = IdentityAccount.Create(TestUserId, HashedPassword.Wrap(PasswordHash));
         _identityRepositoryMock.Setup(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken)).ReturnsAsync(identity);
         _hashServiceMock.Setup(service => service.Verify(Password, PasswordHash)).Returns((ErrorOr<bool>)false);
-        VerifyPasswordQueryHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<bool> result = await handler.Handle(new VerifyPasswordQuery(TestUserId, Password), cancellationToken);
+        ErrorOr<bool> result = await service.VerifyPasswordAsync(TestUserId, Password, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -70,10 +75,10 @@ public sealed class VerifyPasswordQueryTests
         var identity = IdentityAccount.Create(TestUserId, HashedPassword.Wrap(PasswordHash));
         _identityRepositoryMock.Setup(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken)).ReturnsAsync(identity);
         _hashServiceMock.Setup(service => service.Verify(Password, PasswordHash)).Returns((ErrorOr<bool>)true);
-        VerifyPasswordQueryHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<bool> result = await handler.Handle(new VerifyPasswordQuery(TestUserId, Password), cancellationToken);
+        ErrorOr<bool> result = await service.VerifyPasswordAsync(TestUserId, Password, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -84,6 +89,12 @@ public sealed class VerifyPasswordQueryTests
         _hashServiceMock.VerifyNoOtherCalls();
     }
 
-    private VerifyPasswordQueryHandler CreateHandler() =>
-        new(_identityRepositoryMock.Object, _hashServiceMock.Object, NullLogger<VerifyPasswordQueryHandler>.Instance);
+    private UserProfileService CreateService() =>
+        new(
+            _userRepositoryMock.Object,
+            _identityRepositoryMock.Object,
+            _hashServiceMock.Object,
+            _unitOfWorkMock.Object,
+            _clockMock.Object,
+            NullLogger<UserProfileService>.Instance);
 }
