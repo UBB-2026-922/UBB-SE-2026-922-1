@@ -21,7 +21,6 @@ public sealed class TestServiceProviderFactory(string connectionString)
             })
             .Build();
 
-        services.AddSingleton(Mock.Of<IPublisher>());
         services.AddPersistenceInfrastructure(configuration);
 
         return services.BuildServiceProvider(validateScopes: true);
