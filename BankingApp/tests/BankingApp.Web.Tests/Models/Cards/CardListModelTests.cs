@@ -1,38 +1,37 @@
-namespace BankingApp.Web.Tests.ViewModels.Cards;
+namespace BankingApp.Web.Tests.Models.Cards;
 
 using BankingApp.Contracts.Features.Cards.Dtos;
-using BankingApp.Web.ViewModels.Cards;
+using BankingApp.Web.Models.Cards;
 
-public sealed class CardListViewModelTests
+public sealed class CardListModelTests
 {
     [Fact]
     public void HasCards_WhenCardsListIsEmpty_ReturnsFalse()
     {
-        CardListViewModel viewModel = new() { Cards = [] };
+        CardListModel model = new() { Cards = [] };
 
-        viewModel.HasCards.Should().BeFalse();
+        model.HasCards.Should().BeFalse();
     }
 
     [Fact]
     public void HasCards_WhenCardsListHasOneEntry_ReturnsTrue()
     {
-        CardListViewModel viewModel = new()
+        CardListModel model = new()
         {
             Cards = [new CardDetailsDto()]
         };
 
-        viewModel.HasCards.Should().BeTrue();
+        model.HasCards.Should().BeTrue();
     }
 
     [Fact]
     public void HasCards_WhenCardsListHasMultipleEntries_ReturnsTrue()
     {
-        CardListViewModel viewModel = new()
+        CardListModel model = new()
         {
             Cards = [new CardDetailsDto(), new CardDetailsDto(), new CardDetailsDto()]
         };
 
-        viewModel.HasCards.Should().BeTrue();
+        model.HasCards.Should().BeTrue();
     }
 }
-

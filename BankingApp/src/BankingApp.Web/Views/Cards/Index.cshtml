@@ -1,5 +1,6 @@
-@model BankingApp.Web.ViewModels.Cards.CardListViewModel
+@model BankingApp.Web.Models.Cards.CardListModel
 @using BankingApp.Domain.Enums
+@using BankingApp.Contracts.Features.Cards.Dtos
 @{
     ViewData["Title"] = "My Cards";
 }
@@ -50,7 +51,7 @@
                     </label>
                     <select asp-for="IssueForm.CardBrand" class="form-select">
                         <option value="">— Select carrier —</option>
-                        @foreach (string brand in BankingApp.Web.ViewModels.Cards.IssueCardViewModel.SupportedBrands)
+                        @foreach (string brand in IssueCardRequest.SupportedBrands)
                         {
                             <option value="@brand">@brand</option>
                         }
@@ -159,10 +160,10 @@ else
                     <!-- Card details and actions -->
                     <div class="card-body">
 
-                        <!-- Account name + status row -->
+                        <!-- Account IBAN + status row -->
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <div class="small text-muted">@(card.AccountName ?? "—")</div>
+                                <div class="small text-muted">@(string.IsNullOrEmpty(card.AccountIban) ? "—" : card.AccountIban)</div>
                                 <div class="small text-muted">@card.CardType</div>
                             </div>
                             <span class="badge @GetStatusBadgeClass(card.Status)">@card.Status</span>

@@ -46,6 +46,9 @@ public sealed class CardDetailsDto
     /// <summary>Gets or sets the display name of the associated account.</summary>
     public string? AccountName { get; set; }
 
+    /// <summary>Gets or sets the IBAN of the associated account.</summary>
+    public string AccountIban { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the identifier of the associated account.</summary>
     public int AccountId { get; set; }
 

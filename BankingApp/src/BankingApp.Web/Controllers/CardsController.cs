@@ -3,7 +3,7 @@ namespace BankingApp.Web.Controllers;
 using BankingApp.Contracts.Features.Cards.Dtos;
 using BankingApp.Contracts.Features.Cards.Services;
 using BankingApp.Domain.Enums;
-using BankingApp.Web.ViewModels.Cards;
+using BankingApp.Web.Models.Cards;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,16 +20,16 @@ public class CardsController(ICardService cardService) : Controller
         if (result.IsError)
         {
             TempData["Error"] = "Could not load cards. Please try again.";
-            return View(new CardListViewModel());
+            return View(new CardListModel());
         }
 
-        return View(new CardListViewModel { Cards = result.Value });
+        return View(new CardListModel { Cards = result.Value });
     }
 
     /// <summary>Processes the issue-card form submission.</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Issue(IssueCardViewModel issueForm, CancellationToken cancellationToken)
+    public async Task<IActionResult> Issue(IssueCardModel issueForm, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -97,12 +97,12 @@ public class CardsController(ICardService cardService) : Controller
     }
 
     private async Task<IActionResult> ReturnIndexWithIssueFormAsync(
-        IssueCardViewModel issueForm,
+        IssueCardModel issueForm,
         CancellationToken cancellationToken)
     {
         ErrorOr<List<CardDetailsDto>> cardsResult = await cardService.GetCardsAsync(cancellationToken);
 
-        CardListViewModel listModel = new()
+        CardListModel listModel = new()
         {
             Cards = cardsResult.IsError ? [] : cardsResult.Value,
             IssueForm = issueForm,

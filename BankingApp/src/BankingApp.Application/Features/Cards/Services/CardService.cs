@@ -59,6 +59,7 @@ public sealed class CardService(
                     IsContactlessEnabled = card.IsContactlessEnabled,
                     IsOnlineEnabled = card.IsOnlineEnabled,
                     AccountName = account.AccountName,
+                    AccountIban = account.Iban.Value,
                     AccountId = account.Id
                 }).ToList();
         }

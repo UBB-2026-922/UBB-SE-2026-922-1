@@ -26,4 +26,8 @@
       <_ContentIncludedByDefault Remove="Views\RecurringPayments\Index.cshtml" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ViewModels\Cards\" />
+    </ItemGroup>
+
 </Project>
