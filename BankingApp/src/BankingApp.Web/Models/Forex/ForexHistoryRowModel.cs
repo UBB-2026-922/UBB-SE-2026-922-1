@@ -1,9 +1,9 @@
-namespace BankingApp.Web.ViewModels.Forex;
+namespace BankingApp.Web.Models.Forex;
 
 /// <summary>
 ///     Represents a single row in the forex transaction history table.
 /// </summary>
-public class ForexHistoryRowViewModel
+public class ForexHistoryRowModel
 {
     /// <summary>Gets or sets the transaction id.</summary>
     public int Id { get; set; }

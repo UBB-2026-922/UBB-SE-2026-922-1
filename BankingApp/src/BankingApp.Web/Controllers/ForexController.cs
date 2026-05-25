@@ -7,7 +7,7 @@ using Contracts.Features.Forex.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ViewModels.Forex;
+using Models.Forex;
 
 [Authorize]
 public class ForexController(
@@ -20,10 +20,10 @@ public class ForexController(
         if (accountsResult.IsError)
         {
             TempData["Error"] = "Unable to load your accounts. Please try again.";
-            return View(new ForexViewModel());
+            return View(new ForexExchangeModel());
         }
 
-        ForexViewModel viewModel = new()
+        ForexExchangeModel viewModel = new()
         {
             Accounts = accountsResult.Value,
         };
@@ -33,7 +33,7 @@ public class ForexController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Preview(ForexViewModel viewModel, CancellationToken ct)
+    public async Task<IActionResult> Preview(ForexExchangeModel viewModel, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -72,7 +72,7 @@ public class ForexController(
 
         ForexRatePreviewResponse preview = previewResult.Value;
 
-        ForexPreviewViewModel previewVm = new()
+        ForexPreviewModel previewVm = new()
         {
             SourceAccountId = viewModel.SelectedSourceAccountId,
             TargetAccountId = viewModel.SelectedTargetAccountId,
@@ -91,7 +91,7 @@ public class ForexController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Execute(ForexPreviewViewModel viewModel, CancellationToken ct)
+    public async Task<IActionResult> Execute(ForexPreviewModel viewModel, CancellationToken ct)
     {
         ForexTransactionRequest request = new()
         {
@@ -125,12 +125,12 @@ public class ForexController(
         if (result.IsError)
         {
             TempData["Error"] = "Unable to load exchange history. Please try again.";
-            return View(new ForexHistoryViewModel());
+            return View(new ForexHistoryModel());
         }
 
-        ForexHistoryViewModel viewModel = new()
+        ForexHistoryModel viewModel = new()
         {
-            Transactions = result.Value.ConvertAll(t => new ForexHistoryRowViewModel
+            Transactions = result.Value.ConvertAll(t => new ForexHistoryRowModel
             {
                 Id = t.Id,
                 SourceCurrency = t.SourceCurrency,
@@ -145,7 +145,7 @@ public class ForexController(
         return View(viewModel);
     }
 
-    private async Task RepopulateAccountsAsync(ForexViewModel vm, CancellationToken ct)
+    private async Task RepopulateAccountsAsync(ForexExchangeModel vm, CancellationToken ct)
     {
         ErrorOr<List<AccountDto>> result = await billPaymentService.GetAccountsAsync(ct);
         vm.Accounts = result.IsError ? [] : result.Value;

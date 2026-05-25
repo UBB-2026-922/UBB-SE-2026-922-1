@@ -1,10 +1,10 @@
-namespace BankingApp.Web.ViewModels.Forex;
+namespace BankingApp.Web.Models.Forex;
 
 /// <summary>
-///     View model for the forex rate preview / confirmation step.
+///     Model for the forex rate preview / confirmation step.
 ///     All fields are echoed as hidden inputs to carry the exchange details forward.
 /// </summary>
-public class ForexPreviewViewModel
+public class ForexPreviewModel
 {
     /// <summary>Gets or sets the source account id.</summary>
     public int SourceAccountId { get; set; }
