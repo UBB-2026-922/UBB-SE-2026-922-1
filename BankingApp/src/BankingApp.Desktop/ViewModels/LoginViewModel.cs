@@ -4,14 +4,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Features.Authentication.Services;
-using BankingApp.Contracts.Features.Authentication.Dtos;
+using Contracts.Features.Authentication.Dtos;
 using Shared.Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Session;
-using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates interactive sign-in for the desktop client.</summary>
 public partial class LoginViewModel : ObservableObject
@@ -40,7 +39,7 @@ public partial class LoginViewModel : ObservableObject
             _ => LoginState.Idle,
             errors =>
             {
-                DesktopLogMessages.LoginUnavailableApiClientNotConfigured(_logger, errors.Count);
+                _logger.LoginUnavailableApiClientNotConfigured(errors.Count);
                 return LoginState.ServerNotConfigured;
             });
     }
@@ -74,7 +73,7 @@ public partial class LoginViewModel : ObservableObject
             new LoginRequest { Email = email.Trim(), Password = password });
         if (result.IsError)
         {
-            DesktopLogMessages.LoginFailed(_logger, result.Errors);
+            _logger.LoginFailed(result.Errors);
             State = LoginState.Idle;
             return result.Errors;
         }
@@ -120,7 +119,7 @@ public partial class LoginViewModel : ObservableObject
                 }
                 else
                 {
-                    DesktopLogMessages.LoginFailed(_logger, errors);
+                    _logger.LoginFailed(errors);
                     State = LoginState.Error;
                 }
             });

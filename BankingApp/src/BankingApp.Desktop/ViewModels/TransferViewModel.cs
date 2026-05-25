@@ -28,14 +28,14 @@ public partial class TransferViewModel : ObservableObject
         CurrentStep = IbanValidationStep;
         Currency = DefaultTransferCurrency;
 
-        NextStepCommand = new RelayCommand(ExecuteNextStep);
+        NextStepCommand = new AsyncRelayCommand(ExecuteNextStep);
         TransferCommand = new AsyncRelayCommand(ExecuteTransferAsync);
         CancelCommand = new RelayCommand(ExecuteCancel);
         SendAgainCommand = new RelayCommand(ExecuteSendAgain);
     }
 
     /// <summary>Gets the command that advances the wizard to the next step.</summary>
-    public IRelayCommand NextStepCommand { get; }
+    public IAsyncRelayCommand NextStepCommand { get; }
 
     /// <summary>Gets the command that submits the transfer for processing.</summary>
     public IAsyncRelayCommand TransferCommand { get; }

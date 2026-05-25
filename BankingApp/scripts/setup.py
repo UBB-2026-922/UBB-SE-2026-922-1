@@ -76,6 +76,23 @@ API_ENV_KEYS = (
     "DevLogin__FullName",
 )
 
+DEV_SUMMARY_KEYS = (
+    CONNECTION_STRING_KEY,
+    "Jwt:Secret",
+    "Otp:Secret",
+    "Database:ApplyMigrations",
+    "DevLogin:Email",
+    "DevLogin:Password",
+    "DevLogin:FullName",
+)
+
+PROD_SUMMARY_KEYS = (
+    CONNECTION_STRING_KEY,
+    "Jwt:Secret",
+    "Otp:Secret",
+    "Database:ApplyMigrations",
+)
+
 
 def generate_sql_password(length: int = SQL_PASSWORD_LENGTH) -> str:
     """Generate a SQL Server-compatible password."""
@@ -120,6 +137,11 @@ def mask_value(key: str, value: str, show_secrets: bool) -> str:
     if not value:
         return value
     return "***"
+
+
+def is_placeholder_value(value: str) -> bool:
+    """Return whether a config value is only documentation, not a real configured value."""
+    return value.startswith("SET-VIA-")
 
 
 def read_env_file(path: Path) -> dict[str, str]:
@@ -465,18 +487,55 @@ def get_sources_for_key(key: str, environment: str) -> list[tuple[str, str | Non
     return sources
 
 
+def get_configured_matches(key: str, environment: str) -> list[tuple[str, str]]:
+    """Return non-placeholder configured values for a config key."""
+    return [
+        (source, value)
+        for source, value in get_sources_for_key(key, environment)
+        if value and not is_placeholder_value(value)
+    ]
+
+
+def print_setup_summary(environment: str, show_secrets: bool) -> None:
+    """Print the important generated setup values for an environment."""
+    keys = PROD_SUMMARY_KEYS if environment == "Production" else DEV_SUMMARY_KEYS
+    print(f"{environment} setup:")
+
+    for key in keys:
+        matches = get_configured_matches(key, environment)
+        if not matches:
+            print(f"  {key}: not configured")
+            continue
+
+        source, value = matches[-1]
+        print(f"  {key}: {mask_value(key, value, show_secrets)} ({source})")
+
+    if environment == "Development":
+        compose_env = read_env_file(COMPOSE_ENV_FILE)
+        db_password = compose_env.get("DB_SA_PASSWORD")
+        if db_password:
+            print(f"  DB_SA_PASSWORD: {mask_value('DB_SA_PASSWORD', db_password, show_secrets)} ({COMPOSE_ENV_FILE.relative_to(APP_ROOT)})")
+        else:
+            print("  DB_SA_PASSWORD: not configured")
+
+
 def handle_get(args: argparse.Namespace) -> None:
     """Handle get command."""
-    key = to_config_key(args.key)
     environment = "Production" if args.environment == "prod" else "Development"
+    if args.key is None:
+        print_setup_summary(environment, args.show_secrets)
+        return
+
+    key = to_config_key(args.key)
     sources = get_sources_for_key(key, environment)
-    matches = [(source, value) for source, value in sources if value]
+    matches = [(source, value) for source, value in sources if value and not is_placeholder_value(value)]
 
     if args.all:
-        if not matches:
+        all_sources = [(source, value) for source, value in sources if value]
+        if not all_sources:
             print(f"{key}: not configured")
             return
-        for source, value in matches:
+        for source, value in all_sources:
             print(f"{source}: {mask_value(key, value, args.show_secrets)}")
         return
 
@@ -597,7 +656,11 @@ def parse_args() -> argparse.Namespace:
     get_subparsers = get_parser.add_subparsers(dest="environment", required=True)
     for environment in ("dev", "prod"):
         environment_parser = get_subparsers.add_parser(environment, help=f"Read a {environment} configuration value.")
-        environment_parser.add_argument("key", help="ASP.NET config key, e.g. ConnectionStrings:BankingAppDb.")
+        environment_parser.add_argument(
+            "key",
+            nargs="?",
+            help="ASP.NET config key, e.g. ConnectionStrings:BankingAppDb. Omit to show setup summary.",
+        )
         environment_parser.add_argument("--all", action="store_true", help="Show all configured sources for the key.")
         environment_parser.add_argument(
             "--show-secrets",

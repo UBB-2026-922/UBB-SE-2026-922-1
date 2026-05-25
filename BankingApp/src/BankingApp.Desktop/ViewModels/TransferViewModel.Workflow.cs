@@ -40,14 +40,14 @@ public partial class TransferViewModel
     }
 
     /// <summary>Advances the wizard to the next step, validating IBAN, amount, and 2FA before allowing progression.</summary>
-    internal void ExecuteNextStep()
+    internal async Task ExecuteNextStep()
     {
         ErrorMessage = string.Empty;
 
         switch (CurrentStep)
         {
             case IbanValidationStep:
-                MoveFromIbanStep();
+                await MoveFromIbanStepAsync();
                 break;
             case TransferDetailsStep:
                 MoveFromDetailsStep();
@@ -120,11 +120,14 @@ public partial class TransferViewModel
 
     private void ExecuteCancel()
     {
+        // TODO: this is missing, why?
         throw new NotImplementedException();
     }
 
-    private void MoveFromIbanStep()
+    private async Task MoveFromIbanStepAsync()
     {
+        await UpdateIbanValidationAsync(RecipientIban);
+
         if (IsIbanValid)
         {
             CurrentStep++;
@@ -149,6 +152,13 @@ public partial class TransferViewModel
 
     private async Task UpdateIbanValidationAsync(string iban)
     {
+        if (string.IsNullOrWhiteSpace(iban))
+        {
+            IsIbanValid = false;
+            BankName = string.Empty;
+            return;
+        }
+
         try
         {
             ErrorOr<TransferIbanValidationResponse> result =
