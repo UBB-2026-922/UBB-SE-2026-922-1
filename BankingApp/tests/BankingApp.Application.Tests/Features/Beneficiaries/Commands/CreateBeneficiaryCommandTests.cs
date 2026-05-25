@@ -1,6 +1,6 @@
 namespace BankingApp.Application.Tests.Features.Beneficiaries.Commands;
 
-using BankingApp.Application.Features.Beneficiaries.Commands;
+using BankingApp.Application.Features.Beneficiaries.Services;
 using Domain.Aggregates.BeneficiaryAggregate;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.Beneficiaries.Dtos;
@@ -26,11 +26,10 @@ public sealed class CreateBeneficiaryCommandTests
     public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidIbanErrorAndNotPersist()
     {
         // Arrange
-        CreateBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", "invalid-iban", "Bank");
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<BeneficiaryDto> result = await handler.Handle(command, CancellationToken.None);
+        ErrorOr<BeneficiaryDto> result = await service.CreateAsync(TestUserId, "John Doe", "invalid-iban", "Bank", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -45,18 +44,17 @@ public sealed class CreateBeneficiaryCommandTests
     public async Task Handle_WhenBeneficiaryWithSameIbanAlreadyExistsIgnoringCase_ShouldReturnDuplicateErrorAndNotPersist()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Beneficiary existingBeneficiary = CreateBeneficiary(ValidIban.ToLowerInvariant());
 
         _beneficiaryRepositoryMock
             .Setup(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken))
             .ReturnsAsync([existingBeneficiary]);
 
-        CreateBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new CreateBeneficiaryCommand(TestUserId, "John Doe", ValidIban, "Bank");
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<BeneficiaryDto> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<BeneficiaryDto> result = await service.CreateAsync(TestUserId, "John Doe", ValidIban, "Bank", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -72,7 +70,7 @@ public sealed class CreateBeneficiaryCommandTests
     public async Task Handle_WhenCommandIsValid_ShouldCreateTrimmedBeneficiaryAndSaveChanges()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Beneficiary? persistedBeneficiary = null;
 
         _beneficiaryRepositoryMock
@@ -90,11 +88,10 @@ public sealed class CreateBeneficiaryCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        CreateBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new CreateBeneficiaryCommand(TestUserId, "  John Doe  ", ValidIban, "Bank");
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<BeneficiaryDto> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<BeneficiaryDto> result = await service.CreateAsync(TestUserId, "  John Doe  ", ValidIban, "Bank", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -102,13 +99,13 @@ public sealed class CreateBeneficiaryCommandTests
         persistedBeneficiary!.UserId.Should().Be(TestUserId);
         persistedBeneficiary.Name.Should().Be("John Doe");
         persistedBeneficiary.Iban.Value.Should().Be(ValidIban);
-        persistedBeneficiary.BankName.Should().Be(command.BankName);
+        persistedBeneficiary.BankName.Should().Be("Bank");
         persistedBeneficiary.CreatedAt.Should().Be(_testNow);
 
         result.Value.UserId.Should().Be(TestUserId);
         result.Value.Name.Should().Be("John Doe");
         result.Value.Iban.Should().Be(ValidIban);
-        result.Value.BankName.Should().Be(command.BankName);
+        result.Value.BankName.Should().Be("Bank");
 
         _beneficiaryRepositoryMock.Verify(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken), Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.AddAsync(persistedBeneficiary, cancellationToken), Times.Once);
@@ -119,13 +116,13 @@ public sealed class CreateBeneficiaryCommandTests
         _clockMock.VerifyNoOtherCalls();
     }
 
-    private CreateBeneficiaryCommandHandler CreateHandler()
+    private BeneficiaryService CreateService()
     {
-        return new CreateBeneficiaryCommandHandler(
+        return new BeneficiaryService(
             _beneficiaryRepositoryMock.Object,
             _unitOfWorkMock.Object,
             _clockMock.Object,
-            NullLogger<CreateBeneficiaryCommandHandler>.Instance);
+            NullLogger<BeneficiaryService>.Instance);
     }
 
     private static Beneficiary CreateBeneficiary(string iban = ValidIban)

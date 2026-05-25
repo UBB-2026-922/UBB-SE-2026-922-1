@@ -1,8 +1,9 @@
 namespace BankingApp.Application.Tests.Features.Transfers.Queries;
 
-using BankingApp.Application.Features.Transfers.Queries;
+using BankingApp.Application.Features.Transfers.Services;
 using Contracts.Features.Transfers.Dtos;
 using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
 
 public sealed class ValidateIbanQueryTests
 {
@@ -10,11 +11,10 @@ public sealed class ValidateIbanQueryTests
     public async Task Handle_WhenIbanIsValid_ShouldReturnValidResponse()
     {
         // Arrange
-        ValidateIbanQueryHandler handler = new();
-        var query = new ValidateIbanQuery("RO12BANK1234567890123456");
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferIbanValidationResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<TransferIbanValidationResponse> result = await service.ValidateIbanAsync("RO12BANK1234567890123456", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -26,15 +26,26 @@ public sealed class ValidateIbanQueryTests
     public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidResponse()
     {
         // Arrange
-        ValidateIbanQueryHandler handler = new();
-        var query = new ValidateIbanQuery("invalid-iban");
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferIbanValidationResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<TransferIbanValidationResponse> result = await service.ValidateIbanAsync("invalid-iban", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.IsValid.Should().BeFalse();
         result.Value.BankName.Should().BeEmpty();
+    }
+
+    private static TransferService CreateService()
+    {
+        return new TransferService(
+            new Mock<IAccountRepository>().Object,
+            new Mock<ITransferRepository>().Object,
+            new Mock<IBeneficiaryRepository>().Object,
+            new Mock<Shared.Persistence.IUnitOfWork>().Object,
+            new Mock<Shared.Clock.ISystemClock>().Object,
+            new Mock<BankingApp.Application.IExchangeRateService>().Object,
+            NullLogger<TransferService>.Instance);
     }
 }

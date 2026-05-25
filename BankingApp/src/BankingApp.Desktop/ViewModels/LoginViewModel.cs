@@ -4,14 +4,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Application.Features.Authentication.Services;
-using BankingApp.Contracts.Features.Authentication.Dtos;
+using Contracts.Features.Authentication.Dtos;
 using Shared.Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Session;
-using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Coordinates interactive sign-in for the desktop client.</summary>
 public partial class LoginViewModel : ObservableObject
@@ -19,6 +18,7 @@ public partial class LoginViewModel : ObservableObject
     private readonly IAuthenticationService _authenticationService;
     private readonly IAuthenticationSession _authenticationSession;
     private readonly IConfiguration _configuration;
+    private readonly ILoginPreferences _loginPreferences;
     private readonly ILogger<LoginViewModel> _logger;
 
     /// <summary>Initializes a new instance of the <see cref="LoginViewModel"/> class.</summary>
@@ -26,21 +26,24 @@ public partial class LoginViewModel : ObservableObject
         IAuthenticationService authenticationService,
         IAuthenticationSession authenticationSession,
         IConfiguration configuration,
+        ILoginPreferences loginPreferences,
         ILogger<LoginViewModel> logger)
     {
         _authenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
         _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _loginPreferences = loginPreferences ?? throw new ArgumentNullException(nameof(loginPreferences));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         IsDevLoginAvailable = string.Equals(
             Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT"),
             "Development",
             StringComparison.OrdinalIgnoreCase);
+
         State = _authenticationSession.EnsureConfigured().Match(
             _ => LoginState.Idle,
             errors =>
             {
-                DesktopLogMessages.LoginUnavailableApiClientNotConfigured(_logger, errors.Count);
+                _logger.LoginUnavailableApiClientNotConfigured(errors.Count);
                 return LoginState.ServerNotConfigured;
             });
     }
@@ -52,9 +55,23 @@ public partial class LoginViewModel : ObservableObject
     /// <summary>Gets a value indicating whether fast development login is available.</summary>
     public bool IsDevLoginAvailable { get; }
 
+    /// <summary>Gets the previously saved email address when Remember Me was active.</summary>
+    public string? SavedEmail
+    {
+        get { return _loginPreferences.SavedEmail; }
+    }
+
+    /// <summary>Gets a value indicating whether the user previously opted to be remembered.</summary>
+    public bool SavedRememberMe
+    {
+        get { return _loginPreferences.RememberMe; }
+    }
+
     /// <summary>Returns true when both email and password contain non-whitespace content.</summary>
-    public static bool CanLogin(string email, string password) =>
-        !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password);
+    public static bool CanLogin(string email, string password)
+    {
+        return !string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password);
+    }
 
     /// <summary>Attempts to sign the configured development user in without manual entry.</summary>
     public async Task<ErrorOr<Success>> DevLogin()
@@ -66,7 +83,7 @@ public partial class LoginViewModel : ObservableObject
         {
             return Error.Failure(
                 "DevLogin.NotConfigured",
-                "Dev login is not configured. Set DevLogin:Email and DevLogin:Password in appsettings.Development.json.");
+                "Dev login is not configured. Set DevLogin:Email and DevLogin:Password in user secrets.");
         }
 
         State = LoginState.Loading;
@@ -74,7 +91,7 @@ public partial class LoginViewModel : ObservableObject
             new LoginRequest { Email = email.Trim(), Password = password });
         if (result.IsError)
         {
-            DesktopLogMessages.LoginFailed(_logger, result.Errors);
+            _logger.LoginFailed(result.Errors);
             State = LoginState.Idle;
             return result.Errors;
         }
@@ -96,7 +113,7 @@ public partial class LoginViewModel : ObservableObject
     }
 
     /// <summary>Attempts to sign the user in with the supplied credentials.</summary>
-    public async Task Login(string email, string password)
+    public async Task Login(string email, string password, bool rememberMe)
     {
         State = LoginState.Loading;
         ErrorOr<LoginSuccessResponse> result = await _authenticationService.LoginAsync(
@@ -106,6 +123,7 @@ public partial class LoginViewModel : ObservableObject
             {
                 _authenticationSession.SetToken(response.Token!);
                 _authenticationSession.CurrentUserId = response.UserId;
+                _loginPreferences.Save(email.Trim(), rememberMe);
                 State = LoginState.Success;
             },
             errors =>
@@ -120,7 +138,7 @@ public partial class LoginViewModel : ObservableObject
                 }
                 else
                 {
-                    DesktopLogMessages.LoginFailed(_logger, errors);
+                    _logger.LoginFailed(errors);
                     State = LoginState.Error;
                 }
             });

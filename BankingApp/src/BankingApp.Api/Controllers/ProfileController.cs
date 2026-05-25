@@ -1,7 +1,6 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.Features.UserProfile.Commands;
-using Application.Features.UserProfile.Queries;
+using Application.Features.UserProfile.Services;
 using Contracts.Features.UserProfile.Dtos;
 using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
@@ -13,13 +12,13 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 [Authorize]
 [Route(ApiEndpoints.Profile.Base)]
-public class ProfileController : ApiControllerBase
+public class ProfileController(IUserProfileService userProfileService) : ApiControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> GetProfile(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new GetProfileQuery(userId), cancellationToken), Ok);
+        return ToActionResult(await userProfileService.GetProfileAsync(userId, cancellationToken), Ok);
     }
 
     [HttpPut]
@@ -28,15 +27,10 @@ public class ProfileController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        var command = new UpdateProfileCommand(
-            userId,
-            request.FullName,
-            request.PhoneNumber,
-            request.DateOfBirth,
-            request.Address,
-            request.Nationality,
-            request.PreferredLanguage);
-        return ToActionResult(await Sender.Send(command, cancellationToken));
+        return ToActionResult(
+            await userProfileService.UpdateProfileAsync(
+                userId, request.FullName, request.PhoneNumber, request.DateOfBirth,
+                request.Address, request.Nationality, request.PreferredLanguage, cancellationToken));
     }
 
     [HttpPut(ApiEndpoints.Profile.ChangePassword)]
@@ -46,14 +40,14 @@ public class ProfileController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(
-            await Sender.Send(new ChangePasswordCommand(userId, request.CurrentPassword, request.NewPassword), cancellationToken));
+            await userProfileService.ChangePasswordAsync(userId, request.CurrentPassword, request.NewPassword, cancellationToken));
     }
 
     [HttpGet(ApiEndpoints.Profile.NotificationPreferences)]
     public async Task<IActionResult> GetNotificationPreferences(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new GetNotificationPreferencesQuery(userId), cancellationToken), Ok);
+        return ToActionResult(await userProfileService.GetNotificationPreferencesAsync(userId, cancellationToken), Ok);
     }
 
     [HttpPut(ApiEndpoints.Profile.NotificationPreferences)]
@@ -63,7 +57,7 @@ public class ProfileController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(
-            await Sender.Send(new UpdateNotificationPreferencesCommand(userId, preferences), cancellationToken));
+            await userProfileService.UpdateNotificationPreferencesAsync(userId, preferences, cancellationToken));
     }
 
     [HttpPost(ApiEndpoints.Profile.VerifyPassword)]
@@ -71,7 +65,7 @@ public class ProfileController : ApiControllerBase
     {
         int userId = GetAuthenticatedUserId();
         return ToActionResult(
-            await Sender.Send(new VerifyPasswordQuery(userId, password), cancellationToken),
+            await userProfileService.VerifyPasswordAsync(userId, password, cancellationToken),
             isValid => Ok(isValid));
     }
 
@@ -79,13 +73,13 @@ public class ProfileController : ApiControllerBase
     public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new GetActiveSessionsQuery(userId), cancellationToken), Ok);
+        return ToActionResult(await userProfileService.GetActiveSessionsAsync(userId, cancellationToken), Ok);
     }
 
     [HttpDelete(ApiEndpoints.Profile.SessionById)]
     public async Task<IActionResult> RevokeSession(int sessionId, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new RevokeSessionCommand(userId, sessionId), cancellationToken));
+        return ToActionResult(await userProfileService.RevokeSessionAsync(userId, sessionId, cancellationToken));
     }
 }

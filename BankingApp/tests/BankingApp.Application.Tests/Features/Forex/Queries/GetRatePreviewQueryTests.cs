@@ -1,6 +1,5 @@
 namespace BankingApp.Application.Tests.Features.Forex.Queries;
 
-using BankingApp.Application.Features.Forex.Queries;
 using BankingApp.Application.Features.Forex.Services;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.Forex.Dtos;
@@ -24,11 +23,10 @@ public sealed class GetRatePreviewQueryTests
     public async Task Handle_WhenCurrencyCodeIsInvalid_ShouldReturnInvalidCurrencyError()
     {
         // Arrange
-        GetRatePreviewQueryHandler handler = CreateHandler();
-        var query = new GetRatePreviewQuery(TestUserId, "INVALID", "USD", SourceAmount);
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexRatePreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<ForexRatePreviewResponse> result = await service.GetRatePreviewAsync(TestUserId, "INVALID", "USD", SourceAmount, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -43,11 +41,10 @@ public sealed class GetRatePreviewQueryTests
     public async Task Handle_WhenSourceAndTargetCurrencyAreTheSame_ShouldReturnSameCurrencyError()
     {
         // Arrange
-        GetRatePreviewQueryHandler handler = CreateHandler();
-        var query = new GetRatePreviewQuery(TestUserId, "USD", "USD", SourceAmount);
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexRatePreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<ForexRatePreviewResponse> result = await service.GetRatePreviewAsync(TestUserId, "USD", "USD", SourceAmount, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -74,16 +71,15 @@ public sealed class GetRatePreviewQueryTests
         _lockedRateCacheMock
             .Setup(cache => cache.Store(TestUserId, sourceCurrency, targetCurrency, ExchangeRate, _testNow));
 
-        GetRatePreviewQueryHandler handler = CreateHandler();
-        var query = new GetRatePreviewQuery(TestUserId, "EUR", "USD", SourceAmount);
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexRatePreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<ForexRatePreviewResponse> result = await service.GetRatePreviewAsync(TestUserId, "EUR", "USD", SourceAmount, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
 
-        _exchangeRateServiceMock.Verify(service => service.GetRate(sourceCurrency, targetCurrency), Times.Once);
+        _exchangeRateServiceMock.Verify(s => s.GetRate(sourceCurrency, targetCurrency), Times.Once);
         _lockedRateCacheMock.Verify(cache => cache.Store(TestUserId, sourceCurrency, targetCurrency, ExchangeRate, _testNow), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         _exchangeRateServiceMock.VerifyNoOtherCalls();
@@ -107,11 +103,10 @@ public sealed class GetRatePreviewQueryTests
         _lockedRateCacheMock
             .Setup(cache => cache.Store(TestUserId, sourceCurrency, targetCurrency, ExchangeRate, _testNow));
 
-        GetRatePreviewQueryHandler handler = CreateHandler();
-        var query = new GetRatePreviewQuery(TestUserId, "EUR", "USD", SourceAmount);
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexRatePreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<ForexRatePreviewResponse> result = await service.GetRatePreviewAsync(TestUserId, "EUR", "USD", SourceAmount, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -120,7 +115,7 @@ public sealed class GetRatePreviewQueryTests
         result.Value.TargetAmount.Should().Be(125m);
         result.Value.ExchangeRate.Should().Be(ExchangeRate);
 
-        _exchangeRateServiceMock.Verify(service => service.GetRate(sourceCurrency, targetCurrency), Times.Once);
+        _exchangeRateServiceMock.Verify(s => s.GetRate(sourceCurrency, targetCurrency), Times.Once);
         _lockedRateCacheMock.Verify(cache => cache.Store(TestUserId, sourceCurrency, targetCurrency, ExchangeRate, _testNow), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         _exchangeRateServiceMock.VerifyNoOtherCalls();
@@ -144,17 +139,16 @@ public sealed class GetRatePreviewQueryTests
         _lockedRateCacheMock
             .Setup(cache => cache.Store(TestUserId, sourceCurrency, targetCurrency, ExchangeRate, _testNow));
 
-        GetRatePreviewQueryHandler handler = CreateHandler();
-        var query = new GetRatePreviewQuery(TestUserId, "EUR", "USD", SourceAmount);
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexRatePreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<ForexRatePreviewResponse> result = await service.GetRatePreviewAsync(TestUserId, "EUR", "USD", SourceAmount, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.Commission.Should().Be(0.50m);
 
-        _exchangeRateServiceMock.Verify(service => service.GetRate(sourceCurrency, targetCurrency), Times.Once);
+        _exchangeRateServiceMock.Verify(s => s.GetRate(sourceCurrency, targetCurrency), Times.Once);
         _lockedRateCacheMock.Verify(cache => cache.Store(TestUserId, sourceCurrency, targetCurrency, ExchangeRate, _testNow), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         _exchangeRateServiceMock.VerifyNoOtherCalls();
@@ -162,11 +156,14 @@ public sealed class GetRatePreviewQueryTests
         _clockMock.VerifyNoOtherCalls();
     }
 
-    private GetRatePreviewQueryHandler CreateHandler()
+    private ForexService CreateService()
     {
-        return new GetRatePreviewQueryHandler(
-            _exchangeRateServiceMock.Object,
+        return new ForexService(
+            new Mock<IAccountRepository>().Object,
+            new Mock<IForexRepository>().Object,
             _lockedRateCacheMock.Object,
+            _exchangeRateServiceMock.Object,
+            new Mock<Shared.Persistence.IUnitOfWork>().Object,
             _clockMock.Object);
     }
 }

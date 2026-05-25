@@ -17,12 +17,19 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 APP_ROOT = SCRIPT_DIR.parent
 API_PROJECT = APP_ROOT / "src" / "BankingApp.Api"
+WEB_PROJECT = APP_ROOT / "src" / "BankingApp.Web"
+DESKTOP_PROJECT = APP_ROOT / "src" / "BankingApp.Desktop"
+PRESENTATION_PROJECTS = {
+    "API": API_PROJECT,
+    "Web": WEB_PROJECT,
+    "Desktop": DESKTOP_PROJECT,
+}
 COMPOSE_ENV_FILE = APP_ROOT / ".env"
 API_ENV_FILE = API_PROJECT / ".env"
 API_APPSETTINGS_FILE = API_PROJECT / "appsettings.json"
 PROD_ENV_FILE = API_PROJECT / ".env.production.generated"
-DESKTOP_DEV_APPSETTINGS = APP_ROOT / "src" / "BankingApp.Desktop" / "appsettings.Development.json"
-WEB_DEV_APPSETTINGS = APP_ROOT / "src" / "BankingApp.Web" / "appsettings.Development.json"
+DESKTOP_DEV_APPSETTINGS = DESKTOP_PROJECT / "appsettings.Development.json"
+WEB_DEV_APPSETTINGS = WEB_PROJECT / "appsettings.Development.json"
 
 CLIENT_DEV_LOGIN_KEYS = frozenset({"DevLogin:Email", "DevLogin:Password"})
 
@@ -46,11 +53,6 @@ LOCAL_CONNECTION_STRING = (
     "Trusted_Connection=True;TrustServerCertificate=True;"
 )
 
-PLACEHOLDER_SMTP_HOST = "smtp.example.com"
-PLACEHOLDER_DEV_SMTP_USER = "dev@example.com"
-PLACEHOLDER_DEV_SMTP_PASS = "placeholder"
-PLACEHOLDER_PROD_SMTP_USER = "noreply@example.com"
-PLACEHOLDER_PROD_SMTP_PASS = "replace-me"
 DEFAULT_DEV_LOGIN_FULL_NAME = "Development User"
 
 SECRET_KEY_PARTS = (
@@ -68,15 +70,27 @@ API_ENV_KEYS = (
     CONNECTION_STRING_ENV_KEY,
     "Jwt__Secret",
     "Otp__Secret",
-    "Email__SmtpHost",
-    "Email__SmtpPort",
-    "Email__SmtpUser",
-    "Email__SmtpPass",
-    "Email__FromAddress",
     "Database__ApplyMigrations",
     "DevLogin__Email",
     "DevLogin__Password",
     "DevLogin__FullName",
+)
+
+DEV_SUMMARY_KEYS = (
+    CONNECTION_STRING_KEY,
+    "Jwt:Secret",
+    "Otp:Secret",
+    "Database:ApplyMigrations",
+    "DevLogin:Email",
+    "DevLogin:Password",
+    "DevLogin:FullName",
+)
+
+PROD_SUMMARY_KEYS = (
+    CONNECTION_STRING_KEY,
+    "Jwt:Secret",
+    "Otp:Secret",
+    "Database:ApplyMigrations",
 )
 
 
@@ -123,6 +137,11 @@ def mask_value(key: str, value: str, show_secrets: bool) -> str:
     if not value:
         return value
     return "***"
+
+
+def is_placeholder_value(value: str) -> bool:
+    """Return whether a config value is only documentation, not a real configured value."""
+    return value.startswith("SET-VIA-")
 
 
 def read_env_file(path: Path) -> dict[str, str]:
@@ -207,13 +226,13 @@ def dotnet_required() -> None:
         raise SystemExit("dotnet was not found on PATH.")
 
 
-def read_user_secrets() -> dict[str, str]:
-    """Read .NET user secrets for the API project."""
+def read_user_secrets(project: Path = API_PROJECT) -> dict[str, str]:
+    """Read .NET user secrets for a project."""
     if shutil.which("dotnet") is None:
         return {}
 
     result = subprocess.run(
-        ["dotnet", "user-secrets", "list", "--project", str(API_PROJECT)],
+        ["dotnet", "user-secrets", "list", "--project", str(project)],
         capture_output=True,
         text=True,
         check=False,
@@ -230,35 +249,35 @@ def read_user_secrets() -> dict[str, str]:
     return values
 
 
-def set_user_secret(key: str, value: str) -> None:
-    """Set one .NET user secret for the API project."""
+def set_user_secret(key: str, value: str, project: Path = API_PROJECT) -> None:
+    """Set one .NET user secret for a project."""
     dotnet_required()
     result = subprocess.run(
-        ["dotnet", "user-secrets", "set", "--project", str(API_PROJECT), key, value],
+        ["dotnet", "user-secrets", "set", "--project", str(project), key, value],
         capture_output=True,
         text=True,
         check=False,
     )
     if result.returncode != 0:
         message = result.stderr.strip() or result.stdout.strip()
-        raise SystemExit(f"Failed to set user secret {key}: {message}")
+        raise SystemExit(f"Failed to set user secret {key} for {project.relative_to(APP_ROOT)}: {message}")
 
 
-def remove_user_secret(key: str) -> None:
-    """Remove one .NET user secret for the API project if it exists."""
+def remove_user_secret(key: str, project: Path = API_PROJECT) -> None:
+    """Remove one .NET user secret for a project if it exists."""
     if shutil.which("dotnet") is None:
-        print(f"Skipped API user secret {key}: dotnet was not found on PATH.")
+        print(f"Skipped user secret {key} for {project.relative_to(APP_ROOT)}: dotnet was not found on PATH.")
         return
 
     result = subprocess.run(
-        ["dotnet", "user-secrets", "remove", "--project", str(API_PROJECT), key],
+        ["dotnet", "user-secrets", "remove", "--project", str(project), key],
         capture_output=True,
         text=True,
         check=False,
     )
     if result.returncode != 0:
         message = result.stderr.strip() or result.stdout.strip()
-        print(f"Skipped API user secret {key}: {message}")
+        print(f"Skipped user secret {key} for {project.relative_to(APP_ROOT)}: {message}")
 
 
 def remove_file(path: Path) -> None:
@@ -286,29 +305,26 @@ def get_environment_name() -> str:
     )
 
 
-def write_dev_login_to_client_appsettings(email: str, password: str) -> None:
-    """Write DevLogin credentials to Desktop and Web appsettings.Development.json."""
-    for path in (DESKTOP_DEV_APPSETTINGS, WEB_DEV_APPSETTINGS):
-        write_json_config_key(path, "DevLogin:Email", email)
-        write_json_config_key(path, "DevLogin:Password", password)
+def write_presentation_user_secret(key: str, value: str) -> None:
+    """Write one .NET user secret to every presentation project."""
+    for project in PRESENTATION_PROJECTS.values():
+        set_user_secret(key, value, project)
+
+
+def write_dev_login_to_presentation_user_secrets(email: str, password: str, full_name: str) -> None:
+    """Write development login values to presentation-layer .NET user secrets."""
+    write_presentation_user_secret("DevLogin:Email", email)
+    write_presentation_user_secret("DevLogin:Password", password)
+    set_user_secret("DevLogin:FullName", full_name, API_PROJECT)
 
 
 def build_dev_api_values(args: argparse.Namespace, connection_string: str) -> dict[str, str]:
     """Build API runtime values for development."""
-    smtp_user = args.smtp_user or PLACEHOLDER_DEV_SMTP_USER
-    smtp_pass = args.smtp_pass or PLACEHOLDER_DEV_SMTP_PASS
-    smtp_from = args.smtp_from or smtp_user
-
     return {
         "ASPNETCORE_ENVIRONMENT": "Development",
         CONNECTION_STRING_ENV_KEY: connection_string,
         "Jwt__Secret": generate_base64_secret(JWT_SECRET_BYTES),
         "Otp__Secret": generate_base64_secret(OTP_SECRET_BYTES),
-        "Email__SmtpHost": args.smtp_host,
-        "Email__SmtpPort": args.smtp_port,
-        "Email__SmtpUser": smtp_user,
-        "Email__SmtpPass": smtp_pass,
-        "Email__FromAddress": smtp_from,
         "Database__ApplyMigrations": "true",
         "DevLogin__Email": args.dev_login_email,
         "DevLogin__Password": args.dev_login_password,
@@ -316,10 +332,10 @@ def build_dev_api_values(args: argparse.Namespace, connection_string: str) -> di
     }
 
 
-def write_user_secrets_from_env_values(values: dict[str, str]) -> None:
-    """Write API env-style values into .NET user secrets."""
+def write_user_secrets_from_env_values(values: dict[str, str], project: Path = API_PROJECT) -> None:
+    """Write env-style values into .NET user secrets."""
     for key, value in values.items():
-        set_user_secret(to_config_key(key), value)
+        set_user_secret(to_config_key(key), value, project)
 
 
 def generate_dev(args: argparse.Namespace) -> None:
@@ -355,7 +371,11 @@ def generate_dev(args: argparse.Namespace) -> None:
         next_step = "Run docker compose up --build."
 
     api_values = build_dev_api_values(args, connection_string)
-    write_dev_login_to_client_appsettings(args.dev_login_email, args.dev_login_password)
+    write_dev_login_to_presentation_user_secrets(
+        args.dev_login_email,
+        args.dev_login_password,
+        args.dev_login_full_name,
+    )
 
     if write_compose_env:
         write_env_file(
@@ -381,12 +401,9 @@ def generate_dev(args: argparse.Namespace) -> None:
         print(f"  {COMPOSE_ENV_FILE.relative_to(APP_ROOT)}")
     if write_api_env:
         print(f"  {API_ENV_FILE.relative_to(APP_ROOT)}")
-    if write_user_secrets:
-        print("  .NET User Secrets for src/BankingApp.Api")
-    print(f"  {DESKTOP_DEV_APPSETTINGS.relative_to(APP_ROOT)}")
-    print(f"  {WEB_DEV_APPSETTINGS.relative_to(APP_ROOT)}")
-    if not args.smtp_user or not args.smtp_pass:
-        print("Warning: placeholder SMTP values were written. Email sending will fail until configured.")
+    print("  .NET User Secrets for src/BankingApp.Api")
+    print("  .NET User Secrets for src/BankingApp.Web")
+    print("  .NET User Secrets for src/BankingApp.Desktop")
     print("\nNext step:")
     print(f"  {next_step}")
 
@@ -396,16 +413,6 @@ def generate_prod(args: argparse.Namespace) -> None:
     if not args.connection_string:
         raise SystemExit("--connection-string is required with --prod.")
 
-    smtp_missing = not args.smtp_host or not args.smtp_user or not args.smtp_pass
-    if smtp_missing and not args.allow_placeholder_smtp:
-        raise SystemExit(
-            "Production SMTP values are incomplete. Provide --smtp-host, --smtp-user, and --smtp-pass, "
-            "or pass --allow-placeholder-smtp deliberately."
-        )
-
-    smtp_user = args.smtp_user or PLACEHOLDER_PROD_SMTP_USER
-    smtp_pass = args.smtp_pass or PLACEHOLDER_PROD_SMTP_PASS
-    smtp_from = args.smtp_from or smtp_user
     output = args.output.resolve()
 
     values = {
@@ -413,11 +420,6 @@ def generate_prod(args: argparse.Namespace) -> None:
         CONNECTION_STRING_ENV_KEY: args.connection_string,
         "Jwt__Secret": generate_base64_secret(JWT_SECRET_BYTES),
         "Otp__Secret": generate_base64_secret(OTP_SECRET_BYTES),
-        "Email__SmtpHost": args.smtp_host or PLACEHOLDER_SMTP_HOST,
-        "Email__SmtpPort": args.smtp_port,
-        "Email__SmtpUser": smtp_user,
-        "Email__SmtpPass": smtp_pass,
-        "Email__FromAddress": smtp_from,
         "Database__ApplyMigrations": "true" if args.apply_migrations else "false",
     }
 
@@ -457,13 +459,17 @@ def get_sources_for_key(key: str, environment: str) -> list[tuple[str, str | Non
     ]
 
     if environment == "Development" and config_key in CLIENT_DEV_LOGIN_KEYS:
+        web_user_secrets = read_user_secrets(WEB_PROJECT)
+        desktop_user_secrets = read_user_secrets(DESKTOP_PROJECT)
         sources.extend([
             (str(DESKTOP_DEV_APPSETTINGS.relative_to(APP_ROOT)), read_json_config_key(DESKTOP_DEV_APPSETTINGS, config_key)),
             (str(WEB_DEV_APPSETTINGS.relative_to(APP_ROOT)), read_json_config_key(WEB_DEV_APPSETTINGS, config_key)),
+            ("Desktop user secrets", desktop_user_secrets.get(config_key)),
+            ("Web user secrets", web_user_secrets.get(config_key)),
         ])
 
     if environment == "Development":
-        user_secrets = read_user_secrets()
+        user_secrets = read_user_secrets(API_PROJECT)
         api_env = read_env_file(API_ENV_FILE)
         compose_env = read_env_file(COMPOSE_ENV_FILE)
         sources.extend(
@@ -481,18 +487,55 @@ def get_sources_for_key(key: str, environment: str) -> list[tuple[str, str | Non
     return sources
 
 
+def get_configured_matches(key: str, environment: str) -> list[tuple[str, str]]:
+    """Return non-placeholder configured values for a config key."""
+    return [
+        (source, value)
+        for source, value in get_sources_for_key(key, environment)
+        if value and not is_placeholder_value(value)
+    ]
+
+
+def print_setup_summary(environment: str, show_secrets: bool) -> None:
+    """Print the important generated setup values for an environment."""
+    keys = PROD_SUMMARY_KEYS if environment == "Production" else DEV_SUMMARY_KEYS
+    print(f"{environment} setup:")
+
+    for key in keys:
+        matches = get_configured_matches(key, environment)
+        if not matches:
+            print(f"  {key}: not configured")
+            continue
+
+        source, value = matches[-1]
+        print(f"  {key}: {mask_value(key, value, show_secrets)} ({source})")
+
+    if environment == "Development":
+        compose_env = read_env_file(COMPOSE_ENV_FILE)
+        db_password = compose_env.get("DB_SA_PASSWORD")
+        if db_password:
+            print(f"  DB_SA_PASSWORD: {mask_value('DB_SA_PASSWORD', db_password, show_secrets)} ({COMPOSE_ENV_FILE.relative_to(APP_ROOT)})")
+        else:
+            print("  DB_SA_PASSWORD: not configured")
+
+
 def handle_get(args: argparse.Namespace) -> None:
     """Handle get command."""
-    key = to_config_key(args.key)
     environment = "Production" if args.environment == "prod" else "Development"
+    if args.key is None:
+        print_setup_summary(environment, args.show_secrets)
+        return
+
+    key = to_config_key(args.key)
     sources = get_sources_for_key(key, environment)
-    matches = [(source, value) for source, value in sources if value]
+    matches = [(source, value) for source, value in sources if value and not is_placeholder_value(value)]
 
     if args.all:
-        if not matches:
+        all_sources = [(source, value) for source, value in sources if value]
+        if not all_sources:
             print(f"{key}: not configured")
             return
-        for source, value in matches:
+        for source, value in all_sources:
             print(f"{source}: {mask_value(key, value, args.show_secrets)}")
         return
 
@@ -520,8 +563,12 @@ def handle_set(args: argparse.Namespace) -> None:
         raise SystemExit("Choose exactly one target: --user-secrets, --api-env, or --compose-env.")
 
     if args.user_secrets:
-        set_user_secret(key, value)
-        print(f"Set {key} in API user secrets.")
+        if key in CLIENT_DEV_LOGIN_KEYS:
+            write_presentation_user_secret(key, value)
+            print(f"Set {key} in API, Web, and Desktop user secrets.")
+        else:
+            set_user_secret(key, value, API_PROJECT)
+            print(f"Set {key} in API user secrets.")
     elif args.api_env:
         update_env_file(API_ENV_FILE, to_env_key(key), value)
         print(f"Set {key} in {API_ENV_FILE.relative_to(APP_ROOT)}.")
@@ -529,18 +576,16 @@ def handle_set(args: argparse.Namespace) -> None:
         update_env_file(COMPOSE_ENV_FILE, to_env_key(key), value)
         print(f"Set {key} in {COMPOSE_ENV_FILE.relative_to(APP_ROOT)}.")
 
-    if key in CLIENT_DEV_LOGIN_KEYS:
-        for path in (DESKTOP_DEV_APPSETTINGS, WEB_DEV_APPSETTINGS):
-            write_json_config_key(path, key, value)
-            print(f"Set {key} in {path.relative_to(APP_ROOT)}.")
-
 
 def clean_dev() -> None:
     """Remove generated development setup."""
     remove_file(COMPOSE_ENV_FILE)
     remove_file(API_ENV_FILE)
     for key in API_ENV_KEYS:
-        remove_user_secret(to_config_key(key))
+        remove_user_secret(to_config_key(key), API_PROJECT)
+    for key in CLIENT_DEV_LOGIN_KEYS:
+        remove_user_secret(key, WEB_PROJECT)
+        remove_user_secret(key, DESKTOP_PROJECT)
 
 
 def clean_prod(output: Path = PROD_ENV_FILE) -> None:
@@ -565,11 +610,6 @@ def handle_clean(args: argparse.Namespace) -> None:
 def add_common_generation_options(parser: argparse.ArgumentParser) -> None:
     """Add options shared by dev and production generation."""
     parser.add_argument("--force", action="store_true", help="Overwrite generated files.")
-    parser.add_argument("--smtp-host", default=PLACEHOLDER_SMTP_HOST, help="SMTP host.")
-    parser.add_argument("--smtp-port", default="587", help="SMTP port.")
-    parser.add_argument("--smtp-user", default=None, help="SMTP username.")
-    parser.add_argument("--smtp-pass", default=None, help="SMTP password.")
-    parser.add_argument("--smtp-from", default=None, help="SMTP sender address.")
 
 
 def parse_args() -> argparse.Namespace:
@@ -600,11 +640,6 @@ def parse_args() -> argparse.Namespace:
     add_common_generation_options(generate_prod_parser)
     generate_prod_parser.add_argument("--connection-string", required=True, help="Production SQL Server connection string.")
     generate_prod_parser.add_argument(
-        "--allow-placeholder-smtp",
-        action="store_true",
-        help="Allow placeholder SMTP values for production.",
-    )
-    generate_prod_parser.add_argument(
         "--apply-migrations",
         action="store_true",
         help="Set Database__ApplyMigrations=true for production.",
@@ -621,7 +656,11 @@ def parse_args() -> argparse.Namespace:
     get_subparsers = get_parser.add_subparsers(dest="environment", required=True)
     for environment in ("dev", "prod"):
         environment_parser = get_subparsers.add_parser(environment, help=f"Read a {environment} configuration value.")
-        environment_parser.add_argument("key", help="ASP.NET config key, e.g. ConnectionStrings:BankingAppDb.")
+        environment_parser.add_argument(
+            "key",
+            nargs="?",
+            help="ASP.NET config key, e.g. ConnectionStrings:BankingAppDb. Omit to show setup summary.",
+        )
         environment_parser.add_argument("--all", action="store_true", help="Show all configured sources for the key.")
         environment_parser.add_argument(
             "--show-secrets",
@@ -642,7 +681,7 @@ def parse_args() -> argparse.Namespace:
     set_dev_parser.set_defaults(func=handle_set)
 
     set_prod_parser = set_subparsers.add_parser("prod", help="Set a production configuration value.")
-    set_prod_parser.add_argument("key", help="ASP.NET config key, e.g. Email:SmtpHost.")
+    set_prod_parser.add_argument("key", help="ASP.NET config key, e.g. ConnectionStrings:BankingAppDb.")
     set_prod_parser.add_argument("value", help="Value to write.")
     set_prod_parser.add_argument(
         "--output",
