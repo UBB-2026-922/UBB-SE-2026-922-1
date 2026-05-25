@@ -423,3 +423,8 @@ body {
 .letter-spacing-wide {
     letter-spacing: 0.15em;
 }
+
+.cards-card--cancelled {
+    opacity: 0.55;
+    filter: grayscale(60%);
+}

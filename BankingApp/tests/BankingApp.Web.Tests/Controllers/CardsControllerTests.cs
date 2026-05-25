@@ -54,7 +54,9 @@ public sealed class CardsControllerTests : IDisposable
                 IsContactlessEnabled = true,
                 IsOnlineEnabled = false,
                 AccountName = "Checking Account",
-                AccountIban = "RO49BANK1234567890"
+                AccountIban = "RO49BANK1234567890",
+                AccountBalance = 1250.75m,
+                AccountCurrency = "USD"
             }
         ];
 
@@ -84,6 +86,8 @@ public sealed class CardsControllerTests : IDisposable
         card.IsOnlineEnabled.Should().BeFalse();
         card.AccountName.Should().Be("Checking Account");
         card.AccountIban.Should().Be("RO49BANK1234567890");
+        card.AccountBalance.Should().Be(1250.75m);
+        card.AccountCurrency.Should().Be("USD");
         _cardServiceMock.VerifyAll();
     }
 

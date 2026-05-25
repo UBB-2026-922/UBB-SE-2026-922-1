@@ -106,7 +106,7 @@ else
         @foreach (var card in Model.Cards)
         {
             <div class="col">
-                <div class="card border-0 shadow-sm h-100 cards-card">
+                <div class="card border-0 shadow-sm h-100 cards-card @(card.Status == CardStatus.Cancelled ? "cards-card--cancelled" : string.Empty)">
 
                     <!-- Visual gradient strip (mirrors Desktop card header) -->
                     <div class="cards-strip p-4">
@@ -167,6 +167,12 @@ else
                                 <div class="small text-muted">@card.CardType</div>
                             </div>
                             <span class="badge @GetStatusBadgeClass(card.Status)">@card.Status</span>
+                        </div>
+
+                        <!-- Account balance -->
+                        <div class="d-flex align-items-baseline gap-1 mb-3">
+                            <span class="fw-semibold fs-6">@card.BalanceDisplay</span>
+                            <span class="small text-muted">account balance</span>
                         </div>
 
                         <!-- Feature badges -->

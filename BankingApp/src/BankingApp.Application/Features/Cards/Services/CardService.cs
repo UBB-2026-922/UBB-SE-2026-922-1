@@ -60,7 +60,9 @@ public sealed class CardService(
                     IsOnlineEnabled = card.IsOnlineEnabled,
                     AccountName = account.AccountName,
                     AccountIban = account.Iban.Value,
-                    AccountId = account.Id
+                    AccountId = account.Id,
+                    AccountBalance = account.Balance.Amount,
+                    AccountCurrency = account.Balance.Currency.Code
                 }).ToList();
         }
         catch (Exception exception)

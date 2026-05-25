@@ -52,8 +52,19 @@ public sealed class CardDetailsDto
     /// <summary>Gets or sets the identifier of the associated account.</summary>
     public int AccountId { get; set; }
 
+    /// <summary>Gets or sets the current balance of the associated account.</summary>
+    public decimal AccountBalance { get; set; }
+
+    /// <summary>Gets or sets the ISO currency code of the associated account (e.g. "USD").</summary>
+    public string AccountCurrency { get; set; } = string.Empty;
+
     /// <summary>Gets the expiry date formatted as MM/YY for display.</summary>
     public string ExpiryDisplay => ExpiryDate.ToString("MM/yy", CultureInfo.InvariantCulture);
+
+    /// <summary>Gets the account balance formatted with its currency symbol for display.</summary>
+    public string BalanceDisplay => string.IsNullOrEmpty(AccountCurrency)
+        ? AccountBalance.ToString("N2", CultureInfo.InvariantCulture)
+        : $"{AccountBalance.ToString("N2", CultureInfo.InvariantCulture)} {AccountCurrency}";
 
     /// <summary>Gets the card brand or falls back to the card type string.</summary>
     public string BrandDisplay => string.IsNullOrWhiteSpace(CardBrand) ? CardType.ToString() : CardBrand;
