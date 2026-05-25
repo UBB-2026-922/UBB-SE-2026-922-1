@@ -5,14 +5,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:dtos="using:BankingApp.Contracts.Features.BillPayments.Dtos"
     xmlns:converters="using:BankingApp.Desktop.Shared.Converters"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    RequestedTheme="Light">
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVis" />
     </Page.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="32">
-        <Grid MaxWidth="800" HorizontalAlignment="Stretch">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid HorizontalAlignment="Stretch" Margin="32">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -44,7 +45,7 @@
             <!-- Exchange Form Card -->
             <Border Grid.Row="1" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" 
-                    CornerRadius="8" Padding="24" MaxWidth="600" HorizontalAlignment="Center" Margin="0,0,0,24">
+                    CornerRadius="8" Padding="24" HorizontalAlignment="Stretch" Margin="0,0,0,24">
                 <StackPanel Spacing="16">
                     <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
                         <FontIcon Glyph="&#xE8D5;" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" FontSize="18"/>

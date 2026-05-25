@@ -78,6 +78,13 @@ public sealed partial class NavigationView
         _navigationService.NavigateToContent<TransferView>();
     }
 
+    /// <summary>Navigates to the currency exchange screen and marks it active in the shell.</summary>
+    public void NavigateToCurrencyExchange()
+    {
+        SetActiveNav(NavCurrencyExchange);
+        _navigationService.NavigateToContent<ForexPage>();
+    }
+
     private void SetActiveNav(Button selected)
     {
         foreach (Button button in _navButtons)
