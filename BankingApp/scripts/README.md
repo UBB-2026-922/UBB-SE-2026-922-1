@@ -25,12 +25,12 @@ Depending on mode (`--local`, `--docker-db`, `--docker-api`):
 ```txt
 BankingApp/.env                                              (docker-db and docker-api modes)
 BankingApp/src/BankingApp.Api/.env                          (docker-api mode)
-BankingApp/src/BankingApp.Api user secrets                  (local and docker-db modes)
-BankingApp/src/BankingApp.Desktop/appsettings.Development.json
-BankingApp/src/BankingApp.Web/appsettings.Development.json
+BankingApp/src/BankingApp.Api user secrets
+BankingApp/src/BankingApp.Web user secrets
+BankingApp/src/BankingApp.Desktop user secrets
 ```
 
-`--dev-login-email` and `--dev-login-password` are required. They are written to all three targets (API, Desktop, Web) so every client uses the same dev account.
+`--dev-login-email` and `--dev-login-password` are required. They are written with `dotnet user-secrets` to all three presentation projects (API, Desktop, Web) so every client uses the same dev account.
 
 ### Dev login example
 
@@ -55,11 +55,6 @@ BankingApp/src/BankingApp.Api/.env.production.generated
 ConnectionStrings:BankingAppDb
 Jwt:Secret
 Otp:Secret
-Email:SmtpHost
-Email:SmtpPort
-Email:SmtpUser
-Email:SmtpPass
-Email:FromAddress
 Database:ApplyMigrations
 DevLogin:Email        (API + Desktop + Web — set by generate dev and set dev)
 DevLogin:Password     (API + Desktop + Web — set by generate dev and set dev)
@@ -69,7 +64,8 @@ DevLogin:FullName     (API only)
 ## Notes
 
 - `get dev DevLogin:Email` and `get dev DevLogin:Password` show all three targets (API, Desktop, Web) when using `--all`.
-- `set dev DevLogin:Email` and `set dev DevLogin:Password` always propagate to Desktop and Web `appsettings.Development.json` in addition to the chosen API target.
+- `set dev DevLogin:Email <value> --user-secrets` and `set dev DevLogin:Password <value> --user-secrets` write to API, Desktop, and Web user secrets.
+- `appsettings.Development.json` files document required keys with `SET-VIA-USER-SECRETS` placeholders; do not put real secrets there.
 - `get` reads the active config source for the selected environment.
 - `set` updates the selected target for the chosen environment.
 - `clean` removes generated setup files and development secrets.

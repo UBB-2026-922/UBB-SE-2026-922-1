@@ -12,12 +12,7 @@ public sealed class TestServiceProviderFactory(string connectionString)
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:BankingAppDb"] = connectionString,
-                ["Jwt:Secret"] = "integration-tests-jwt-secret",
-                ["Email:SmtpHost"] = "localhost",
-                ["Email:SmtpPort"] = "2525",
-                ["Email:SmtpUser"] = "integration-user",
-                ["Email:SmtpPass"] = "integration-pass",
-                ["Email:FromAddress"] = "integration@bankingapp.local"
+                ["Jwt:Secret"] = "integration-tests-jwt-secret"
             })
             .Build();
 

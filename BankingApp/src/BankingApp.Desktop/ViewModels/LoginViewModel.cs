@@ -66,7 +66,7 @@ public partial class LoginViewModel : ObservableObject
         {
             return Error.Failure(
                 "DevLogin.NotConfigured",
-                "Dev login is not configured. Set DevLogin:Email and DevLogin:Password in appsettings.Development.json.");
+                "Dev login is not configured. Set DevLogin:Email and DevLogin:Password in user secrets.");
         }
 
         State = LoginState.Loading;
