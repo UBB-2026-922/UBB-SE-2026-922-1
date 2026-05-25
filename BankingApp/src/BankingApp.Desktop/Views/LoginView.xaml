@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <Page
     x:Class="BankingApp.Desktop.Views.LoginView"
@@ -42,31 +42,22 @@
                            Margin="0,0,0,30" />
 
                 <!-- Email -->
-                <TextBox x:Name="EmailBox" PlaceholderText="you@company.com"
+                <TextBox x:Name="EmailBox" PlaceholderText="you@example.com"
                          Header="Email" Margin="0,0,0,14" CornerRadius="6" />
 
                 <!-- Password -->
                 <PasswordBox x:Name="PasswordBox" PlaceholderText="••••••"
                              Header="Password" Margin="0,0,0,10" CornerRadius="6" />
 
-                <!-- Remember Me + Forgot Password -->
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <CheckBox x:Name="RememberMeCheckBox" Content="Remember me"
-                              Grid.Column="0" FontSize="13" />
-                    <HyperlinkButton x:Name="ForgotPasswordButton"
-                                     Content="Forgot Password?" Grid.Column="1"
-                                     Click="ForgotPasswordButton_Click" FontSize="13" />
-                </Grid>
+                <!-- Remember Me -->
+                <CheckBox x:Name="RememberMeCheckBox" Content="Remember me"
+                          FontSize="13" Margin="0,0,0,20" />
 
                 <!-- Sign In Button -->
                 <Button x:Name="SignInButton" Content="SIGN IN"
                         Click="SignInButton_Click"
                         HorizontalAlignment="Stretch" Height="42"
-                        Background="#4ECDC4" Foreground="White" FontWeight="SemiBold"
+                        Background="#1A56DB" Foreground="White" FontWeight="SemiBold"
                         CornerRadius="6" />
 
                 <Button x:Name="DevLoginButton" Content="DEV LOGIN"

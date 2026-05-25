@@ -23,14 +23,6 @@ public sealed class IdentityRepository(AppDbContext dbContext) : IIdentityReposi
             .FirstOrDefaultAsync(identityAccount => identityAccount.Sessions.Any(session => session.Token == token), cancellationToken);
     }
 
-    public async Task<IdentityAccount?> GetByResetTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)
-    {
-        return await Query()
-            .FirstOrDefaultAsync(
-                identityAccount => identityAccount.PasswordResetTokens.Any(token => token.TokenHash == tokenHash),
-                cancellationToken);
-    }
-
     public async Task AddAsync(IdentityAccount identityAccount, CancellationToken cancellationToken = default)
     {
         await dbContext.IdentityAccounts.AddAsync(identityAccount, cancellationToken);
@@ -43,6 +35,5 @@ public sealed class IdentityRepository(AppDbContext dbContext) : IIdentityReposi
     }
 
     private IQueryable<IdentityAccount> Query() => dbContext.IdentityAccounts
-        .Include(identityAccount => identityAccount.Sessions)
-        .Include(identityAccount => identityAccount.PasswordResetTokens);
+        .Include(identityAccount => identityAccount.Sessions);
 }

@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddDesktopSession(this IServiceCollection services)
     {
         services.AddSingleton<IAuthenticationSession, AuthenticationSession>();
+        services.AddSingleton<ILoginPreferences, FileLoginPreferences>();
 
         return services;
     }
@@ -73,7 +74,6 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<LoginViewModel>();
         services.AddTransient<RegisterViewModel>();
-        services.AddTransient<ForgotPasswordViewModel>();
         services.AddTransient<DashboardViewModel>();
         services.AddTransient<PersonalInfoViewModel>();
         services.AddTransient<SecurityViewModel>();
@@ -82,11 +82,9 @@ public static class ServiceCollectionExtensions
         services.AddTransient<BeneficiariesViewModel>();
         services.AddTransient<ProfileViewModel>();
         services.AddTransient<ForexViewModel>();
-        services.AddTransient<RateAlertViewModel>();
         services.AddTransient<TransferViewModel>();
         services.AddTransient<TransferHistoryViewModel>();
         services.AddTransient<BillPayViewModel>();
-        services.AddTransient<RecurringPaymentViewModel>();
 
         services.AddTransient<CardViewModel>();
 
@@ -97,15 +95,12 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<LoginView>();
         services.AddTransient<RegisterView>();
-        services.AddTransient<ForgotPasswordView>();
         services.AddTransient<NavigationView>();
         services.AddTransient<DashboardView>();
         services.AddTransient<BeneficiariesView>();
         services.AddTransient<ProfileView>();
         services.AddTransient<ForexPage>();
-        services.AddTransient<RateAlertsPage>();
         services.AddTransient<BillPayView>();
-        services.AddTransient<RecurringPaymentView>();
         services.AddTransient<TransferView>();
         services.AddTransient<TransferHistoryView>();
         services.AddTransient<CardsView>();

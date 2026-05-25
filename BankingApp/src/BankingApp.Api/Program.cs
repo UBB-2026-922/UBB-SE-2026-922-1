@@ -1,15 +1,13 @@
 ﻿using System.Globalization;
-using BankingApp.Api.HostedServices;
 using BankingApp.Api.Middleware;
 using BankingApp.Application.DependencyInjection;
-using BankingApp.Application.Features.UserRegistration.Commands;
+using BankingApp.Application.Features.Authentication.Services;
 using BankingApp.Contracts.Http;
 using BankingApp.Domain.Common.Errors;
 using BankingApp.Infrastructure.Core.DependencyInjection;
 using BankingApp.Infrastructure.Persistence.Data;
 using BankingApp.Infrastructure.Persistence.DependencyInjection;
 using ErrorOr;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Serilog;
@@ -78,7 +76,7 @@ try
     builder.Services.AddApplication();
     builder.Services.AddPersistenceInfrastructure(builder.Configuration);
     builder.Services.AddCoreInfrastructure(builder.Configuration);
-    builder.Services.AddHostedService<FinanceBackgroundService>();
+
     WebApplication application = builder.Build();
     bool applyDatabaseMigrations = !bool.TryParse(
         application.Configuration[applyDatabaseMigrationsConfigurationKey],
@@ -147,8 +145,8 @@ static async Task SeedDevelopmentLoginAsync(WebApplication application)
     }
 
     using IServiceScope scope = application.Services.CreateScope();
-    ISender sender = scope.ServiceProvider.GetRequiredService<ISender>();
-    ErrorOr<Success> result = await sender.Send(new RegisterCommand(email, password, fullName));
+    IAuthService authService = scope.ServiceProvider.GetRequiredService<IAuthService>();
+    ErrorOr<Success> result = await authService.RegisterAsync(email, password, fullName);
 
     if (!result.IsError)
     {

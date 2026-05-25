@@ -67,7 +67,7 @@ if (app.Environment.IsDevelopment())
                 if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
                 {
                     return Results.Problem(
-                        "Dev login is not configured. Set DevLogin:Email and DevLogin:Password in appsettings.Development.json or user secrets.",
+                        "Dev login is not configured. Set DevLogin:Email and DevLogin:Password in user secrets.",
                         statusCode: StatusCodes.Status500InternalServerError);
                 }
 

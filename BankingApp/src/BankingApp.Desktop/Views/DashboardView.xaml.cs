@@ -248,7 +248,7 @@ public sealed partial class DashboardView : IDisposable
 
     private void TransferButton_Click(object sender, RoutedEventArgs e)
     {
-        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Transfers"));
+        NavigationView.Current?.NavigateToTransfers();
     }
 
     private void PayBillButton_Click(object sender, RoutedEventArgs e)

@@ -1,11 +1,14 @@
 namespace BankingApp.Application.Tests.Features.UserProfile.Queries;
 
-using BankingApp.Application.Features.UserProfile.Queries;
+using BankingApp.Application.Common.Security;
+using BankingApp.Application.Features.UserProfile.Services;
 using BankingApp.Contracts.Features.UserProfile.Dtos;
 using BankingApp.Domain.Aggregates.IdentityAggregate.Entities;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Clock;
+using Shared.Persistence;
 
 public sealed class GetActiveSessionsQueryTests
 {
@@ -14,16 +17,19 @@ public sealed class GetActiveSessionsQueryTests
     private static readonly DateTime _testNow = new(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc);
 
     private readonly Mock<IIdentityRepository> _identityRepositoryMock = MockFactory.CreateIdentityRepositoryMock();
+    private readonly Mock<IUserRepository> _userRepositoryMock = new();
+    private readonly Mock<IHashService> _hashServiceMock = new();
+    private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
+    private readonly Mock<ISystemClock> _clockMock = new();
 
     [Fact]
     public async Task Handle_WhenIdentityNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
-        GetActiveSessionsQueryHandler handler = CreateHandler();
-        GetActiveSessionsQuery query = new(TestUserId);
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<List<SessionDto>> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<List<SessionDto>> result = await service.GetActiveSessionsAsync(TestUserId, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -47,11 +53,10 @@ public sealed class GetActiveSessionsQueryTests
             .Setup(repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None))
             .ReturnsAsync(identity);
 
-        GetActiveSessionsQueryHandler handler = CreateHandler();
-        GetActiveSessionsQuery query = new(TestUserId);
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<List<SessionDto>> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<List<SessionDto>> result = await service.GetActiveSessionsAsync(TestUserId, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -78,11 +83,10 @@ public sealed class GetActiveSessionsQueryTests
             .Setup(repository => repository.GetByUserIdAsync(TestUserId, CancellationToken.None))
             .ReturnsAsync(identity);
 
-        GetActiveSessionsQueryHandler handler = CreateHandler();
-        GetActiveSessionsQuery query = new(TestUserId);
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<List<SessionDto>> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<List<SessionDto>> result = await service.GetActiveSessionsAsync(TestUserId, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -94,10 +98,12 @@ public sealed class GetActiveSessionsQueryTests
         sessionDto.LastActiveAt.Should().BeNull();
     }
 
-    private GetActiveSessionsQueryHandler CreateHandler()
-    {
-        return new GetActiveSessionsQueryHandler(
+    private UserProfileService CreateService() =>
+        new(
+            _userRepositoryMock.Object,
             _identityRepositoryMock.Object,
-            NullLogger<GetActiveSessionsQueryHandler>.Instance);
-    }
+            _hashServiceMock.Object,
+            _unitOfWorkMock.Object,
+            _clockMock.Object,
+            NullLogger<UserProfileService>.Instance);
 }

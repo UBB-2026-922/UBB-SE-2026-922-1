@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <LangVersion>preview</LangVersion>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>ef91f449-2846-4c9f-9614-f893866f07ab</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,6 +19,11 @@
         <ProjectReference Include="..\BankingApp.Application\BankingApp.Application.csproj" />
         <ProjectReference Include="..\BankingApp.Contracts\BankingApp.Contracts.csproj" />
         <ProjectReference Include="..\BankingApp.Infrastructure.Http\BankingApp.Infrastructure.Http.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\RecurringPayments\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\RecurringPayments\Index.cshtml" />
     </ItemGroup>
 
 </Project>

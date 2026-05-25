@@ -1,8 +1,108 @@
+@model BankingApp.Web.ViewModels.DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Dashboard</h1>
-    <p>Welcome to your banking dashboard.</p>
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0">Welcome, @Model.UserSummary.FullName</h2>
+        <small class="text-muted">@Model.UserSummary.Email</small>
+    </div>
+    @if (Model.UnreadNotificationCount > 0)
+    {
+        <span class="badge bg-danger fs-6">@Model.UnreadNotificationCount unread notifications</span>
+    }
 </div>
+
+<div class="d-flex gap-2 mb-4">
+    <a asp-controller="Transfers" asp-action="New" class="btn btn-primary">
+        <i class="bi bi-arrow-left-right"></i> New Transfer
+    </a>
+    <a asp-controller="BillPayments" asp-action="Index" class="btn btn-outline-primary">
+        <i class="bi bi-receipt"></i> Pay Bill
+    </a>
+    <a asp-controller="Forex" asp-action="Index" class="btn btn-outline-primary">
+        <i class="bi bi-currency-exchange"></i> Exchange Currency
+    </a>
+</div>
+
+<h4 class="mb-3">Your Cards</h4>
+@if (!Model.Cards.Any())
+{
+    <p class="text-muted">No cards found.</p>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        @foreach (var card in Model.Cards)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="fw-semibold">@(card.AccountName ?? "Account")</span>
+                            <span class="badge @(card.Status.ToString() == "Active" ? "bg-success" : "bg-secondary")">
+                                @card.Status
+                            </span>
+                        </div>
+                        <p class="text-muted mb-1" style="font-size: 0.85rem; letter-spacing: 2px;">
+                            @card.CardNumber
+                        </p>
+                        <p class="mb-1"><small class="text-muted">@card.CardholderName</small></p>
+                        <p class="mb-1"><small class="text-muted">Expires @card.ExpiryDate.ToString("MM/yyyy")</small></p>
+                        @if (card.AccountBalance.HasValue)
+                        {
+                            <p class="fs-5 fw-bold mt-2 mb-0">@card.AccountBalance.Value.ToString("N2")</p>
+                        }
+                        <small class="text-muted">@card.CardType @(card.CardBrand != null ? $"· {card.CardBrand}" : string.Empty)</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<h4 class="mb-3">Recent Transactions</h4>
+@if (!Model.RecentTransactions.Any())
+{
+    <p class="text-muted">No recent transactions.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Counterparty</th>
+                    <th>Status</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var txn in Model.RecentTransactions)
+                {
+                    <tr>
+                        <td>@txn.CreatedAt.ToString("dd MMM yyyy")</td>
+                        <td>@(txn.Description ?? txn.MerchantName ?? "—")</td>
+                        <td>@(txn.CounterpartyName ?? "—")</td>
+                        <td>
+                            <span class="badge @(txn.Status.ToString() == "Completed" ? "bg-success" : "bg-warning text-dark")">
+                                @txn.Status
+                            </span>
+                        </td>
+                        <td class="text-end fw-semibold @(txn.Direction.ToString() == "In" ? "text-success" : "text-danger")">
+                            @(txn.Direction.ToString() == "In" ? "+" : "-")@txn.Amount.ToString("N2") @txn.Currency
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

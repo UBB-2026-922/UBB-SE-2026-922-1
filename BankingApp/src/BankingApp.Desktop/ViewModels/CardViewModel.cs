@@ -9,6 +9,7 @@ using BankingApp.Domain.Enums;
 using ErrorOr;
 using Logging;
 using Microsoft.Extensions.Logging;
+using Shared;
 using DesktopLogMessages = Logging.DesktopLogMessages;
 
 /// <summary>Manages card listing and lifecycle actions for the desktop client.</summary>

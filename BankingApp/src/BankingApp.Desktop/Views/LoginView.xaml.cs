@@ -3,11 +3,11 @@ namespace BankingApp.Desktop.Views;
 using System;
 using System.Linq;
 using ErrorOr;
+using Shared.Enums;
 using ViewModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.UI.Xaml;
 using Navigation;
-using Shared.Enums;
 using State;
 
 /// <summary>
@@ -44,6 +44,12 @@ public sealed partial class LoginView
         {
             loginNotificationState.ShowRegistrationSuccess = false;
             RegistrationSuccessBar.IsOpen = true;
+        }
+
+        if (_viewModel.SavedRememberMe && !string.IsNullOrWhiteSpace(_viewModel.SavedEmail))
+        {
+            EmailBox.Text = _viewModel.SavedEmail;
+            RememberMeCheckBox.IsChecked = true;
         }
 
         // Apply the ViewModel's current state immediately. The ViewModel is constructed
@@ -136,19 +142,16 @@ public sealed partial class LoginView
             return;
         }
 
+        bool rememberMe = RememberMeCheckBox.IsChecked == true;
+
         try
         {
-            await _viewModel.Login(email, password);
+            await _viewModel.Login(email, password, rememberMe);
         }
         catch (Exception ex)
         {
             ShowError(ex.Message);
         }
-    }
-
-    private void ForgotPasswordButton_Click(object sender, RoutedEventArgs e)
-    {
-        _navigationService.NavigateTo<ForgotPasswordView>();
     }
 
     private void CreateAccountButton_Click(object sender, RoutedEventArgs e)
@@ -178,8 +181,11 @@ public sealed partial class LoginView
             return "Connected: not configured";
         }
 
-        return Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out Uri? uri)
-            ? $"Connected: {uri.Authority}"
-            : $"Connected: {apiBaseUrl}";
+        if (Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out Uri? uri))
+        {
+            return $"Connected: {uri.Authority}";
+        }
+
+        return $"Connected: {apiBaseUrl}";
     }
 }

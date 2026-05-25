@@ -267,100 +267,6 @@ namespace BankingApp.Infrastructure.Persistence.Data.Migrations
                     b.ToTable("IdentityAccounts", (string)null);
                 });
 
-            modelBuilder.Entity("BankingApp.Domain.Aggregates.RateAlertAggregate.RateAlert", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BaseCurrency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsBuyAlert")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsTriggered")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("QuoteCurrency")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)");
-
-                    b.Property<decimal>("TargetRate")
-                        .HasColumnType("decimal(18,6)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RateAlerts", (string)null);
-                });
-
-            modelBuilder.Entity("BankingApp.Domain.Aggregates.RecurringPaymentAggregate.RecurringPayment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("BillerId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Frequency")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<bool>("IsPayInFull")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime>("NextExecutionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SourceAccountId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)")
-                        .HasDefaultValue("Active");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RecurringPayments", (string)null);
-                });
-
             modelBuilder.Entity("BankingApp.Domain.Aggregates.SavedBillerAggregate.SavedBiller", b =>
                 {
                     b.Property<int>("Id")
@@ -744,44 +650,6 @@ namespace BankingApp.Infrastructure.Persistence.Data.Migrations
 
             modelBuilder.Entity("BankingApp.Domain.Aggregates.IdentityAggregate.IdentityAccount", b =>
                 {
-                    b.OwnsMany("BankingApp.Domain.Aggregates.IdentityAggregate.Entities.PasswordResetToken", "PasswordResetTokens", b1 =>
-                        {
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("int");
-
-                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
-
-                            b1.Property<DateTime>("CreatedAt")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<DateTime>("ExpiresAt")
-                                .HasColumnType("datetime2");
-
-                            b1.Property<int>("IdentityAccountId")
-                                .HasColumnType("int");
-
-                            b1.Property<string>("TokenHash")
-                                .IsRequired()
-                                .HasMaxLength(512)
-                                .HasColumnType("nvarchar(512)");
-
-                            b1.Property<DateTime?>("UsedAt")
-                                .HasColumnType("datetime2");
-
-                            b1.HasKey("Id");
-
-                            b1.HasIndex("IdentityAccountId");
-
-                            b1.HasIndex("TokenHash")
-                                .IsUnique();
-
-                            b1.ToTable("PasswordResetTokens", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("IdentityAccountId");
-                        });
-
                     b.OwnsMany("BankingApp.Domain.Aggregates.IdentityAggregate.Entities.Session", "Sessions", b1 =>
                         {
                             b1.Property<int>("Id")
@@ -836,8 +704,6 @@ namespace BankingApp.Infrastructure.Persistence.Data.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("IdentityAccountId");
                         });
-
-                    b.Navigation("PasswordResetTokens");
 
                     b.Navigation("Sessions");
                 });

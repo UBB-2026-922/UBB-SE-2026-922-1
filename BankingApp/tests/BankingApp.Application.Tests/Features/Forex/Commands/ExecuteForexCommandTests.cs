@@ -1,7 +1,6 @@
 namespace BankingApp.Application.Tests.Features.Forex.Commands;
 
 using BankingApp.Application;
-using BankingApp.Application.Features.Forex.Commands;
 using BankingApp.Application.Features.Forex.Services;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.Forex.Dtos;
@@ -27,6 +26,7 @@ public sealed class ExecuteForexCommandTests
     private readonly Mock<ILockedRateCache> _lockedRateCacheMock = new(MockBehavior.Strict);
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
     private readonly Mock<ISystemClock> _clockMock = new(MockBehavior.Strict);
+    private readonly Mock<IExchangeRateService> _exchangeRateServiceMock = new();
 
     [Fact]
     public async Task Handle_WhenSourceAccountNotFound_ShouldReturnAccountNotFoundError()
@@ -39,10 +39,10 @@ public sealed class ExecuteForexCommandTests
             .Setup(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken))
             .ReturnsAsync((Account?)null);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -69,10 +69,10 @@ public sealed class ExecuteForexCommandTests
             .Setup(repository => repository.GetByIdAsync(TargetAccountId, cancellationToken))
             .ReturnsAsync((Account?)null);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -92,10 +92,10 @@ public sealed class ExecuteForexCommandTests
             .Setup(cache => cache.TryGet(TestUserId))
             .Returns((LockedRate?)null);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), CancellationToken.None);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -122,10 +122,10 @@ public sealed class ExecuteForexCommandTests
 
         _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), CancellationToken.None);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, CancellationToken.None);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -150,10 +150,10 @@ public sealed class ExecuteForexCommandTests
         SetupValidLockedRate();
         SetupAccountLookups(sourceAccount, targetAccount, cancellationToken);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -174,10 +174,10 @@ public sealed class ExecuteForexCommandTests
         SetupValidLockedRate();
         SetupAccountLookups(sourceAccount, targetAccount, cancellationToken);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -198,10 +198,10 @@ public sealed class ExecuteForexCommandTests
         SetupValidLockedRate();
         SetupAccountLookups(sourceAccount, targetAccount, cancellationToken);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -222,10 +222,10 @@ public sealed class ExecuteForexCommandTests
         ForexTransaction? persistedForex = null;
         SetupValidCommand(sourceAccount, targetAccount, cancellationToken, forex => persistedForex = forex);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -248,10 +248,10 @@ public sealed class ExecuteForexCommandTests
         ForexTransaction? persistedForex = null;
         SetupValidCommand(sourceAccount, targetAccount, cancellationToken, forex => persistedForex = forex);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -273,10 +273,10 @@ public sealed class ExecuteForexCommandTests
         Account targetAccount = CreateAccount(TestUserId, Currency.FromCode("USD"), 0m);
         SetupValidCommand(sourceAccount, targetAccount, cancellationToken);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -293,10 +293,10 @@ public sealed class ExecuteForexCommandTests
         Account targetAccount = CreateAccount(TestUserId, Currency.FromCode("USD"), 0m);
         SetupValidCommand(sourceAccount, targetAccount, cancellationToken);
 
-        ExecuteForexCommandHandler handler = CreateHandler();
+        ForexService service = CreateService();
 
         // Act
-        ErrorOr<ForexTransactionResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<ForexTransactionResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -309,19 +309,15 @@ public sealed class ExecuteForexCommandTests
         VerifyValidCommand(sourceAccount, targetAccount, cancellationToken);
     }
 
-    private ExecuteForexCommandHandler CreateHandler()
+    private ForexService CreateService()
     {
-        return new ExecuteForexCommandHandler(
+        return new ForexService(
             _accountRepositoryMock.Object,
             _forexRepositoryMock.Object,
             _lockedRateCacheMock.Object,
+            _exchangeRateServiceMock.Object,
             _unitOfWorkMock.Object,
             _clockMock.Object);
-    }
-
-    private static ExecuteForexCommand CreateCommand(int userId = TestUserId)
-    {
-        return new ExecuteForexCommand(userId, SourceAccountId, TargetAccountId, "EUR", "USD", SourceAmount);
     }
 
     private void SetupValidLockedRate()
