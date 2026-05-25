@@ -77,4 +77,7 @@ public sealed class CardDetailsDto
 
     /// <summary>Gets whether this card can be cancelled (not already cancelled).</summary>
     public bool CanCancel => Status != CardStatus.Cancelled;
+
+    /// <summary>Gets the opacity to apply to a cancelled card (dimmed) versus an active one (full).</summary>
+    public double DisplayOpacity => Status == CardStatus.Cancelled ? 0.45 : 1.0;
 }
