@@ -340,6 +340,48 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task Register_WhenApiReturnsInvalidEmail_ShouldShowInvalidEmailMessage()
+    {
+        RegisterModel model = new() { Email = "bad@example.com", Password = "StrongPassword1!", FullName = "John Doe", PasswordConfirmation = "StrongPassword1!" };
+
+        _authenticationServiceMock
+            .Setup(service => service.RegisterAsync(
+                It.IsAny<RegisterRequest>(),
+                CancellationToken.None))
+            .ReturnsAsync(Error.Validation("invalid_email", "Invalid email."));
+
+        IActionResult result = await _controller.Register(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "Please enter a valid email address.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Register_WhenApiReturnsWeakPassword_ShouldShowWeakPasswordMessage()
+    {
+        RegisterModel model = new() { Email = "user@example.com", Password = "Weakpass1!", FullName = "John Doe", PasswordConfirmation = "Weakpass1!" };
+
+        _authenticationServiceMock
+            .Setup(service => service.RegisterAsync(
+                It.IsAny<RegisterRequest>(),
+                CancellationToken.None))
+            .ReturnsAsync(Error.Validation("weak_password", "Weak password."));
+
+        IActionResult result = await _controller.Register(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "Password must be at least 8 characters with uppercase, lowercase, a digit and a special character.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Register_WhenApiReturnsGenericError_ShouldShowGenericMessage()
     {
         RegisterModel model = new() { Email = "user@example.com", Password = "StrongPassword1!", FullName = "John Doe", PasswordConfirmation = "StrongPassword1!" };
