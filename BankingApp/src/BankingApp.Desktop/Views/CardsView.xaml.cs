@@ -7,6 +7,7 @@ using Contracts.Features.Cards.Dtos;
 using ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Windows.ApplicationModel.DataTransfer;
 
 /// <summary>Displays the card management screen.</summary>
 public sealed partial class CardsView
@@ -178,6 +179,18 @@ public sealed partial class CardsView
         List<CardDetailsDto> cards = [.. _viewModel.Cards];
         CardsList.ItemsSource = cards;
         EmptyState.Visibility = cards.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void CopyIban_Click(object sender, RoutedEventArgs args)
+    {
+        if (sender is not Button { Tag: string iban })
+        {
+            return;
+        }
+
+        var package = new DataPackage();
+        package.SetText(iban);
+        Clipboard.SetContent(package);
     }
 
     private void ToggleCardNumber_Click(object sender, RoutedEventArgs args)
