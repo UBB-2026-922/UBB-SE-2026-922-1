@@ -59,7 +59,23 @@ public partial class ForexViewModel : ObservableObject
 
     /// <summary>Gets or sets the current step in the exchange flow.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInitialStep))]
+    [NotifyPropertyChangedFor(nameof(IsPreviewStep))]
+    [NotifyPropertyChangedFor(nameof(IsResultStep))]
     public partial int CurrentStep { get; set; } = default!;
+
+    /// <summary>Gets a value indicating whether the current step is the initial step.</summary>
+    public bool IsInitialStep => CurrentStep == InitialStep;
+
+    /// <summary>Gets a value indicating whether the current step is the preview step.</summary>
+    public bool IsPreviewStep => CurrentStep == PreviewStep;
+
+    /// <summary>Gets a value indicating whether the current step is the result step.</summary>
+    public bool IsResultStep => CurrentStep == ResultStep;
+
+    /// <summary>Gets or sets a value indicating whether the exchange history is visible.</summary>
+    [ObservableProperty]
+    public partial bool IsHistoryVisible { get; set; } = false;
 
     /// <summary>Gets or sets the selected source account.</summary>
     [ObservableProperty]
@@ -162,6 +178,7 @@ public partial class ForexViewModel : ObservableObject
     }
 
     /// <summary>Loads an exchange preview for the current currencies and amount.</summary>
+    [RelayCommand]
     public async Task LoadPreviewAsync()
     {
         ErrorMessage = string.Empty;
@@ -221,6 +238,7 @@ public partial class ForexViewModel : ObservableObject
     }
 
     /// <summary>Executes the exchange using the values currently shown in the flow.</summary>
+    [RelayCommand]
     public async Task ExecuteExchangeAsync()
     {
         ErrorMessage = string.Empty;
@@ -274,6 +292,7 @@ public partial class ForexViewModel : ObservableObject
     }
 
     /// <summary>Resets the exchange flow back to its initial state.</summary>
+    [RelayCommand]
     public void Reset()
     {
         SelectedSourceAccount = null;
@@ -287,5 +306,12 @@ public partial class ForexViewModel : ObservableObject
         TransactionReference = string.Empty;
         ErrorMessage = string.Empty;
         CurrentStep = InitialStep;
+    }
+
+    /// <summary>Toggles the visibility of the exchange history.</summary>
+    [RelayCommand]
+    public void ToggleHistory()
+    {
+        IsHistoryVisible = !IsHistoryVisible;
     }
 }

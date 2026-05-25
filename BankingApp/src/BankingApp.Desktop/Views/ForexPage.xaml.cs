@@ -28,33 +28,4 @@ public sealed partial class ForexPage
         await _viewModel.LoadAccountsAsync();
         await _viewModel.LoadHistoryAsync();
     }
-
-    private async void PreviewButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            await _viewModel.LoadPreviewAsync();
-        }
-        catch
-        {
-            // ViewModel surfaces errors through its observable state.
-        }
-    }
-
-    private async void ExecuteButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            await _viewModel.ExecuteExchangeAsync();
-        }
-        catch
-        {
-            // ViewModel surfaces errors through its observable state.
-        }
-    }
-
-    private void ResetButton_Click(object sender, RoutedEventArgs e)
-    {
-        _viewModel.Reset();
-    }
 }
