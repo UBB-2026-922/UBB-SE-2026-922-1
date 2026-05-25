@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <Page
     x:Class="BankingApp.Desktop.Views.RegisterView"
@@ -59,7 +59,7 @@
                          Header="Full Name" Margin="0,0,0,14" CornerRadius="6" />
 
                 <!-- Email -->
-                <TextBox x:Name="EmailBox" PlaceholderText="you@company.com"
+                <TextBox x:Name="EmailBox" PlaceholderText="you@example.com"
                          Header="Email" Margin="0,0,0,14" CornerRadius="6" />
 
                 <!-- Password -->
@@ -74,7 +74,7 @@
                 <Button x:Name="RegisterButton" Content="CREATE ACCOUNT"
                         Click="RegisterButton_Click"
                         HorizontalAlignment="Stretch" Height="42"
-                        Background="#4ECDC4" Foreground="White" FontWeight="SemiBold"
+                        Background="#1A56DB" Foreground="White" FontWeight="SemiBold"
                         CornerRadius="6" />
 
                 <!-- Loading Indicator -->
