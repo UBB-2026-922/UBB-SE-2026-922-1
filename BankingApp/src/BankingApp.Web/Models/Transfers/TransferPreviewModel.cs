@@ -1,5 +1,7 @@
 namespace BankingApp.Web.Models.Transfers;
 
+using Contracts.Features.Transfers;
+
 /// <summary>
 ///     View model for the transfer preview / confirmation step.
 ///     Shows forex preview (if cross-currency) and transfer summary.
@@ -26,6 +28,12 @@ public class TransferPreviewModel
 
     /// <summary>Gets or sets the transfer amount.</summary>
     public decimal Amount { get; set; }
+
+    /// <summary>Gets the fixed transfer fee charged in the transfer currency.</summary>
+    public decimal Fee => TransferPricing.Fee;
+
+    /// <summary>Gets the total amount debited from the source account.</summary>
+    public decimal TotalDebit => Amount + Fee;
 
     /// <summary>Gets or sets the transfer currency.</summary>
     public string Currency { get; set; } = string.Empty;

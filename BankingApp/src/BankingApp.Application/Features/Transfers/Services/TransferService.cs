@@ -1,5 +1,6 @@
 namespace BankingApp.Application.Features.Transfers.Services;
 
+using Contracts.Features.Transfers;
 using Contracts.Features.Transfers.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -27,7 +28,6 @@ public sealed class TransferService(
     ILogger<TransferService> logger)
     : ITransferService
 {
-    private const decimal TransferFee = 1.00m;
     private const string TransferType = "TRANSFER";
     private const string TransferRef = "TRF";
 
@@ -71,7 +71,7 @@ public sealed class TransferService(
 
         DateTime now = clock.UtcNow;
         Money transferAmount = new(amount, parsedCurrency);
-        Money fee = new(TransferFee, parsedCurrency);
+        Money fee = new(TransferPricing.Fee, parsedCurrency);
 
         ErrorOr<Transfer> transferResult = Transfer.Create(
             userId, sourceAccountId, recipientName, ibanResult.Value, transferAmount, fee, reference, now);

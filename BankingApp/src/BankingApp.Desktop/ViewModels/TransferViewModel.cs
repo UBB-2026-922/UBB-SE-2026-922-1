@@ -2,6 +2,7 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.ObjectModel;
+using Contracts.Features.Transfers;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
 
@@ -90,6 +91,10 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the parsed transfer amount.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReviewAmountText))]
+    [NotifyPropertyChangedFor(nameof(TransferFeeText))]
+    [NotifyPropertyChangedFor(nameof(TotalDebit))]
+    [NotifyPropertyChangedFor(nameof(TotalDebitText))]
     public partial decimal Amount { get; set; } = 0;
 
     partial void OnAmountChanged(decimal value)
@@ -99,6 +104,9 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the target currency for the transfer.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReviewAmountText))]
+    [NotifyPropertyChangedFor(nameof(TransferFeeText))]
+    [NotifyPropertyChangedFor(nameof(TotalDebitText))]
     public partial string Currency { get; set; }
 
     partial void OnCurrencyChanged(string value)
@@ -133,4 +141,16 @@ public partial class TransferViewModel : ObservableObject
     {
         Amount = decimal.TryParse(value, out decimal parsed) ? parsed : 0;
     }
+
+    /// <summary>Gets the formatted transfer amount shown on the review step.</summary>
+    public string ReviewAmountText => $"{Amount:0.00} {Currency}";
+
+    /// <summary>Gets the formatted transfer fee shown on the review step.</summary>
+    public string TransferFeeText => $"{TransferPricing.Fee:0.00} {Currency}";
+
+    /// <summary>Gets the total amount debited from the source account.</summary>
+    public decimal TotalDebit => Amount + TransferPricing.Fee;
+
+    /// <summary>Gets the formatted total debit shown on the review step.</summary>
+    public string TotalDebitText => $"{TotalDebit:0.00} {Currency}";
 }

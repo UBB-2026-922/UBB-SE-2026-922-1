@@ -86,8 +86,15 @@
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="Amount:" FontWeight="Bold" />
-                        <TextBlock Text="{x:Bind ViewModel.AmountText, Mode=OneWay}" />
-                        <TextBlock Text="{x:Bind ViewModel.Currency, Mode=OneWay}" />
+                        <TextBlock Text="{x:Bind ViewModel.ReviewAmountText, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Fee:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.TransferFeeText, Mode=OneWay}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Total debit:" FontWeight="Bold" />
+                        <TextBlock Text="{x:Bind ViewModel.TotalDebitText, Mode=OneWay}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <TextBlock Text="Reference:" FontWeight="Bold" />
