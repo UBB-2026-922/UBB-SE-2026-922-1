@@ -1,4 +1,4 @@
-﻿namespace BankingApp.Desktop.Views;
+namespace BankingApp.Desktop.Views;
 
 using System;
 using ViewModels;
@@ -20,6 +20,13 @@ public sealed partial class ForexPage
         InitializeComponent();
         _viewModel = viewModel;
         DataContext = _viewModel;
+        Loaded += ForexPage_Loaded;
+    }
+
+    private async void ForexPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        await _viewModel.LoadAccountsAsync();
+        await _viewModel.LoadHistoryAsync();
     }
 
     private async void PreviewButton_Click(object sender, RoutedEventArgs e)
