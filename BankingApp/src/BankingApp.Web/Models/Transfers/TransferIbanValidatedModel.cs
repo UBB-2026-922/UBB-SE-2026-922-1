@@ -1,4 +1,4 @@
-namespace BankingApp.Web.ViewModels.Transfers;
+namespace BankingApp.Web.Models.Transfers;
 
 using System.ComponentModel.DataAnnotations;
 using BankingApp.Contracts.Features.Transfers.Dtos;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 /// <summary>
 ///     View model for step 2: IBAN validated, select source account + amount.
 /// </summary>
-public class TransferIbanValidatedViewModel
+public class TransferIbanValidatedModel
 {
     /// <summary>Gets or sets the validated recipient IBAN.</summary>
     public string RecipientIban { get; set; } = string.Empty;

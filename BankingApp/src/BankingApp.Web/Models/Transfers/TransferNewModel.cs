@@ -1,11 +1,11 @@
-namespace BankingApp.Web.ViewModels.Transfers;
+namespace BankingApp.Web.Models.Transfers;
 
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
 ///     View model for step 1: enter recipient IBAN (GET /Transfers/New).
 /// </summary>
-public class TransferNewViewModel
+public class TransferNewModel
 {
     /// <summary>Gets or sets the recipient IBAN.</summary>
     [Required(ErrorMessage = "Recipient IBAN is required.")]

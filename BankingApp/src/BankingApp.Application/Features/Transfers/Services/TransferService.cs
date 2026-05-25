@@ -1,5 +1,6 @@
 namespace BankingApp.Application.Features.Transfers.Services;
 
+using Contracts.Features.Transfers;
 using Contracts.Features.Transfers.Dtos;
 using Domain.Aggregates.AccountAggregate;
 using Domain.Aggregates.AccountAggregate.Entities;
@@ -27,7 +28,6 @@ public sealed class TransferService(
     ILogger<TransferService> logger)
     : ITransferService
 {
-    private const decimal TransferFee = 1.00m;
     private const string TransferType = "TRANSFER";
     private const string TransferRef = "TRF";
 
@@ -71,7 +71,7 @@ public sealed class TransferService(
 
         DateTime now = clock.UtcNow;
         Money transferAmount = new(amount, parsedCurrency);
-        Money fee = new(TransferFee, parsedCurrency);
+        Money fee = new(TransferPricing.Fee, parsedCurrency);
 
         ErrorOr<Transfer> transferResult = Transfer.Create(
             userId, sourceAccountId, recipientName, ibanResult.Value, transferAmount, fee, reference, now);
@@ -83,6 +83,12 @@ public sealed class TransferService(
 
         Transfer transfer = transferResult.Value;
         string transactionRef = $"{TransferRef}-{now:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpperInvariant()}";
+
+        Account? recipientAccount = await accountRepository.GetByIbanAsync(transfer.RecipientIban.Value, cancellationToken);
+        if (recipientAccount is not null && !recipientAccount.UsesCurrency(parsedCurrency))
+        {
+            return TransferErrors.CurrencyMismatch;
+        }
 
         ErrorOr<Money> newBalanceResult = account.Debit(transfer.TotalDebit, now);
         if (newBalanceResult.IsError)
@@ -97,8 +103,31 @@ public sealed class TransferService(
 
         transfer.MarkExecuted(transaction.Id, now.AddDays(1));
 
+        if (recipientAccount is not null && recipientAccount.Id != account.Id)
+        {
+            ErrorOr<Money> recipientBalanceResult = recipientAccount.Credit(transfer.Amount, now);
+            if (recipientBalanceResult.IsError)
+            {
+                return recipientBalanceResult.FirstError;
+            }
+
+            recipientAccount.RecordTransaction(
+                $"{transactionRef}-IN",
+                TransferType,
+                TransactionDirection.In,
+                transfer.Amount,
+                recipientBalanceResult.Value,
+                TransactionStatus.Completed,
+                now);
+        }
+
         await UpdateBeneficiaryStatsAsync(userId, transfer.RecipientIban, transfer.Amount.Amount, now, cancellationToken);
         await accountRepository.UpdateAsync(account, cancellationToken);
+        if (recipientAccount is not null && recipientAccount.Id != account.Id)
+        {
+            await accountRepository.UpdateAsync(recipientAccount, cancellationToken);
+        }
+
         await transferRepository.AddAsync(transfer, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

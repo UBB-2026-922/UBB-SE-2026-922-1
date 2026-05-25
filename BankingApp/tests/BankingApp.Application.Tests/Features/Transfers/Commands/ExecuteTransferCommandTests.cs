@@ -164,6 +164,9 @@ public sealed class ExecuteTransferCommandTests
         Account account = CreateAccount(TestUserId, balance: 50m);
         SetupAccountLookup(account, cancellationToken);
         _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync((Account?)null);
 
         TransferService service = CreateService();
 
@@ -175,6 +178,7 @@ public sealed class ExecuteTransferCommandTests
         result.FirstError.Should().Be(AccountErrors.InsufficientFunds);
 
         _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         VerifyNoOtherCalls();
     }
@@ -203,6 +207,62 @@ public sealed class ExecuteTransferCommandTests
         result.Value.Status.Should().Be(TransferStatus.Completed);
 
         VerifyValidFlow(account, cancellationToken);
+    }
+
+    [Fact]
+    public async Task Handle_WhenRecipientIbanBelongsToLocalAccount_ShouldCreditRecipientAccount()
+    {
+        // Arrange
+        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        Account sourceAccount = CreateAccount(TestUserId, balance: 500m, iban: "RO49AAAA1B31007593840000");
+        Account recipientAccount = CreateAccount(OtherUserId, balance: 25m, iban: RecipientIban);
+        SetAccountId(sourceAccount, SourceAccountId);
+        SetAccountId(recipientAccount, SourceAccountId + 1);
+
+        SetupAccountLookup(sourceAccount, cancellationToken);
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync(recipientAccount);
+        _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
+
+        _beneficiaryRepositoryMock
+            .Setup(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken))
+            .ReturnsAsync([]);
+
+        _accountRepositoryMock
+            .Setup(repository => repository.UpdateAsync(sourceAccount, cancellationToken))
+            .Returns(Task.CompletedTask);
+        _accountRepositoryMock
+            .Setup(repository => repository.UpdateAsync(recipientAccount, cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _transferRepositoryMock
+            .Setup(repository => repository.AddAsync(It.IsAny<Transfer>(), cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        TransferService service = CreateService();
+
+        // Act
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        sourceAccount.Balance.Amount.Should().Be(399m);
+        recipientAccount.Balance.Amount.Should().Be(125m);
+
+        _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
+        _clockMock.Verify(clock => clock.UtcNow, Times.Once);
+        _beneficiaryRepositoryMock.Verify(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.UpdateAsync(sourceAccount, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.UpdateAsync(recipientAccount, cancellationToken), Times.Once);
+        _transferRepositoryMock.Verify(repository => repository.AddAsync(It.IsAny<Transfer>(), cancellationToken), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(cancellationToken), Times.Once);
+        VerifyNoOtherCalls();
     }
 
     [Fact]
@@ -238,6 +298,9 @@ public sealed class ExecuteTransferCommandTests
             _testNow);
 
         SetupAccountLookup(account, cancellationToken);
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync((Account?)null);
         _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
 
         _beneficiaryRepositoryMock
@@ -272,6 +335,7 @@ public sealed class ExecuteTransferCommandTests
         beneficiary.LastTransferDate.Should().Be(_testNow);
 
         _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken), Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.UpdateAsync(beneficiary, cancellationToken), Times.Once);
@@ -308,6 +372,10 @@ public sealed class ExecuteTransferCommandTests
         SetupAccountLookup(account, cancellationToken);
         _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
 
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync((Account?)null);
+
         _beneficiaryRepositoryMock
             .Setup(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken))
             .ReturnsAsync([]);
@@ -338,6 +406,7 @@ public sealed class ExecuteTransferCommandTests
     private void VerifyValidFlow(Account account, CancellationToken cancellationToken)
     {
         _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken), Times.Once);
         _accountRepositoryMock.Verify(repository => repository.UpdateAsync(account, cancellationToken), Times.Once);
@@ -355,12 +424,16 @@ public sealed class ExecuteTransferCommandTests
         _clockMock.VerifyNoOtherCalls();
     }
 
-    private static Account CreateAccount(int userId, decimal balance, string currencyCode = CurrencyCode)
+    private static Account CreateAccount(
+        int userId,
+        decimal balance,
+        string currencyCode = CurrencyCode,
+        string iban = "RO12BANK1234567890123456")
     {
         var currency = Currency.FromCode(currencyCode);
         var account = Account.Open(
             userId,
-            Iban.Create("RO12BANK1234567890123456").Value,
+            Iban.Create(iban).Value,
             currency,
             AccountType.Checking,
             "Main",
@@ -375,5 +448,12 @@ public sealed class ExecuteTransferCommandTests
         typeof(Account)
             .GetProperty(nameof(Account.Status))!
             .SetValue(account, status);
+    }
+
+    private static void SetAccountId(Account account, int id)
+    {
+        typeof(Account)
+            .GetProperty(nameof(Account.Id))!
+            .SetValue(account, id);
     }
 }
