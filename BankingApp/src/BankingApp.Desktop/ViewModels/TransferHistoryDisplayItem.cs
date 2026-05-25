@@ -30,12 +30,20 @@ public class TransferHistoryDisplayItem
     public string BankName { get; set; } = string.Empty;
 
     /// <summary>
-    ///     Gets or sets the pre-formatted amount string including currency (e.g. "-100.00 EUR").
+    ///     Gets or sets the formatted amount string (e.g. "-100.00").
     /// </summary>
     /// <value>
     ///     Gets or sets the current value.
     /// </value>
-    public string AmountDisplay { get; set; } = string.Empty;
+    public string Amount { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Gets or sets the currency (e.g. "EUR").
+    /// </summary>
+    /// <value>
+    ///     Gets or sets the current value.
+    /// </value>
+    public string Currency { get; set; } = string.Empty;
 
     /// <summary>
     ///     Gets or sets the pre-formatted local date and time string.

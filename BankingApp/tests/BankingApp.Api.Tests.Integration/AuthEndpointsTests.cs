@@ -4,8 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
-using BankingApp.Application.Features.Authentication.Commands;
-using BankingApp.Application.Features.UserRegistration.Commands;
+using BankingApp.Application.Features.Authentication.Models;
 using BankingApp.Contracts.Features.Authentication.Dtos;
 using BankingApp.Contracts.Http;
 using ErrorOr;
@@ -22,7 +21,7 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
         _client = factory.CreateClient();
         _cancellationToken = TestContext.Current.CancellationToken;
 
-        _factory.SenderMock.Reset();
+        _factory.AuthServiceMock.Reset();
         _factory.JwtServiceMock.Reset();
         _factory.IdentityRepositoryMock.Reset();
     }
@@ -30,8 +29,8 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task Login_WhenCredentialsAreValid_ShouldReturnOkWithToken()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
+        _factory.AuthServiceMock
+            .Setup(s => s.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SessionMetadata?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((ErrorOr<LoginSuccess>)new LoginSuccess(1, "fake-jwt-token", 42));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
@@ -49,8 +48,8 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task Login_WhenCredentialsAreInvalid_ShouldReturnUnauthorized()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
+        _factory.AuthServiceMock
+            .Setup(s => s.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SessionMetadata?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Unauthorized("invalid_credentials", "Invalid credentials."));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
@@ -64,8 +63,8 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task Register_WhenValid_ShouldReturnNoContent()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<RegisterCommand>(), It.IsAny<CancellationToken>()))
+        _factory.AuthServiceMock
+            .Setup(s => s.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
@@ -79,8 +78,8 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task Register_WhenEmailAlreadyExists_ShouldReturnConflict()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<RegisterCommand>(), It.IsAny<CancellationToken>()))
+        _factory.AuthServiceMock
+            .Setup(s => s.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.Conflict("email_taken", "Email is already registered."));
 
         HttpResponseMessage response = await _client.PostAsJsonAsync(
@@ -94,8 +93,8 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task Logout_WhenTokenIsProvided_ShouldReturnNoContent()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<LogoutCommand>(), It.IsAny<CancellationToken>()))
+        _factory.AuthServiceMock
+            .Setup(s => s.LogoutAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/" + ApiEndpoints.Auth.LogoutFull);
@@ -115,5 +114,4 @@ public class AuthEndpointsTests : IClassFixture<BankingAppWebFactory>
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
-
 }

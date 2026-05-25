@@ -1,4 +1,4 @@
-@model BankingApp.Web.ViewModels.LoginViewModel
+@model BankingApp.Web.Models.LoginModel
 @{
     ViewData["Title"] = "Login";
 }
@@ -38,7 +38,12 @@
                         <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
                     </div>
 
-                    <div class="d-grid mt-4">
+                    <div class="form-check mt-3 mb-3">
+                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-box-arrow-in-right me-1"></i>Sign in
                         </button>
@@ -47,9 +52,10 @@
             </div>
         </div>
 
-        <div class="mt-3">
-            <a asp-controller="Auth" asp-action="Register" class="text-decoration-none">
-                Create an account
+        <div class="text-center mt-3">
+            <span class="text-muted small">Don't have an account?</span>
+            <a asp-controller="Auth" asp-action="Register" class="text-decoration-none small">
+                Create one
             </a>
         </div>
     </div>

@@ -1,7 +1,6 @@
 namespace BankingApp.Api.Controllers;
 
-using Application.Features.BillPayments.Commands;
-using Application.Features.BillPayments.Queries;
+using Application.Features.BillPayments.Services;
 using Contracts.Features.BillPayments.Dtos;
 using Contracts.Http;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 [Route(ApiEndpoints.BillPayments.Base)]
 [Authorize]
-public class BillPaymentsController : ApiControllerBase
+public class BillPaymentsController(IBillPaymentService billPaymentService) : ApiControllerBase
 {
     private const decimal LowTierFee = 0.50m;
     private const decimal HighTierFee = 1.00m;
@@ -41,13 +40,11 @@ public class BillPaymentsController : ApiControllerBase
     public async Task<IActionResult> ProcessPayment([FromBody] BillPayRequest request, CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        var command = new ProcessBillPaymentCommand(
-            userId,
-            request.SourceAccountId,
-            request.BillerId,
-            request.BillerReference,
-            request.Amount);
-        return ToActionResult(await Sender.Send(command, cancellationToken), Ok);
+        return ToActionResult(
+            await billPaymentService.ProcessAsync(
+                userId, request.SourceAccountId, request.BillerId,
+                request.BillerReference, request.Amount, cancellationToken),
+            Ok);
     }
 
     /// <summary>
@@ -59,6 +56,6 @@ public class BillPaymentsController : ApiControllerBase
     public async Task<IActionResult> GetHistory(CancellationToken cancellationToken)
     {
         int userId = GetAuthenticatedUserId();
-        return ToActionResult(await Sender.Send(new GetBillPaymentHistoryQuery(userId), cancellationToken), Ok);
+        return ToActionResult(await billPaymentService.GetHistoryAsync(userId, cancellationToken), Ok);
     }
 }

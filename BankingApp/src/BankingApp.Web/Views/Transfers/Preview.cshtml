@@ -1,4 +1,4 @@
-@model BankingApp.Web.ViewModels.Transfers.TransferPreviewViewModel
+@model BankingApp.Web.Models.Transfers.TransferPreviewModel
 @{
     ViewData["Title"] = "Confirm Transfer";
 }
@@ -51,6 +51,14 @@
                             <th class="ps-3 py-3 text-muted-sm fw-600">Amount</th>
                             <td class="py-3 fw-600">@Model.Currency @Model.Amount.ToString("N2")</td>
                         </tr>
+                        <tr>
+                            <th class="ps-3 py-3 text-muted-sm fw-600">Fee</th>
+                            <td class="py-3 text-warning">@Model.Currency @Model.Fee.ToString("N2")</td>
+                        </tr>
+                        <tr class="table-light">
+                            <th class="ps-3 py-3 fw-700">Total Debit</th>
+                            <td class="py-3 fw-700 amount-debit fs-5">@Model.Currency @Model.TotalDebit.ToString("N2")</td>
+                        </tr>
                         @if (!string.IsNullOrWhiteSpace(Model.Reference))
                         {
                             <tr>
@@ -66,10 +74,10 @@
                                     1 @Model.SourceCurrency = @Model.ExchangeRate.Value.ToString("N6") @Model.Currency
                                 </td>
                             </tr>
-                            <tr class="table-light">
-                                <th class="ps-3 py-3 fw-700">Debited Amount</th>
+                            <tr>
+                                <th class="ps-3 py-3 text-muted-sm fw-600">Converted Amount</th>
                                 <td class="py-3 fw-700 amount-debit fs-5">
-                                    @Model.SourceCurrency @Model.ConvertedAmount?.ToString("N2")
+                                    @Model.Currency @Model.ConvertedAmount?.ToString("N2")
                                 </td>
                             </tr>
                         }

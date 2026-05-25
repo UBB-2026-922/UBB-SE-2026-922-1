@@ -7,18 +7,20 @@ using Contracts.Features.Transfers.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ViewModels.Transfers;
+using Models.Transfers;
 
 [Authorize]
 public class TransfersController(
     ITransferService transferService,
     IBeneficiaryService beneficiaryService) : Controller
 {
-    public async Task<IActionResult> New(int? beneficiaryId, CancellationToken ct)
+    public IActionResult Index() => RedirectToAction(nameof(New));
+
+    public async Task<IActionResult> New(int? beneficiaryId, CancellationToken ct = default)
     {
         if (!beneficiaryId.HasValue)
         {
-            return View(new TransferNewViewModel());
+            return View(new TransferNewModel());
         }
 
         ErrorOr<BeneficiaryDto> beneficiaryResult = await beneficiaryService.GetByIdAsync(beneficiaryId.Value, ct);
@@ -47,7 +49,7 @@ public class TransfersController(
 
         return View(
             "ValidateIban",
-            new TransferIbanValidatedViewModel
+            new TransferIbanValidatedModel
             {
                 RecipientIban = beneficiaryResult.Value.Iban ?? string.Empty,
                 RecipientName = beneficiaryResult.Value.Name ?? string.Empty,
@@ -60,7 +62,7 @@ public class TransfersController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ValidateIban(TransferNewViewModel model, CancellationToken ct)
+    public async Task<IActionResult> ValidateIban(TransferNewModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -88,7 +90,7 @@ public class TransfersController(
             return View("New", model);
         }
 
-        TransferIbanValidatedViewModel viewModel = new()
+        TransferIbanValidatedModel viewModel = new()
         {
             RecipientIban = model.RecipientIban,
             RecipientBankName = validationResult.Value.BankName,
@@ -100,7 +102,7 @@ public class TransfersController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Preview(TransferIbanValidatedViewModel model, CancellationToken ct)
+    public async Task<IActionResult> Preview(TransferIbanValidatedModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -115,7 +117,7 @@ public class TransfersController(
 
         string sourceCurrency = sourceAccount?.Currency ?? string.Empty;
 
-        TransferPreviewViewModel previewVm = new()
+        TransferPreviewModel previewVm = new()
         {
             SourceAccountId = model.SelectedAccountId,
             SourceAccountIban = sourceAccount?.Iban ?? string.Empty,
@@ -128,11 +130,7 @@ public class TransfersController(
             Reference = model.Reference,
         };
 
-        // Check for cross-currency transfer
-        bool isCrossCurrency = !string.IsNullOrEmpty(sourceCurrency)
-                               && !string.Equals(sourceCurrency, model.Currency, StringComparison.OrdinalIgnoreCase);
-
-        if (isCrossCurrency)
+        if (!string.IsNullOrEmpty(sourceCurrency) && !string.IsNullOrEmpty(model.Currency) && model.Amount > 0)
         {
             ErrorOr<TransferForexPreviewResponse> fxResult =
                 await transferService.GetFxPreviewAsync(sourceCurrency, model.Currency, model.Amount, ct);
@@ -144,7 +142,11 @@ public class TransfersController(
                 return View("ValidateIban", model);
             }
 
-            previewVm.IsCrossCurrency = true;
+            if (fxResult.Value.ExchangeRate != 1m)
+            {
+                previewVm.IsCrossCurrency = true;
+            }
+            
             previewVm.ExchangeRate = fxResult.Value.ExchangeRate;
             previewVm.ConvertedAmount = fxResult.Value.ConvertedAmount;
         }
@@ -154,7 +156,7 @@ public class TransfersController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(TransferPreviewViewModel model, CancellationToken ct)
+    public async Task<IActionResult> Confirm(TransferPreviewModel model, CancellationToken ct)
     {
         CreateTransferRequest request = new()
         {
@@ -188,12 +190,12 @@ public class TransfersController(
         if (result.IsError)
         {
             TempData["Error"] = "Unable to load transfer history. Please try again.";
-            return View(new TransferHistoryViewModel());
+            return View(new TransferHistoryModel());
         }
 
-        TransferHistoryViewModel viewModel = new()
+        TransferHistoryModel viewModel = new()
         {
-            Transfers = result.Value.ConvertAll(t => new TransferHistoryRowViewModel
+            Transfers = result.Value.ConvertAll(t => new TransferHistoryRowModel
             {
                 Id = t.Id,
                 RecipientIban = t.RecipientIban,
@@ -201,6 +203,7 @@ public class TransfersController(
                 Amount = t.Amount,
                 Currency = t.Currency,
                 Status = t.Status.ToString(),
+                Reference = string.IsNullOrWhiteSpace(t.TransactionRef) ? "—" : t.TransactionRef,
                 CreatedAt = t.CreatedAt,
             })
         };
@@ -208,7 +211,7 @@ public class TransfersController(
         return View(viewModel);
     }
 
-    private async Task RepopulateAccountsAsync(TransferIbanValidatedViewModel vm, CancellationToken ct)
+    private async Task RepopulateAccountsAsync(TransferIbanValidatedModel vm, CancellationToken ct)
     {
         ErrorOr<List<TransferAccountSelectionResponse>> result = await transferService.GetAccountsAsync(ct);
         vm.Accounts = result.IsError ? [] : result.Value;

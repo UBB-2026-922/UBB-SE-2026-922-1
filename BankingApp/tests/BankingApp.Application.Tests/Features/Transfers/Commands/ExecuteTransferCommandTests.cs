@@ -1,6 +1,6 @@
 namespace BankingApp.Application.Tests.Features.Transfers.Commands;
 
-using BankingApp.Application.Features.Transfers.Commands;
+using BankingApp.Application.Features.Transfers.Services;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.Transfers.Dtos;
 using ErrorOr;
@@ -26,16 +26,16 @@ public sealed class ExecuteTransferCommandTests
     private readonly Mock<IBeneficiaryRepository> _beneficiaryRepositoryMock = new(MockBehavior.Strict);
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
     private readonly Mock<ISystemClock> _clockMock = new(MockBehavior.Strict);
+    private readonly Mock<BankingApp.Application.IExchangeRateService> _exchangeRateServiceMock = new();
 
     [Fact]
     public async Task Handle_WhenIbanIsInvalid_ShouldReturnInvalidIbanError()
     {
         // Arrange
-        ExecuteTransferCommandHandler handler = CreateHandler();
-        ExecuteTransferCommand command = CreateCommand(recipientIban: "invalid-iban");
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(command, CancellationToken.None);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, "invalid-iban", 100m, CurrencyCode, "Invoice", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -48,11 +48,10 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenCurrencyCodeIsInvalid_ShouldReturnInvalidCurrencyError()
     {
         // Arrange
-        ExecuteTransferCommandHandler handler = CreateHandler();
-        ExecuteTransferCommand command = CreateCommand(currency: "INVALID");
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(command, CancellationToken.None);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, "INVALID", "Invoice", TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -65,16 +64,16 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenAccountNotFound_ShouldReturnAccountNotFoundError()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
 
         _accountRepositoryMock
             .Setup(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken))
             .ReturnsAsync((Account?)null);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -88,17 +87,17 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenAccountBelongsToDifferentUser_ShouldReturnAccountNotFoundError()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Account account = CreateAccount(OtherUserId, balance: 500m);
 
         _accountRepositoryMock
             .Setup(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken))
             .ReturnsAsync(account);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -112,7 +111,7 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenAccountIsNotActive_ShouldReturnAccountNotActiveError()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Account account = CreateAccount(TestUserId, balance: 500m);
         SetAccountStatus(account, AccountStatus.Closed);
 
@@ -120,10 +119,10 @@ public sealed class ExecuteTransferCommandTests
             .Setup(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken))
             .ReturnsAsync(account);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -137,17 +136,17 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenAccountCurrencyMismatches_ShouldReturnCurrencyMismatchError()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Account account = CreateAccount(TestUserId, balance: 500m, currencyCode: "EUR");
 
         _accountRepositoryMock
             .Setup(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken))
             .ReturnsAsync(account);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -161,21 +160,25 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenInsufficientFunds_ShouldReturnInsufficientFundsError()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Account account = CreateAccount(TestUserId, balance: 50m);
         SetupAccountLookup(account, cancellationToken);
         _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync((Account?)null);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(amount: 100m), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(AccountErrors.InsufficientFunds);
 
         _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         VerifyNoOtherCalls();
     }
@@ -184,15 +187,15 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenValid_ShouldDebitAccountAndCreateTransfer()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Account account = CreateAccount(TestUserId, balance: 500m);
         Transfer? persistedTransfer = null;
         SetupValidFlow(account, cancellationToken, transfer => persistedTransfer = transfer);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(amount: 100m), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -207,17 +210,73 @@ public sealed class ExecuteTransferCommandTests
     }
 
     [Fact]
-    public async Task Handle_WhenValid_ShouldSaveChanges()
+    public async Task Handle_WhenRecipientIbanBelongsToLocalAccount_ShouldCreditRecipientAccount()
     {
         // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        Account sourceAccount = CreateAccount(TestUserId, balance: 500m, iban: "RO49AAAA1B31007593840000");
+        Account recipientAccount = CreateAccount(OtherUserId, balance: 25m, iban: RecipientIban);
+        SetAccountId(sourceAccount, SourceAccountId);
+        SetAccountId(recipientAccount, SourceAccountId + 1);
+
+        SetupAccountLookup(sourceAccount, cancellationToken);
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync(recipientAccount);
+        _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
+
+        _beneficiaryRepositoryMock
+            .Setup(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken))
+            .ReturnsAsync([]);
+
+        _accountRepositoryMock
+            .Setup(repository => repository.UpdateAsync(sourceAccount, cancellationToken))
+            .Returns(Task.CompletedTask);
+        _accountRepositoryMock
+            .Setup(repository => repository.UpdateAsync(recipientAccount, cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _transferRepositoryMock
+            .Setup(repository => repository.AddAsync(It.IsAny<Transfer>(), cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock
+            .Setup(uow => uow.SaveChangesAsync(cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        TransferService service = CreateService();
+
+        // Act
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        sourceAccount.Balance.Amount.Should().Be(399m);
+        recipientAccount.Balance.Amount.Should().Be(125m);
+
+        _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
+        _clockMock.Verify(clock => clock.UtcNow, Times.Once);
+        _beneficiaryRepositoryMock.Verify(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.UpdateAsync(sourceAccount, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.UpdateAsync(recipientAccount, cancellationToken), Times.Once);
+        _transferRepositoryMock.Verify(repository => repository.AddAsync(It.IsAny<Transfer>(), cancellationToken), Times.Once);
+        _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(cancellationToken), Times.Once);
+        VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Handle_WhenValid_ShouldSaveChanges()
+    {
+        // Arrange
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Account account = CreateAccount(TestUserId, balance: 500m);
         SetupValidFlow(account, cancellationToken);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(amount: 100m), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -229,7 +288,7 @@ public sealed class ExecuteTransferCommandTests
     public async Task Handle_WhenBeneficiaryWithRecipientIbanExists_ShouldUpdateBeneficiaryStats()
     {
         // Arrange
-        CancellationToken cancellationToken = new CancellationTokenSource().Token;
+        CancellationToken cancellationToken = TestContext.Current.CancellationToken;
         Account account = CreateAccount(TestUserId, balance: 500m);
         var beneficiary = Beneficiary.Create(
             TestUserId,
@@ -239,6 +298,9 @@ public sealed class ExecuteTransferCommandTests
             _testNow);
 
         SetupAccountLookup(account, cancellationToken);
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync((Account?)null);
         _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
 
         _beneficiaryRepositoryMock
@@ -261,10 +323,10 @@ public sealed class ExecuteTransferCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        ExecuteTransferCommandHandler handler = CreateHandler();
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferResponse> result = await handler.Handle(CreateCommand(amount: 100m), cancellationToken);
+        ErrorOr<TransferResponse> result = await service.ExecuteAsync(TestUserId, SourceAccountId, RecipientName, RecipientIban, 100m, CurrencyCode, "Invoice", cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -273,6 +335,7 @@ public sealed class ExecuteTransferCommandTests
         beneficiary.LastTransferDate.Should().Be(_testNow);
 
         _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken), Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.UpdateAsync(beneficiary, cancellationToken), Times.Once);
@@ -282,30 +345,16 @@ public sealed class ExecuteTransferCommandTests
         VerifyNoOtherCalls();
     }
 
-    private ExecuteTransferCommandHandler CreateHandler()
+    private TransferService CreateService()
     {
-        return new ExecuteTransferCommandHandler(
+        return new TransferService(
             _accountRepositoryMock.Object,
             _transferRepositoryMock.Object,
             _beneficiaryRepositoryMock.Object,
             _unitOfWorkMock.Object,
             _clockMock.Object,
-            NullLogger<ExecuteTransferCommandHandler>.Instance);
-    }
-
-    private static ExecuteTransferCommand CreateCommand(
-        string recipientIban = RecipientIban,
-        decimal amount = 100m,
-        string currency = CurrencyCode)
-    {
-        return new ExecuteTransferCommand(
-            TestUserId,
-            SourceAccountId,
-            RecipientName,
-            recipientIban,
-            amount,
-            currency,
-            "Invoice");
+            _exchangeRateServiceMock.Object,
+            NullLogger<TransferService>.Instance);
     }
 
     private void SetupAccountLookup(Account account, CancellationToken cancellationToken)
@@ -322,6 +371,10 @@ public sealed class ExecuteTransferCommandTests
     {
         SetupAccountLookup(account, cancellationToken);
         _clockMock.Setup(clock => clock.UtcNow).Returns(_testNow);
+
+        _accountRepositoryMock
+            .Setup(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken))
+            .ReturnsAsync((Account?)null);
 
         _beneficiaryRepositoryMock
             .Setup(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken))
@@ -353,6 +406,7 @@ public sealed class ExecuteTransferCommandTests
     private void VerifyValidFlow(Account account, CancellationToken cancellationToken)
     {
         _accountRepositoryMock.Verify(repository => repository.GetByIdAsync(SourceAccountId, cancellationToken), Times.Once);
+        _accountRepositoryMock.Verify(repository => repository.GetByIbanAsync(RecipientIban, cancellationToken), Times.Once);
         _clockMock.Verify(clock => clock.UtcNow, Times.Once);
         _beneficiaryRepositoryMock.Verify(repository => repository.ListByUserIdAsync(TestUserId, cancellationToken), Times.Once);
         _accountRepositoryMock.Verify(repository => repository.UpdateAsync(account, cancellationToken), Times.Once);
@@ -370,12 +424,16 @@ public sealed class ExecuteTransferCommandTests
         _clockMock.VerifyNoOtherCalls();
     }
 
-    private static Account CreateAccount(int userId, decimal balance, string currencyCode = CurrencyCode)
+    private static Account CreateAccount(
+        int userId,
+        decimal balance,
+        string currencyCode = CurrencyCode,
+        string iban = "RO12BANK1234567890123456")
     {
         var currency = Currency.FromCode(currencyCode);
         var account = Account.Open(
             userId,
-            Iban.Create("RO12BANK1234567890123456").Value,
+            Iban.Create(iban).Value,
             currency,
             AccountType.Checking,
             "Main",
@@ -390,5 +448,12 @@ public sealed class ExecuteTransferCommandTests
         typeof(Account)
             .GetProperty(nameof(Account.Status))!
             .SetValue(account, status);
+    }
+
+    private static void SetAccountId(Account account, int id)
+    {
+        typeof(Account)
+            .GetProperty(nameof(Account.Id))!
+            .SetValue(account, id);
     }
 }

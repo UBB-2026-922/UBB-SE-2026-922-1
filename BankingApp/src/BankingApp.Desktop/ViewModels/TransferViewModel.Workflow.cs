@@ -42,17 +42,17 @@ public partial class TransferViewModel
     }
 
     /// <summary>Advances the wizard to the next step, validating IBAN, amount, and 2FA before allowing progression.</summary>
-    internal void ExecuteNextStep()
+    internal async Task ExecuteNextStep()
     {
         ErrorMessage = string.Empty;
 
         switch (CurrentStep)
         {
-            case RecipientDetailsStep:
-                MoveFromRecipientStep();
+            case IbanValidationStep:
+                await MoveFromIbanStepAsync();
                 break;
-            case AmountDetailsStep:
-                MoveFromAmountStep();
+            case TransferDetailsStep:
+                MoveFromDetailsStep();
                 break;
             default:
                 CurrentStep++;
@@ -79,6 +79,7 @@ public partial class TransferViewModel
                 RecipientIban = RecipientIban,
                 Amount = Amount,
                 Currency = Currency,
+                Reference = Reference,
             };
 
             ErrorOr<TransferExecutionResponse> result =
@@ -115,16 +116,20 @@ public partial class TransferViewModel
         TransactionRef = string.Empty;
         ErrorMessage = string.Empty;
         AmountText = string.Empty;
-        CurrentStep = AccountSelectionStep;
+        Reference = string.Empty;
+        CurrentStep = IbanValidationStep;
     }
 
     private void ExecuteCancel()
     {
+        // TODO: this is missing, why?
         throw new NotImplementedException();
     }
 
-    private void MoveFromRecipientStep()
+    private async Task MoveFromIbanStepAsync()
     {
+        await UpdateIbanValidationAsync(RecipientIban);
+
         if (IsIbanValid)
         {
             CurrentStep++;
@@ -135,9 +140,9 @@ public partial class TransferViewModel
         CurrentStep = TransferErrorStep;
     }
 
-    private void MoveFromAmountStep()
+    private void MoveFromDetailsStep()
     {
-        if (Amount > ZeroAmount)
+        if (SelectedAccount != null && Amount > ZeroAmount && !string.IsNullOrWhiteSpace(RecipientName))
         {
             CurrentStep = ReviewAndConfirmationStep;
             return;
@@ -149,6 +154,13 @@ public partial class TransferViewModel
 
     private async Task UpdateIbanValidationAsync(string iban)
     {
+        if (string.IsNullOrWhiteSpace(iban))
+        {
+            IsIbanValid = false;
+            BankName = string.Empty;
+            return;
+        }
+
         try
         {
             ErrorOr<TransferIbanValidationResponse> result =
@@ -210,7 +222,7 @@ public partial class TransferViewModel
 
         RecipientName = _transferDraftState.RecipientName;
         RecipientIban = _transferDraftState.RecipientIban;
-        CurrentStep = RecipientDetailsStep;
+        CurrentStep = TransferDetailsStep;
         _transferDraftState.Clear();
     }
 

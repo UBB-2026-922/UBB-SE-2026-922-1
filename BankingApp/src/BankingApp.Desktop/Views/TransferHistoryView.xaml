@@ -60,7 +60,30 @@
         <!-- Transfer list -->
         <ListView Grid.Row="3"
                   ItemsSource="{x:Bind ViewModel.Transfers, Mode=OneWay}"
+                  Visibility="{x:Bind ViewModel.ShowTransferList, Mode=OneWay}"
                   SelectionMode="None">
+            <ListView.HeaderTemplate>
+                <DataTemplate>
+                    <Grid Padding="16,12" Margin="0,3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="100" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Date" FontWeight="Bold" />
+                        <TextBlock Grid.Column="1" Text="Recipient" FontWeight="Bold" />
+                        <TextBlock Grid.Column="2" Text="Recipient IBAN" FontWeight="Bold" />
+                        <TextBlock Grid.Column="3" Text="Reference" FontWeight="Bold" />
+                        <TextBlock Grid.Column="4" Text="Amount" FontWeight="Bold" HorizontalAlignment="Right" />
+                        <TextBlock Grid.Column="5" Text="Currency" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Grid.Column="6" Text="Status" FontWeight="Bold" HorizontalAlignment="Center" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.HeaderTemplate>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -71,44 +94,31 @@
                 <DataTemplate x:DataType="vm:TransferHistoryDisplayItem">
                     <Border Padding="16,12" Margin="0,3"
                             Background="White"
-                            BorderBrush="#E8ECF0" BorderThickness="1"
-                            CornerRadius="8">
-                        <Grid ColumnSpacing="16">
+                            BorderBrush="#E8ECF0" BorderThickness="0,0,0,1">
+                        <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="150" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="100" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Left: recipient, IBAN, status, date -->
-                            <StackPanel Grid.Column="0" Spacing="3">
-                                <TextBlock Text="{x:Bind RecipientName}"
-                                           FontWeight="SemiBold" FontSize="14"
-                                           TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{x:Bind RecipientIban}"
-                                           Foreground="#666" FontSize="12"
-                                           FontFamily="Consolas" />
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{x:Bind StatusDisplay}"
-                                               Foreground="#555" FontSize="12" />
-                                    <TextBlock Text="·" Foreground="#BBB" FontSize="12" />
-                                    <TextBlock Text="{x:Bind DateDisplay}"
-                                               Foreground="#888" FontSize="12" />
-                                </StackPanel>
-                            </StackPanel>
+                            <TextBlock Grid.Column="0" Text="{x:Bind DateDisplay}" Foreground="#555" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind RecipientName}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="2" Text="{x:Bind RecipientIban}" FontFamily="Consolas" Foreground="#666" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="3" Text="{x:Bind ReferenceDisplay}" Foreground="#999" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="4" Text="{x:Bind Amount}" FontWeight="SemiBold" Foreground="#C62828" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            
+                            <Border Grid.Column="5" Background="#F0F0F0" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind Currency}" Foreground="#333" FontSize="12" />
+                            </Border>
 
-                            <!-- Right: amount and reference -->
-                            <StackPanel Grid.Column="1"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Center"
-                                        Spacing="4">
-                                <TextBlock Text="{x:Bind AmountDisplay}"
-                                           FontSize="15" FontWeight="SemiBold"
-                                           Foreground="#C62828"
-                                           HorizontalAlignment="Right" />
-                                <TextBlock Text="{x:Bind ReferenceDisplay}"
-                                           FontSize="11" Foreground="#999"
-                                           HorizontalAlignment="Right" />
-                            </StackPanel>
+                            <Border Grid.Column="6" Background="#E0E0E0" CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="{x:Bind StatusDisplay}" Foreground="#333" FontSize="12" />
+                            </Border>
                         </Grid>
                     </Border>
                 </DataTemplate>

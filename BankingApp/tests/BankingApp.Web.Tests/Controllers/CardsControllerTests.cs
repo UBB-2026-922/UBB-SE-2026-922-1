@@ -4,7 +4,7 @@ using BankingApp.Contracts.Features.Cards.Dtos;
 using BankingApp.Contracts.Features.Cards.Services;
 using BankingApp.Domain.Enums;
 using BankingApp.Web.Controllers;
-using BankingApp.Web.ViewModels.Cards;
+using BankingApp.Web.Models.Cards;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -34,7 +34,7 @@ public sealed class CardsControllerTests : IDisposable
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task Index_WhenServiceReturnsCards_ShouldReturnViewWithMappedCards()
+    public async Task Index_WhenServiceReturnsCards_ShouldReturnViewWithCards()
     {
         // Arrange
         DateTime expiryDate = new(2028, 12, 31, 0, 0, 0, DateTimeKind.Utc);
@@ -53,7 +53,10 @@ public sealed class CardsControllerTests : IDisposable
                 Status = CardStatus.Active,
                 IsContactlessEnabled = true,
                 IsOnlineEnabled = false,
-                AccountName = "Checking Account"
+                AccountName = "Checking Account",
+                AccountIban = "RO49BANK1234567890",
+                AccountBalance = 1250.75m,
+                AccountCurrency = "USD"
             }
         ];
 
@@ -66,22 +69,25 @@ public sealed class CardsControllerTests : IDisposable
 
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
-        CardListViewModel viewModel = viewResult.Model.Should().BeOfType<CardListViewModel>().Subject;
+        CardListModel viewModel = viewResult.Model.Should().BeOfType<CardListModel>().Subject;
 
         viewModel.Cards.Should().HaveCount(1);
-        CardRowViewModel row = viewModel.Cards[0];
-        row.Id.Should().Be(ExistingCardId);
-        row.CardNumber.Should().Be("**** **** **** 1234");
-        row.FullCardNumber.Should().Be("4111111111111234");
-        row.SecurityCode.Should().Be("123");
-        row.CardholderName.Should().Be("Jane Doe");
-        row.ExpiryDate.Should().Be(expiryDate);
-        row.CardType.Should().Be(CardType.Debit);
-        row.CardBrand.Should().Be("Visa");
-        row.Status.Should().Be(CardStatus.Active);
-        row.IsContactlessEnabled.Should().BeTrue();
-        row.IsOnlineEnabled.Should().BeFalse();
-        row.AccountName.Should().Be("Checking Account");
+        CardDetailsDto card = viewModel.Cards[0];
+        card.Id.Should().Be(ExistingCardId);
+        card.CardNumber.Should().Be("**** **** **** 1234");
+        card.FullCardNumber.Should().Be("4111111111111234");
+        card.SecurityCode.Should().Be("123");
+        card.CardholderName.Should().Be("Jane Doe");
+        card.ExpiryDate.Should().Be(expiryDate);
+        card.CardType.Should().Be(CardType.Debit);
+        card.CardBrand.Should().Be("Visa");
+        card.Status.Should().Be(CardStatus.Active);
+        card.IsContactlessEnabled.Should().BeTrue();
+        card.IsOnlineEnabled.Should().BeFalse();
+        card.AccountName.Should().Be("Checking Account");
+        card.AccountIban.Should().Be("RO49BANK1234567890");
+        card.AccountBalance.Should().Be(1250.75m);
+        card.AccountCurrency.Should().Be("USD");
         _cardServiceMock.VerifyAll();
     }
 
@@ -98,7 +104,7 @@ public sealed class CardsControllerTests : IDisposable
 
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
-        CardListViewModel viewModel = viewResult.Model.Should().BeOfType<CardListViewModel>().Subject;
+        CardListModel viewModel = viewResult.Model.Should().BeOfType<CardListModel>().Subject;
         viewModel.HasCards.Should().BeFalse();
         _cardServiceMock.VerifyAll();
     }
@@ -116,26 +122,10 @@ public sealed class CardsControllerTests : IDisposable
 
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
-        CardListViewModel viewModel = viewResult.Model.Should().BeOfType<CardListViewModel>().Subject;
+        CardListModel viewModel = viewResult.Model.Should().BeOfType<CardListModel>().Subject;
         viewModel.HasCards.Should().BeFalse();
         _controller.TempData["Error"].Should().Be("Could not load cards. Please try again.");
         _cardServiceMock.VerifyAll();
-    }
-
-    // -------------------------------------------------------------------------
-    // Issue (GET)
-    // -------------------------------------------------------------------------
-
-    [Fact]
-    public void Issue_WhenGet_ShouldReturnViewWithEmptyModel()
-    {
-        // Act
-        IActionResult result = _controller.Issue();
-
-        // Assert
-        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
-        viewResult.Model.Should().BeOfType<IssueCardViewModel>();
-        _cardServiceMock.VerifyNoOtherCalls();
     }
 
     // -------------------------------------------------------------------------
@@ -143,26 +133,33 @@ public sealed class CardsControllerTests : IDisposable
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task Issue_WhenInvalidModel_ShouldReturnViewWithoutCallingService()
+    public async Task Issue_WhenInvalidModel_ShouldReturnIndexViewWithIssueFormOpenWithoutCallingIssueService()
     {
         // Arrange
-        IssueCardViewModel model = new() { CardBrand = string.Empty };
-        _controller.ModelState.AddModelError(nameof(IssueCardViewModel.CardBrand), "Please select a card brand.");
+        IssueCardModel issueForm = new() { CardBrand = string.Empty };
+        _controller.ModelState.AddModelError(nameof(IssueCardModel.CardBrand), "Please select a card brand.");
+
+        _cardServiceMock
+            .Setup(service => service.GetCardsAsync(CancellationToken.None))
+            .ReturnsAsync(new List<CardDetailsDto>());
 
         // Act
-        IActionResult result = await _controller.Issue(model, CancellationToken.None);
+        IActionResult result = await _controller.Issue(issueForm, CancellationToken.None);
 
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
-        viewResult.Model.Should().Be(model);
-        _cardServiceMock.VerifyNoOtherCalls();
+        viewResult.ViewName.Should().Be(nameof(CardsController.Index));
+        CardListModel listModel = viewResult.Model.Should().BeOfType<CardListModel>().Subject;
+        listModel.ShowIssueForm.Should().BeTrue();
+        listModel.IssueForm.Should().Be(issueForm);
+        _cardServiceMock.VerifyAll();
     }
 
     [Fact]
     public async Task Issue_WhenServiceSucceeds_ShouldSetSuccessTempDataAndRedirectToIndex()
     {
         // Arrange
-        IssueCardViewModel model = new() { CardType = CardType.Debit, CardBrand = "Visa" };
+        IssueCardModel issueForm = new() { CardType = CardType.Debit, CardBrand = "Visa" };
 
         _cardServiceMock
             .Setup(service => service.IssueCardAsync(
@@ -172,7 +169,7 @@ public sealed class CardsControllerTests : IDisposable
             .ReturnsAsync(new CardDetailsDto { Id = ExistingCardId });
 
         // Act
-        IActionResult result = await _controller.Issue(model, CancellationToken.None);
+        IActionResult result = await _controller.Issue(issueForm, CancellationToken.None);
 
         // Assert
         RedirectToActionResult redirect = result.Should().BeOfType<RedirectToActionResult>().Subject;
@@ -182,21 +179,28 @@ public sealed class CardsControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Issue_WhenServiceReturnsError_ShouldAddModelErrorAndReturnView()
+    public async Task Issue_WhenServiceReturnsError_ShouldReturnIndexViewWithIssueFormOpenAndModelError()
     {
         // Arrange
-        IssueCardViewModel model = new() { CardType = CardType.Credit, CardBrand = "Mastercard" };
+        IssueCardModel issueForm = new() { CardType = CardType.Credit, CardBrand = "Mastercard" };
 
         _cardServiceMock
             .Setup(service => service.IssueCardAsync(It.IsAny<IssueCardRequest>(), CancellationToken.None))
             .ReturnsAsync(Error.Failure("cards.issue_failed", "Issue failed."));
 
+        _cardServiceMock
+            .Setup(service => service.GetCardsAsync(CancellationToken.None))
+            .ReturnsAsync(new List<CardDetailsDto>());
+
         // Act
-        IActionResult result = await _controller.Issue(model, CancellationToken.None);
+        IActionResult result = await _controller.Issue(issueForm, CancellationToken.None);
 
         // Assert
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
-        viewResult.Model.Should().Be(model);
+        viewResult.ViewName.Should().Be(nameof(CardsController.Index));
+        CardListModel listModel = viewResult.Model.Should().BeOfType<CardListModel>().Subject;
+        listModel.ShowIssueForm.Should().BeTrue();
+        listModel.IssueForm.Should().Be(issueForm);
         _controller.ModelState[string.Empty]!.Errors
             .Should().ContainSingle(error => error.ErrorMessage == "Could not issue card. Please try again.");
         _cardServiceMock.VerifyAll();
@@ -322,3 +326,4 @@ public sealed class CardsControllerTests : IDisposable
         _cardServiceMock.VerifyAll();
     }
 }
+

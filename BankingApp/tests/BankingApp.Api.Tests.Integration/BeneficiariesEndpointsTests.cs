@@ -4,8 +4,6 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using BankingApp.Api.Tests.Integration.Infrastructure;
-using BankingApp.Application.Features.Beneficiaries.Commands;
-using BankingApp.Application.Features.Beneficiaries.Queries;
 using BankingApp.Contracts.Features.Beneficiaries.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Domain.Aggregates.IdentityAggregate;
@@ -26,7 +24,7 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
         _client = factory.CreateClient();
         _cancellationToken = TestContext.Current.CancellationToken;
 
-        _factory.SenderMock.Reset();
+        _factory.BeneficiaryServiceMock.Reset();
         _factory.JwtServiceMock.Reset();
         _factory.IdentityRepositoryMock.Reset();
 
@@ -42,8 +40,8 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task GetBeneficiaries_WhenUserHasBeneficiaries_ShouldReturnOkWithList()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<GetBeneficiariesQuery>(), It.IsAny<CancellationToken>()))
+        _factory.BeneficiaryServiceMock
+            .Setup(s => s.GetAllAsync(ValidUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<BeneficiaryDto>
             {
                 new()
@@ -71,8 +69,8 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task CreateBeneficiary_WhenDataIsValid_ShouldReturnOkWithCreatedBeneficiary()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<CreateBeneficiaryCommand>(), It.IsAny<CancellationToken>()))
+        _factory.BeneficiaryServiceMock
+            .Setup(s => s.CreateAsync(ValidUserId, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new BeneficiaryDto
             {
                 Id = 2,
@@ -102,8 +100,8 @@ public class BeneficiariesEndpointsTests : IClassFixture<BankingAppWebFactory>
     [Fact]
     public async Task DeleteBeneficiary_WhenBeneficiaryDoesNotExist_ShouldReturnNotFound()
     {
-        _factory.SenderMock
-            .Setup(sender => sender.Send(It.IsAny<DeleteBeneficiaryCommand>(), It.IsAny<CancellationToken>()))
+        _factory.BeneficiaryServiceMock
+            .Setup(s => s.DeleteAsync(ValidUserId, 999, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Error.NotFound("Beneficiary.NotFound", "Beneficiary not found."));
 
         var request = new HttpRequestMessage(HttpMethod.Delete, "/" + ApiEndpoints.Beneficiaries.ByIdFull(999));

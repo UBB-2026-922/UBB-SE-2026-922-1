@@ -2,6 +2,7 @@ namespace BankingApp.Desktop.ViewModels;
 
 using System;
 using System.Collections.ObjectModel;
+using Contracts.Features.Transfers;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
 using State;
@@ -9,12 +10,11 @@ using State;
 /// <summary>Drives the multistep transfer wizard.</summary>
 public partial class TransferViewModel : ObservableObject
 {
-    private const int AccountSelectionStep = 1;
-    private const int RecipientDetailsStep = 2;
-    private const int AmountDetailsStep = 3;
-    private const int ReviewAndConfirmationStep = 4;
-    private const int TransferCompletedStep = 5;
-    private const int TransferErrorStep = 6;
+    private const int IbanValidationStep = 1;
+    private const int TransferDetailsStep = 2;
+    private const int ReviewAndConfirmationStep = 3;
+    private const int TransferCompletedStep = 4;
+    private const int TransferErrorStep = 5;
     private const decimal ZeroAmount = 0m;
     private const decimal IdentityExchangeRate = 1m;
     private const string DefaultTransferCurrency = "EUR";
@@ -29,17 +29,17 @@ public partial class TransferViewModel : ObservableObject
         _transferService = transferService ?? throw new ArgumentNullException(nameof(transferService));
         _transferDraftState = transferDraftState ?? throw new ArgumentNullException(nameof(transferDraftState));
         Accounts = new ObservableCollection<TransferAccountSelectionResponse>();
-        CurrentStep = AccountSelectionStep;
+        CurrentStep = IbanValidationStep;
         Currency = DefaultTransferCurrency;
 
-        NextStepCommand = new RelayCommand(ExecuteNextStep);
+        NextStepCommand = new AsyncRelayCommand(ExecuteNextStep);
         TransferCommand = new AsyncRelayCommand(ExecuteTransferAsync);
         CancelCommand = new RelayCommand(ExecuteCancel);
         SendAgainCommand = new RelayCommand(ExecuteSendAgain);
     }
 
     /// <summary>Gets the command that advances the wizard to the next step.</summary>
-    public IRelayCommand NextStepCommand { get; }
+    public IAsyncRelayCommand NextStepCommand { get; }
 
     /// <summary>Gets the command that submits the transfer for processing.</summary>
     public IAsyncRelayCommand TransferCommand { get; }
@@ -53,6 +53,13 @@ public partial class TransferViewModel : ObservableObject
     /// <summary>Gets the display name of the selected source account.</summary>
     public string SelectedAccountName => SelectedAccount?.AccountName ?? string.Empty;
 
+    /// <summary>Gets the IBAN of the selected source account.</summary>
+    public string SelectedAccountIban => SelectedAccount?.Iban ?? string.Empty;
+
+    /// <summary>Gets the selected source account balance formatted for review.</summary>
+    public string SelectedAccountBalanceText =>
+        SelectedAccount is null ? string.Empty : $"{SelectedAccount.Balance:0.00} {SelectedAccount.Currency}";
+
     /// <summary>Gets or sets the current wizard step number.</summary>
     [ObservableProperty]
     public partial int CurrentStep { get; set; } = default!;
@@ -64,6 +71,8 @@ public partial class TransferViewModel : ObservableObject
     /// <summary>Gets or sets the account selected as the source for the transfer.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedAccountName))]
+    [NotifyPropertyChangedFor(nameof(SelectedAccountIban))]
+    [NotifyPropertyChangedFor(nameof(SelectedAccountBalanceText))]
     public partial TransferAccountSelectionResponse? SelectedAccount { get; set; } = default!;
 
     partial void OnSelectedAccountChanged(TransferAccountSelectionResponse? value)
@@ -94,6 +103,10 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the parsed transfer amount.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReviewAmountText))]
+    [NotifyPropertyChangedFor(nameof(TransferFeeText))]
+    [NotifyPropertyChangedFor(nameof(TotalDebit))]
+    [NotifyPropertyChangedFor(nameof(TotalDebitText))]
     public partial decimal Amount { get; set; } = 0;
 
     partial void OnAmountChanged(decimal value)
@@ -103,6 +116,9 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the target currency for the transfer.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReviewAmountText))]
+    [NotifyPropertyChangedFor(nameof(TransferFeeText))]
+    [NotifyPropertyChangedFor(nameof(TotalDebitText))]
     public partial string Currency { get; set; }
 
     partial void OnCurrencyChanged(string value)
@@ -112,7 +128,12 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the human-readable FX preview text shown on the amount step.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasFxPreview))]
     public partial string FxPreviewText { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReferenceDisplay))]
+    public partial string Reference { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the transaction reference returned after a successful transfer.</summary>
     [ObservableProperty]
@@ -134,4 +155,22 @@ public partial class TransferViewModel : ObservableObject
     {
         Amount = decimal.TryParse(value, out decimal parsed) ? parsed : 0;
     }
+
+    /// <summary>Gets the formatted transfer amount shown on the review step.</summary>
+    public string ReviewAmountText => $"{Amount:0.00} {Currency}";
+
+    /// <summary>Gets the formatted transfer fee shown on the review step.</summary>
+    public string TransferFeeText => $"{TransferPricing.Fee:0.00} {Currency}";
+
+    /// <summary>Gets the total amount debited from the source account.</summary>
+    public decimal TotalDebit => Amount + TransferPricing.Fee;
+
+    /// <summary>Gets the formatted total debit shown on the review step.</summary>
+    public string TotalDebitText => $"{TotalDebit:0.00} {Currency}";
+
+    /// <summary>Gets a value indicating whether a foreign-exchange preview should be shown.</summary>
+    public bool HasFxPreview => !string.IsNullOrWhiteSpace(FxPreviewText);
+
+    /// <summary>Gets the optional reference text shown on the review step.</summary>
+    public string ReferenceDisplay => string.IsNullOrWhiteSpace(Reference) ? "No reference provided" : Reference.Trim();
 }
