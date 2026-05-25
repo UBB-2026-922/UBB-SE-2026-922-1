@@ -1,10 +1,10 @@
-namespace BankingApp.Web.ViewModels.Cards;
+namespace BankingApp.Web.Models.Cards;
 
 using System.ComponentModel.DataAnnotations;
 using BankingApp.Domain.Enums;
 
-/// <summary>View model for the issue-card form.</summary>
-public class IssueCardViewModel
+/// <summary>Form model for issuing a new card.</summary>
+public class IssueCardModel
 {
     /// <summary>Gets or sets the card type (Debit or Credit).</summary>
     [Required(ErrorMessage = "Please select a card type.")]
@@ -13,7 +13,4 @@ public class IssueCardViewModel
     /// <summary>Gets or sets the card brand (Visa or Mastercard).</summary>
     [Required(ErrorMessage = "Please select a card brand.")]
     public string CardBrand { get; set; } = string.Empty;
-
-    /// <summary>Gets the supported card brands.</summary>
-    public static IReadOnlyList<string> SupportedBrands { get; } = ["Visa", "Mastercard"];
 }

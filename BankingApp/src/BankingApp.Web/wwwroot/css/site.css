@@ -391,3 +391,40 @@ body {
         margin-top: .5rem;
     }
 }
+
+/* ── Cards feature ───────────────────────────────────────────── */
+.cards-strip {
+    background: linear-gradient(135deg, #1a56db 0%, #0ea5e9 100%);
+    border-radius: var(--ba-radius-lg) var(--ba-radius-lg) 0 0;
+    min-height: 160px;
+}
+
+.cards-card {
+    border-radius: var(--ba-radius-lg) !important;
+    overflow: hidden;
+}
+
+.cards-issue-panel {
+    border-radius: var(--ba-radius-lg) !important;
+    overflow: hidden;
+}
+
+.cards-issue-panel-header {
+    background-color: #0f172a;
+    color: #fff;
+}
+
+.cards-expiry-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+}
+
+.letter-spacing-wide {
+    letter-spacing: 0.15em;
+}
+
+.cards-card--cancelled {
+    opacity: 0.55;
+    filter: grayscale(60%);
+}

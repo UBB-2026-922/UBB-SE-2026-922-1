@@ -26,4 +26,8 @@
         <ProjectReference Include="..\..\src\BankingApp.Web\BankingApp.Web.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ViewModels\Cards\" />
+    </ItemGroup>
+
 </Project>
