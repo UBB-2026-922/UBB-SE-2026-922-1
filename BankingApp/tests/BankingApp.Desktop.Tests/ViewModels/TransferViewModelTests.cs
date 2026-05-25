@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Desktop.ViewModels;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
+using State;
 using ErrorOr;
 using FluentAssertions;
 using Moq;
@@ -31,7 +32,7 @@ public class TransferViewModelTests
     public TransferViewModelTests()
     {
         _transferClientService = new Mock<ITransferService>(MockBehavior.Loose);
-        _viewModel = new TransferViewModel(_transferClientService.Object);
+        _viewModel = new TransferViewModel(_transferClientService.Object, Mock.Of<ITransferDraftState>());
     }
 
     /// <summary>

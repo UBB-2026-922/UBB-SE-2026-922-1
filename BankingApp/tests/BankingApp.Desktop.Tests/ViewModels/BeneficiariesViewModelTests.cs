@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BankingApp.Desktop.ViewModels;
 using Contracts.Features.Beneficiaries.Dtos;
 using Contracts.Features.Beneficiaries.Services;
+using Desktop.State;
 using ErrorOr;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,7 +19,10 @@ public class BeneficiariesViewModelTests
     public BeneficiariesViewModelTests()
     {
         _beneficiaryClientService = new Mock<IBeneficiaryService>(MockBehavior.Strict);
-        _viewModel = new BeneficiariesViewModel(_beneficiaryClientService.Object, Mock.Of<IAppNavigationService>(),
+        _viewModel = new BeneficiariesViewModel(
+            _beneficiaryClientService.Object,
+            Mock.Of<IAppNavigationService>(),
+            Mock.Of<ITransferDraftState>(),
             NullLogger<BeneficiariesViewModel>.Instance);
     }
 

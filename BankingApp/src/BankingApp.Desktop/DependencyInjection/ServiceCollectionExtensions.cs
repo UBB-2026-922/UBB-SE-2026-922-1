@@ -58,6 +58,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddDesktopState(this IServiceCollection services)
     {
         services.AddSingleton<ILoginNotificationState, LoginNotificationState>();
+        services.AddSingleton<ITransferDraftState, TransferDraftState>();
 
         return services;
     }
