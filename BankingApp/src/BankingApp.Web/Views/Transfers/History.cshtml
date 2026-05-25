@@ -37,6 +37,7 @@ else
                             <th>Date</th>
                             <th>Recipient</th>
                             <th>Recipient IBAN</th>
+                            <th>Reference</th>
                             <th class="text-end">Amount</th>
                             <th>Currency</th>
                             <th class="text-center">Status</th>
@@ -54,6 +55,9 @@ else
                                 </td>
                                 <td>
                                     <span class="font-monospace small">@row.RecipientIban</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted-sm">@row.Reference</span>
                                 </td>
                                 <td class="text-end fw-600 amount-debit">@row.Amount.ToString("N2")</td>
                                 <td>

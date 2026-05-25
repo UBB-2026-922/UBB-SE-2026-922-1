@@ -23,6 +23,9 @@ public class TransferHistoryRowModel
     /// <summary>Gets or sets the transfer status string.</summary>
     public string Status { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets the transfer reference.</summary>
+    public string Reference { get; set; } = string.Empty;
+
     /// <summary>Gets or sets the creation date.</summary>
     public DateTime CreatedAt { get; set; }
 

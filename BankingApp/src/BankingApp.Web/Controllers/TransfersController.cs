@@ -157,6 +157,7 @@ public class TransfersController(ITransferService transferService) : Controller
                 Amount = t.Amount,
                 Currency = t.Currency,
                 Status = t.Status.ToString(),
+                Reference = string.IsNullOrWhiteSpace(t.TransactionRef) ? "—" : t.TransactionRef,
                 CreatedAt = t.CreatedAt,
             })
         };
