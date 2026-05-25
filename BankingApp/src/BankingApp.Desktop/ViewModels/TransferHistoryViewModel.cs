@@ -42,6 +42,7 @@ public partial class TransferHistoryViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
     [NotifyPropertyChangedFor(nameof(HasNoTransfers))]
+    [NotifyPropertyChangedFor(nameof(ShowTransferList))]
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>Gets a value indicating whether an error message is currently active.</summary>
@@ -50,10 +51,14 @@ public partial class TransferHistoryViewModel : ObservableObject
     /// <summary>Gets or sets a value indicating whether data is currently being fetched.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasNoTransfers))]
+    [NotifyPropertyChangedFor(nameof(ShowTransferList))]
     public partial bool IsLoading { get; set; } = false;
 
     /// <summary>Gets a value indicating whether the list is empty and no error occurred.</summary>
     public bool HasNoTransfers => !IsLoading && !HasError && Transfers.Count == 0;
+
+    /// <summary>Gets a value indicating whether the transfer list should be visible.</summary>
+    public bool ShowTransferList => !IsLoading && !HasError && Transfers.Count > 0;
 
     /// <summary>Fetches the authenticated user's transfer history from the server.</summary>
     public async Task LoadHistoryAsync()
@@ -78,6 +83,7 @@ public partial class TransferHistoryViewModel : ObservableObject
             }
 
             OnPropertyChanged(nameof(HasNoTransfers));
+            OnPropertyChanged(nameof(ShowTransferList));
         }
         catch (Exception loadException)
         {
@@ -96,9 +102,9 @@ public partial class TransferHistoryViewModel : ObservableObject
             $"-{transfer.Amount.ToString("F2", CultureInfo.InvariantCulture)}";
         string dateDisplay =
             transfer.CreatedAt.ToLocalTime().ToString(DateTimeFormat, CultureInfo.CurrentCulture);
-        string referenceDisplay = string.IsNullOrWhiteSpace(transfer.TransactionRef)
+        string referenceDisplay = string.IsNullOrWhiteSpace(transfer.Reference)
             ? FallbackReference
-            : transfer.TransactionRef;
+            : transfer.Reference;
 
         return new TransferHistoryDisplayItem
         {

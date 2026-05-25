@@ -60,6 +60,7 @@
         <!-- Transfer list -->
         <ListView Grid.Row="3"
                   ItemsSource="{x:Bind ViewModel.Transfers, Mode=OneWay}"
+                  Visibility="{x:Bind ViewModel.ShowTransferList, Mode=OneWay}"
                   SelectionMode="None">
             <ListView.HeaderTemplate>
                 <DataTemplate>
