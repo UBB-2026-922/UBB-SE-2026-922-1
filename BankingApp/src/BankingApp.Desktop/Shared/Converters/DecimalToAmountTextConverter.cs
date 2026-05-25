@@ -5,7 +5,7 @@ using System.Globalization;
 using Microsoft.UI.Xaml.Data;
 
 /// <summary>Formats decimal amounts with two fraction digits.</summary>
-public sealed class DecimalToAmountTextConverter : IValueConverter
+public sealed partial class DecimalToAmountTextConverter : IValueConverter
 {
     /// <inheritdoc />
     public object Convert(object value, Type targetType, object parameter, string language)
@@ -18,7 +18,7 @@ public sealed class DecimalToAmountTextConverter : IValueConverter
     /// <inheritdoc />
     public object ConvertBack(object value, Type targetType, object parameter, string language)
     {
-        return decimal.TryParse(value?.ToString(), out decimal amount)
+        return decimal.TryParse(value.ToString(), out decimal amount)
             ? amount
             : 0m;
     }

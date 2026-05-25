@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Desktop.ViewModels;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
-using Desktop.State;
+using State;
 using ErrorOr;
 using FluentAssertions;
 using Moq;

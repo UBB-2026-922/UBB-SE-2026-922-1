@@ -163,7 +163,19 @@ else
                         <!-- Account IBAN + status row -->
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <div>
-                                <div class="small text-muted">@(string.IsNullOrEmpty(card.AccountIban) ? "—" : card.AccountIban)</div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="small text-muted">@(string.IsNullOrEmpty(card.AccountIban) ? "—" : card.AccountIban)</span>
+                                    @if (!string.IsNullOrEmpty(card.AccountIban))
+                                    {
+                                        <button type="button"
+                                                class="btn btn-link p-0 copy-iban-btn text-muted"
+                                                data-iban="@card.AccountIban"
+                                                title="Copy IBAN"
+                                                aria-label="Copy IBAN to clipboard">
+                                            <i class="bi bi-clipboard" style="font-size: 0.75rem;"></i>
+                                        </button>
+                                    }
+                                </div>
                                 <div class="small text-muted">@card.CardType</div>
                             </div>
                             <span class="badge @GetStatusBadgeClass(card.Status)">@card.Status</span>
@@ -269,6 +281,18 @@ else
             if (toggleHeaderBtn) { toggleHeaderBtn.addEventListener('click', showIssueForm); }
             if (hideBtn) { hideBtn.addEventListener('click', hideIssueForm); }
             if (toggleEmptyBtn) { toggleEmptyBtn.addEventListener('click', showIssueForm); }
+
+            // Copy IBAN buttons
+            document.querySelectorAll('.copy-iban-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var iban = btn.getAttribute('data-iban');
+                    navigator.clipboard.writeText(iban).then(function () {
+                        var icon = btn.querySelector('i');
+                        icon.className = 'bi bi-clipboard-check';
+                        setTimeout(function () { icon.className = 'bi bi-clipboard'; }, 2000);
+                    });
+                });
+            });
 
             // Sensitive data reveal toggles
             document.querySelectorAll('.card-reveal-btn').forEach(function (btn) {

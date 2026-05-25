@@ -236,8 +236,21 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" Spacing="2">
-                                                    <TextBlock Text="{x:Bind AccountIban}"
-                                                               FontSize="13" Foreground="#667085" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                        <TextBlock Text="{x:Bind AccountIban}"
+                                                                   FontSize="13" Foreground="#667085"
+                                                                   VerticalAlignment="Center" />
+                                                        <Button Tag="{x:Bind AccountIban}"
+                                                                Click="CopyIban_Click"
+                                                                Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Padding="4"
+                                                                VerticalAlignment="Center"
+                                                                ToolTipService.ToolTip="Copy IBAN">
+                                                            <FontIcon Glyph="&#xE8C8;" FontFamily="Segoe MDL2 Assets"
+                                                                      FontSize="12" Foreground="#94A3B8" />
+                                                        </Button>
+                                                    </StackPanel>
                                                     <TextBlock Text="{x:Bind CardType}"
                                                                FontSize="12" Foreground="#94A3B8" />
                                                 </StackPanel>

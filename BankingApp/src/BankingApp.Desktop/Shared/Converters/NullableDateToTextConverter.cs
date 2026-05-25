@@ -5,7 +5,7 @@ using System.Globalization;
 using Microsoft.UI.Xaml.Data;
 
 /// <summary>Formats nullable dates for beneficiary and transfer displays.</summary>
-public sealed class NullableDateToTextConverter : IValueConverter
+public sealed partial class NullableDateToTextConverter : IValueConverter
 {
     /// <inheritdoc />
     public object Convert(object value, Type targetType, object parameter, string language)
