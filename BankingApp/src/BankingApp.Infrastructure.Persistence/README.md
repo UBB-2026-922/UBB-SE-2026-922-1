@@ -1,6 +1,6 @@
-# BankingApp.Infrastructure
+# BankingApp.Infrastructure.Persistence
 
-Implements persistence, security primitives, and notifications for Application contracts.
+Implements persistence and security primitives for Application contracts.
 
 Business rules live in Domain. 
 
@@ -25,7 +25,6 @@ Depends on `BankingApp.Application` and `BankingApp.Domain`.
 BankingApp.Infrastructure.Persistence/
 ├── DependencyInjection/
 ├── Common/
-│   ├── Notifications/
 │   ├── Security/
 │   └── Logging/
 └── Persistence/
@@ -60,7 +59,6 @@ EF Core code-first migrations. Run `dotnet ef migrations add` from this project 
 |-----------------------|------------------------|------------------------------------------------------------|
 | `HashService`         | `IHashService`         | BCrypt verify/hash                                         |
 | `JsonWebTokenService` | `IJsonWebTokenService` | Issues and validates JWTs; reads config from `JwtSettings` |
-| `EmailService`        | `IEmailService`        | SMTP dispatch; templates in `EmailTemplates`               |
 
 ## Registration
 
@@ -68,6 +66,6 @@ EF Core code-first migrations. Run `dotnet ef migrations add` from this project 
 services.AddPersistenceInfrastructure(configuration);
 ```
 
-Registers `AppDbContext`, `UnitOfWork`, all repositories, authentication/authorization, security services, and email services.
+Registers `AppDbContext`, `UnitOfWork`, all repositories, authentication/authorization, and security services.
 
 Cross-cutting infrastructure such as `ISystemClock`, `ILockedRateCache`, and `IExchangeRateService` is registered by `BankingApp.Infrastructure.Core`.

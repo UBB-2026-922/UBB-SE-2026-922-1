@@ -1,9 +1,9 @@
 namespace BankingApp.Application.Tests.Features.Cards.Commands;
 
-using BankingApp.Application.Features.Cards.Commands;
+using BankingApp.Application.Features.Cards.Services;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NodaMoney;
 using Shared.Persistence;
 
@@ -18,14 +18,20 @@ public sealed class FreezeCardCommandTests
 
     private readonly Mock<IAccountRepository> _accountRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
-    private readonly FreezeCardCommandHandler _handler;
+    private readonly CardService _service;
 
     public FreezeCardCommandTests()
     {
         _accountRepositoryMock = MockFactory.CreateAccountRepositoryMock();
         _unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
-        var loggerMock = new Mock<ILogger<FreezeCardCommandHandler>>();
-        _handler = new FreezeCardCommandHandler(_accountRepositoryMock.Object, _unitOfWorkMock.Object, loggerMock.Object);
+        Mock<Shared.Clock.ISystemClock> clockMock = MockFactory.CreateSystemClockMock();
+        Mock<IUserRepository> userRepositoryMock = MockFactory.CreateUserRepositoryMock();
+        _service = new CardService(
+            _accountRepositoryMock.Object,
+            userRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            clockMock.Object,
+            NullLogger<CardService>.Instance);
     }
 
     [Fact]
@@ -35,9 +41,7 @@ public sealed class FreezeCardCommandTests
             .Setup(r => r.ListByUserIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<Account>());
 
-        var command = new FreezeCardCommand(UserId: 1, CardId: 99);
-
-        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _service.FreezeAsync(1, 99, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(CardErrors.NotFound);
@@ -54,9 +58,7 @@ public sealed class FreezeCardCommandTests
             .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync([account]);
 
-        var command = new FreezeCardCommand(UserId: 1, CardId: card.Id);
-
-        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _service.FreezeAsync(1, card.Id, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(CardErrors.AlreadyFrozen);
@@ -72,9 +74,7 @@ public sealed class FreezeCardCommandTests
             .Setup(r => r.ListByUserIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync([account]);
 
-        var command = new FreezeCardCommand(UserId: 1, CardId: card.Id);
-
-        ErrorOr<Success> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<Success> result = await _service.FreezeAsync(1, card.Id, TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeFalse();
         card.Status.Should().Be(CardStatus.Frozen);

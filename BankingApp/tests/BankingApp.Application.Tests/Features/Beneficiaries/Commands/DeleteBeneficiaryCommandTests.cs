@@ -1,11 +1,12 @@
 namespace BankingApp.Application.Tests.Features.Beneficiaries.Commands;
 
-using BankingApp.Application.Features.Beneficiaries.Commands;
+using BankingApp.Application.Features.Beneficiaries.Services;
 using Domain.Aggregates.BeneficiaryAggregate;
 using BankingApp.Domain.Common.Errors;
 using Domain.Repositories;
 using Domain.ValueObjects;
 using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Persistence;
 
 public sealed class DeleteBeneficiaryCommandTests
@@ -30,11 +31,10 @@ public sealed class DeleteBeneficiaryCommandTests
             .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
             .ReturnsAsync((Beneficiary?)null);
 
-        DeleteBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.DeleteAsync(TestUserId, TestBeneficiaryId, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -56,11 +56,10 @@ public sealed class DeleteBeneficiaryCommandTests
             .Setup(repository => repository.GetByIdAsync(TestBeneficiaryId, cancellationToken))
             .ReturnsAsync(otherUserBeneficiary);
 
-        DeleteBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.DeleteAsync(TestUserId, TestBeneficiaryId, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -90,11 +89,10 @@ public sealed class DeleteBeneficiaryCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        DeleteBeneficiaryCommandHandler handler = CreateHandler();
-        var command = new DeleteBeneficiaryCommand(TestUserId, TestBeneficiaryId);
+        BeneficiaryService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.DeleteAsync(TestUserId, TestBeneficiaryId, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -107,9 +105,13 @@ public sealed class DeleteBeneficiaryCommandTests
         _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
-    private DeleteBeneficiaryCommandHandler CreateHandler()
+    private BeneficiaryService CreateService()
     {
-        return new DeleteBeneficiaryCommandHandler(_beneficiaryRepositoryMock.Object, _unitOfWorkMock.Object);
+        return new BeneficiaryService(
+            _beneficiaryRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            new Mock<Shared.Clock.ISystemClock>().Object,
+            NullLogger<BeneficiaryService>.Instance);
     }
 
     private static Beneficiary CreateBeneficiary(int userId)

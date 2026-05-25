@@ -7,13 +7,13 @@ ASP.NET Core API for BankingApp.
 Generate local development env files:
 
 ```bash
-python scripts/secrets/setup_dev.py
+python scripts/setup.py generate dev --dev-login-email dev@example.com --dev-login-password MyPass!1 --docker-api
 ```
 
 If the env files already exist and you want to regenerate them:
 
 ```bash
-python scripts/secrets/setup_dev.py --force
+python scripts/setup.py generate dev --dev-login-email dev@example.com --dev-login-password MyPass!1 --docker-api --force
 ```
 
 Start the local stack from the `BankingApp` directory:
@@ -53,11 +53,6 @@ Important environment variables:
 | `ConnectionStrings__BankingAppDb` | SQL Server connection string                                   |
 | `Database__ApplyMigrations`       | Set to `false` to skip automatic EF Core migrations at startup |
 | `Jwt__Secret`                     | JWT signing secret                                             |
-| `Email__SmtpHost`                 | SMTP host                                                      |
-| `Email__SmtpPort`                 | SMTP port                                                      |
-| `Email__SmtpUser`                 | SMTP username                                                  |
-| `Email__SmtpPass`                 | SMTP password                                                  |
-| `Email__FromAddress`              | sender address                                                 |
 
 ## Running Without Docker
 
@@ -72,7 +67,7 @@ If you do that, you still need a reachable SQL Server instance and the required 
 One option is to write .NET User Secrets with:
 
 ```bash
-python scripts/secrets/setup_dev.py --user-secrets
+python scripts/setup.py generate dev --dev-login-email dev@example.com --dev-login-password MyPass!1 --local
 ```
 
 Apply schema changes with EF Core migrations.
@@ -82,7 +77,7 @@ Apply schema changes with EF Core migrations.
 Generate a production env handoff file with:
 
 ```bash
-python scripts/secrets/generate_prod_env.py --connection-string "Server=...;Database=BankingAppDb;User Id=...;Password=...;Encrypt=True;TrustServerCertificate=False;"
+python scripts/setup.py generate prod --connection-string "Server=...;Database=BankingAppDb;User Id=...;Password=...;Encrypt=True;TrustServerCertificate=False;"
 ```
 
 By default this writes:

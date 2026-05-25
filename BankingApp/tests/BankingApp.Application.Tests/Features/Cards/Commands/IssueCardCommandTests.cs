@@ -1,13 +1,13 @@
 namespace BankingApp.Application.Tests.Features.Cards.Commands;
 
-using BankingApp.Application.Features.Cards.Commands;
+using BankingApp.Application.Features.Cards.Services;
 using Contracts.Features.Cards.Dtos;
 using Domain.Aggregates.UserAggregate;
 using Domain.Common.Errors;
 using Domain.Enums;
 using Domain.ValueObjects;
 using ErrorOr;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Clock;
 using Shared.Persistence;
 
@@ -19,8 +19,7 @@ public sealed class IssueCardCommandTests
     private readonly Mock<IUserRepository> _userRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly Mock<ISystemClock> _clockMock;
-    private readonly Mock<ILogger<IssueCardCommandHandler>> _loggerMock;
-    private readonly IssueCardCommandHandler _handler;
+    private readonly CardService _service;
 
     public IssueCardCommandTests()
     {
@@ -28,13 +27,12 @@ public sealed class IssueCardCommandTests
         _userRepositoryMock = MockFactory.CreateUserRepositoryMock();
         _unitOfWorkMock = MockFactory.CreateUnitOfWorkMock();
         _clockMock = MockFactory.CreateSystemClockMock();
-        _loggerMock = new Mock<ILogger<IssueCardCommandHandler>>();
-        _handler = new IssueCardCommandHandler(
+        _service = new CardService(
             _accountRepositoryMock.Object,
             _userRepositoryMock.Object,
             _unitOfWorkMock.Object,
             _clockMock.Object,
-            _loggerMock.Object);
+            NullLogger<CardService>.Instance);
     }
 
     [Fact]
@@ -44,9 +42,7 @@ public sealed class IssueCardCommandTests
             .Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((User?)null);
 
-        var command = new IssueCardCommand(UserId: 1, CardType: CardType.Debit, CardBrand: "Visa");
-
-        ErrorOr<CardDetailsDto> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<CardDetailsDto> result = await _service.IssueAsync(1, CardType.Debit, "Visa", TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(UserErrors.NotFound);
@@ -62,9 +58,7 @@ public sealed class IssueCardCommandTests
             .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
-        IssueCardCommand command = new(UserId: 1, CardType: CardType.Debit, CardBrand: "Visa");
-
-        ErrorOr<CardDetailsDto> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<CardDetailsDto> result = await _service.IssueAsync(1, CardType.Debit, "Visa", TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeFalse();
         result.Value.Should().BeOfType<CardDetailsDto>();
@@ -91,13 +85,10 @@ public sealed class IssueCardCommandTests
             .Returns(Task.CompletedTask)
             .Verifiable();
 
-        IssueCardCommand command = new(UserId: 1, CardType: CardType.Credit, CardBrand: "Mastercard");
-
-        ErrorOr<CardDetailsDto> result = await _handler.Handle(command, CancellationToken.None);
+        ErrorOr<CardDetailsDto> result = await _service.IssueAsync(1, CardType.Credit, "Mastercard", TestContext.Current.CancellationToken);
 
         result.IsError.Should().BeFalse();
         result.Value.CardType.Should().Be(CardType.Credit);
         _accountRepositoryMock.Verify(r => r.AddAsync(It.Is<Account>(a => a.AccountType == AccountType.Credit), It.IsAny<CancellationToken>()), Times.Once);
     }
 }
-

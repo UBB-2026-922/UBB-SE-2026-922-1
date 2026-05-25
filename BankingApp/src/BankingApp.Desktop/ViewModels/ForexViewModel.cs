@@ -30,10 +30,7 @@ public partial class ForexViewModel : ObservableObject
     private decimal _amount;
 
     /// <summary>Initializes a new instance of the <see cref="ForexViewModel"/> class.</summary>
-    public ForexViewModel(
-        IAuthenticationSession authenticationSession,
-        IForexService forexService,
-        ILogger<ForexViewModel> logger)
+    public ForexViewModel(IAuthenticationSession authenticationSession, IForexService forexService, ILogger<ForexViewModel> logger)
     {
         _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
         _forexService = forexService ?? throw new ArgumentNullException(nameof(forexService));

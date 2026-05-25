@@ -1,10 +1,17 @@
 namespace BankingApp.Application.DependencyInjection;
 
 using System.Reflection;
+using Features.AccountOverview.Services;
+using Features.Authentication.Services;
+using Features.Beneficiaries.Services;
+using Features.BillPayments.Services;
+using Features.Billers.Services;
+using Features.Cards.Services;
+using Features.Forex.Services;
+using Features.Transfers.Services;
+using Features.UserProfile.Services;
 using FluentValidation;
-using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using Shared.Pipelines;
 
 /// <summary>
 ///     Provides extension methods for registering application-layer services with the dependency injection container.
@@ -12,15 +19,21 @@ using Shared.Pipelines;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    ///     Registers MediatR handlers, pipeline behaviors, and validators.
+    ///     Registers application service implementations and validators.
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
     /// <returns>The same <see cref="IServiceCollection" /> instance for chaining.</returns>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAccountOverviewService, AccountOverviewService>();
+        services.AddScoped<IBeneficiaryService, BeneficiaryService>();
+        services.AddScoped<ICardService, CardService>();
+        services.AddScoped<ITransferService, TransferService>();
+        services.AddScoped<IBillPaymentService, BillPaymentService>();
+        services.AddScoped<IBillerService, BillerService>();
+        services.AddScoped<IForexService, ForexService>();
+        services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         return services;
     }

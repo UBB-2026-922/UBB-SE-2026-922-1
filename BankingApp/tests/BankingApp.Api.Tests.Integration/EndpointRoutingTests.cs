@@ -21,7 +21,6 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
         _factory = factory;
         _client = factory.CreateClient();
 
-        _factory.SenderMock.Reset();
         _factory.JwtServiceMock.Reset();
         _factory.IdentityRepositoryMock.Reset();
 
@@ -37,10 +36,7 @@ public class EndpointRoutingTests : IClassFixture<BankingAppWebFactory>
     [Theory]
     [InlineData("POST", "/" + ApiEndpoints.Auth.LoginFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.RegisterFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.ForgotPasswordFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.ResetPasswordFull)]
     [InlineData("POST", "/" + ApiEndpoints.Auth.LogoutFull)]
-    [InlineData("POST", "/" + ApiEndpoints.Auth.VerifyResetTokenFull)]
     public async Task SendAsync_WhenAuthEndpointIsPublicAndTokenIsMissing_ShouldNotReturnUnauthorized(
         string method,
         string path)

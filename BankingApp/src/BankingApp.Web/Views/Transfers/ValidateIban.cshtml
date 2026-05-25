@@ -1,4 +1,4 @@
-@model BankingApp.Web.ViewModels.Transfers.TransferIbanValidatedViewModel
+@model BankingApp.Web.Models.Transfers.TransferIbanValidatedModel
 @{
     ViewData["Title"] = "New Transfer — Account & Amount";
 }
@@ -79,7 +79,7 @@
                         </label>
                         <select asp-for="Currency" class="form-select">
                             <option value="">— Select currency —</option>
-                            @foreach (var currency in BankingApp.Web.ViewModels.Transfers.TransferIbanValidatedViewModel.SupportedCurrencies)
+                            @foreach (var currency in BankingApp.Web.Models.Transfers.TransferIbanValidatedModel.SupportedCurrencies)
                             {
                                 <option value="@currency">@currency</option>
                             }

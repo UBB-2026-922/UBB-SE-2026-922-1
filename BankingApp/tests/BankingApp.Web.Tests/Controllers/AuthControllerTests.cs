@@ -8,7 +8,6 @@ using BankingApp.Contracts.Features.UserRegistration.Dtos;
 using BankingApp.Contracts.Http;
 using BankingApp.Web.Controllers;
 using BankingApp.Web.Models;
-using BankingApp.Web.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +35,10 @@ public sealed class AuthControllerTests : IDisposable
         };
     }
 
-    public void Dispose() => _controller.Dispose();
+    public void Dispose()
+    {
+        _controller.Dispose();
+    }
 
     [Fact]
     public void Login_WhenAnonymousGet_ShouldReturnViewWithReturnUrl()
@@ -44,7 +46,7 @@ public sealed class AuthControllerTests : IDisposable
         IActionResult result = _controller.Login("/Transfers");
 
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
-        LoginViewModel model = viewResult.Model.Should().BeOfType<LoginViewModel>().Subject;
+        LoginModel model = viewResult.Model.Should().BeOfType<LoginModel>().Subject;
         model.ReturnUrl.Should().Be("/Transfers");
         _authenticationServiceMock.VerifyNoOtherCalls();
         _aspNetAuthenticationMock.VerifyNoOtherCalls();
@@ -67,8 +69,8 @@ public sealed class AuthControllerTests : IDisposable
     [Fact]
     public async Task Login_WhenInvalidPost_ShouldReturnViewWithoutCallingApi()
     {
-        _controller.ModelState.AddModelError(nameof(LoginViewModel.Email), "Email is required.");
-        LoginViewModel model = new() { Email = string.Empty, Password = string.Empty };
+        _controller.ModelState.AddModelError(nameof(LoginModel.Email), "Email is required.");
+        LoginModel model = new() { Email = string.Empty, Password = string.Empty };
 
         IActionResult result = await _controller.Login(model, CancellationToken.None);
 
@@ -79,22 +81,64 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_WhenApiErrorPost_ShouldAddModelErrorAndReturnView()
+    public async Task Login_WhenApiReturnsUnauthorized_ShouldShowInvalidCredentialsMessage()
     {
-        const string apiMessage = "Invalid email or password.";
-        LoginViewModel model = new() { Email = "user@example.com", Password = "bad-password" };
+        LoginModel model = new() { Email = "user@example.com", Password = "bad-password" };
 
         _authenticationServiceMock
             .Setup(service => service.LoginAsync(
                 It.Is<LoginRequest>(request => request.Email == model.Email && request.Password == model.Password),
                 CancellationToken.None))
-            .ReturnsAsync(Error.Validation("auth.invalid", apiMessage));
+            .ReturnsAsync(Error.Unauthorized("auth.invalid", "Invalid email or password."));
 
         IActionResult result = await _controller.Login(model, CancellationToken.None);
 
         ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
         viewResult.Model.Should().Be(model);
-        _controller.ModelState[string.Empty]!.Errors.Should().ContainSingle(error => error.ErrorMessage == apiMessage);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "Invalid email or password.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Login_WhenApiReturnsForbidden_ShouldShowAccountLockedMessage()
+    {
+        LoginModel model = new() { Email = "user@example.com", Password = "password" };
+
+        _authenticationServiceMock
+            .Setup(service => service.LoginAsync(
+                It.IsAny<LoginRequest>(),
+                CancellationToken.None))
+            .ReturnsAsync(Error.Forbidden("auth.locked", "Account locked."));
+
+        IActionResult result = await _controller.Login(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "Account is locked. Try again later.");
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task Login_WhenApiReturnsGenericError_ShouldShowGenericMessage()
+    {
+        LoginModel model = new() { Email = "user@example.com", Password = "password" };
+
+        _authenticationServiceMock
+            .Setup(service => service.LoginAsync(
+                It.IsAny<LoginRequest>(),
+                CancellationToken.None))
+            .ReturnsAsync(Error.Failure("auth.failure", "Something broke."));
+
+        IActionResult result = await _controller.Login(model, CancellationToken.None);
+
+        ViewResult viewResult = result.Should().BeOfType<ViewResult>().Subject;
+        viewResult.Model.Should().Be(model);
+        _controller.ModelState[string.Empty]!.Errors
+            .Should().ContainSingle(error => error.ErrorMessage == "Something went wrong. Please try again.");
         _authenticationServiceMock.VerifyAll();
         _aspNetAuthenticationMock.VerifyNoOtherCalls();
     }
@@ -102,7 +146,7 @@ public sealed class AuthControllerTests : IDisposable
     [Fact]
     public async Task Login_WhenApiResponseMissingSessionIdPost_ShouldAddErrorAndReturnView()
     {
-        LoginViewModel model = new() { Email = "user@example.com", Password = "ValidPassword1!" };
+        LoginModel model = new() { Email = "user@example.com", Password = "ValidPassword1!" };
 
         _authenticationServiceMock
             .Setup(service => service.LoginAsync(It.IsAny<LoginRequest>(), CancellationToken.None))
@@ -124,12 +168,69 @@ public sealed class AuthControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task Login_WhenSuccessfulPost_ShouldSignInAndRedirectToReturnUrl()
+    public async Task Login_WhenRememberMeTrue_ShouldSetIsPersistentTrue()
     {
-        LoginViewModel model = new()
+        LoginModel model = new()
         {
             Email = "user@example.com",
             Password = "ValidPassword1!",
+            RememberMe = true,
+            ReturnUrl = "/Dashboard"
+        };
+
+        SetupSuccessfulLogin();
+
+        _aspNetAuthenticationMock
+            .Setup(service => service.SignInAsync(
+                _controller.ControllerContext.HttpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                It.IsAny<ClaimsPrincipal>(),
+                It.Is<AuthenticationProperties>(properties => properties.IsPersistent == true)))
+            .Returns(Task.CompletedTask);
+
+        IActionResult result = await _controller.Login(model, CancellationToken.None);
+
+        result.Should().BeOfType<RedirectResult>();
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Login_WhenRememberMeFalse_ShouldSetIsPersistentFalse()
+    {
+        LoginModel model = new()
+        {
+            Email = "user@example.com",
+            Password = "ValidPassword1!",
+            RememberMe = false,
+            ReturnUrl = "/Dashboard"
+        };
+
+        SetupSuccessfulLogin();
+
+        _aspNetAuthenticationMock
+            .Setup(service => service.SignInAsync(
+                _controller.ControllerContext.HttpContext,
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                It.IsAny<ClaimsPrincipal>(),
+                It.Is<AuthenticationProperties>(properties => properties.IsPersistent == false)))
+            .Returns(Task.CompletedTask);
+
+        IActionResult result = await _controller.Login(model, CancellationToken.None);
+
+        result.Should().BeOfType<RedirectResult>();
+        _authenticationServiceMock.VerifyAll();
+        _aspNetAuthenticationMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Login_WhenSuccessfulPost_ShouldSignInAndRedirectToReturnUrl()
+    {
+        LoginModel model = new()
+        {
+            Email = "user@example.com",
+            Password = "ValidPassword1!",
+            RememberMe = true,
             ReturnUrl = "/Transfers"
         };
         int userId = 15;
@@ -277,5 +378,17 @@ public sealed class AuthControllerTests : IDisposable
         _controller.TempData["Success"].Should().Be("Account created! You can now sign in.");
         _authenticationServiceMock.VerifyAll();
         _aspNetAuthenticationMock.VerifyNoOtherCalls();
+    }
+
+    private void SetupSuccessfulLogin()
+    {
+        _authenticationServiceMock
+            .Setup(service => service.LoginAsync(It.IsAny<LoginRequest>(), CancellationToken.None))
+            .ReturnsAsync(new LoginSuccessResponse
+            {
+                UserId = 15,
+                Token = "jwt-token",
+                SessionId = 3
+            });
     }
 }

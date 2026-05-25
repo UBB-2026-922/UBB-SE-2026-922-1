@@ -1,7 +1,9 @@
-using BankingApp.Api.HostedServices;
 using BankingApp.Application.Common.Security;
+using BankingApp.Application.Features.AccountOverview.Services;
+using BankingApp.Application.Features.Authentication.Services;
+using BankingApp.Application.Features.Beneficiaries.Services;
+using BankingApp.Application.Features.UserProfile.Services;
 using BankingApp.Domain.Repositories;
-using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -27,7 +29,13 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("Jwt__Secret", "integration-test-secret-that-is-long-enough-for-hmac");
     }
 
-    public Mock<ISender> SenderMock { get; } = new();
+    public Mock<IAuthService> AuthServiceMock { get; } = new();
+
+    public Mock<IBeneficiaryService> BeneficiaryServiceMock { get; } = new();
+
+    public Mock<IUserProfileService> UserProfileServiceMock { get; } = new();
+
+    public Mock<IAccountOverviewService> AccountOverviewServiceMock { get; } = new();
 
     public Mock<IJsonWebTokenService> JwtServiceMock { get; } = new();
 
@@ -47,8 +55,10 @@ public class BankingAppWebFactory : WebApplicationFactory<Program>
         {
             services.AddControllers().AddApplicationPart(typeof(Program).Assembly);
 
-            RemoveHostedService<FinanceBackgroundService>(services);
-            ReplaceService(services, SenderMock.Object);
+            ReplaceService(services, AuthServiceMock.Object);
+            ReplaceService(services, BeneficiaryServiceMock.Object);
+            ReplaceService(services, UserProfileServiceMock.Object);
+            ReplaceService(services, AccountOverviewServiceMock.Object);
             ReplaceService(services, JwtServiceMock.Object);
             ReplaceService(services, IdentityRepositoryMock.Object);
 
