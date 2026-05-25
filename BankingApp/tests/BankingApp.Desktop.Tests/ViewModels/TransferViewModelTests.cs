@@ -88,17 +88,27 @@ public class TransferViewModelTests
     ///     ExecuteNextStep from step 1 should advance to step 2 when IBAN is valid.
     /// </summary>
     [Fact]
-    public void ExecuteNextStep_FromStep1_WhenIbanValid_AdvancesToStep2()
+    public async Task ExecuteNextStep_WhenGoingFromStep1AndIbanIsValid_ShouldAdvanceToStep2()
     {
         // Arrange
+        const string recipientIban = "RO49AAAA1B31007593840000";
+        const string bankName = "Test Bank";
         _viewModel.CurrentStep = IbanValidationStep;
-        _viewModel.IsIbanValid = true;
+        _viewModel.RecipientIban = recipientIban;
+
+        _transferClientService
+            .Setup(service => service.ValidateIbanAsync(
+                It.Is<TransferIbanValidationRequest>(request => request.Iban == recipientIban),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TransferIbanValidationResponse { IsValid = true, BankName = bankName });
 
         // Act
-        _viewModel.ExecuteNextStep();
+        await _viewModel.ExecuteNextStep();
 
         // Assert
         _viewModel.CurrentStep.Should().Be(TransferDetailsStep);
+        _viewModel.IsIbanValid.Should().BeTrue();
+        _viewModel.BankName.Should().Be(bankName);
     }
 
     /// <summary>

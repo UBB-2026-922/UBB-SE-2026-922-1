@@ -71,6 +71,13 @@ public sealed partial class NavigationView
         await dialog.ShowAsync();
     }
 
+    /// <summary>Navigates to the transfer screen and marks it active in the shell.</summary>
+    public void NavigateToTransfers()
+    {
+        SetActiveNav(NavTransfers);
+        _navigationService.NavigateToContent<TransferView>();
+    }
+
     private void SetActiveNav(Button selected)
     {
         foreach (Button button in _navButtons)
@@ -101,8 +108,7 @@ public sealed partial class NavigationView
 
     private void NavTransfers_Click(object sender, RoutedEventArgs e)
     {
-        SetActiveNav(NavTransfers);
-        _navigationService.NavigateToContent<TransferView>();
+        NavigateToTransfers();
     }
 
     private void NavBillPayments_Click(object sender, RoutedEventArgs e)

@@ -50,6 +50,13 @@ public partial class TransferViewModel : ObservableObject
     /// <summary>Gets the display name of the selected source account.</summary>
     public string SelectedAccountName => SelectedAccount?.AccountName ?? string.Empty;
 
+    /// <summary>Gets the IBAN of the selected source account.</summary>
+    public string SelectedAccountIban => SelectedAccount?.Iban ?? string.Empty;
+
+    /// <summary>Gets the selected source account balance formatted for review.</summary>
+    public string SelectedAccountBalanceText =>
+        SelectedAccount is null ? string.Empty : $"{SelectedAccount.Balance:0.00} {SelectedAccount.Currency}";
+
     /// <summary>Gets or sets the current wizard step number.</summary>
     [ObservableProperty]
     public partial int CurrentStep { get; set; } = default!;
@@ -61,6 +68,8 @@ public partial class TransferViewModel : ObservableObject
     /// <summary>Gets or sets the account selected as the source for the transfer.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedAccountName))]
+    [NotifyPropertyChangedFor(nameof(SelectedAccountIban))]
+    [NotifyPropertyChangedFor(nameof(SelectedAccountBalanceText))]
     public partial TransferAccountSelectionResponse? SelectedAccount { get; set; } = default!;
 
     partial void OnSelectedAccountChanged(TransferAccountSelectionResponse? value)
@@ -116,9 +125,11 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets or sets the human-readable FX preview text shown on the amount step.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasFxPreview))]
     public partial string FxPreviewText { get; set; } = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ReferenceDisplay))]
     public partial string Reference { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the transaction reference returned after a successful transfer.</summary>
@@ -153,4 +164,10 @@ public partial class TransferViewModel : ObservableObject
 
     /// <summary>Gets the formatted total debit shown on the review step.</summary>
     public string TotalDebitText => $"{TotalDebit:0.00} {Currency}";
+
+    /// <summary>Gets a value indicating whether a foreign-exchange preview should be shown.</summary>
+    public bool HasFxPreview => !string.IsNullOrWhiteSpace(FxPreviewText);
+
+    /// <summary>Gets the optional reference text shown on the review step.</summary>
+    public string ReferenceDisplay => string.IsNullOrWhiteSpace(Reference) ? "No reference provided" : Reference.Trim();
 }
