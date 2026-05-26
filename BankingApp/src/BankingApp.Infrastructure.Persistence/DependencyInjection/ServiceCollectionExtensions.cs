@@ -6,12 +6,14 @@ using Application.Shared.Persistence;
 using Domain.Repositories;
 using Common.Security;
 using Data;
+using Data.Seeders;
 using Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 public static class ServiceCollectionExtensions
@@ -60,5 +62,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IJsonWebTokenService>(_ => new JsonWebTokenService(jwtSecret));
 
         return services;
+    }
+
+    /// <summary>
+    ///     Seeds reference data (billers, etc.) that must be present on every environment.
+    ///     Call this after <c>Database.Migrate()</c> during application startup.
+    /// </summary>
+    public static async Task SeedReferenceDataAsync(this IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+    {
+        await using AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
+        AppDbContext dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        ILogger<AppDbContext> logger = scope.ServiceProvider.GetRequiredService<ILogger<AppDbContext>>();
+        await BillerSeeder.SeedAsync(dbContext, logger, cancellationToken);
     }
 }

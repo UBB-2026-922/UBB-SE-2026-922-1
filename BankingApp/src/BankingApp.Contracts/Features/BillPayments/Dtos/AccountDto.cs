@@ -34,4 +34,11 @@ public class AccountDto
     /// </summary>
     /// <value>The account name.</value>
     public string AccountName { get; set; } = string.Empty;
+
+    /// <summary>
+    ///     Gets or sets the last four digits of the primary card linked to this account.
+    ///     <c>null</c> when the account has no card.
+    /// </summary>
+    /// <value>The last four card digits, or <c>null</c>.</value>
+    public string? CardLastFourDigits { get; set; }
 }

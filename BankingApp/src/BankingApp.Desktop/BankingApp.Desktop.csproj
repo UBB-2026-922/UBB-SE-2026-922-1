@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -25,6 +25,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Page Remove="Views\BillPayHistoryView.xaml" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Content Include="Assets\SplashScreen.scale-200.png" />
         <Content Include="Assets\LockScreenLogo.scale-200.png" />
         <Content Include="Assets\Square150x150Logo.scale-200.png" />
@@ -41,6 +45,10 @@
 
         <None Update="appsettings.Development.json" Condition="Exists('appsettings.Development.json')">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+
+        <None Update="Views\BillPayHistoryView.xaml">
+          <Generator>MSBuild:Compile</Generator>
         </None>
 
         </ItemGroup>

@@ -1,9 +1,9 @@
-namespace BankingApp.Web.ViewModels.BillPayments;
+namespace BankingApp.Web.Models.BillPayments;
 
 /// <summary>
 ///     Represents a single row in the bill-payment history table.
 /// </summary>
-public class BillPaymentRowViewModel
+public class BillPaymentRowModel
 {
     /// <summary>Gets or sets the payment id.</summary>
     public int Id { get; set; }
@@ -17,7 +17,7 @@ public class BillPaymentRowViewModel
     /// <summary>Gets or sets the fee charged for this payment.</summary>
     public decimal Fee { get; set; }
 
-    /// <summary>Gets or sets the total debited (Amount + Fee).</summary>
+    /// <summary>Gets the total debited (Amount + Fee).</summary>
     public decimal Total => Amount + Fee;
 
     /// <summary>Gets or sets the payment status string (e.g. "Completed").</summary>
@@ -25,13 +25,4 @@ public class BillPaymentRowViewModel
 
     /// <summary>Gets or sets the UTC timestamp when the payment was created.</summary>
     public DateTime CreatedAt { get; set; }
-
-    /// <summary>Gets the Bootstrap badge CSS class for the current status.</summary>
-    public string StatusBadgeClass => Status.ToLowerInvariant() switch
-    {
-        "completed" => "bg-success",
-        "pending" => "bg-warning text-dark",
-        "failed" => "bg-danger",
-        _ => "bg-secondary"
-    };
 }

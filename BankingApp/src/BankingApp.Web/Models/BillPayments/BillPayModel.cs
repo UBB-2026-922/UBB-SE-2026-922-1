@@ -1,14 +1,13 @@
-namespace BankingApp.Web.ViewModels.BillPayments;
+namespace BankingApp.Web.Models.BillPayments;
 
 using System.ComponentModel.DataAnnotations;
 using BankingApp.Contracts.Features.BillPayments.Dtos;
-using Contracts.Features.Billers.Dtos;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using BankingApp.Contracts.Features.Billers.Dtos;
 
 /// <summary>
-///     View model for the bill-payment entry form (GET /BillPayments).
+///     Model for the bill-payment entry form (Index).
 /// </summary>
-public class BillPayViewModel
+public class BillPayModel
 {
     /// <summary>Gets or sets the list of the user's saved billers.</summary>
     public List<SavedBillerDto> SavedBillers { get; set; } = [];
@@ -18,19 +17,6 @@ public class BillPayViewModel
 
     /// <summary>Gets or sets the user's active accounts for the source-account dropdown.</summary>
     public List<AccountDto> Accounts { get; set; } = [];
-
-    /// <summary>Gets a <see cref="SelectList"/> built from <see cref="AllBillers"/>.</summary>
-    public SelectList BillerSelectList =>
-        new(AllBillers, nameof(BillerDto.Id), nameof(BillerDto.Name), SelectedBillerId);
-
-    /// <summary>Gets a <see cref="SelectList"/> built from <see cref="Accounts"/>.</summary>
-    public SelectList AccountSelectList =>
-        new(Accounts.Select(a => new
-        {
-            a.Id,
-            Display = $"{a.AccountName} — {a.Iban} ({a.Currency}) | Balance: {a.Balance:N2}"
-        }),
-            "Id", "Display", SelectedAccountId);
 
     /// <summary>Gets or sets the selected biller id.</summary>
     [Required(ErrorMessage = "Please select a biller.")]
@@ -53,4 +39,7 @@ public class BillPayViewModel
     [Range(0.01, 1_000_000, ErrorMessage = "Amount must be between 0.01 and 1,000,000.")]
     [Display(Name = "Amount")]
     public decimal Amount { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether the selected biller should be saved for future payments.</summary>
+    public bool ShouldSaveBiller { get; set; }
 }

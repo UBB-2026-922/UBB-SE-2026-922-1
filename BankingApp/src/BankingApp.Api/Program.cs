@@ -88,6 +88,11 @@ try
         databaseContext.Database.Migrate();
     }
 
+    if (!application.Environment.IsEnvironment("Testing"))
+    {
+        await application.Services.SeedReferenceDataAsync();
+    }
+
     if (application.Environment.IsDevelopment())
     {
         await SeedDevelopmentLoginAsync(application);
