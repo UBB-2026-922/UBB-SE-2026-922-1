@@ -3,7 +3,10 @@ namespace BankingApp.Desktop.ViewModels;
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using BankingApp.Contracts.Features.BillPayments.Dtos;
+using BankingApp.Contracts.Features.Forex;
 using BankingApp.Contracts.Features.Forex.Dtos;
+using Contracts.Features.BillPayments.Services;
 using Contracts.Features.Forex.Services;
 using ErrorOr;
 using Logging;
@@ -20,9 +23,8 @@ public partial class ForexViewModel : ObservableObject
     private const int ResultStep = 4;
     private const decimal MinimumAmount = 0m;
 
-    private static readonly string[] _collection = ["EUR", "USD", "GBP", "RON", "CHF", "JPY"];
-
     private readonly IAuthenticationSession _authenticationSession;
+    private readonly IBillPaymentService _billPaymentService;
     private readonly IForexService _forexService;
     private readonly ILogger<ForexViewModel> _logger;
 
@@ -30,21 +32,58 @@ public partial class ForexViewModel : ObservableObject
     private decimal _amount;
 
     /// <summary>Initializes a new instance of the <see cref="ForexViewModel"/> class.</summary>
-    public ForexViewModel(IAuthenticationSession authenticationSession, IForexService forexService, ILogger<ForexViewModel> logger)
+    public ForexViewModel(
+        IAuthenticationSession authenticationSession,
+        IBillPaymentService billPaymentService,
+        IForexService forexService,
+        ILogger<ForexViewModel> logger)
     {
         _authenticationSession = authenticationSession ?? throw new ArgumentNullException(nameof(authenticationSession));
+        _billPaymentService = billPaymentService ?? throw new ArgumentNullException(nameof(billPaymentService));
         _forexService = forexService ?? throw new ArgumentNullException(nameof(forexService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         CurrentStep = InitialStep;
-        AvailableCurrencies = new ObservableCollection<string>(_collection);
+        AvailableCurrencies = new ObservableCollection<string>(ForexConstants.SupportedCurrencies);
+        Accounts = [];
+        TransactionHistory = [];
     }
 
     /// <summary>Gets the currencies available for exchange.</summary>
     public ObservableCollection<string> AvailableCurrencies { get; }
 
+    /// <summary>Gets the user's active accounts.</summary>
+    public ObservableCollection<AccountDto> Accounts { get; }
+
+    /// <summary>Gets the user's exchange transaction history.</summary>
+    public ObservableCollection<ForexTransactionResponse> TransactionHistory { get; }
+
     /// <summary>Gets or sets the current step in the exchange flow.</summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInitialStep))]
+    [NotifyPropertyChangedFor(nameof(IsPreviewStep))]
+    [NotifyPropertyChangedFor(nameof(IsResultStep))]
     public partial int CurrentStep { get; set; } = default!;
+
+    /// <summary>Gets a value indicating whether the current step is the initial step.</summary>
+    public bool IsInitialStep => CurrentStep == InitialStep;
+
+    /// <summary>Gets a value indicating whether the current step is the preview step.</summary>
+    public bool IsPreviewStep => CurrentStep == PreviewStep;
+
+    /// <summary>Gets a value indicating whether the current step is the result step.</summary>
+    public bool IsResultStep => CurrentStep == ResultStep;
+
+    /// <summary>Gets or sets a value indicating whether the exchange history is visible.</summary>
+    [ObservableProperty]
+    public partial bool IsHistoryVisible { get; set; } = false;
+
+    /// <summary>Gets or sets the selected source account.</summary>
+    [ObservableProperty]
+    public partial AccountDto? SelectedSourceAccount { get; set; }
+
+    /// <summary>Gets or sets the selected target account.</summary>
+    [ObservableProperty]
+    public partial AccountDto? SelectedTargetAccount { get; set; }
 
     /// <summary>Gets or sets the currency being sold.</summary>
     [ObservableProperty]
@@ -90,14 +129,75 @@ public partial class ForexViewModel : ObservableObject
         _amount = decimal.TryParse(value, out decimal parsed) ? parsed : MinimumAmount;
     }
 
+    /// <summary>Loads the user's accounts from the API.</summary>
+    public async Task LoadAccountsAsync()
+    {
+        try
+        {
+            ErrorOr<List<AccountDto>> result = await _billPaymentService.GetAccountsAsync();
+            if (result.IsError)
+            {
+                ErrorMessage = UserMessages.Transfer.AccountLoadFailed;
+                return;
+            }
+
+            Accounts.Clear();
+            foreach (AccountDto account in result.Value)
+            {
+                Accounts.Add(account);
+            }
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
+    /// <summary>Loads the user's exchange history from the API.</summary>
+    public async Task LoadHistoryAsync()
+    {
+        try
+        {
+            ErrorOr<List<ForexTransactionResponse>> result = await _forexService.GetHistoryAsync();
+            if (result.IsError)
+            {
+                ErrorMessage = UserMessages.Exchange.HistoryLoadFailed;
+                return;
+            }
+
+            TransactionHistory.Clear();
+            foreach (ForexTransactionResponse transaction in result.Value)
+            {
+                TransactionHistory.Add(transaction);
+            }
+        }
+        catch (Exception exception)
+        {
+            ErrorMessage = exception.Message;
+        }
+    }
+
     /// <summary>Loads an exchange preview for the current currencies and amount.</summary>
+    [RelayCommand]
     public async Task LoadPreviewAsync()
     {
         ErrorMessage = string.Empty;
 
+        if (SelectedSourceAccount == null || SelectedTargetAccount == null)
+        {
+            ErrorMessage = UserMessages.Exchange.AccountRequired;
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(SourceCurrency) || string.IsNullOrWhiteSpace(TargetCurrency))
         {
             ErrorMessage = UserMessages.Exchange.CurrencyRequired;
+            return;
+        }
+
+        if (SourceCurrency == TargetCurrency)
+        {
+            ErrorMessage = UserMessages.Exchange.SameCurrency;
             return;
         }
 
@@ -138,9 +238,16 @@ public partial class ForexViewModel : ObservableObject
     }
 
     /// <summary>Executes the exchange using the values currently shown in the flow.</summary>
+    [RelayCommand]
     public async Task ExecuteExchangeAsync()
     {
         ErrorMessage = string.Empty;
+
+        if (SelectedSourceAccount == null || SelectedTargetAccount == null)
+        {
+            ErrorMessage = UserMessages.Exchange.AccountRequired;
+            return;
+        }
 
         if (_amount <= MinimumAmount)
         {
@@ -154,6 +261,8 @@ public partial class ForexViewModel : ObservableObject
             var request = new ForexTransactionRequest
             {
                 UserId = _authenticationSession.CurrentUserId ?? 0,
+                SourceAccountId = SelectedSourceAccount.Id,
+                TargetAccountId = SelectedTargetAccount.Id,
                 SourceCurrency = SourceCurrency,
                 TargetCurrency = TargetCurrency,
                 SourceAmount = _amount,
@@ -183,8 +292,11 @@ public partial class ForexViewModel : ObservableObject
     }
 
     /// <summary>Resets the exchange flow back to its initial state.</summary>
+    [RelayCommand]
     public void Reset()
     {
+        SelectedSourceAccount = null;
+        SelectedTargetAccount = null;
         SourceCurrency = string.Empty;
         TargetCurrency = string.Empty;
         AmountText = string.Empty;
@@ -194,5 +306,12 @@ public partial class ForexViewModel : ObservableObject
         TransactionReference = string.Empty;
         ErrorMessage = string.Empty;
         CurrentStep = InitialStep;
+    }
+
+    /// <summary>Toggles the visibility of the exchange history.</summary>
+    [RelayCommand]
+    public void ToggleHistory()
+    {
+        IsHistoryVisible = !IsHistoryVisible;
     }
 }

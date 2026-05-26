@@ -1,13 +1,14 @@
-namespace BankingApp.Web.ViewModels.Forex;
+namespace BankingApp.Web.Models.Forex;
 
 using System.ComponentModel.DataAnnotations;
 using BankingApp.Contracts.Features.BillPayments.Dtos;
+using BankingApp.Contracts.Features.Forex;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 /// <summary>
-///     View model for the forex exchange entry form (GET /Forex).
+///     Model for the forex exchange entry form (GET /Forex).
 /// </summary>
-public class ForexViewModel
+public class ForexExchangeModel
 {
     /// <summary>Gets or sets the user's active accounts for the source-account dropdown.</summary>
     public List<AccountDto> Accounts { get; set; } = [];
@@ -48,8 +49,4 @@ public class ForexViewModel
     [Range(0.01, 1_000_000, ErrorMessage = "Amount must be between 0.01 and 1,000,000.")]
     [Display(Name = "Amount")]
     public decimal Amount { get; set; }
-
-    /// <summary>Gets the list of supported currencies for the dropdowns.</summary>
-    public static IReadOnlyList<string> SupportedCurrencies { get; } =
-        ["USD", "EUR", "GBP", "RON", "CHF", "JPY", "CAD", "AUD"];
 }

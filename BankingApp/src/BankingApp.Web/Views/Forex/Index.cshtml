@@ -1,4 +1,4 @@
-@model BankingApp.Web.ViewModels.Forex.ForexViewModel
+@model BankingApp.Web.Models.Forex.ForexExchangeModel
 @{
     ViewData["Title"] = "Currency Exchange";
 }
@@ -46,7 +46,7 @@
                         </label>
                         <select asp-for="FromCurrency" class="form-select" id="fromCurrencySelect">
                             <option value="">— Select currency —</option>
-                            @foreach (var currency in BankingApp.Web.ViewModels.Forex.ForexViewModel.SupportedCurrencies)
+                            @foreach (var currency in BankingApp.Contracts.Features.Forex.ForexConstants.SupportedCurrencies)
                             {
                                 <option value="@currency">@currency</option>
                             }
@@ -94,7 +94,7 @@
                         </label>
                         <select asp-for="ToCurrency" class="form-select" id="toCurrencySelect">
                             <option value="">— Select currency —</option>
-                            @foreach (var currency in BankingApp.Web.ViewModels.Forex.ForexViewModel.SupportedCurrencies)
+                            @foreach (var currency in BankingApp.Contracts.Features.Forex.ForexConstants.SupportedCurrencies)
                             {
                                 <option value="@currency">@currency</option>
                             }

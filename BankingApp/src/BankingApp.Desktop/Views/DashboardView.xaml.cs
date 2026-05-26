@@ -258,7 +258,7 @@ public sealed partial class DashboardView : IDisposable
 
     private void ExchangeButton_Click(object sender, RoutedEventArgs e)
     {
-        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Currency Exchange"));
+        NavigationView.Current?.NavigateToCurrencyExchange();
     }
 
     private void TransactionHistoryButton_Click(object sender, RoutedEventArgs e)
