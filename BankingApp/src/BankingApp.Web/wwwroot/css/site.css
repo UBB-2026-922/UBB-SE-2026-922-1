@@ -375,6 +375,318 @@ body {
     color: var(--ba-text-muted);
 }
 
+/* ── Profile card hover ──────────────────────────────────────── */
+.card-hover {
+    transition: transform var(--ba-transition), box-shadow var(--ba-transition);
+    cursor: pointer;
+}
+
+    .card-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--ba-card-shadow-lg);
+    }
+
+/* ── Icon square ─────────────────────────────────────────────── */
+.icon-square {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+}
+
+/* ── Page title muted span ───────────────────────────────────── */
+.page-title-muted {
+    color: var(--ba-text-muted);
+    font-weight: 400;
+}
+
+/* ── Profile layout — two-column Desktop-matching grid ───────── */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.profile-sidebar {
+    position: sticky;
+    top: calc(var(--ba-navbar-height) + 24px);
+}
+
+/* ── Profile card (sidebar) ──────────────────────────────────── */
+.profile-card {
+    background: var(--ba-card-bg);
+    border-radius: var(--ba-radius-lg);
+    box-shadow: var(--ba-card-shadow);
+    overflow: hidden;
+    border: 1px solid var(--ba-card-border);
+}
+
+.profile-card-header {
+    background: linear-gradient(135deg, #16213e 0%, #4169e1 100%);
+    padding: 28px 20px 22px;
+    text-align: center;
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #7393b3;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 auto 10px;
+    border: 3px solid rgba(255, 255, 255, .25);
+}
+
+    .profile-avatar i {
+        font-size: 1.5rem;
+    }
+
+.profile-card-name {
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.profile-card-body {
+    padding: 16px 18px;
+}
+
+.profile-card-field {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+}
+
+.profile-card-field-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background-color: #eff4ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .8rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.profile-card-label {
+    font-size: .7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--ba-text-muted);
+}
+
+.profile-card-value {
+    font-size: .85rem;
+    color: var(--ba-text-primary);
+    word-break: break-word;
+}
+
+.profile-card-divider {
+    margin: 4px 0;
+    border-color: var(--ba-card-border);
+    opacity: .6;
+}
+
+/* ── Profile panel (right side) ──────────────────────────────── */
+.profile-panel {
+    border-radius: var(--ba-radius-lg);
+    overflow: hidden;
+}
+
+/* ── Profile tabs ────────────────────────────────────────────── */
+.profile-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--ba-card-border);
+    background: linear-gradient(to bottom, #ffffff, #f8fafc);
+    padding: 0 6px;
+    border-radius: var(--ba-radius-lg) var(--ba-radius-lg) 0 0;
+}
+
+.profile-tab {
+    padding: 12px 16px;
+    font-size: .84rem;
+    font-weight: 500;
+    color: var(--ba-text-muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color var(--ba-transition), border-color var(--ba-transition), background-color var(--ba-transition);
+    white-space: nowrap;
+}
+
+    .profile-tab:hover {
+        color: var(--ba-text-primary);
+        background-color: #f8fafc;
+    }
+
+    .profile-tab.active {
+        color: #2563eb;
+        border-bottom-color: #2563eb;
+        font-weight: 600;
+    }
+
+/* ── Profile tab content ─────────────────────────────────────── */
+.profile-tab-content {
+    padding: 22px 26px 26px;
+}
+
+/* ── Profile section header ──────────────────────────────────── */
+.profile-section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.profile-section-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.profile-section-icon-sm {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .85rem;
+    flex-shrink: 0;
+}
+
+.profile-section-title {
+    font-size: .95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.profile-subsection-title {
+    font-size: .88rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.profile-section-subtitle {
+    font-size: .78rem;
+    color: var(--ba-text-muted);
+    margin: 0;
+}
+
+/* ── Profile fields box ──────────────────────────────────────── */
+.profile-fields-box {
+    background-color: #fafbff;
+    border-radius: 12px;
+    border: 1px solid var(--ba-card-border);
+    padding: 18px 20px;
+}
+
+.profile-field-readonly {
+    opacity: .6;
+}
+
+/* ── Profile info note ───────────────────────────────────────── */
+.profile-info-note {
+    font-size: .76rem;
+    color: var(--ba-text-muted);
+    margin-top: 14px;
+}
+
+.profile-info-note-blue {
+    background-color: #eff4ff;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #1d4ed8;
+    font-size: .78rem;
+}
+
+/* ── Security card ───────────────────────────────────────────── */
+.profile-security-card {
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 18px;
+    background: linear-gradient(to right, #fff5f5, #ffffff);
+}
+
+/* ── Password rules ──────────────────────────────────────────── */
+.profile-password-rules {
+    background-color: #f8fafc;
+    border: 1px solid var(--ba-card-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-top: 14px;
+}
+
+.profile-password-rule {
+    font-size: .8rem;
+    color: #64748b;
+    padding: 2px 0;
+}
+
+    .profile-password-rule i {
+        color: #64748b;
+    }
+
+/* ── Session cards ───────────────────────────────────────────── */
+.profile-sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.profile-session-card {
+    border: 1px solid var(--ba-card-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    background-color: var(--ba-card-bg);
+    transition: box-shadow var(--ba-transition);
+}
+
+    .profile-session-card:hover {
+        box-shadow: var(--ba-card-shadow);
+    }
+
+.profile-session-current {
+    border-color: #bbf7d0;
+    background: linear-gradient(to right, #f0fdf4, #ffffff);
+}
+
+.profile-session-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .95rem;
+    flex-shrink: 0;
+}
+
+/* ── Notification rows ───────────────────────────────────────── */
+.profile-notification-row {
+    padding: 14px 20px;
+    border-color: var(--ba-card-border) !important;
+}
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 991.98px) {
     .site-navbar .nav-link {
@@ -427,4 +739,24 @@ body {
 .cards-card--cancelled {
     opacity: 0.55;
     filter: grayscale(60%);
+}
+
+@media (max-width: 767.98px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-sidebar {
+        position: static;
+    }
+
+    .profile-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .profile-tab {
+        padding: 10px 12px;
+        font-size: .78rem;
+    }
 }

@@ -15,9 +15,23 @@ public class PersonalInfoViewModel
     [Display(Name = "Email Address")]
     public string Email { get; set; } = string.Empty; // Not editable typically, but shown
 
-    [Required(ErrorMessage = "Phone Number is required.")]
     [Display(Name = "Phone Number")]
     [Phone(ErrorMessage = "Please enter a valid phone number.")]
     [MaxLength(20)]
-    public string PhoneNumber { get; set; } = string.Empty;
+    public string? PhoneNumber { get; set; }
+
+    [Display(Name = "Address")]
+    [MaxLength(200)]
+    public string? Address { get; set; }
+
+    /// <summary>
+    /// Indicates whether the user has verified their password for the current session to unlock the form.
+    /// </summary>
+    public bool IsUnlocked { get; set; }
+
+    /// <summary>
+    /// Property for binding the unlock password input.
+    /// </summary>
+    public string? UnlockPassword { get; set; }
 }
+

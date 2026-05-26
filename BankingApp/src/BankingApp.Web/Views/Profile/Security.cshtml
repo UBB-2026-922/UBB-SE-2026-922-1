@@ -1,60 +1,73 @@
-@model BankingApp.Web.ViewModels.SecurityViewModel
+@model BankingApp.Web.ViewModels.Profile.VerifyPasswordViewModel
 @{
-    ViewData["Title"] = "Security";
+    ViewData["Title"] = "Profile";
+    ViewData["ActiveProfileTab"] = "Security";
 }
 
 <div class="page-header">
-    <h1 class="page-title">Security</h1>
-    <p class="page-subtitle">Manage your password.</p>
+    <h1 class="page-title">Profile <span class="page-title-muted">/ Settings</span></h1>
 </div>
 
-<div class="row g-4">
+<div class="profile-layout">
 
-    <div class="col-12 col-lg-6">
-        <div class="card h-100">
-            <div class="card-header">
-                <i class="bi bi-key me-2"></i>Change password
-            </div>
-            <div class="card-body">
-                <form asp-action="ChangePassword" method="post">
-                    @Html.AntiForgeryToken()
+    <aside class="profile-sidebar">
+        @await Html.PartialAsync("_ProfileSidebar")
+    </aside>
 
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+    <section class="profile-main">
+        <div class="card profile-panel">
+            @await Html.PartialAsync("_ProfileTabs")
 
-                    <div class="form-group">
-                        <label asp-for="CurrentPassword" class="form-label"></label>
-                        <input asp-for="CurrentPassword" type="password" class="form-control"
-                               autocomplete="current-password" />
-                        <span asp-validation-for="CurrentPassword" class="invalid-feedback d-block"></span>
+            <div class="profile-tab-content">
+                <!-- Section header -->
+                <div class="profile-section-header">
+                    <div class="profile-section-icon bg-danger-subtle text-danger">
+                        <i class="bi bi-shield-lock"></i>
                     </div>
+                    <div>
+                        <h2 class="profile-section-title">Security Settings</h2>
+                        <p class="profile-section-subtitle">Manage your authentication and password</p>
+                    </div>
+                </div>
 
-                    <div class="form-group">
-                        <label asp-for="NewPassword" class="form-label"></label>
-                        <input asp-for="NewPassword" type="password" class="form-control"
-                               autocomplete="new-password" />
-                        <span asp-validation-for="NewPassword" class="invalid-feedback d-block"></span>
-                        <div class="form-text text-muted-sm">
-                            At least 8 characters with uppercase, lowercase, digit, and symbol.
+                <!-- Password settings card -->
+                <div class="profile-security-card">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="profile-section-icon-sm bg-danger-subtle text-danger">
+                            <i class="bi bi-key"></i>
+                        </div>
+                        <div>
+                            <h3 class="profile-subsection-title">Password Settings</h3>
+                            <p class="profile-section-subtitle mb-0">Verify your identity to change your password</p>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label asp-for="ConfirmNewPassword" class="form-label"></label>
-                        <input asp-for="ConfirmNewPassword" type="password" class="form-control"
-                               autocomplete="new-password" />
-                        <span asp-validation-for="ConfirmNewPassword" class="invalid-feedback d-block"></span>
-                    </div>
+                    <form asp-action="Security" method="post" novalidate>
+                        @Html.AntiForgeryToken()
 
-                    <div class="divider"></div>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
 
-                    <button type="submit" class="btn btn-primary btn-full">
-                        <i class="bi bi-check-lg me-1"></i>Update password
-                    </button>
-                </form>
+                        <div class="mb-3">
+                            <label asp-for="CurrentPassword" class="form-label">Current Password</label>
+                            <input asp-for="CurrentPassword" type="password" class="form-control"
+                                   autocomplete="current-password" placeholder="Enter your current password" />
+                            <span asp-validation-for="CurrentPassword" class="invalid-feedback d-block"></span>
+                        </div>
+
+                        <!-- Security hint -->
+                        <div class="profile-info-note profile-info-note-blue mb-3">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Your identity is verified before any password changes are applied.
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-shield-lock me-2"></i>Verify &amp; Continue
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-
+    </section>
 </div>
 
 @section Scripts {
