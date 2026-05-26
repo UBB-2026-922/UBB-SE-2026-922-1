@@ -253,7 +253,7 @@ public sealed partial class DashboardView : IDisposable
 
     private void PayBillButton_Click(object sender, RoutedEventArgs e)
     {
-        _ = RunUiTaskAsync(() => ShowComingSoonAsync("Bill Payments"));
+        NavigationView.Current?.NavigateToBillPayments();
     }
 
     private void ExchangeButton_Click(object sender, RoutedEventArgs e)

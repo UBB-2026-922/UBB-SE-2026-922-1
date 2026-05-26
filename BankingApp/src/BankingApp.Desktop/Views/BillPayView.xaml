@@ -215,8 +215,14 @@
                                                Text="{Binding SearchQuery, Mode=TwoWay}"
                                                TextChanged="SearchBox_TextChanged"
                                                QueryIcon="Find"
-                                               Background="White" Foreground="#111827">
+                                               RequestedTheme="Light">
                                     <AutoSuggestBox.Resources>
+                                        <SolidColorBrush x:Key="TextControlForeground" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlBackground" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="White" />
                                         <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#6B7280" />
                                         <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#6B7280" />
                                         <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#6B7280" />
@@ -230,12 +236,18 @@
                                           SelectedValue="{Binding SelectedCategory, Mode=TwoWay}"
                                           SelectionChanged="CategoryCombo_SelectionChanged"
                                           HorizontalAlignment="Stretch"
-                                          Background="White" Foreground="#111827">
+                                          RequestedTheme="Light">
                                     <ComboBox.Resources>
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForeground" Color="#111827" />
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundPointerOver" Color="#111827" />
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundFocused" Color="#111827" />
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundDisabled" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxForeground" Color="#111827" />
+                                        <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#111827" />
+                                        <SolidColorBrush x:Key="ComboBoxForegroundFocused" Color="#111827" />
+                                        <SolidColorBrush x:Key="ComboBoxForegroundDisabled" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxBackground" Color="White" />
+                                        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#F9FAFB" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForeground" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundPointerOver" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundFocused" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundDisabled" Color="#9CA3AF" />
                                     </ComboBox.Resources>
                                     <ComboBoxItem Content="Utilities" />
                                     <ComboBoxItem Content="Telecom" />
@@ -279,7 +291,7 @@
                                                                Foreground="#1A1A2E" />
                                                 </StackPanel>
                                                 <Border Grid.Column="1"
-                                                        Padding="8,3" CornerRadius="20"
+                                                        Padding="8,3" CornerRadius="6"
                                                         Background="#BFDBFE">
                                                     <TextBlock Text="{Binding Category}"
                                                                FontSize="11"
@@ -291,11 +303,6 @@
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
-
-                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                                <Button Content="Cancel" Style="{StaticResource GhostButton}"
-                                        Command="{Binding CancelCommand}" />
-                            </StackPanel>
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -332,7 +339,19 @@
                                 <TextBlock Text="Biller reference / Account number" Style="{StaticResource InputLabel}" />
                                 <TextBox Text="{Binding BillerReference, Mode=TwoWay}"
                                          PlaceholderText="e.g. INV-00123 or your customer number"
-                                         Background="White" Foreground="#111827" />
+                                         RequestedTheme="Light">
+                                    <TextBox.Resources>
+                                        <SolidColorBrush x:Key="TextControlForeground" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlBackground" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#6B7280" />
+                                    </TextBox.Resources>
+                                </TextBox>
                             </StackPanel>
 
                             <StackPanel Spacing="4">
@@ -343,7 +362,19 @@
                                            SmallChange="1"
                                            SpinButtonPlacementMode="Compact"
                                            ValueChanged="AmountBox_ValueChanged"
-                                           Background="White" Foreground="#111827" />
+                                           RequestedTheme="Light">
+                                    <NumberBox.Resources>
+                                        <SolidColorBrush x:Key="TextControlForeground" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#111827" />
+                                        <SolidColorBrush x:Key="TextControlBackground" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="White" />
+                                        <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#6B7280" />
+                                    </NumberBox.Resources>
+                                </NumberBox>
                             </StackPanel>
 
                             <StackPanel Spacing="4">
@@ -352,30 +383,36 @@
                                           SelectedItem="{Binding SelectedAccount, Mode=TwoWay}"
                                           PlaceholderText="Select an account"
                                           HorizontalAlignment="Stretch"
-                                          Background="White" Foreground="#111827">
+                                          RequestedTheme="Light">
                                     <ComboBox.Resources>
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForeground" Color="#111827" />
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundPointerOver" Color="#111827" />
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundFocused" Color="#111827" />
-                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundDisabled" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxForeground" Color="#111827" />
+                                        <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#111827" />
+                                        <SolidColorBrush x:Key="ComboBoxForegroundFocused" Color="#111827" />
+                                        <SolidColorBrush x:Key="ComboBoxForegroundDisabled" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxBackground" Color="White" />
+                                        <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#F9FAFB" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForeground" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundPointerOver" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundFocused" Color="#6B7280" />
+                                        <SolidColorBrush x:Key="ComboBoxPlaceholderTextForegroundDisabled" Color="#9CA3AF" />
                                     </ComboBox.Resources>
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate x:DataType="payments:AccountDto">
-                                        <StackPanel Padding="4,2" Spacing="1">
-                                            <TextBlock Text="{Binding AccountName}"
-                                                       FontWeight="SemiBold"
-                                                       FontSize="13"
-                                                       Foreground="#1A1A2E" />
-                                            <TextBlock FontSize="12" Foreground="#6B7280">
-                                                <Run Text="Card ending " />
-                                                <Run Text="{Binding CardLastFourDigits}" />
-                                                <Run Text=" · " />
-                                                <Run Text="{Binding Currency}" />
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate x:DataType="payments:AccountDto">
+                                            <StackPanel Padding="4,2" Spacing="1">
+                                                <TextBlock Text="{Binding AccountName}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="13"
+                                                           Foreground="#1A1A2E" />
+                                                <TextBlock FontSize="12" Foreground="#6B7280">
+                                                    <Run Text="Card ending " />
+                                                    <Run Text="{Binding CardLastFourDigits}" />
+                                                    <Run Text=" · " />
+                                                    <Run Text="{Binding Currency}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                             </StackPanel>
 
                             <StackPanel Spacing="4">
