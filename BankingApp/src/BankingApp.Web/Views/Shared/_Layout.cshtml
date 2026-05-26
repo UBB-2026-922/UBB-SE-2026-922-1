@@ -48,6 +48,15 @@
                                 <a class="nav-link @(IsActive("Dashboard") ? "active" : string.Empty)"
                                        asp-controller="Dashboard" asp-action="Index">
                                     <i class="bi bi-grid-1x2 me-1"></i>Dashboard
+                                    @{
+                                        int notifCount = ViewData["NotificationCount"] is int n ? n : 0;
+                                    }
+                                    @if (notifCount > 0)
+                                    {
+                                        <span class="badge rounded-pill bg-danger ms-1" style="font-size:.65rem;vertical-align:middle;">
+                                            @notifCount
+                                        </span>
+                                    }
                                 </a>
                             </li>
 
