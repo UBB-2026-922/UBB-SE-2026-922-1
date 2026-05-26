@@ -42,11 +42,11 @@ public partial class BillPayViewModel : ObservableObject
 
         SearchCommand = new RelayCommand(ExecuteSearch);
         SelectBillerCommand = new RelayCommand<object?>(ExecuteSelectBiller);
-        NextStepCommand = new RelayCommand(ExecuteNextStep);
+        NextStepCommand = new AsyncRelayCommand(ExecuteNextStepAsync);
         BackCommand = new RelayCommand(ExecuteBack);
         PayAnotherBillCommand = new RelayCommand(ResetForm);
         PayBillCommand = new AsyncRelayCommand(ExecutePayBillAsync);
-        CancelCommand = new RelayCommand(() => _navigationService.NavigateToContent<DashboardView>());
+        CancelCommand = new RelayCommand(ResetForm);
     }
 
     /// <summary>Gets the command that refreshes billers using the current filters.</summary>
@@ -81,6 +81,7 @@ public partial class BillPayViewModel : ObservableObject
     /// <summary>Gets or sets the saved billers for the current user.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSavedBillers))]
+    [NotifyPropertyChangedFor(nameof(SavedBillersVisibility))]
     public partial ObservableCollection<SavedBillerDto> SavedBillers { get; set; }
 
     /// <summary>Gets or sets the source accounts available for payment.</summary>
@@ -163,6 +164,10 @@ public partial class BillPayViewModel : ObservableObject
 
     /// <summary>Gets a value indicating whether any saved billers are available.</summary>
     public bool HasSavedBillers => SavedBillers.Count > MinimumBillers;
+
+    /// <summary>Gets the visibility of the saved billers section.</summary>
+    public Visibility SavedBillersVisibility =>
+        HasSavedBillers ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>Gets the selected biller display name.</summary>
     public string SelectedBillerName => SelectedBiller?.Name ?? "No biller selected";

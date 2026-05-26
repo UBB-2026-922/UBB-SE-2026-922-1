@@ -16,11 +16,23 @@ public sealed class BillerService(
     ISystemClock clock)
     : IBillerService
 {
-    public async Task<ErrorOr<List<BillerDto>>> GetBillersAsync(CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<List<BillerDto>>> GetBillersAsync(string? search = null, string? category = null, CancellationToken cancellationToken = default)
     {
         IReadOnlyCollection<Biller> billers = await billerRepository.ListActiveAsync(cancellationToken);
 
-        return billers
+        IEnumerable<Biller> filtered = billers;
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            filtered = filtered.Where(biller => biller.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            filtered = filtered.Where(biller => biller.Category.ToString().Equals(category, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return filtered
             .Select(biller => new BillerDto
             {
                 Id = biller.Id,

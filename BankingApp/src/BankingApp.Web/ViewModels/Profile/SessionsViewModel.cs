@@ -1,4 +1,4 @@
-namespace BankingApp.Web.ViewModels;
+namespace BankingApp.Web.ViewModels.Profile;
 
 using BankingApp.Contracts.Features.UserProfile.Dtos;
 

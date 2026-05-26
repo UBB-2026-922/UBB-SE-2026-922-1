@@ -19,6 +19,18 @@ public class BillPaymentsController(IBillPaymentService billPaymentService) : Ap
     private const decimal FeeThreshold = 100m;
 
     /// <summary>
+    /// Returns the list of active accounts for the current user to fund a bill payment.
+    /// </summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The user's active accounts.</returns>
+    [HttpGet(ApiEndpoints.BillPayments.Accounts)]
+    public async Task<IActionResult> GetAccounts(CancellationToken cancellationToken)
+    {
+        int userId = GetAuthenticatedUserId();
+        return ToActionResult(await billPaymentService.GetAccountsAsync(userId, cancellationToken), Ok);
+    }
+
+    /// <summary>
     /// Calculates the fee for a bill payment based on the amount.
     /// </summary>
     /// <param name="amount">The payment amount.</param>
@@ -28,18 +40,6 @@ public class BillPaymentsController(IBillPaymentService billPaymentService) : Ap
     {
         decimal fee = amount <= FeeThreshold ? LowTierFee : HighTierFee;
         return Ok(new FeeResponse { Fee = fee });
-    }
-
-    /// <summary>
-    /// Retrieves the bill payment accounts for the authenticated user.
-    /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The bill payment accounts.</returns>
-    [HttpGet(ApiEndpoints.BillPayments.Accounts)]
-    public async Task<IActionResult> GetAccounts(CancellationToken cancellationToken)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(await billPaymentService.GetAccountsAsync(userId, cancellationToken), Ok);
     }
 
     /// <summary>

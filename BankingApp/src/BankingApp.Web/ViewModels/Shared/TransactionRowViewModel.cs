@@ -1,6 +1,6 @@
 namespace BankingApp.Web.ViewModels.Shared;
 
-using BankingApp.Web.ViewModels.BillPayments;
+using BankingApp.Web.Models.BillPayments;
 
 public sealed class TransactionRowViewModel
 {
@@ -22,7 +22,7 @@ public sealed class TransactionRowViewModel
         _           => "bg-secondary"
     };
 
-    public static TransactionRowViewModel FromBillPayment(BillPaymentRowViewModel billPayment) =>
+    public static TransactionRowViewModel FromBillPayment(BillPaymentRowModel billPayment) =>
         new()
         {
             OccurredAt  = billPayment.CreatedAt,

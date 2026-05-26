@@ -12,9 +12,12 @@ using Microsoft.AspNetCore.Mvc;
 public class BillersController(IBillerService billerService) : ApiControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetBillers(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetBillers(
+        [FromQuery] string? search,
+        [FromQuery] string? category,
+        CancellationToken cancellationToken)
     {
-        return ToActionResult(await billerService.GetBillersAsync(cancellationToken), Ok);
+        return ToActionResult(await billerService.GetBillersAsync(search, category, cancellationToken), Ok);
     }
 
     [HttpGet(ApiEndpoints.Billers.Saved)]

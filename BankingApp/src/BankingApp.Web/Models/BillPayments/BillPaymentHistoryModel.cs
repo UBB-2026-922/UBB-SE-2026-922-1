@@ -1,12 +1,12 @@
-namespace BankingApp.Web.ViewModels.BillPayments;
+namespace BankingApp.Web.Models.BillPayments;
 
 /// <summary>
-///     View model for the bill-payment history page (GET /BillPayments/History).
+///     Model for the bill-payment history page (History view).
 /// </summary>
-public class BillPaymentHistoryViewModel
+public class BillPaymentHistoryModel
 {
     /// <summary>Gets or sets the list of past bill payments, newest first.</summary>
-    public List<BillPaymentRowViewModel> Payments { get; set; } = [];
+    public List<BillPaymentRowModel> Payments { get; set; } = [];
 
     /// <summary>Gets a value indicating whether there are any payments to display.</summary>
     public bool HasPayments => Payments.Count > 0;

@@ -1,4 +1,4 @@
-@model BankingApp.Web.ViewModels.BillPayments.BillPayPreviewViewModel
+@model BankingApp.Web.Models.BillPayments.BillPayPreviewModel
 @{
     ViewData["Title"] = "Confirm Payment";
 }
@@ -70,6 +70,7 @@
             <input type="hidden" asp-for="BillerName" />
             <input type="hidden" asp-for="AccountIban" />
             <input type="hidden" asp-for="Currency" />
+            <input type="hidden" asp-for="ShouldSaveBiller" />
 
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
                 <a asp-action="Index" class="btn btn-outline-secondary">

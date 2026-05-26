@@ -28,6 +28,7 @@
 
     <ItemGroup>
       <Folder Include="ViewModels\Cards\" />
+      <Folder Include="ViewModels\BillPayments\" />
     </ItemGroup>
 
 </Project>
