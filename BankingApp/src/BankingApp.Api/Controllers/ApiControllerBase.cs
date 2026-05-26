@@ -1,7 +1,6 @@
 namespace BankingApp.Api.Controllers;
 
 using ErrorOr;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 /// <summary>
@@ -12,8 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public abstract class ApiControllerBase : ControllerBase
 {
-    protected ISender Sender => HttpContext.RequestServices.GetRequiredService<ISender>();
-
     /// <summary>
     ///     Extracts the authenticated user's ID from the HTTP context,
     ///     set by the session validation middleware.

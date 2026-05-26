@@ -52,6 +52,8 @@ public sealed partial class RegisterView
             ErrorInfoBar.IsOpen = false;
             switch (state)
             {
+                case RegisterState.Idle:
+                    break;
                 case RegisterState.Loading:
                     ShowLoading();
                     break;

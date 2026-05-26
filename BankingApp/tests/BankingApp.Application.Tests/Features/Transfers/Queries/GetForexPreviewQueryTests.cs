@@ -1,10 +1,11 @@
 namespace BankingApp.Application.Tests.Features.Transfers.Queries;
 
 using BankingApp.Application;
-using BankingApp.Application.Features.Transfers.Queries;
+using BankingApp.Application.Features.Transfers.Services;
 using BankingApp.Domain.Common.Errors;
 using Contracts.Features.Transfers.Dtos;
 using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
 using Currency = NodaMoney.Currency;
 
 public sealed class GetForexPreviewQueryTests
@@ -15,11 +16,10 @@ public sealed class GetForexPreviewQueryTests
     public async Task Handle_WhenCurrencyCodeIsInvalid_ShouldReturnInvalidCurrencyError()
     {
         // Arrange
-        GetForexPreviewQueryHandler handler = CreateHandler();
-        var query = new GetForexPreviewQuery("INVALID", "USD", 100m);
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferForexPreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<TransferForexPreviewResponse> result = await service.GetFxPreviewAsync("INVALID", "USD", 100m, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -38,17 +38,16 @@ public sealed class GetForexPreviewQueryTests
             .Setup(service => service.GetRate(currency, currency))
             .Returns((ErrorOr<decimal>)ForexErrors.SameCurrency);
 
-        GetForexPreviewQueryHandler handler = CreateHandler();
-        var query = new GetForexPreviewQuery("USD", "USD", 100m);
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferForexPreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<TransferForexPreviewResponse> result = await service.GetFxPreviewAsync("USD", "USD", 100m, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Should().Be(ForexErrors.SameCurrency);
 
-        _exchangeRateServiceMock.Verify(service => service.GetRate(currency, currency), Times.Once);
+        _exchangeRateServiceMock.Verify(s => s.GetRate(currency, currency), Times.Once);
         _exchangeRateServiceMock.VerifyNoOtherCalls();
     }
 
@@ -63,23 +62,29 @@ public sealed class GetForexPreviewQueryTests
             .Setup(service => service.GetRate(source, target))
             .Returns((ErrorOr<decimal>)1.25m);
 
-        GetForexPreviewQueryHandler handler = CreateHandler();
-        var query = new GetForexPreviewQuery("EUR", "USD", 100m);
+        TransferService service = CreateService();
 
         // Act
-        ErrorOr<TransferForexPreviewResponse> result = await handler.Handle(query, CancellationToken.None);
+        ErrorOr<TransferForexPreviewResponse> result = await service.GetFxPreviewAsync("EUR", "USD", 100m, TestContext.Current.CancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
         result.Value.ExchangeRate.Should().Be(1.25m);
         result.Value.ConvertedAmount.Should().Be(125m);
 
-        _exchangeRateServiceMock.Verify(service => service.GetRate(source, target), Times.Once);
+        _exchangeRateServiceMock.Verify(s => s.GetRate(source, target), Times.Once);
         _exchangeRateServiceMock.VerifyNoOtherCalls();
     }
 
-    private GetForexPreviewQueryHandler CreateHandler()
+    private TransferService CreateService()
     {
-        return new GetForexPreviewQueryHandler(_exchangeRateServiceMock.Object);
+        return new TransferService(
+            new Mock<IAccountRepository>().Object,
+            new Mock<ITransferRepository>().Object,
+            new Mock<IBeneficiaryRepository>().Object,
+            new Mock<Shared.Persistence.IUnitOfWork>().Object,
+            new Mock<Shared.Clock.ISystemClock>().Object,
+            _exchangeRateServiceMock.Object,
+            NullLogger<TransferService>.Instance);
     }
 }

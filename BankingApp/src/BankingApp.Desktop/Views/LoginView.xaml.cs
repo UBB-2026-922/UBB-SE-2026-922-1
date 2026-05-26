@@ -46,6 +46,12 @@ public sealed partial class LoginView
             RegistrationSuccessBar.IsOpen = true;
         }
 
+        if (_viewModel.SavedRememberMe && !string.IsNullOrWhiteSpace(_viewModel.SavedEmail))
+        {
+            EmailBox.Text = _viewModel.SavedEmail;
+            RememberMeCheckBox.IsChecked = true;
+        }
+
         // Apply the ViewModel's current state immediately. The ViewModel is constructed
         // before the view subscribes, so any state set in the constructor (e.g.
         // ServerNotConfigured when ApiBaseUrl is missing) would otherwise be missed.
@@ -136,9 +142,11 @@ public sealed partial class LoginView
             return;
         }
 
+        bool rememberMe = RememberMeCheckBox.IsChecked == true;
+
         try
         {
-            await _viewModel.Login(email, password);
+            await _viewModel.Login(email, password, rememberMe);
         }
         catch (Exception ex)
         {
@@ -173,8 +181,11 @@ public sealed partial class LoginView
             return "Connected: not configured";
         }
 
-        return Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out Uri? uri)
-            ? $"Connected: {uri.Authority}"
-            : $"Connected: {apiBaseUrl}";
+        if (Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out Uri? uri))
+        {
+            return $"Connected: {uri.Authority}";
+        }
+
+        return $"Connected: {apiBaseUrl}";
     }
 }

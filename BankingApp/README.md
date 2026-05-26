@@ -28,7 +28,7 @@ tests/
 Generate Docker Compose and API development env files:
 
 ```bash
-python scripts/secrets/setup_dev.py
+python scripts/setup.py generate dev --dev-login-email dev@example.com --dev-login-password MyPass!1 --local
 ```
 
 ### 2. Start the local stack

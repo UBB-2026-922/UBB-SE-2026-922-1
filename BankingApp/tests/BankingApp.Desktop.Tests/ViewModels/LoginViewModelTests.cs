@@ -11,6 +11,7 @@ public class LoginViewModelTests
 {
     private readonly Mock<IAuthenticationService> _authenticationServiceMock = new();
     private readonly Mock<IAuthenticationSession> _authenticationSessionMock = new();
+    private readonly Mock<ILoginPreferences> _loginPreferencesMock = new();
 
     public LoginViewModelTests()
     {
@@ -46,13 +47,57 @@ public class LoginViewModelTests
         _authenticationSessionMock.Setup(mock => mock.SetToken("test-token"));
 
         // Act
-        await viewModel.Login("test@test.com", "password");
+        await viewModel.Login("test@test.com", "password", false);
 
         // Assert
         viewModel.State.Should().Be(LoginState.Success);
         _authenticationSessionMock.Object.CurrentUserId.Should().Be(1);
         _authenticationServiceMock.VerifyAll();
         _authenticationSessionMock.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Login_WhenSuccessWithRememberMe_ShouldSavePreferences()
+    {
+        // Arrange
+        LoginViewModel viewModel = CreateViewModel();
+        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1 };
+
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(response);
+        _authenticationSessionMock.Setup(mock => mock.SetToken("test-token"));
+
+        // Act
+        await viewModel.Login("test@test.com", "password", true);
+
+        // Assert
+        viewModel.State.Should().Be(LoginState.Success);
+        _loginPreferencesMock.Verify(
+            mock => mock.Save("test@test.com", true),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Login_WhenSuccessWithoutRememberMe_ShouldSavePreferencesWithFalse()
+    {
+        // Arrange
+        LoginViewModel viewModel = CreateViewModel();
+        LoginSuccessResponse response = new() { Token = "test-token", UserId = 1 };
+
+        _authenticationServiceMock
+            .Setup(mock => mock.LoginAsync(It.IsAny<LoginRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(response);
+        _authenticationSessionMock.Setup(mock => mock.SetToken("test-token"));
+
+        // Act
+        await viewModel.Login("test@test.com", "password", false);
+
+        // Assert
+        viewModel.State.Should().Be(LoginState.Success);
+        _loginPreferencesMock.Verify(
+            mock => mock.Save("test@test.com", false),
+            Times.Once);
     }
 
     [Fact]
@@ -66,7 +111,7 @@ public class LoginViewModelTests
             .ReturnsAsync(Error.Unauthorized());
 
         // Act
-        await viewModel.Login("test@test.com", "password");
+        await viewModel.Login("test@test.com", "password", false);
 
         // Assert
         viewModel.State.Should().Be(LoginState.InvalidCredentials);
@@ -84,7 +129,7 @@ public class LoginViewModelTests
             .ReturnsAsync(Error.Failure());
 
         // Act
-        await viewModel.Login("test@test.com", "password");
+        await viewModel.Login("test@test.com", "password", false);
 
         // Assert
         viewModel.State.Should().Be(LoginState.Error);
@@ -102,7 +147,7 @@ public class LoginViewModelTests
             .ReturnsAsync(Error.Forbidden());
 
         // Act
-        await viewModel.Login("test@test.com", "password");
+        await viewModel.Login("test@test.com", "password", false);
 
         // Assert
         viewModel.State.Should().Be(LoginState.AccountLocked);
@@ -201,6 +246,19 @@ public class LoginViewModelTests
         _authenticationServiceMock.VerifyAll();
     }
 
+    [Fact]
+    public void SavedEmail_WhenPreferencesHaveEmail_ShouldReturnEmail()
+    {
+        // Arrange
+        _loginPreferencesMock.Setup(mock => mock.SavedEmail).Returns("saved@test.com");
+        _loginPreferencesMock.Setup(mock => mock.RememberMe).Returns(true);
+        LoginViewModel viewModel = CreateViewModel();
+
+        // Assert
+        viewModel.SavedEmail.Should().Be("saved@test.com");
+        viewModel.SavedRememberMe.Should().BeTrue();
+    }
+
     private LoginViewModel CreateViewModel(Dictionary<string, string?>? values = null)
     {
         IConfiguration configuration = new ConfigurationBuilder()
@@ -211,6 +269,7 @@ public class LoginViewModelTests
             _authenticationServiceMock.Object,
             _authenticationSessionMock.Object,
             configuration,
+            _loginPreferencesMock.Object,
             NullLogger<LoginViewModel>.Instance);
     }
 }

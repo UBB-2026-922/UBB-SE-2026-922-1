@@ -50,6 +50,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddDesktopSession(this IServiceCollection services)
     {
         services.AddSingleton<IAuthenticationSession, AuthenticationSession>();
+        services.AddSingleton<ILoginPreferences, FileLoginPreferences>();
 
         return services;
     }
@@ -57,6 +58,7 @@ public static class ServiceCollectionExtensions
     private static IServiceCollection AddDesktopState(this IServiceCollection services)
     {
         services.AddSingleton<ILoginNotificationState, LoginNotificationState>();
+        services.AddSingleton<ITransferDraftState, TransferDraftState>();
 
         return services;
     }

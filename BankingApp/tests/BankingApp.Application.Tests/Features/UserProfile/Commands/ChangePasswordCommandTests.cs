@@ -1,10 +1,11 @@
 namespace BankingApp.Application.Tests.Features.UserProfile.Commands;
 
 using BankingApp.Application.Common.Security;
-using BankingApp.Application.Features.UserProfile.Commands;
+using BankingApp.Application.Features.UserProfile.Services;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
 using Microsoft.Extensions.Logging.Abstractions;
+using Shared.Clock;
 using Shared.Persistence;
 
 public sealed class ChangePasswordCommandTests
@@ -21,6 +22,7 @@ public sealed class ChangePasswordCommandTests
     private readonly Mock<IIdentityRepository> _identityRepositoryMock = new(MockBehavior.Strict);
     private readonly Mock<IHashService> _hashServiceMock = new(MockBehavior.Strict);
     private readonly Mock<IUnitOfWork> _unitOfWorkMock = new(MockBehavior.Strict);
+    private readonly Mock<ISystemClock> _clockMock = new();
 
     [Fact]
     public async Task Handle_WhenUserNotFound_ShouldReturnNotFoundError()
@@ -28,10 +30,10 @@ public sealed class ChangePasswordCommandTests
         // Arrange
         CancellationToken cancellationToken = new CancellationTokenSource().Token;
         _userRepositoryMock.Setup(repository => repository.GetByIdAsync(TestUserId, cancellationToken)).ReturnsAsync((User?)null);
-        ChangePasswordCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.ChangePasswordAsync(TestUserId, CurrentPassword, NewPassword, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -48,10 +50,10 @@ public sealed class ChangePasswordCommandTests
         User user = CreateUser();
         _userRepositoryMock.Setup(repository => repository.GetByIdAsync(TestUserId, cancellationToken)).ReturnsAsync(user);
         _identityRepositoryMock.Setup(repository => repository.GetByUserIdAsync(TestUserId, cancellationToken)).ReturnsAsync((IdentityAccount?)null);
-        ChangePasswordCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.ChangePasswordAsync(TestUserId, CurrentPassword, NewPassword, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -70,10 +72,10 @@ public sealed class ChangePasswordCommandTests
         var identity = IdentityAccount.Create(TestUserId, HashedPassword.Wrap(OldHash));
         SetupUserAndIdentity(user, identity, cancellationToken);
         _hashServiceMock.Setup(service => service.Verify(CurrentPassword, OldHash)).Returns((ErrorOr<bool>)false);
-        ChangePasswordCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.ChangePasswordAsync(TestUserId, CurrentPassword, NewPassword, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -95,10 +97,10 @@ public sealed class ChangePasswordCommandTests
         SetupUserAndIdentity(user, identity, cancellationToken);
         _hashServiceMock.Setup(service => service.Verify(CurrentPassword, OldHash)).Returns((ErrorOr<bool>)true);
         _hashServiceMock.Setup(service => service.GetHash(NewPassword)).Returns((ErrorOr<string>)hashError);
-        ChangePasswordCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.ChangePasswordAsync(TestUserId, CurrentPassword, NewPassword, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -118,10 +120,10 @@ public sealed class ChangePasswordCommandTests
         User user = CreateUser();
         var identity = IdentityAccount.Create(TestUserId, HashedPassword.Wrap(OldHash));
         SetupValid(user, identity, cancellationToken);
-        ChangePasswordCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.ChangePasswordAsync(TestUserId, CurrentPassword, NewPassword, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -138,10 +140,10 @@ public sealed class ChangePasswordCommandTests
         User user = CreateUser();
         var identity = IdentityAccount.Create(TestUserId, HashedPassword.Wrap(OldHash));
         SetupValid(user, identity, cancellationToken);
-        ChangePasswordCommandHandler handler = CreateHandler();
+        UserProfileService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(CreateCommand(), cancellationToken);
+        ErrorOr<Success> result = await service.ChangePasswordAsync(TestUserId, CurrentPassword, NewPassword, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -149,15 +151,14 @@ public sealed class ChangePasswordCommandTests
         VerifyValid(identity, cancellationToken);
     }
 
-    private ChangePasswordCommandHandler CreateHandler() =>
+    private UserProfileService CreateService() =>
         new(
             _userRepositoryMock.Object,
             _identityRepositoryMock.Object,
             _hashServiceMock.Object,
             _unitOfWorkMock.Object,
-            NullLogger<ChangePasswordCommandHandler>.Instance);
-
-    private static ChangePasswordCommand CreateCommand() => new(TestUserId, CurrentPassword, NewPassword);
+            _clockMock.Object,
+            NullLogger<UserProfileService>.Instance);
 
     private void SetupUserAndIdentity(User user, IdentityAccount identity, CancellationToken cancellationToken)
     {

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Desktop.ViewModels;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
+using State;
 using ErrorOr;
 using FluentAssertions;
 using Moq;
@@ -15,12 +16,11 @@ using Xunit;
 /// </summary>
 public class TransferViewModelTests
 {
-    private const int AccountSelectionStep = 1;
-    private const int RecipientDetailsStep = 2;
-    private const int AmountDetailsStep = 3;
-    private const int ReviewAndConfirmationStep = 4;
-    private const int TransferCompletedStep = 5;
-    private const int TransferErrorStep = 6;
+    private const int IbanValidationStep = 1;
+    private const int TransferDetailsStep = 2;
+    private const int ReviewAndConfirmationStep = 3;
+    private const int TransferCompletedStep = 4;
+    private const int TransferErrorStep = 5;
 
     private readonly Mock<ITransferService> _transferClientService;
     private readonly TransferViewModel _viewModel;
@@ -32,7 +32,7 @@ public class TransferViewModelTests
     public TransferViewModelTests()
     {
         _transferClientService = new Mock<ITransferService>(MockBehavior.Loose);
-        _viewModel = new TransferViewModel(_transferClientService.Object);
+        _viewModel = new TransferViewModel(_transferClientService.Object, Mock.Of<ITransferDraftState>());
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public class TransferViewModelTests
     {
         // Arrange
         _transferClientService
-            .Setup(service => service.GetAccountsAsync(default))
+            .Setup(service => service.GetAccountsAsync(CancellationToken.None))
             .ReturnsAsync(Error.Failure());
 
         // Act
@@ -86,53 +86,72 @@ public class TransferViewModelTests
     }
 
     /// <summary>
-    ///     ExecuteNextStep from step 1 should advance to step 2.
+    ///     ExecuteNextStep from step 1 should advance to step 2 when IBAN is valid.
     /// </summary>
     [Fact]
-    public void ExecuteNextStep_FromStep1_AdvancesToStep2()
+    public async Task ExecuteNextStep_WhenOnStep1AndIbanIsValid_ShouldGoToDetailsStep()
     {
         // Arrange
-        _viewModel.CurrentStep.Should().Be(AccountSelectionStep);
+        const string recipientIban = "RO49AAAA1B31007593840000";
+        const string bankName = "Test Bank";
+        _viewModel.CurrentStep = IbanValidationStep;
+        _viewModel.RecipientIban = recipientIban;
+
+        _transferClientService
+            .Setup(service => service.ValidateIbanAsync(
+                It.Is<TransferIbanValidationRequest>(request => request.Iban == recipientIban),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TransferIbanValidationResponse { IsValid = true, BankName = bankName });
 
         // Act
-        _viewModel.ExecuteNextStep();
+        await _viewModel.ExecuteNextStep();
 
         // Assert
-        _viewModel.CurrentStep.Should().Be(RecipientDetailsStep);
+        _viewModel.CurrentStep.Should().Be(TransferDetailsStep);
+        _viewModel.IsIbanValid.Should().BeTrue();
+        _viewModel.BankName.Should().Be(bankName);
     }
 
     /// <summary>
-    ///     ExecuteNextStep at the recipient step when IBAN is invalid should set
+    ///     ExecuteNextStep at the IBAN step when IBAN is invalid should set
     ///     the error step and the invalid IBAN error message.
     /// </summary>
     [Fact]
-    public void ExecuteNextStep_AtRecipientStep_WhenIBANInvalid_SetsErrorStep()
+    public async Task ExecuteNextStep_WhenOnStep1AndIbanIsInvalid_ShouldSetError()
     {
         // Arrange
-        _viewModel.CurrentStep = RecipientDetailsStep;
-        _viewModel.IsIbanValid = false;
+        const string recipientIban = "INVALID_IBAN";
+        _viewModel.CurrentStep = IbanValidationStep;
+        _viewModel.RecipientIban = recipientIban;
+
+        _transferClientService
+            .Setup(service => service.ValidateIbanAsync(
+                It.Is<TransferIbanValidationRequest>(request => request.Iban == recipientIban),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TransferIbanValidationResponse { IsValid = false });
 
         // Act
-        _viewModel.ExecuteNextStep();
+        await _viewModel.ExecuteNextStep();
 
         // Assert
         _viewModel.CurrentStep.Should().Be(TransferErrorStep);
+        _viewModel.IsIbanValid.Should().BeFalse();
         _viewModel.ErrorMessage.Should().Be(UserMessages.Transfer.InvalidIban);
     }
 
     /// <summary>
-    ///     ExecuteNextStep at the amount step when amount is zero should set
+    ///     ExecuteNextStep at the details step when amount is zero should set
     ///     the error step and the amount error message.
     /// </summary>
     [Fact]
-    public void ExecuteNextStep_AtAmountStep_WhenAmountZero_SetsErrorStep()
+    public async Task ExecuteNextStep_WhenOnStep2AndAmountIsZero_ShouldSetError()
     {
         // Arrange
-        _viewModel.CurrentStep = AmountDetailsStep;
+        _viewModel.CurrentStep = TransferDetailsStep;
         _viewModel.Amount = 0m;
 
         // Act
-        _viewModel.ExecuteNextStep();
+        await _viewModel.ExecuteNextStep();
 
         // Assert
         _viewModel.CurrentStep.Should().Be(TransferErrorStep);
@@ -140,14 +159,16 @@ public class TransferViewModelTests
     }
 
     [Fact]
-    public void ExecuteNextStep_AtAmountStep_WhenAmountIsPositive_GoesToReview()
+    public async Task ExecuteNextStep_WhenOnStep2AndAmountIsPositive_ShouldGoToReview()
     {
         // Arrange
-        _viewModel.CurrentStep = AmountDetailsStep;
+        _viewModel.CurrentStep = TransferDetailsStep;
+        _viewModel.SelectedAccount = new TransferAccountSelectionResponse { Id = 1, AccountName = "Main", Currency = "EUR" };
+        _viewModel.RecipientName = "Jane Doe";
         _viewModel.Amount = 100m;
 
         // Act
-        _viewModel.ExecuteNextStep();
+        await _viewModel.ExecuteNextStep();
 
         // Assert
         _viewModel.CurrentStep.Should().Be(ReviewAndConfirmationStep);
@@ -218,7 +239,7 @@ public class TransferViewModelTests
         };
 
         _transferClientService
-            .Setup(service => service.GetAccountsAsync(default))
+            .Setup(service => service.GetAccountsAsync(CancellationToken.None))
             .ReturnsAsync(accounts);
 
         await _viewModel.LoadAccountsAsync();
@@ -234,7 +255,7 @@ public class TransferViewModelTests
         _viewModel.ExecuteSendAgain();
 
         // Assert
-        _viewModel.CurrentStep.Should().Be(AccountSelectionStep);
+        _viewModel.CurrentStep.Should().Be(IbanValidationStep);
         _viewModel.RecipientName.Should().BeEmpty();
         _viewModel.RecipientIban.Should().BeEmpty();
         _viewModel.AmountText.Should().BeEmpty();

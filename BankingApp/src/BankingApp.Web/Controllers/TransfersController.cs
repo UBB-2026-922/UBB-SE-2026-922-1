@@ -1,20 +1,68 @@
 namespace BankingApp.Web.Controllers;
 
+using Contracts.Features.Beneficiaries.Dtos;
+using Contracts.Features.Beneficiaries.Services;
 using Contracts.Features.Transfers.Dtos;
 using Contracts.Features.Transfers.Services;
 using ErrorOr;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ViewModels.Transfers;
+using Models.Transfers;
 
 [Authorize]
-public class TransfersController(ITransferService transferService) : Controller
+public class TransfersController(
+    ITransferService transferService,
+    IBeneficiaryService beneficiaryService) : Controller
 {
-    public IActionResult New() => View(new TransferNewViewModel());
+    public IActionResult Index() => RedirectToAction(nameof(New));
+
+    public async Task<IActionResult> New(int? beneficiaryId, CancellationToken ct = default)
+    {
+        if (!beneficiaryId.HasValue)
+        {
+            return View(new TransferNewModel());
+        }
+
+        ErrorOr<BeneficiaryDto> beneficiaryResult = await beneficiaryService.GetByIdAsync(beneficiaryId.Value, ct);
+        if (beneficiaryResult.IsError)
+        {
+            TempData["Error"] = "Unable to open transfer for the selected beneficiary.";
+            return RedirectToAction("Index", "Beneficiaries");
+        }
+
+        Task<ErrorOr<TransferIbanValidationResponse>> validationTask =
+            transferService.ValidateIbanAsync(
+                new TransferIbanValidationRequest { Iban = beneficiaryResult.Value.Iban ?? string.Empty },
+                ct);
+        Task<ErrorOr<List<TransferAccountSelectionResponse>>> accountsTask = transferService.GetAccountsAsync(ct);
+
+        await Task.WhenAll(validationTask, accountsTask);
+
+        ErrorOr<TransferIbanValidationResponse> validationResult = await validationTask;
+        ErrorOr<List<TransferAccountSelectionResponse>> accountsResult = await accountsTask;
+
+        if (validationResult.IsError || !validationResult.Value.IsValid || accountsResult.IsError)
+        {
+            TempData["Error"] = "Unable to prepare a transfer for the selected beneficiary.";
+            return RedirectToAction("Index", "Beneficiaries");
+        }
+
+        return View(
+            "ValidateIban",
+            new TransferIbanValidatedModel
+            {
+                RecipientIban = beneficiaryResult.Value.Iban ?? string.Empty,
+                RecipientName = beneficiaryResult.Value.Name ?? string.Empty,
+                RecipientBankName = string.IsNullOrWhiteSpace(beneficiaryResult.Value.BankName)
+                    ? validationResult.Value.BankName
+                    : beneficiaryResult.Value.BankName,
+                Accounts = accountsResult.Value,
+            });
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ValidateIban(TransferNewViewModel model, CancellationToken ct)
+    public async Task<IActionResult> ValidateIban(TransferNewModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -42,7 +90,7 @@ public class TransfersController(ITransferService transferService) : Controller
             return View("New", model);
         }
 
-        TransferIbanValidatedViewModel viewModel = new()
+        TransferIbanValidatedModel viewModel = new()
         {
             RecipientIban = model.RecipientIban,
             RecipientBankName = validationResult.Value.BankName,
@@ -54,7 +102,7 @@ public class TransfersController(ITransferService transferService) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Preview(TransferIbanValidatedViewModel model, CancellationToken ct)
+    public async Task<IActionResult> Preview(TransferIbanValidatedModel model, CancellationToken ct)
     {
         if (!ModelState.IsValid)
         {
@@ -69,7 +117,7 @@ public class TransfersController(ITransferService transferService) : Controller
 
         string sourceCurrency = sourceAccount?.Currency ?? string.Empty;
 
-        TransferPreviewViewModel previewVm = new()
+        TransferPreviewModel previewVm = new()
         {
             SourceAccountId = model.SelectedAccountId,
             SourceAccountIban = sourceAccount?.Iban ?? string.Empty,
@@ -82,11 +130,7 @@ public class TransfersController(ITransferService transferService) : Controller
             Reference = model.Reference,
         };
 
-        // Check for cross-currency transfer
-        bool isCrossCurrency = !string.IsNullOrEmpty(sourceCurrency)
-                               && !string.Equals(sourceCurrency, model.Currency, StringComparison.OrdinalIgnoreCase);
-
-        if (isCrossCurrency)
+        if (!string.IsNullOrEmpty(sourceCurrency) && !string.IsNullOrEmpty(model.Currency) && model.Amount > 0)
         {
             ErrorOr<TransferForexPreviewResponse> fxResult =
                 await transferService.GetFxPreviewAsync(sourceCurrency, model.Currency, model.Amount, ct);
@@ -98,7 +142,11 @@ public class TransfersController(ITransferService transferService) : Controller
                 return View("ValidateIban", model);
             }
 
-            previewVm.IsCrossCurrency = true;
+            if (fxResult.Value.ExchangeRate != 1m)
+            {
+                previewVm.IsCrossCurrency = true;
+            }
+            
             previewVm.ExchangeRate = fxResult.Value.ExchangeRate;
             previewVm.ConvertedAmount = fxResult.Value.ConvertedAmount;
         }
@@ -108,7 +156,7 @@ public class TransfersController(ITransferService transferService) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Confirm(TransferPreviewViewModel model, CancellationToken ct)
+    public async Task<IActionResult> Confirm(TransferPreviewModel model, CancellationToken ct)
     {
         CreateTransferRequest request = new()
         {
@@ -142,12 +190,12 @@ public class TransfersController(ITransferService transferService) : Controller
         if (result.IsError)
         {
             TempData["Error"] = "Unable to load transfer history. Please try again.";
-            return View(new TransferHistoryViewModel());
+            return View(new TransferHistoryModel());
         }
 
-        TransferHistoryViewModel viewModel = new()
+        TransferHistoryModel viewModel = new()
         {
-            Transfers = result.Value.ConvertAll(t => new TransferHistoryRowViewModel
+            Transfers = result.Value.ConvertAll(t => new TransferHistoryRowModel
             {
                 Id = t.Id,
                 RecipientIban = t.RecipientIban,
@@ -155,6 +203,7 @@ public class TransfersController(ITransferService transferService) : Controller
                 Amount = t.Amount,
                 Currency = t.Currency,
                 Status = t.Status.ToString(),
+                Reference = string.IsNullOrWhiteSpace(t.TransactionRef) ? "—" : t.TransactionRef,
                 CreatedAt = t.CreatedAt,
             })
         };
@@ -162,7 +211,7 @@ public class TransfersController(ITransferService transferService) : Controller
         return View(viewModel);
     }
 
-    private async Task RepopulateAccountsAsync(TransferIbanValidatedViewModel vm, CancellationToken ct)
+    private async Task RepopulateAccountsAsync(TransferIbanValidatedModel vm, CancellationToken ct)
     {
         ErrorOr<List<TransferAccountSelectionResponse>> result = await transferService.GetAccountsAsync(ct);
         vm.Accounts = result.IsError ? [] : result.Value;

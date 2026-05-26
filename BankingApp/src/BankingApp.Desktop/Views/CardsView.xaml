@@ -140,7 +140,8 @@
                                 <Border Margin="0,0,0,16"
                                         CornerRadius="16"
                                         Background="White"
-                                        BorderThickness="0">
+                                        BorderThickness="0"
+                                        Opacity="{x:Bind DisplayOpacity}">
                                     <Border.Shadow>
                                         <ThemeShadow />
                                     </Border.Shadow>
@@ -235,8 +236,21 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" Spacing="2">
-                                                    <TextBlock Text="{x:Bind AccountName, TargetNullValue='0'}"
-                                                               FontSize="13" Foreground="#667085" />
+                                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                        <TextBlock Text="{x:Bind AccountIban}"
+                                                                   FontSize="13" Foreground="#667085"
+                                                                   VerticalAlignment="Center" />
+                                                        <Button Tag="{x:Bind AccountIban}"
+                                                                Click="CopyIban_Click"
+                                                                Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Padding="4"
+                                                                VerticalAlignment="Center"
+                                                                ToolTipService.ToolTip="Copy IBAN">
+                                                            <FontIcon Glyph="&#xE8C8;" FontFamily="Segoe MDL2 Assets"
+                                                                      FontSize="12" Foreground="#94A3B8" />
+                                                        </Button>
+                                                    </StackPanel>
                                                     <TextBlock Text="{x:Bind CardType}"
                                                                FontSize="12" Foreground="#94A3B8" />
                                                 </StackPanel>
@@ -249,6 +263,16 @@
                                                                Foreground="#2563EB" />
                                                 </Border>
                                             </Grid>
+
+                                            <!-- Account balance -->
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <TextBlock Text="{x:Bind BalanceDisplay}"
+                                                           FontSize="15" FontWeight="SemiBold"
+                                                           Foreground="#1A1A2E" />
+                                                <TextBlock Text="account balance"
+                                                           FontSize="12" Foreground="#94A3B8"
+                                                           VerticalAlignment="Bottom" />
+                                            </StackPanel>
 
                                             <!-- Feature badges -->
                                             <StackPanel Orientation="Horizontal" Spacing="8">

@@ -1,8 +1,9 @@
 namespace BankingApp.Application.Tests.Features.Billers.Commands;
 
-using BankingApp.Application.Features.Billers.Commands;
+using BankingApp.Application.Features.Billers.Services;
 using BankingApp.Domain.Common.Errors;
 using ErrorOr;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shared.Persistence;
 
 public sealed class DeleteSavedBillerCommandTests
@@ -27,11 +28,10 @@ public sealed class DeleteSavedBillerCommandTests
             .Setup(repository => repository.GetByIdAsync(TestSavedBillerId, cancellationToken))
             .ReturnsAsync((SavedBiller?)null);
 
-        DeleteSavedBillerCommandHandler handler = CreateHandler();
-        var command = new DeleteSavedBillerCommand(TestUserId, TestSavedBillerId);
+        BillerService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.DeleteSavedBillerAsync(TestUserId, TestSavedBillerId, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -53,11 +53,10 @@ public sealed class DeleteSavedBillerCommandTests
             .Setup(repository => repository.GetByIdAsync(TestSavedBillerId, cancellationToken))
             .ReturnsAsync(otherUserSavedBiller);
 
-        DeleteSavedBillerCommandHandler handler = CreateHandler();
-        var command = new DeleteSavedBillerCommand(TestUserId, TestSavedBillerId);
+        BillerService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.DeleteSavedBillerAsync(TestUserId, TestSavedBillerId, cancellationToken);
 
         // Assert
         result.IsError.Should().BeTrue();
@@ -87,11 +86,10 @@ public sealed class DeleteSavedBillerCommandTests
             .Setup(uow => uow.SaveChangesAsync(cancellationToken))
             .Returns(Task.CompletedTask);
 
-        DeleteSavedBillerCommandHandler handler = CreateHandler();
-        var command = new DeleteSavedBillerCommand(TestUserId, TestSavedBillerId);
+        BillerService service = CreateService();
 
         // Act
-        ErrorOr<Success> result = await handler.Handle(command, cancellationToken);
+        ErrorOr<Success> result = await service.DeleteSavedBillerAsync(TestUserId, TestSavedBillerId, cancellationToken);
 
         // Assert
         result.IsError.Should().BeFalse();
@@ -104,9 +102,13 @@ public sealed class DeleteSavedBillerCommandTests
         _unitOfWorkMock.VerifyNoOtherCalls();
     }
 
-    private DeleteSavedBillerCommandHandler CreateHandler()
+    private BillerService CreateService()
     {
-        return new DeleteSavedBillerCommandHandler(_savedBillerRepositoryMock.Object, _unitOfWorkMock.Object);
+        return new BillerService(
+            new Mock<IBillerRepository>().Object,
+            _savedBillerRepositoryMock.Object,
+            _unitOfWorkMock.Object,
+            new Mock<Shared.Clock.ISystemClock>().Object);
     }
 
     private static SavedBiller CreateSavedBiller(int userId)

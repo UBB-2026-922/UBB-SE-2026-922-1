@@ -1,4 +1,4 @@
-﻿@model BankingApp.Web.ViewModels.BeneficiaryListViewModel
+@model BankingApp.Web.Models.Beneficiaries.BeneficiaryListModel
 @using System.Text.Encodings.Web
 @{
     ViewData["Title"] = "Beneficiaries";
@@ -14,7 +14,7 @@
     </a>
 </div>
 
-@if (!Model.Beneficiaries.Any())
+@if (!Model.HasBeneficiaries)
 {
     <div class="card">
         <div class="card-body text-center py-5">
@@ -42,7 +42,7 @@ else
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (BankingApp.Web.ViewModels.BeneficiaryListViewModel.BeneficiaryRow row in Model.Beneficiaries)
+                        @foreach (BankingApp.Web.Models.Beneficiaries.BeneficiaryListItemModel row in Model.Beneficiaries)
                         {
                             <tr>
                                 <td class="fw-medium">@row.Name</td>
@@ -58,8 +58,12 @@ else
                                         : "—")
                                 </td>
                                 <td class="text-end" style="white-space:nowrap">
+                                    <a asp-controller="Transfers" asp-action="New" asp-route-beneficiaryId="@row.Id"
+                                       class="btn btn-sm btn-primary me-1">
+                                        <i class="bi bi-send"></i>
+                                    </a>
                                     <a asp-action="Edit" asp-route-id="@row.Id"
-                                           class="btn btn-sm btn-outline-secondary me-1">
+                                       class="btn btn-sm btn-outline-secondary me-1">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <form asp-action="Delete" asp-route-id="@row.Id"

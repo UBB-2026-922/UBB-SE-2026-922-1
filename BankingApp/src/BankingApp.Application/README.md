@@ -63,10 +63,6 @@ Interfaces that the Application layer depends on but does not implement.
 
 `IHashService`, `IJsonWebTokenService`
 
-### Notifications (`Common/Contracts/Notifications/`)
-
-`IEmailService` — login alerts and password-reset links
-
 ## Features
 
 ### Authentication

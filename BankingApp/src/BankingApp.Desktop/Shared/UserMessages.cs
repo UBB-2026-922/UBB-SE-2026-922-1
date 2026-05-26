@@ -50,9 +50,12 @@ internal static class UserMessages
     internal static class Exchange
     {
         internal const string CurrencyRequired = "Please select both source and target currencies.";
+        internal const string SameCurrency = "Source and target currencies must be different.";
+        internal const string AccountRequired = "Please select both source and target accounts.";
         internal const string AmountRequired = "Please enter an amount greater than zero.";
         internal const string PreviewFailed = "Could not load the exchange rate preview. Please try again.";
         internal const string ExecuteFailed = "The exchange could not be completed. Please try again.";
+        internal const string HistoryLoadFailed = "Could not load exchange history. Please try again.";
     }
 
     internal static class RateAlerts
