@@ -43,18 +43,6 @@ public class BillPaymentsController(IBillPaymentService billPaymentService) : Ap
     }
 
     /// <summary>
-    /// Retrieves the bill payment accounts for the authenticated user.
-    /// </summary>
-    /// <param name="cancellationToken">A cancellation token.</param>
-    /// <returns>The bill payment accounts.</returns>
-    [HttpGet(ApiEndpoints.BillPayments.Accounts)]
-    public async Task<IActionResult> GetAccounts(CancellationToken cancellationToken)
-    {
-        int userId = GetAuthenticatedUserId();
-        return ToActionResult(await billPaymentService.GetAccountsAsync(userId, cancellationToken), Ok);
-    }
-
-    /// <summary>
     /// Processes a bill payment request.
     /// </summary>
     /// <param name="request">The bill payment request details.</param>
